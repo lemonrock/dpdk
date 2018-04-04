@@ -1,0 +1,15 @@
+cmdline_ cmdline
+eal_default_log log
+eal_timer_ timer
+lcore_config lcore
+per_lcore_ lcore
+rte_logs log
+rte_mempool_ rte_mempool
+rte_port_ rte_port
+rte_power_ rte_power
+rte_red_ rte_red
+rte_table_ rte_table
+rte_cycles_vmware_tsc_map timer
+pci_ pci
+rte_cryptodev rte_cryptodev
+rte_eth_ rte_eth

@@ -1,0 +1,27 @@
+# This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+# Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
+
+[package]
+name = "dpdk-sys"
+description = "dpdk-sys"
+keywords = ["dpdk-sys"]
+license = "MIT"
+authors = ["Raphael Cohn <raphael.cohn@stormmq.com>"]
+documentation = "https://github.com/lemonrock/dpdk/blob/master/README.md"
+homepage = "https://github.com/lemonrock/dpdk"
+repository = "https://github.com/lemonrock/dpdk.git"
+exclude = ["compile-dpdk-with-tldk.conf.d/temporary", "tools/bindgen-wrapper/temporary", "lib/dpdk/doc/**", "lib/dpdk/test/**", "lib/dpdk/examples/**", "lib/tldk/doc/**", "lib/tldk/test/**", "lib/tldk/examples/**"]
+readme = "README.md"
+publish = true
+version = "0.0.2"
+build = "src/build.rs"
+links = "dpdk"
+
+[dependencies]
+rust_c = { version = "0.1.1", features = ["macro"] }
+libc = "0.2.40"
+libnuma-sys = "0.0.9"
+rdma-core-sys = "0.1.10"
+
+[build-dependencies]
+rust_c = { version = "0.1.1", features = ["build"] }

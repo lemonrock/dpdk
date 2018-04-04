@@ -1,0 +1,12 @@
+[submodule ".cargo"]
+	path = .cargo
+	url = https://github.com/lemonrock/.cargo.git
+[submodule "workspace/dpdk-sys/lib/dpdk-and-tldk/dpdk"]
+	path = workspace/dpdk-sys/lib/dpdk-and-tldk/dpdk
+	url = http://dpdk.org/git/dpdk
+[submodule "workspace/dpdk-sys/lib/dpdk-and-tldk/tldk"]
+	path = workspace/dpdk-sys/lib/dpdk-and-tldk/tldk
+	url = https://gerrit.fd.io/r/tldk
+[submodule "workspace/dpdk-sys/tools/bindgen-wrapper"]
+	path = workspace/dpdk-sys/tools/bindgen-wrapper
+	url = https://github.com/lemonrock/bindgen-wrapper.git
