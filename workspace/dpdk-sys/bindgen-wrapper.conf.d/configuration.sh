@@ -18,23 +18,6 @@ headersFolderPath='DESTDIR/usr/include/dpdk'
 link="$(_extract_from_linker_script "$rootOutputFolderPath"/DESTDIR/usr/lib/libdpdk.a) tle_misc tle_dring tle_timer tle_l4p"
 link_kind='static-nobundle'
 
-postprocess_after_rustfmt()
-{
-	# Sed explanations:-
-	# 1 - unwanted constants from header file parsing
-	# 2 - unwanted private function
-	# 3 - functions that uses va_list (sort of supported, but difficult to use)
-	# sed \
-	# 	-e '/pub const _RTE_RTM_H_:/d' \
-	# 	-e '/pub const __ELASTERROR:/d' \
-	# 	-e '/pub const __RESERVED:/d' \
-	# | sed \
-	# 	-e '/pub fn __rte_panic/d' \
-	# | sed \
-	# 	-e '/pub fn rte_vlog/d'
-	:
-}
-
 final_chance_to_tweak()
 {
 	:
