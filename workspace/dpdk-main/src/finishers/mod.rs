@@ -3,7 +3,7 @@
 
 
 use ::dpdk::pci::android_linux::Unbind;
-use ::dpdk::dpdk_unix::android_linux::modules::ModulesList;
+use ::dpdk::dpdk_unix::android_linux::linux_kernel_modules::LinuxKernelModulesList;
 use ::dpdk::dpdk_unix::android_linux::mounts::Mount;
 use ::dpdk::dpdk_unix::android_linux::mounts::UnmountFlags;
 use ::std::fmt::Debug;

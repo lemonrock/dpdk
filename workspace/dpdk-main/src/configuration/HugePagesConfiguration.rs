@@ -30,7 +30,7 @@ impl Default for HugePagesConfiguration
 impl HugePagesConfiguration
 {
 	#[cfg(any(target_os = "android", target_os = "linux"))]
-	fn setUpHugePagesAndNumaMemory(&self, procPath: &Path, sysPath: &Path, numaSockets: &NumaSockets) -> (Option<PathBuf>, HugePageFinisher)
+	fn setUpHugePagesAndNumaMemory(&self, proc_path: &Path, sysPath: &Path, numaSockets: &NumaSockets) -> (Option<PathBuf>, HugePageFinisher)
 	{
 		let nonNumaHugePageAllocationStrategy = &self.nonNumaHugePageAllocationStrategy;
 		let numaHugePageAllocationStrategy = &self.numaHugePageAllocationStrategy;
@@ -47,15 +47,15 @@ impl HugePagesConfiguration
 			}
 		}
 		
-		fn mountHugePages<'a>(mounts: &'a HashMap<PathBuf, Mount>, hugePageMountSettings: &HugePageMountSettings, largestHugePageSize: HugePageSize) -> (PathBuf, HugePageFinisher)
+		fn mount_huge_pages<'a>(mounts: &'a HashMap<PathBuf, Mount>, hugePageMountSettings: &HugePageMountSettings, largestHugePageSize: HugePageSize) -> (PathBuf, HugePageFinisher)
 		{
 			fn findAHugeTlbFsMount<'a>(mounts: &'a HashMap<PathBuf, Mount>) -> Option<&'a Path>
 			{
 				for (_, mount) in mounts.iter()
 				{
-					if mount.isFileSystemType(&FileSystemType::hugetlbfs)
+					if mount.has_file_system_type(&FileSystemType::hugetlbfs)
 					{
-						let mountPoint = &mount.mountPoint;
+						let mountPoint = &mount.mount_point;
 						if mountPoint.is_dir()
 						{
 							return Some(mountPoint);
@@ -73,32 +73,32 @@ impl HugePagesConfiguration
 				},
 				None =>
 				{
-					let mountPoint = &hugePageMountSettings.mountPoint;
+					let mount_point = &hugePageMountSettings.mount_point;
 					let created =
 					{
-						if mountPoint.exists()
+						if mount_point.exists()
 						{
-							if !mountPoint.is_dir()
+							if !mount_point.is_dir()
 							{
-								panic!("Mount point {:?} for Hugeltbfs is not a directory", mountPoint);
+								panic!("Mount point {:?} for hugeltbfs is not a directory", mount_point);
 							}
 							false
 						}
 						else
 						{
-							create_dir_all(mountPoint).expect(&format!("Could not create Hugetlbfs mountPoint at {:?}", mountPoint));
+							create_dir_all(mount_point).expect(&format!("Could not create hugeltbfs mount_point at {:?}", mount_point));
 							true
 						}
 					};
 					
-					(Mount::mountHugePages(hugePageMountSettings, Some(largestHugePageSize)).expect("Could not mount hugetlbfs"), HugePageFinisher::new(mountPoint, created, true))
+					(Mount::mount_huge_pages(hugePageMountSettings, Some(largestHugePageSize)).expect("Could not mount hugetlbfs"), HugePageFinisher::new(mount_point, created, true))
 				}
 			}
 		}
 		
-		let machineMemoryStatistics = MemoryStatistics::forMachine(procPath).expect("Could not parse memory statistics");
+		let machineMemoryStatistics = MemoryStatistics::parse_for_machine(proc_path).expect("Could not parse memory statistics");
 		
-		let supportedHugePageSizes = NonNumaMemory::supportedHugePageSizesLargestFirst(sysPath, machineMemoryStatistics.defaultHugePageSize());
+		let supportedHugePageSizes = NonNumaMemory::supportedHugePageSizesLargestFirst(sysPath, machineMemoryStatistics.default_huge_page_size());
 		if supportedHugePageSizes.is_empty()
 		{
 			return (None, HugePageFinisher::FreeBsd);
@@ -106,7 +106,7 @@ impl HugePagesConfiguration
 		
 		let largestHugePageSize = supportedHugePageSizes[0];
 		
-		verifyLinuxKernelSupportsHugetlbfs(procPath);
+		verifyLinuxKernelSupportsHugetlbfs(proc_path);
 		
 		numaSockets.iterateUsefulSocketsIfIsANumaMachine(|numaSocketId|
 		{
@@ -125,21 +125,21 @@ impl HugePagesConfiguration
 			NonNumaMemory::tryToClearAllNonNumaHugePagesReserved(sysPath, *hugePageSize).expect(&format!("Could not clear Non-NUMA huge pages of size '{:?}'", hugePageSize));
 		}
 		
-		let machineTotalFreeMemory = machineMemoryStatistics.freePhysicalRam().expect("No machine total free RAM statistic");
+		let machineTotalFreeMemory = machineMemoryStatistics.free_physical_ram().expect("No machine total free RAM statistic");
 		let count = nonNumaHugePageAllocationStrategy.allocateInPages(largestHugePageSize, machineTotalFreeMemory);
 		NonNumaMemory::tryToReserveNonNumaHugePages(sysPath, largestHugePageSize, count).expect("Could not reserve non-NUMA huge pages");
 		
 		numaSockets.iterateUsefulSocketsIfIsANumaMachine(|numaSocketId|
 		{
-			let numaNodeTotalFreeMemory = numaSocketId.meminfo(sysPath).expect(&format!("Could not parse NUMA node memory statistics on socket '{}'", numaSocketId.as_c_uint())).freePhysicalRam().expect(&format!("No NUMA node total free RAM statistic on socket '{}'", numaSocketId.as_c_uint()));
+			let numaNodeTotalFreeMemory = numaSocketId.meminfo(sysPath).expect(&format!("Could not parse NUMA node memory statistics on socket '{}'", numaSocketId.as_c_uint())).free_physical_ram().expect(&format!("No NUMA node total free RAM statistic on socket '{}'", numaSocketId.as_c_uint()));
 			let count = numaHugePageAllocationStrategy.allocateInPages(largestHugePageSize, numaNodeTotalFreeMemory);
 			numaSocketId.tryToReserveHugePages(sysPath, largestHugePageSize, count).expect(&format!("Could not reserve NUMA huge pages on socket '{}'", numaSocketId.as_c_uint()));
 		});
 		
-		adjustTransparentHugePages(self.enableTransparentHugePages);
+		adjust_transparent_huge_pages(self.enableTransparentHugePages);
 		
-		let mounts = Mounts::parse(procPath).expect("Could not parse mounts");
-		let (mountPath, finisher) = mountHugePages(&mounts, &self.hugePageMountSettings, largestHugePageSize);
+		let mounts = Mounts::parse(proc_path).expect("Could not parse mounts");
+		let (mountPath, finisher) = mount_huge_pages(&mounts, &self.hugePageMountSettings, largestHugePageSize);
 		(Some(mountPath), finisher)
 	}
 }

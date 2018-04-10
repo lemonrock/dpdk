@@ -110,7 +110,7 @@ impl NumaSockets
 	{
 		let mut activeCpusByNumaSocket: NumaSocketMap<HashSet<LogicalCore>> = NumaSocketMap::new();
 		
-		let logicalCoresActive = try!(LogicalCore::online(&sysPath));
+		let logicalCoresActive = LogicalCore::online(&sysPath)?;
 		
 		let isANumaMachine = if numaNodesData.is_none()
 		{
@@ -129,21 +129,21 @@ impl NumaSockets
 			{
 				// Read cpus - not definitive, as may not be online
 				let numaSocketId = NumaSocketId::fromU32(numaNodeIndex as u32).unwrap();
-				let logicalCoresPotentiallyActive = try!(numaSocketId.cpuList(sysPath));
+				let logicalCoresPotentiallyActive = numaSocketId.cpuList(sysPath)?;
 				let activeCpus = logicalCoresPotentiallyActive.intersect(&logicalCoresActive);
 			
 				if activeCpus.hasAtLeastOneActive()
 				{
-					try!(activeCpus.iterateEnabledWithEarlyReturn(|cpuIndex|
+					activeCpus.iterateEnabledWithEarlyReturn(|cpuIndex|
 					{
 						if shouldNotContainAnyLogicalCoresWhenAllNumaNodesConsidered.isDisabled(cpuIndex)
 						{
 							return Err(NumaSocketsDiscoveryError::CpuIsInMoreThanOneNumaNode(cpuIndex))
 						}
 						shouldNotContainAnyLogicalCoresWhenAllNumaNodesConsidered.disable(cpuIndex);
-					
+						
 						Ok(())
-					}));
+					})?;
 					
 					activeCpusByNumaSocket.putOnce(numaSocketId, activeCpus.asHashSet());
 				}

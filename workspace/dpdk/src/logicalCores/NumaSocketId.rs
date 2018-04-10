@@ -120,59 +120,59 @@ impl NumaSocketId
 	pub fn distance(&self, sysPath: &Path) -> io::Result<u8>
 	{
 		let filePath = self.itemPath(sysPath, "distance");
-		readValueFromFile(&filePath)
+		filePath.read_value()
 	}
 	
 	pub fn numberOfHugePages(&self, sysPath: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
 	{
 		let filePath = self.numberOfHugePagesFilePath(sysPath, hugePageSize);
-		readValueFromFile(&filePath)
+		filePath.read_value()
 	}
 	
 	pub fn numberOfFreeHugePages(&self, sysPath: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
 	{
 		let filePath = self.hugepagesPath(sysPath, hugePageSize, "free_hugepages");
-		readValueFromFile(&filePath)
+		filePath.read_value()
 	}
 	
 	pub fn numberOfSurplusHugePages(&self, sysPath: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
 	{
 		let filePath = self.hugepagesPath(sysPath, hugePageSize, "surplus_hugepages");
-		readValueFromFile(&filePath)
+		filePath.read_value()
 	}
 	
 	/// Will only work as root
 	pub fn tryToCompact(&self, sysPath: &Path) -> io::Result<()>
 	{
-		assertEffectiveUserIsRoot(&format!("Compact NUMA node '{}'", self.0));
+		assert_effective_user_id_is_root(&format!("Compact NUMA node '{}'", self.0));
 
 		let path = self.itemPath(sysPath, "compact");
-		writeValueToFile(&path, 1)
+		path.write_value(1)
 	}
 	
 	/// Will only work as root
 	pub fn tryToEvictPages(&self, sysPath: &Path) -> io::Result<()>
 	{
-		assertEffectiveUserIsRoot(&format!("Evict pages on NUMA node '{}'", self.0));
+		assert_effective_user_id_is_root(&format!("Evict pages on NUMA node '{}'", self.0));
 
 		let path = self.itemPath(sysPath, "scan_unevictable_pages");
-		writeValueToFile(&path, 1)
+		path.write_value(1)
 	}
 	
 	/// Will only work as root
 	pub fn tryToClearAllHugePagesReserved(&self, sysPath: &Path, hugePageSize: HugePageSize) -> io::Result<()>
 	{
-		assertEffectiveUserIsRoot(&format!("Clear all huge pages of size '{:?}' reserved on NUMA node '{}'", hugePageSize, self.0));
+		assert_effective_user_id_is_root(&format!("Clear all huge pages of size '{:?}' reserved on NUMA node '{}'", hugePageSize, self.0));
 		self.tryToReserveHugePages(sysPath, hugePageSize, 0)
 	}
 	
 	/// Will only work as root
 	pub fn tryToReserveHugePages(&self, sysPath: &Path, hugePageSize: HugePageSize, count: u64) -> io::Result<()>
 	{
-		assertEffectiveUserIsRoot(&format!("Reserve '{}' huge pages of size '{:?}' reserved on NUMA node '{}'", count, hugePageSize, self.0));
+		assert_effective_user_id_is_root(&format!("Reserve '{}' huge pages of size '{:?}' reserved on NUMA node '{}'", count, hugePageSize, self.0));
 
 		let filePath = self.numberOfHugePagesFilePath(sysPath, hugePageSize);
-		writeValueToFile(&filePath, count)
+		filePath.write_value(count)
 	}
 	
 	fn statisticListParse(&self, sysPath: &Path, statisticsFileName: &str) -> io::Result<NumaNodeStatistics>
@@ -183,7 +183,7 @@ impl NumaSocketId
 		let mut reader = BufReader::with_capacity(4096, openFile);
 
 		let mut numaNodeStatistics = NumaNodeStatistics::with_capacity(6);
-		let mut lineCount = 0;
+		let mut lineNumber = 0;
 		let mut line = String::with_capacity(64);
 		while reader.read_line(&mut line)? > 0
 		{
@@ -194,7 +194,7 @@ impl NumaSocketId
 				
 				let statisticValue = match split.next()
 				{
-					None => return Err(io::Error::new(ErrorKind::InvalidData, format!("Zero based line '{}' does not have a value second column", lineCount))),
+					None => return Err(io::Error::new(ErrorKind::InvalidData, format!("Zero based line '{}' does not have a value second column", lineNumber))),
 					Some(value) =>
 					{
 						match value.parse::<u64>()
@@ -207,12 +207,12 @@ impl NumaSocketId
 				
 				if let Some(previous) = numaNodeStatistics.insert(numaNodeStatisticName, statisticValue)
 				{
-					return Err(io::Error::new(ErrorKind::InvalidData, format!("Zero based line '{}' has a duplicate statistic (was '{}')", lineCount, previous)))
+					return Err(io::Error::new(ErrorKind::InvalidData, format!("Zero based line '{}' has a duplicate statistic (was '{}')", lineNumber, previous)))
 				}
 			}
 			
 			line.clear();
-			lineCount += 1;
+			lineNumber += 1;
 		}
 		
 		Ok(numaNodeStatistics)

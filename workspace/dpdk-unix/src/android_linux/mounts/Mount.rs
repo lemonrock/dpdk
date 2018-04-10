@@ -2,23 +2,43 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// Represents a mount.
 #[derive(Debug)]
 pub struct Mount
 {
-	pub nameOfMountedFileSystem: PathBuf, // eg eg /dev/sda1, proc, etc; not really that useful
-	pub mountPoint: PathBuf,
-	pub fileSystemType: FileSystemType, // eg proc, sysfs, hugetlbs, ext; listed in second column of /proc/filesystems (tab separated)
-	pub mountOptions: HashMap<String, Option<String>>, // eg nodev mode=0177
-	pub dumpFrequencyInDays: i32,
-	pub passNumberOnParallelFsck: i32,
+	/// eg eg `/dev/sda1`, `proc`, etc; not really that useful.
+	pub source: CString,
+	
+	/// Mount point.
+	pub mount_point: PathBuf,
+	
+	/// File system type.
+	///
+	/// eg `proc`, `sysfs`, `hugetlbs`, `ext4`; listed in second column of `/proc/filesystems`/
+	pub file_system_type: FileSystemType,
+	
+	/// Mount options.
+	///
+	/// eg `nodev mode=0177`
+	pub mount_options: HashMap<String, Option<String>>,
+	
+	/// Typically `0` (zero).
+	dump_frequency_in_days: i32,
+	
+	/// Typically `0` (zero).
+	pass_number_on_parallel_filesystem_type: i32,
 }
 
 impl Mount
 {
-	pub fn unmount(mountPoint: &Path, unmountFlags: UnmountFlags) -> Result<(), io::Error>
+	//noinspection SpellCheckingInspection
+	/// Unmounts.
+	pub fn unmount(mount_point: &Path, unmount_flags: UnmountFlags) -> Result<(), io::Error>
 	{
-		let target = pathToCString(mountPoint);
-		match unsafe { ::libc::umount2(target.as_ptr(), unmountFlags.bits()) }
+		use self::ErrorKind::*;
+		
+		let target = mount_point.to_c_string();
+		match unsafe { ::libc::umount2(target.as_ptr(), unmount_flags.bits()) }
 		{
 			0 => Ok(()),
 			
@@ -26,7 +46,7 @@ impl Mount
 			{
 				E::EAGAIN =>
 				{
-					if unmountFlags.contains(UnmountFlags::Expire)
+					if unmount_flags.contains(UnmountFlags::Expire)
 					{
 						Ok(())
 					}
@@ -35,13 +55,13 @@ impl Mount
 						panic!("umount() set an illegal errno of EAGAIN when unmount flags did not contain MNT_EXPIRE");
 					}
 				},
-				E::EBUSY => Err(io::Error::new(ErrorKind::TimedOut, "Busy")),
-				E::EPERM => Err(io::Error::new(ErrorKind::PermissionDenied, "permission denied")),
+				E::EBUSY => Err(io::Error::new(TimedOut, "Busy")),
+				E::EPERM => Err(io::Error::new(PermissionDenied, "permission denied")),
 				
-				E::ENOENT => Err(io::Error::new(ErrorKind::NotFound, "Mount path had an empty or non-existent component")),
-				E::EINVAL => Err(io::Error::new(ErrorKind::InvalidData, "One of many possible failures (EINVAL)")),
+				E::ENOENT => Err(io::Error::new(NotFound, "Mount path had an empty or non-existent component")),
+				E::EINVAL => Err(io::Error::new(InvalidData, "One of many possible failures (EINVAL)")),
 				E::ENOMEM => panic!("Out of memory (ENOMEM)"),
-				E::ENAMETOOLONG => panic!("mountPoint path name is too long"),
+				E::ENAMETOOLONG => panic!("mount_point path name is too long"),
 				E::EFAULT => panic!("Invalid data"),
 				
 				illegal @ _ => panic!("umount() set an illegal errno '{}'", illegal),
@@ -51,110 +71,121 @@ impl Mount
 		}
 	}
 	
-	pub fn isFileSystemType(&self, fileSystemType: &FileSystemType) -> bool
+	/// Does this mount have this file system type?
+	#[inline(always)]
+	pub fn has_file_system_type(&self, file_system_type: &FileSystemType) -> bool
 	{
-		&self.fileSystemType == fileSystemType
+		&self.file_system_type == file_system_type
 	}
 	
-	pub fn from_mntent(raw: *mut mntent) -> Self
+	//noinspection SpellCheckingInspection
+	fn from_mntent(raw: *mut mntent) -> Self
 	{
-		let nameOfMountedFileSystem = (unsafe { cStringPointerToPathBuf((*raw).mnt_fsname) }).expect("mnt_fsname was empty").expect("mnt_fsname was null");
-		let mountPoint = (unsafe { cStringPointerToPathBuf((*raw).mnt_dir) }).expect("mnt_dir was empty").expect("mnt_dir was null");
-		let fileSystemType =
+		debug_assert!(!unsafe {(*raw).mnt_fsname }.is_null(), "null");
+		let source = unsafe { CStr::from_ptr((*raw).mnt_fsname) }.to_owned();
+		let mount_point = (unsafe { c_string_pointer_to_path_buf((*raw).mnt_dir) }).expect("mnt_dir was empty").expect("mnt_dir was null");
+		let file_system_type =
 		{
-			let string = unsafe { cStringPointerToStringWithReplacementsIfAny((*raw).mnt_type) };
+			let string = unsafe { c_string_pointer_to_string_with_replacements_if_any((*raw).mnt_type) };
 			
-			FileSystemType::from_String(string.expect("mnt_type was null"))
+			FileSystemType::from_string(string.expect("mnt_type was null"))
 		};
 		
-		let mountOptionsString = (unsafe { cStringPointerToStringWithReplacementsIfAny((*raw).mnt_opts) }).expect("mnt_opts was null");
+		let mount_options_string = (unsafe { c_string_pointer_to_string_with_replacements_if_any((*raw).mnt_opts) }).expect("mnt_opts was null");
 		
-		let mut mountOptions = HashMap::with_capacity(16);
-		for mountOptionString in mountOptionsString.split(',')
+		let mut mount_options = HashMap::with_capacity(16);
+		for mount_option_string in mount_options_string.split(',')
 		{
-			let mut split = mountOptionString.splitn(2, '=');
+			let mut split = mount_option_string.splitn(2, '=');
 			let name = split.next().unwrap().to_owned();
-			let valueIfAny = split.next().map(|value| value.to_owned());
-			assert!(mountOptions.insert(name, valueIfAny).is_none(), "Duplicate key in mount options for mount '{:?}'", mountPoint);
+			let value_if_any = split.next().map(|value| value.to_owned());
+			assert!(mount_options.insert(name, value_if_any).is_none(), "Duplicate key in mount options for mount_point '{:?}'", mount_point);
 		}
 		
-		Mount
+		Self
 		{
-			nameOfMountedFileSystem: nameOfMountedFileSystem,
-			mountPoint: mountPoint,
-			fileSystemType: fileSystemType,
-			mountOptions: mountOptions,
-			dumpFrequencyInDays: unsafe { (*raw).mnt_freq },
-			passNumberOnParallelFsck: unsafe { (*raw).mnt_passno },
+			source,
+			mount_point,
+			file_system_type,
+			mount_options,
+			dump_frequency_in_days: unsafe { (*raw).mnt_freq },
+			pass_number_on_parallel_filesystem_type: unsafe { (*raw).mnt_passno },
 		}
 	}
 	
-	pub fn toMountOptionsString(mountOptions: &HashMap<String, Option<String>>) -> CString
+	/// Mount a huge page file system.
+	pub fn mount_huge_pages(huge_page_mount_settings: &HugePageMountSettings, override_default_huge_page_size: Option<HugePageSize>) -> Result<PathBuf, io::Error>
 	{
-		let mut mountOptionsString = String::with_capacity(64);
-		let mut afterFirst = false;
-		for (name, valueIfAny) in mountOptions
+		let mount_flags = huge_page_mount_settings.mount_flags;
+		match Self::new_where_source_is_file_system_type(huge_page_mount_settings.mount_point.clone(), FileSystemType::hugetlbfs, huge_page_mount_settings.as_mount_options(override_default_huge_page_size)).mount(mount_flags)
 		{
-			if afterFirst
-			{
-				mountOptionsString.push(',');
-			}
-			else
-			{
-				afterFirst = true;
-			}
-			mountOptionsString.push_str(name);
-			if let Some(ref value) = *valueIfAny
-			{
-				mountOptionsString.push('=');
-				mountOptionsString.push_str(value);
-			}
-		}
-		CString::new(mountOptionsString).expect("mountOptions should not contain interior ASCII NULs")
-	}
-	
-	pub fn mountHugePages(hugePageMountSettings: &HugePageMountSettings, overrideDefaultHugePageSize: Option<HugePageSize>) -> Result<PathBuf, io::Error>
-	{
-		let mountFlags = hugePageMountSettings.mountFlags();
-		match Self::mountFileSystemWhereSourceIsSameAsFileSystemType(&hugePageMountSettings.mountPoint, &FileSystemType::hugetlbfs, &hugePageMountSettings.asMountOptions(overrideDefaultHugePageSize), mountFlags)
-		{
-			Ok(()) => Ok(hugePageMountSettings.mountPoint.clone()),
+			Ok(()) => Ok(huge_page_mount_settings.mount_point.clone()),
 			Err(error) => Err(error),
 		}
 	}
 	
-	pub fn mountFileSystemWhereSourceIsSameAsFileSystemType(mountPoint: &Path, fileSystemType: &FileSystemType, mountOptions: &HashMap<String, Option<String>>, mountFlags: MountFlags) -> Result<(), io::Error>
+	/// New instance for file systems which do not have a source (eg `hugetlbs`).
+	pub fn new_where_source_is_file_system_type(mount_point: PathBuf, file_system_type: FileSystemType, mount_options: HashMap<String, Option<String>>) -> Self
 	{
-		let source = fileSystemType.to_CString();
-		Self::mountFileSystem(&source, mountPoint, fileSystemType, mountOptions, mountFlags)
+		Self
+		{
+			source: file_system_type.to_c_string(),
+			mount_point,
+			file_system_type,
+			mount_options,
+			dump_frequency_in_days: 0,
+			pass_number_on_parallel_filesystem_type: 0,
+		}
 	}
 	
-	pub fn mount(&self, mountFlags: MountFlags) -> Result<(), io::Error>
+	//noinspection SpellCheckingInspection
+	/// Mount.
+	pub fn mount(&self, mount_flags: MountFlags) -> Result<(), io::Error>
 	{
-		let source = pathToCString(&self.nameOfMountedFileSystem);
-		Self::mountFileSystem(&source, &self.mountPoint, &self.fileSystemType, &self.mountOptions, mountFlags)
-	}
+		use self::ErrorKind::*;
 	
-	pub fn mountFileSystem(source: &CStr, mountPoint: &Path, fileSystemType: &FileSystemType, mountOptions: &HashMap<String, Option<String>>, mountFlags: MountFlags) -> Result<(), io::Error>
-	{
-		let target = pathToCString(mountPoint);
-		let fileSystemType = fileSystemType.to_CString();
-		let data = Self::toMountOptionsString(mountOptions);
+		fn to_mount_options_c_string(mount_options: &HashMap<String, Option<String>>) -> CString
+		{
+			let mut mount_options_string = String::with_capacity(64);
+			let mut after_first = false;
+			for (name, value_if_any) in mount_options
+			{
+				if after_first
+				{
+					mount_options_string.push(',');
+				}
+				else
+				{
+					after_first = true;
+				}
+				mount_options_string.push_str(name);
+				if let Some(ref value) = *value_if_any
+				{
+					mount_options_string.push('=');
+					mount_options_string.push_str(value);
+				}
+			}
+			CString::new(mount_options_string).expect("mount_options should not contain interior ASCII NULs")
+		}
 		
-		match unsafe { ::libc::mount(source.as_ptr(), target.as_ptr(), fileSystemType.as_ptr(), mountFlags.bits(), data.as_ptr() as *mut c_void) }
+		let target = self.mount_point.to_c_string();
+		let file_system_type = self.file_system_type.to_c_string();
+		let data = to_mount_options_c_string(&self.mount_options);
+		
+		match unsafe { ::libc::mount(self.source.as_ptr(), target.as_ptr(), file_system_type.as_ptr(), mount_flags.bits(), data.as_ptr() as *mut c_void) }
 		{
 			0 => Ok(()),
 			
 			-1 => match errno().0
 			{
-				E::EACCES => Err(io::Error::new(ErrorKind::NotFound, "Component of mount path to mount does not exist")),
-				E::ENOENT => Err(io::Error::new(ErrorKind::NotFound, "Mount path had an empty or non-existent component")),
-				E::ENOTDIR => Err(io::Error::new(ErrorKind::NotFound, "target or source is not a directory")),
-				E::ELOOP => Err(io::Error::new(ErrorKind::NotFound, "Loops - target is a descendent of source, or too many links in mount path")),
-				E::EPERM => Err(io::Error::new(ErrorKind::PermissionDenied, "permission denied")),
-				E::EBUSY => Err(io::Error::new(ErrorKind::TimedOut, "Busy")),
-				E::EINVAL => Err(io::Error::new(ErrorKind::InvalidData, "One of many possible failures (EINVAL)")),
-			
+				E::EACCES => Err(io::Error::new(NotFound, "Component of mount path to mount does not exist")),
+				E::ENOENT => Err(io::Error::new(NotFound, "Mount path had an empty or non-existent component")),
+				E::ENOTDIR => Err(io::Error::new(NotFound, "target or source is not a directory")),
+				E::ELOOP => Err(io::Error::new(NotFound, "Loops - target is a descendant of source, or too many links in mount path")),
+				E::EPERM => Err(io::Error::new(PermissionDenied, "permission denied")),
+				E::EBUSY => Err(io::Error::new(TimedOut, "Busy")),
+				E::EINVAL => Err(io::Error::new(InvalidData, "One of many possible failures (EINVAL)")),
+				
 				E::EMFILE => panic!("Out of memory (EMFILE)"),
 				E::ENOMEM => panic!("Out of memory (ENOMEM)"),
 				E::ENODEV => panic!("File system type not supported by Linux Kernel (check /proc/filesystem first)"),
@@ -167,37 +198,6 @@ impl Mount
 			},
 			
 			illegal @ _ => panic!("mount() returned an illegal result '{}'", illegal),
-		}
-	}
-	
-	pub fn add(&self, mounts: Mounts) -> Result<(), io::Error>
-	{
-		if mounts.readOnly()
-		{
-			return Err(io::Error::new(ErrorKind::PermissionDenied, "mounts has been opened read-only"));
-		}
-		
-		let mnt_fsname = pathToCString(&self.nameOfMountedFileSystem);
-		let mnt_dir = pathToCString(&self.mountPoint);
-		let mnt_type = self.fileSystemType.to_CString();
-		let mnt_opts = Self::toMountOptionsString(&self.mountOptions);
-		
-		let mut mount = mntent
-		{
-			mnt_fsname: mnt_fsname.as_ptr() as *mut _,
-			mnt_dir: mnt_dir.as_ptr() as *mut _,
-			mnt_type: mnt_type.as_ptr() as *mut _,
-			mnt_opts: mnt_opts.as_ptr() as *mut _,
-			mnt_freq: self.dumpFrequencyInDays,
-			mnt_passno: self.passNumberOnParallelFsck,
-		};
-
-		match unsafe { addmntent(mounts.0, &mut mount) }
-		{
-			0 => Ok(()),
-			1 => Err(io::Error::new(ErrorKind::Other, "mount could not be added by addmntent() (addmntent does not supply any indication as to why)")),
-			
-			illegal @ _ => panic!("addmntent() returned an illegal result '{}'", illegal),
 		}
 	}
 }

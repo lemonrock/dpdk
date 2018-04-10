@@ -68,7 +68,7 @@ impl<EC: ExecutionRoutineCreator> ReceiveTransmitQueuePairSlaveLogicalCoreTask<E
 			debug_assert!(LogicalCore::isCurrentSlave(), "Can not call call() on a master logical core");
 			debug_assert!(self.isCurrentCorrectLogicalCoreToExecuteOn(), "Can not call call() on a different slave logical core");
 			
-			#[cfg(any(target_os = "android", target_os = "linux"))] setCurrentThreadName(&format!("Slave-{}", self.slaveLogicalCoreToExecuteOn.as_u32())).expect("Could not set thread name");
+			#[cfg(any(target_os = "android", target_os = "linux"))] set_current_thread_name(&format!("Slave-{}", self.slaveLogicalCoreToExecuteOn.as_u32())).expect("Could not set thread name");
 			
 			let mut executionRoutine = self.executionRoutineCreator.createExecutionRoutineWhilstExecutingOnSlaveLogicalCore();
 			

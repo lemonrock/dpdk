@@ -133,13 +133,13 @@ impl PciDevice
 	pub fn associatedNumaNode(&self, sysPath: &Path) -> Option<NumaSocketId>
 	{
 		let filePath = self.fileOrFolderPath(sysPath, "numa_node");
-		NumaSocketId::fromI32(readValueFromFile(&filePath).expect("Could not parse numa_node"))
+		NumaSocketId::fromI32(filePath.read_value().expect("Could not parse numa_node"))
 	}
 	
 	pub fn isClassNetworkEthernet(&self, sysPath: &Path) -> bool
 	{
 		let filePath = self.fileOrFolderPath(sysPath, "class");
-		readHexadecimalValueWithPrefixFromFile(&filePath, 6, |rawString|
+		read_hexadecimal_value_with_prefix(&filePath, 6, |rawString|
 		{
 			Ok
 			(
@@ -156,13 +156,13 @@ impl PciDevice
 	pub fn vendorId(&self, sysPath: &Path) -> VendorId
 	{
 		let filePath = self.fileOrFolderPath(sysPath, "vendor");
-		VendorId::new(readHexadecimalValueWithPrefixFromFile_u16(&filePath).expect("Seems PCI device's vendor id does not properly exist")).expect("PCI vendor Id should not be 'Any'")
+		VendorId::new(filePath.read_hexadecimal_value_with_prefix_u16().expect("Seems PCI device's vendor id does not properly exist")).expect("PCI vendor Id should not be 'Any'")
 	}
 	
 	pub fn deviceId(&self, sysPath: &Path) -> DeviceId
 	{
 		let filePath = self.fileOrFolderPath(sysPath, "device");
-		DeviceId::new(readHexadecimalValueWithPrefixFromFile_u16(&filePath).expect("Seems PCI device's device id does not properly exist")).expect("PCI device Id should not be 'Any'")
+		DeviceId::new(filePath.read_hexadecimal_value_with_prefix_u16().expect("Seems PCI device's device id does not properly exist")).expect("PCI device Id should not be 'Any'")
 	}
 	
 	fn fileOrFolderPath(&self, sysPath: &Path, fileOrFolderName: &str) -> PathBuf

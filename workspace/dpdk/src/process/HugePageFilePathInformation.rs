@@ -33,7 +33,7 @@ impl HugePageFilePathInformation
 
 	fn hugePageFilePrefixName() -> OsString
 	{
-		Self::prefixToOsString(format!("{}-{}-", getProgramName(), unsafe { ::libc::getpid() }))
+		Self::prefixToOsString(format!("{}-{}-", get_program_name(), unsafe { ::libc::getpid() }))
 	}
 	
 	fn prefixToOsString(prefix: String) -> OsString

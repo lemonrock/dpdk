@@ -4,7 +4,6 @@
 
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
-#![feature(associated_consts)]
 #![feature(const_fn)]
 #![feature(i128_type)]
 #![cfg_attr(any(all(any(target_os = "android", target_os = "linux"), any(target_arch = "aarch64", target_arch = "arm", target_arch = "powerpc64", target_arch = "x86", target_arch = "x86_64")), all(target_os = "freebsd", target_arch = "x86_64")), feature(integer_atomics))]

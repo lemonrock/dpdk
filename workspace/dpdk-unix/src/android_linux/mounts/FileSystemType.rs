@@ -2,7 +2,10 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+//noinspection SpellCheckingInspection
 //noinspection RustEnumVariantNaming
+/// File system types.
+#[allow(missing_docs)]
 #[allow(non_camel_case_types)]
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum FileSystemType
@@ -43,165 +46,179 @@ pub enum FileSystemType
 
 impl FileSystemType
 {
-	pub fn to_CString(&self) -> CString
+	//noinspection SpellCheckingInspection
+	/// To `CString`.
+	pub fn to_c_string(&self) -> CString
 	{
-		let refValue = match *self
+		use self::FileSystemType::*;
+		
+		let ref_value = match *self
 		{
-			FileSystemType::sysfs => "sysfs",
-			FileSystemType::rootfs => "rootfs",
-			FileSystemType::ramfs => "ramfs",
-			FileSystemType::bdev => "bdev",
-			FileSystemType::_proc => "_proc",
-			FileSystemType::cpuset => "cpuset",
-			FileSystemType::cgroup => "cgroup",
-			FileSystemType::tmpfs => "tmpfs",
-			FileSystemType::devtmpfs => "devtmpfs",
-			FileSystemType::security => "security",
-			FileSystemType::sockfs => "sockfs",
-			FileSystemType::pipefs => "pipefs",
-			FileSystemType::devpts => "devpts",
-			FileSystemType::hugetlbfs => "hugetlbfs",
-			FileSystemType::pstore => "pstore",
-			FileSystemType::mqueue => "mqueue",
-			FileSystemType::ext2 => "ext2",
-			FileSystemType::ext3 => "ext3",
-			FileSystemType::ext4 => "ext4",
+			sysfs => "sysfs",
+			rootfs => "rootfs",
+			ramfs => "ramfs",
+			bdev => "bdev",
+			_proc => "_proc",
+			cpuset => "cpuset",
+			cgroup => "cgroup",
+			tmpfs => "tmpfs",
+			devtmpfs => "devtmpfs",
+			security => "security",
+			sockfs => "sockfs",
+			pipefs => "pipefs",
+			devpts => "devpts",
+			hugetlbfs => "hugetlbfs",
+			pstore => "pstore",
+			mqueue => "mqueue",
+			ext2 => "ext2",
+			ext3 => "ext3",
+			ext4 => "ext4",
 			
-			FileSystemType::anon_inodefs => "anon_inodefs",
-			FileSystemType::binfmt_misc => "binfmt_misc",
-			FileSystemType::debugfs => "debugfs",
-			FileSystemType::ecryptfs => "ecryptfs",
-			FileSystemType::fuse => "fuse",
-			FileSystemType::fuseblk => "fuseblk",
-			FileSystemType::fusectl => "fusectl",
-			FileSystemType::prl_fs => "prl_fs",
-			FileSystemType::securityfs => "securityfs",
-			FileSystemType::vfat => "vfat",
+			anon_inodefs => "anon_inodefs",
+			binfmt_misc => "binfmt_misc",
+			debugfs => "debugfs",
+			ecryptfs => "ecryptfs",
+			fuse => "fuse",
+			fuseblk => "fuseblk",
+			fusectl => "fusectl",
+			prl_fs => "prl_fs",
+			securityfs => "securityfs",
+			vfat => "vfat",
 			
-			FileSystemType::Unrecognised(ref value) => value,
+			Unrecognised(ref value) => value,
 		};
 		
-		CString::new(refValue.to_owned()).expect("fileSystemTypes should not contain interior ASCII NULs")
+		CString::new(ref_value.to_owned()).expect("file system type should not contain interior ASCII NULs")
 	}
 	
-	pub fn from_String(value: String) -> FileSystemType
+	//noinspection SpellCheckingInspection
+	/// From string.
+	pub fn from_string(value: String) -> Self
 	{
+		use self::FileSystemType::*;
+		
 		match &value[..]
 		{
-			"sysfs" => FileSystemType::sysfs,
-			"rootfs" => FileSystemType::rootfs,
-			"ramfs" => FileSystemType::ramfs,
-			"bdev" => FileSystemType::bdev,
-			"proc" => FileSystemType::_proc,
-			"cpuset" => FileSystemType::cpuset,
-			"cgroup" => FileSystemType::cgroup,
-			"tmpfs" => FileSystemType::tmpfs,
-			"devtmpfs" => FileSystemType::devtmpfs,
-			"security" => FileSystemType::security,
-			"sockfs" => FileSystemType::sockfs,
-			"pipefs" => FileSystemType::pipefs,
-			"devpts" => FileSystemType::devpts,
-			"hugetlbfs" => FileSystemType::hugetlbfs,
-			"pstore" => FileSystemType::pstore,
-			"mqueue" => FileSystemType::mqueue,
-			"ext2" => FileSystemType::ext2,
-			"ext3" => FileSystemType::ext3,
-			"ext4" => FileSystemType::ext4,
+			"sysfs" => sysfs,
+			"rootfs" => rootfs,
+			"ramfs" => ramfs,
+			"bdev" => bdev,
+			"proc" => _proc,
+			"cpuset" => cpuset,
+			"cgroup" => cgroup,
+			"tmpfs" => tmpfs,
+			"devtmpfs" => devtmpfs,
+			"security" => security,
+			"sockfs" => sockfs,
+			"pipefs" => pipefs,
+			"devpts" => devpts,
+			"hugetlbfs" => hugetlbfs,
+			"pstore" => pstore,
+			"mqueue" => mqueue,
+			"ext2" => ext2,
+			"ext3" => ext3,
+			"ext4" => ext4,
 			
-			"anon_inodefs" => FileSystemType::anon_inodefs,
-			"binfmt_misc" => FileSystemType::binfmt_misc,
-			"debugfs" => FileSystemType::debugfs,
-			"ecryptfs" => FileSystemType::ecryptfs,
-			"fuse" => FileSystemType::fuse,
-			"fuseblk" => FileSystemType::fuseblk,
-			"fusectl" => FileSystemType::fusectl,
-			"prl_fs" => FileSystemType::prl_fs,
-			"securityfs" => FileSystemType::securityfs,
-			"vfat" => FileSystemType::vfat,
+			"anon_inodefs" => anon_inodefs,
+			"binfmt_misc" => binfmt_misc,
+			"debugfs" => debugfs,
+			"ecryptfs" => ecryptfs,
+			"fuse" => fuse,
+			"fuseblk" => fuseblk,
+			"fusectl" => fusectl,
+			"prl_fs" => prl_fs,
+			"securityfs" => securityfs,
+			"vfat" => vfat,
 
-			_ => FileSystemType::Unrecognised(value)
+			_ => Unrecognised(value)
 		}
 	}
 	
-	pub fn new(value: &str) -> FileSystemType
+	//noinspection SpellCheckingInspection
+	/// From str.
+	#[inline(always)]
+	fn from_str(value: &str) -> FileSystemType
 	{
+		use self::FileSystemType::*;
+		
 		match value
 		{
-			"sysfs" => FileSystemType::sysfs,
-			"rootfs" => FileSystemType::rootfs,
-			"ramfs" => FileSystemType::ramfs,
-			"bdev" => FileSystemType::bdev,
-			"proc" => FileSystemType::_proc,
-			"cpuset" => FileSystemType::cpuset,
-			"cgroup" => FileSystemType::cgroup,
-			"tmpfs" => FileSystemType::tmpfs,
-			"devtmpfs" => FileSystemType::devtmpfs,
-			"security" => FileSystemType::security,
-			"sockfs" => FileSystemType::sockfs,
-			"pipefs" => FileSystemType::pipefs,
-			"devpts" => FileSystemType::devpts,
-			"hugetlbfs" => FileSystemType::hugetlbfs,
-			"pstore" => FileSystemType::pstore,
-			"mqueue" => FileSystemType::mqueue,
-			"ext2" => FileSystemType::ext2,
-			"ext3" => FileSystemType::ext3,
-			"ext4" => FileSystemType::ext4,
+			"sysfs" => sysfs,
+			"rootfs" => rootfs,
+			"ramfs" => ramfs,
+			"bdev" => bdev,
+			"proc" => _proc,
+			"cpuset" => cpuset,
+			"cgroup" => cgroup,
+			"tmpfs" => tmpfs,
+			"devtmpfs" => devtmpfs,
+			"security" => security,
+			"sockfs" => sockfs,
+			"pipefs" => pipefs,
+			"devpts" => devpts,
+			"hugetlbfs" => hugetlbfs,
+			"pstore" => pstore,
+			"mqueue" => mqueue,
+			"ext2" => ext2,
+			"ext3" => ext3,
+			"ext4" => ext4,
 			
-			"anon_inodefs" => FileSystemType::anon_inodefs,
-			"binfmt_misc" => FileSystemType::binfmt_misc,
-			"debugfs" => FileSystemType::debugfs,
-			"ecryptfs" => FileSystemType::ecryptfs,
-			"fuse" => FileSystemType::fuse,
-			"fuseblk" => FileSystemType::fuseblk,
-			"fusectl" => FileSystemType::fusectl,
-			"prl_fs" => FileSystemType::prl_fs,
-			"securityfs" => FileSystemType::securityfs,
-			"vfat" => FileSystemType::vfat,
+			"anon_inodefs" => anon_inodefs,
+			"binfmt_misc" => binfmt_misc,
+			"debugfs" => debugfs,
+			"ecryptfs" => ecryptfs,
+			"fuse" => fuse,
+			"fuseblk" => fuseblk,
+			"fusectl" => fusectl,
+			"prl_fs" => prl_fs,
+			"securityfs" => securityfs,
+			"vfat" => vfat,
 			
-			_ => FileSystemType::Unrecognised(value.to_owned())
+			_ => Unrecognised(value.to_owned())
 		}
 	}
 	
-	pub fn parse(procPath: &Path) -> Result<HashMap<FileSystemType, HasNoAssociatedDevice>, io::Error>
+	//noinspection SpellCheckingInspection
+	/// Parse from a file in `/proc`.
+	pub fn parse(proc_path: &Path) -> Result<HashMap<FileSystemType, HasNoAssociatedDevice>, io::Error>
 	{
-		let mut filesystemsFilePath = PathBuf::from(procPath);
-		filesystemsFilePath.push("filesystems");
-				
-		let openFile = try!(File::open(filesystemsFilePath));
-		let mut reader = BufReader::with_capacity(4096, openFile);
+		let mut filesystems_file_path = PathBuf::from(proc_path);
+		filesystems_file_path.push("filesystems");
 		
-		let mut fileSystemsMap = HashMap::new();
-		let mut lineCount = 0;
+		let mut reader = BufReader::with_capacity(4096, File::open(filesystems_file_path)?);
+		
+		let mut file_systems_map = HashMap::new();
+		let mut line_number = 0;
 		let mut line = String::with_capacity(32);
-		while try!(reader.read_line(&mut line)) > 0
+		while reader.read_line(&mut line)? > 0
 		{
 			{
 				let mut split = line.splitn(2, '\t');
 				
-				let hasNoAssociatedDevice = match split.next().unwrap()
+				let has_no_associated_device = match split.next().unwrap()
 				{
 					"" => false,
 					"nodev" => true,
 					
-					unrecognised @ _ => return Err(io::Error::new(ErrorKind::InvalidData, format!("Zero-based line number '{}' has a first column value of '{}' which isn't recognised", lineCount, unrecognised.to_owned()))),
+					unrecognised @ _ => return Err(io::Error::new(ErrorKind::InvalidData, format!("Zero-based line number '{}' has a first column value of '{}' which isn't recognised", line_number, unrecognised.to_owned()))),
 				};
 				
-				let fileSystemType = match split.next()
+				let file_system_type = match split.next()
 				{
-					None => return Err(io::Error::new(ErrorKind::InvalidData, format!("Zero-based line number '{}' does not have second column", lineCount))),
-					Some(value) => Self::new(value),
+					None => return Err(io::Error::new(ErrorKind::InvalidData, format!("Zero-based line number '{}' does not have second column", line_number))),
+					Some(value) => Self::from_str(value),
 				};
 				
-				if let Some(_) = fileSystemsMap.insert(fileSystemType, hasNoAssociatedDevice)
+				if let Some(_) = file_systems_map.insert(file_system_type, has_no_associated_device)
 				{
-					return Err(io::Error::new(ErrorKind::InvalidData, format!("Zero-based line number '{}' is a duplicate", lineCount)));
+					return Err(io::Error::new(ErrorKind::InvalidData, format!("Zero-based line number '{}' is a duplicate", line_number)));
 				}
 			}
 			
 			line.clear();
-			lineCount += 1;
+			line_number += 1;
 		}
 		
-		Ok(fileSystemsMap)
+		Ok(file_systems_map)
 	}
 }

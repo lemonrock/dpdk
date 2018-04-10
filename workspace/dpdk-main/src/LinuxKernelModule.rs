@@ -54,11 +54,11 @@ impl LinuxKernelModule
 		isProvidedByDpdk: true,
 	};
 	
-	pub fn loadModuleIfAbsent(&self, modulesList: &ModulesList, loadModulesFromPath: &Path, finishers: &mut Finishers)
+	pub fn load_linux_kernel_module_if_absent(&self, modulesList: &LinuxKernelModulesList, loadModulesFromPath: &Path, finishers: &mut Finishers)
 	{
 		if self.isProvidedByDpdk
 		{
-			match modulesList.loadModuleIfAbsentFromKoFile(self.moduleName, self.fileBaseName, loadModulesFromPath)
+			match modulesList.load_linux_kernel_module_if_absent_from_ko_file(self.moduleName, self.fileBaseName, loadModulesFromPath)
 			{
 				Err(error) => panic!("Could not load absent '{}' kernel module (file name is `{}.ko`) provided by DPDK from path {:?} because '{}'; check your module versions and kernel version match", self.moduleName.to_owned(), self.fileBaseName.to_owned(), loadModulesFromPath, error),
 				Ok(wasLoaded) => UnloadModuleFinisher::ifWasLoaded(wasLoaded, finishers, self.moduleName),
@@ -66,7 +66,7 @@ impl LinuxKernelModule
 		}
 		else
 		{
-			if let Err(error) = modulesList.loadModuleIfAbsent(self.moduleName, self.fileBaseName)
+			if let Err(error) = modulesList.load_linux_kernel_module_if_absent(self.moduleName, self.fileBaseName)
 			{
 				panic!("Could not load absent '{}' kernel module (file name is probably `{}.ko`) using modprobe because '{}'; check your module versions and kernel version match (use `uname -r`), because this module is quite common", self.moduleName.to_owned(), self.fileBaseName.to_owned(), error);
 			}
@@ -76,10 +76,10 @@ impl LinuxKernelModule
 	
 	pub fn loadAbsentModules(procPath: &Path, loadModulesFromPath: &Path, modules: Vec<LinuxKernelModule>, finishers: &mut Finishers)
 	{
-		let modulesList = ModulesList::parse(procPath).expect("Could not parse modules list");
+		let modulesList = LinuxKernelModulesList::parse(procPath).expect("Could not parse linux_kernel_modules list");
 		for module in modules
 		{
-			module.loadModuleIfAbsent(&modulesList, loadModulesFromPath, finishers);
+			module.load_linux_kernel_module_if_absent(&modulesList, loadModulesFromPath, finishers);
 		}
 	}
 }

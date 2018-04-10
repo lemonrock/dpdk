@@ -33,7 +33,7 @@ fn ensureVfioDeviceAccessible(devPath: &Path)
 	let mut devVfioPath = PathBuf::from(devPath);
 	devVfioPath.push("vfio");
 	
-	match makeFolderReadableAndExecutable(&devVfioPath)
+	match devVfioPath.make_folder_searchable_to_all()
 	{
 		Err(error) => warn!("Could not change permissions on '{:?}' because '{}'", devVfioPath, error),
 		Ok(_) => (),
@@ -58,7 +58,7 @@ fn ensureVfioDeviceAccessible(devPath: &Path)
 					Ok(entry) =>
 					{
 						let path = &entry.path();
-						match makeFileReadWriteAll(path)
+						match path.make_file_read_write_all()
 						{
 							Err(error) => warn!("Could not change permissions on '{:?}' because '{}'", path, error),
 							Ok(_) => (),
@@ -79,7 +79,7 @@ fn verifyMemLockResourceLimitForVfio()
 	const _64MegaBytesInKiloBytes: u64 = 65_536;
 
 	let softAndHardLimit = ResourceName::MaximumNumberOfBytesThatProcessCanMemLock.get();
-	if softAndHardLimit.hardLimit().value() < _64MegaBytesInKiloBytes
+	if softAndHardLimit.hard_limit().value() < _64MegaBytesInKiloBytes
 	{
 		warn!("MemLock is limited to less than 64Mb; VFIO may not be able to initialize (check `ulimit -l`)");
 	}

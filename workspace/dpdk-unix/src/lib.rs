@@ -2,13 +2,19 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-#![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
-#![feature(associated_consts)]
+#![deny(missing_docs)]
 #![feature(const_fn)]
 
 
-#[cfg(any(target_os = "android", target_os = "linux"))] #[macro_use] extern crate bitflags_associated_constants;
+//! #dpdk-unix
+//!
+//! This crate proves additional mid-level functionality for Unix-like Operating Systems which wraps functionality found in low-level FFI bindings for libc.
+//!
+//! It also provides a very small modicum of Windows support to get the current program name.
+
+
+#[cfg(any(target_os = "android", target_os = "linux"))] #[macro_use] extern crate bitflags;
 #[cfg(any(target_os = "android", target_os = "linux"))] #[macro_use] extern crate const_cstr_fork;
 extern crate errno;
 extern crate libc;
@@ -20,9 +26,41 @@ extern crate rust_extra;
 #[cfg(unix)] extern crate syscall_alt;
 
 
-#[cfg(any(target_os = "android", target_os = "linux"))] pub mod android_linux;
-pub mod helpers;
-pub mod strings;
+use ::libc::geteuid;
+use ::std::fmt::Display;
+use ::std::error::Error;
+use ::std::ffi::CStr;
+use ::std::ffi::CString;
+use ::std::ffi::NulError;
+use ::std::ffi::OsStr;
+use ::std::fs::File;
+use ::std::fs::metadata;
+use ::std::fs::OpenOptions;
+use ::std::fs::Permissions;
+use ::std::fs::set_permissions;
+use ::std::io;
+use ::std::io::ErrorKind;
+use ::std::io::Read;
+use ::std::io::Write;
+use ::std::num::ParseIntError;
+#[cfg(unix)] use ::std::os::unix::fs::PermissionsExt;
+#[cfg(unix)] use ::std::os::unix::ffi::OsStrExt;
+use ::std::path::Path;
+use ::std::str::FromStr;
 
 
+#[cfg(any(target_os = "android", target_os = "linux"))]
+/// Functionality to provide mid-level wrappers on Linux and Android.
+pub mod android_linux;
+
+
+pub(crate) mod strings;
+
+
+include!("assert_effective_user_id_is_root.rs");
+include!("get_program_name.rs");
 include!("HugePageSize.rs");
+include!("OsStrExtMore.rs");
+include!("PathExt.rs");
+include!("set_current_thread_name.rs");
+include!("SetCurrentThreadNameError.rs");

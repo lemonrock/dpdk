@@ -2,6 +2,7 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+use super::super::PathExt;
 use ::errno::errno;
 use ::libc::c_void;
 use ::libc::FILE;
@@ -10,7 +11,6 @@ use ::libc::mode_t;
 use ::libc::uid_t;
 use ::libc_extra::android_linux::mntent::setmntent;
 use ::libc_extra::android_linux::mntent::getmntent;
-use ::libc_extra::android_linux::mntent::addmntent;
 use ::libc_extra::android_linux::mntent::endmntent;
 use ::libc_extra::android_linux::mntent::mntent;
 use ::rust_extra::unlikely;
@@ -26,9 +26,8 @@ use ::std::io;
 use ::std::io::ErrorKind;
 use ::syscall_alt::constants::E;
 use ::HugePageSize;
-use ::strings::cStringPointerToPathBuf;
-use ::strings::pathToCString;
-use ::strings::cStringPointerToStringWithReplacementsIfAny;
+use ::strings::c_string_pointer_to_path_buf;
+use ::strings::c_string_pointer_to_string_with_replacements_if_any;
 
 
 include!("FileSystemType.rs");

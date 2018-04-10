@@ -5,15 +5,10 @@
 use ::libc::c_char;
 use ::rust_extra::unlikely;
 use ::std::ffi::CStr;
-use ::std::ffi::CString;
 use ::std::ffi::OsStr;
 use ::std::os::unix::ffi::OsStrExt;
-use ::std::path::Path;
 use ::std::path::PathBuf;
 
 
-include!("CStringPointerConversionError.rs");
-include!("cStringPointerToPathBuf.rs");
-include!("cStringPointerToStringWithReplacementsIfAny.rs");
-include!("osStrToCString.rs");
-include!("pathToCString.rs");
+include!("c_string_pointer_to_path_buf.rs");
+include!("c_string_pointer_to_string_with_replacements_if_any.rs");

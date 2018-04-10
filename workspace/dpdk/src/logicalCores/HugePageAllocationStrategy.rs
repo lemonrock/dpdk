@@ -55,6 +55,6 @@ impl HugePageAllocationStrategy
 			},
 		};
 
-		hugePageSize.calculateNumberOfHugePages(numberOfKiloBytes)
+		hugePageSize.calculate_number_of_huge_pages(numberOfKiloBytes)
 	}
 }

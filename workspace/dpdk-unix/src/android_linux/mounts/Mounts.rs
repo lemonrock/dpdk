@@ -2,11 +2,13 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// Enables parsing of known file system mounts.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Mounts(*mut FILE, bool);
+pub struct Mounts(*mut FILE);
 
 impl Drop for Mounts
 {
+	//noinspection SpellCheckingInspection
 	#[inline(always)]
 	fn drop(&mut self)
 	{
@@ -20,92 +22,70 @@ impl Drop for Mounts
 
 impl Mounts
 {
-	const_cstr!
+	/// Parses pseudo-file of current mounts.
+	pub fn parse(proc_path: &Path) -> Result<HashMap<PathBuf, Mount>, io::Error>
 	{
-		ReadOnlyFlag = "r";
-		ReadWriteFlag = "ra";
-	}
-	
-	// Ought to be a constant: &Path, but Rust makes this nearly impossible
-	#[inline(always)]
-	pub fn ProcSelfMounts() -> PathBuf
-	{
-		PathBuf::from("/proc/self/mounts")
-	}
-	
-	#[inline(always)]
-	pub fn ProcMounts() -> PathBuf
-	{
-		PathBuf::from("/proc/mounts")
-	}
-	
-	#[inline(always)]
-	pub fn readOnly(&self) -> bool
-	{
-		self.1
-	}
-		
-	pub fn parse(procPath: &Path) -> Result<HashMap<PathBuf, Mount>, io::Error>
-	{
-		let mut mountsFilePath = PathBuf::from(procPath);
-		mountsFilePath.push("self/mounts");
-		let mounts = try!(Self::new(&mountsFilePath, true));
+		let mut mounts_file_path = PathBuf::from(proc_path);
+		mounts_file_path.push("self/mounts");
+		let mounts = Self::new(&mounts_file_path, true)?;
 		
 		let mut map = HashMap::with_capacity(64);
 		
-		try!(mounts.useMounts(|mount|
+		mounts.use_mount(|mount_point|
 		{
-			let key = mount.mountPoint.clone();
-			if let Some(previous) = map.insert(key, mount)
+			let key = mount_point.mount_point.clone();
+			if let Some(previous) = map.insert(key, mount_point)
 			{
-				Err(io::Error::new(ErrorKind::InvalidData, format!("Duplicate mount for mount point '{:?}'", previous.mountPoint)))
+				Err(io::Error::new(ErrorKind::InvalidData, format!("Duplicate mount_point for mount_point point '{:?}'", previous.mount_point)))
 			}
 			else
 			{
 				Ok(())
 			}
-		}));
+		})?;
 		
 		Ok(map)
 	}
-		
-	pub fn procSelfMountsReadOnly() -> Result<Self, io::Error>
-	{
-		Self::new(&Self::ProcSelfMounts(), true)
-	}
 	
-	fn new(mountsFilePath: &Path, readOnly: bool) -> Result<Self, io::Error>
+	//noinspection SpellCheckingInspection
+	fn new(mounts_file_path: &Path, read_only: bool) -> Result<Self, io::Error>
 	{
-		let mountsFilePath = pathToCString(mountsFilePath);
+		let mounts_file_path = mounts_file_path.to_c_string();
 		
-		let flag = match readOnly
+		const_cstr!
 		{
-			false => Self::ReadOnlyFlag,
-			true => Self::ReadWriteFlag,
+			ReadOnlyFlag = "r";
+			ReadWriteFlag = "ra";
+		}
+		
+		let flag = match read_only
+		{
+			false => ReadOnlyFlag,
+			true => ReadWriteFlag,
 		};
 		
-		let mountsHandle = unsafe { setmntent(mountsFilePath.as_ptr(), flag.as_ptr()) };
-		if unlikely(mountsHandle.is_null())
+		let handle = unsafe { setmntent(mounts_file_path.as_ptr(), flag.as_ptr()) };
+		if unlikely(handle.is_null())
 		{
-			Err(io::Error::new(ErrorKind::NotFound, "setmntent() returned NULL - not found or couldn't open or readOnly was false and file permissions prevent writing"))
+			Err(io::Error::new(ErrorKind::NotFound, "setmntent() returned NULL - not found or couldn't open or read_only was false and file permissions prevent writing"))
 		}
 		else
 		{
-			Ok(Mounts(mountsHandle, readOnly))
+			Ok(Mounts(handle))
 		}
 	}
 	
-	pub fn useMounts<F>(&self, mut calledForEachMount: F) -> Result<(), io::Error>
+	fn use_mount<F>(&self, mut called_for_each_mount_point: F) -> Result<(), io::Error>
 	where F: FnMut(Mount) -> Result<(), io::Error>
 	{
-		loop
+		let mut mount_entry_pointer;
+		while
 		{
-			let mountEntryPointer = unsafe { getmntent(self.0) };
-			if unlikely(mountEntryPointer.is_null())
-			{
-				break;
-			}
-			let result = calledForEachMount(Mount::from_mntent(mountEntryPointer));
+			mount_entry_pointer = unsafe { getmntent(self.0) };
+			!mount_entry_pointer.is_null()
+		}
+		{
+			let result = called_for_each_mount_point(Mount::from_mntent(mount_entry_pointer));
 			if unlikely(result.is_err())
 			{
 				return result;

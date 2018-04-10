@@ -6,29 +6,61 @@ bitflags!
 {
 	// Flags commented '// ' are special
 	
+	/// Mount flags.
+	#[allow(missing_docs)]
 	#[derive(Serialize, Deserialize)]
-	pub flags MountFlags: u64
+	pub struct MountFlags: u64
 	{
-		// const BIND = ::libc::MS_BIND,
-		const DirectoryChangesAreSynchronous = ::libc::MS_DIRSYNC,
-		const PermitMandatoryLocking = ::libc::MS_MANDLOCK,
-		// const MOVE = ::libc::MS_MOVE,
-		const DoNotUpdateAccessTimes = ::libc::MS_NOATIME,
-		const DoNotAllowDeviceFiles = ::libc::MS_NODEV,
-		const DoNotUpdateDirectoryAccessTimes = ::libc::MS_NODIRATIME, // Implicit if DoNotUpdateAccessTimes is specified
-		const DoNotAllowProgramsToBeExecuted = ::libc::MS_NOEXEC,
-		const DoNotHonourSetUidAndSetGidPermissions = ::libc::MS_NOSUID,
-		// const PRIVATE = ::libc::MS_PRIVATE,
-		// const RecursiveBindMount = ::libc::MS_REC,
-		const RelaxedAccessTimeUpdates = ::libc::MS_RELATIME,
-		// const REMOUNT = ::libc::MS_REMOUNT,
-		// const SHARED = ::libc::MS_SHARED,
-		const SilenceSomeKernelWarningMessages = ::libc::MS_SILENT,
-		// const SLAVE = ::libc::MS_SLAVE,
-		const AlwaysUpdateTheLastAccessTime = ::libc::MS_STRICTATIME, // Overrides DoNotUpdateAccessTimes and DoNotUpdateDirectoryAccessTimes
-		const FileWritesAreSynchronous = ::libc::MS_SYNCHRONOUS,
-		// const UNBINDABLE = ::libc::MS_UNBINDABLE,
+		// const BIND = ::libc::MS_BIND;
 		
-		//  MS_RDONLY, MS_LAZYTIME
+		///
+		const DirectoryChangesAreSynchronous = ::libc::MS_DIRSYNC;
+		
+		///
+		const PermitMandatoryLocking = ::libc::MS_MANDLOCK;
+		
+		// const MOVE = ::libc::MS_MOVE;
+		
+		///
+		const DoNotUpdateAccessTimes = ::libc::MS_NOATIME;
+		
+		///
+		const DoNotAllowDeviceFiles = ::libc::MS_NODEV;
+		
+		/// Implicit if `DoNotUpdateAccessTimes` is specified.
+		const DoNotUpdateDirectoryAccessTimes = ::libc::MS_NODIRATIME;
+		
+		///
+		const DoNotAllowProgramsToBeExecuted = ::libc::MS_NOEXEC;
+		
+		///
+		const DoNotHonourSetUidAndSetGidPermissions = ::libc::MS_NOSUID;
+		
+		// const PRIVATE = ::libc::MS_PRIVATE;
+		
+		// const RecursiveBindMount = ::libc::MS_REC;
+		
+		///
+		const RelaxedAccessTimeUpdates = ::libc::MS_RELATIME;
+		
+		// const REMOUNT = ::libc::MS_REMOUNT;
+		
+		// const SHARED = ::libc::MS_SHARED;
+		
+		///
+		const SilenceSomeKernelWarningMessages = ::libc::MS_SILENT;
+		
+		// const SLAVE = ::libc::MS_SLAVE;
+		
+	 	/// Overrides `DoNotUpdateAccessTimes` and `DoNotUpdateDirectoryAccessTimes`.
+		const AlwaysUpdateTheLastAccessTime = ::libc::MS_STRICTATIME;
+		
+		///
+		const FileWritesAreSynchronous = ::libc::MS_SYNCHRONOUS;
+		
+		// const UNBINDABLE = ::libc::MS_UNBINDABLE;
+		
+		// MS_RDONLY
+		// MS_LAZYTIME
 	}
 }

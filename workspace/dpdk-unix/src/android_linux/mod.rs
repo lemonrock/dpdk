@@ -2,9 +2,20 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// Capabilities.
 pub mod capabilities;
-pub mod memoryStatistics;
-pub mod modules;
+
+/// Memory Statistics.
+pub mod memory_statistics;
+
+/// Linux linux_kernel_modules.
+pub mod linux_kernel_modules;
+
+/// Mounts.
 pub mod mounts;
-pub mod processControl;
-pub mod resourceLimits;
+
+/// Process Control.
+pub mod process_control;
+
+/// Resource Limits.
+pub mod resource_limits;

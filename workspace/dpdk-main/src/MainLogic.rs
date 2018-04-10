@@ -37,13 +37,13 @@ fn initialise<P: ConfigurationAndProgramArguments>(mut finishers: &mut Finishers
 	initialUmask();
 	removeNearlyAllCapabilitiesOnLinux();
 	additionalEarlyProcessSecurityTighteningOnLinux();
-	setCurrentThreadNameTo("Master");
-	blockNearlyAllSignals();
+	set_current_thread_nameTo("Master");
+	block_all_signals_on_current_thread_bar_hang_up_and_terminate_and_child();
 	let programArguments = P::parseThenDisplayHelpOrVersionAndExitIfSoRequestedThenConfigureLogging();
 	checkWeAreRoot();
 	startANewProcessGroup();
 	forkAndStartANewSession();
-	blockAllSignalsBarChild();
+	block_all_signals_on_current_thread_bar_child();
 	restrictUmaskToCurrentUser();
 	
 	let configuration = programArguments.configurationAsModifiedByCommandLine();
@@ -67,7 +67,7 @@ fn initialise<P: ConfigurationAndProgramArguments>(mut finishers: &mut Finishers
 
 fn checkWeAreRoot()
 {
-	assertEffectiveUserIsRoot("Initialisation");
+	assert_effective_user_id_is_root("Initialisation");
 }
 
 fn initialUmask()
@@ -83,8 +83,8 @@ fn restrictUmaskToCurrentUser()
 #[cfg(any(target_os = "android", target_os = "linux"))]
 fn additionalEarlyProcessSecurityTighteningOnLinux()
 {
-	disableDumpable();
-	noNewPrivileges();
+	disable_dumpable();
+	no_new_privileges();
 }
 
 #[cfg(not(any(target_os = "android", target_os = "linux")))]
@@ -155,7 +155,7 @@ fn removeNearlyAllCapabilitiesOnLinux()
 		Capability::WakeAlarm,
 	];
 	
-	Capability::ensureDropped(&CapabilitiesToDrop);
+	Capability::ensure_capabilities_dropped(&CapabilitiesToDrop);
 }
 
 #[cfg(not(any(target_os = "android", target_os = "linux")))]
@@ -166,17 +166,17 @@ fn removeNearlyAllCapabilitiesOnLinux()
 #[cfg(any(target_os = "android", target_os = "linux"))]
 fn maximallyRestrictCapabilities()
 {
-	Capability::ensureDropped(&[Capability::KernelModule]);
+	Capability::ensure_capabilities_dropped(&[Capability::KernelModule]);
 }
 
 #[cfg(any(target_os = "android", target_os = "linux"))]
-fn setCurrentThreadNameTo(value: &str)
+fn set_current_thread_nameTo(value: &str)
 {
-	setCurrentThreadName(value).expect(&format!("Could not set thread name to '{}'", value.to_owned()));
+	set_current_thread_name(value).expect(&format!("Could not set thread name to '{}'", value.to_owned()));
 }
 
 #[cfg(not(any(target_os = "android", target_os = "linux")))]
-fn setCurrentThreadNameTo(value: &str)
+fn set_current_thread_nameTo(value: &str)
 {
 }
 
@@ -184,8 +184,8 @@ fn setCurrentThreadNameTo(value: &str)
 fn lockDownCapabilitiesOnLinux()
 {
 	maximallyRestrictCapabilities();
-	Capability::clearAllAmbientCapabilities();
-	lockSecureBitsAndRemoveAmbientCapabilityRaiseAndKeepCaps();
+	Capability::clear_all_ambient_capabilities();
+	lock_secure_bits_and_remove_ambient_capability_raise_and_keep_capabilities();
 }
 
 #[cfg(not(any(target_os = "android", target_os = "linux")))]

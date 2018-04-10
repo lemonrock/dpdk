@@ -228,7 +228,7 @@ impl<'a> DpdkRteInitData<'a>
 		
 		for additionalDynamicLibraryDriverOrPluginToLoad in &self.additionalDynamicLibraryDriversAndPluginsToLoad
 		{
-			let cString = pathToCString(additionalDynamicLibraryDriverOrPluginToLoad);
+			let cString = additionalDynamicLibraryDriverOrPluginToLoad.to_c_string();
 			arguments.keyCStrValue(_d, &cString);
 		}
 	}
@@ -351,7 +351,7 @@ impl<'a> DpdkRteInitData<'a>
 		
 		if let Some((hugePageFileSystemMountPath, hugePageFileNamePrefix)) = hugePageFileSystemMountPath
 		{
-			let cString = pathToCString(hugePageFileSystemMountPath);
+			let cString = hugePageFileSystemMountPath.to_c_string();
 			arguments.keyCStrValue(__huge_dir, &cString);
 			
 			arguments.optionalArgument(__no_huge, false);
@@ -363,7 +363,7 @@ impl<'a> DpdkRteInitData<'a>
 			
 			if let Some(hugePageFileNamePrefix) = hugePageFileNamePrefix
 			{
-				let cString = osStrToCString(hugePageFileNamePrefix);
+				let cString = hugePageFileNamePrefix.os_str_to_c_string();
 				arguments.keyCStrValue(__file_prefix, &cString);
 			}
 		}

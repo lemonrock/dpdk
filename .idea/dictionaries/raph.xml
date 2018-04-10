@@ -6,32 +6,45 @@
       <w>arrayvec</w>
       <w>bitfields</w>
       <w>bitflags</w>
+      <w>capget</w>
+      <w>chown</w>
+      <w>chroot</w>
       <w>cohn</w>
       <w>cstr</w>
       <w>dataroom</w>
+      <w>debian</w>
       <w>defaultish</w>
       <w>demultiplex</w>
       <w>deref</w>
       <w>distrib</w>
       <w>docopt</w>
       <w>dpdk</w>
+      <w>dumpable</w>
       <w>eeprom</w>
+      <w>efault</w>
       <w>enoent</w>
       <w>enosys</w>
       <w>ethertype</w>
+      <w>euid</w>
       <w>freebsd</w>
+      <w>fsck</w>
       <w>giga</w>
+      <w>hugetlbs</w>
       <w>icmp</w>
       <w>ieee</w>
       <w>inaddr</w>
       <w>iter</w>
+      <w>kexec</w>
       <w>lans</w>
       <w>librte</w>
       <w>mbuf</w>
       <w>mbufs</w>
+      <w>meminfo</w>
       <w>mempool</w>
       <w>memzone</w>
       <w>misconfigured</w>
+      <w>mlock</w>
+      <w>modprobe</w>
       <w>multicast</w>
       <w>namesize</w>
       <w>numa</w>
@@ -58,8 +71,10 @@
       <w>txconf</w>
       <w>uint</w>
       <w>umask</w>
+      <w>unevictable</w>
       <w>unicast</w>
       <w>unmount</w>
+      <w>unreclaimable</w>
       <w>usize</w>
       <w>vfio</w>
       <w>virt</w>

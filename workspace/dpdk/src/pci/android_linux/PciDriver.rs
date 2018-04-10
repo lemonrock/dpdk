@@ -78,36 +78,36 @@ impl PciDriver
 	
 	pub fn assignId(&self, sysPath: &Path, vendorId: &VendorId, deviceId: &DeviceId) -> io::Result<()>
 	{
-		assertEffectiveUserIsRoot(&format!("Assign vendor id '{:04x}', device id '{:04x}' to driver '{:?}'", vendorId.0, deviceId.0, self));
+		assert_effective_user_id_is_root(&format!("Assign vendor id '{:04x}', device id '{:04x}' to driver '{:?}'", vendorId.0, deviceId.0, self));
 		
 		let filePath = self.pathToFileOrFolder(sysPath, "new_id");
 		let value = format!("{:04x} {:04x}", vendorId.0, deviceId.0);
-		writeValueToFile(&filePath, value)
+		filePath.write_value(value)
 	}
 	
 	pub fn bindPciDevice(&self, sysPath: &Path, pciDeviceAddress: &DeviceAddress) -> io::Result<()>
 	{
-		assertEffectiveUserIsRoot(&format!("Bind device '{}' to driver '{:?}'", pciDeviceAddress.to_string(), self));
+		assert_effective_user_id_is_root(&format!("Bind device '{}' to driver '{:?}'", pciDeviceAddress.to_string(), self));
 
 		let filePath = self.pathToFileOrFolder(sysPath, "bind");
-		writeValueToFile(&filePath, pciDeviceAddress.to_string())
+		filePath.write_value(pciDeviceAddress.to_string())
 	}
 	
 	pub fn unbindPciDevice(&self, sysPath: &Path, pciDeviceAddress: &DeviceAddress) -> io::Result<()>
 	{
-		assertEffectiveUserIsRoot(&format!("Unbind device '{}' from driver '{:?}'", pciDeviceAddress.to_string(), self));
+		assert_effective_user_id_is_root(&format!("Unbind device '{}' from driver '{:?}'", pciDeviceAddress.to_string(), self));
 
 		let filePath = self.pathToFileOrFolder(sysPath, "unbind");
-		writeValueToFile(&filePath, pciDeviceAddress.to_string())
+		filePath.write_value(pciDeviceAddress.to_string())
 	}
 	
 	pub fn unassignId(&self, sysPath: &Path, vendorId: &VendorId, deviceId: &DeviceId) -> io::Result<()>
 	{
-		assertEffectiveUserIsRoot(&format!("Unassign vendor id '{:04x}', device id '{:04x}' to driver '{:?}'", vendorId.0, deviceId.0, self));
+		assert_effective_user_id_is_root(&format!("Unassign vendor id '{:04x}', device id '{:04x}' to driver '{:?}'", vendorId.0, deviceId.0, self));
 		
 		let filePath = self.pathToFileOrFolder(sysPath, "remove_id");
 		let value = format!("{:04x} {:04x}", vendorId.0, deviceId.0);
-		writeValueToFile(&filePath, value)
+		filePath.write_value(value)
 	}
 	
 	fn pathToFileOrFolder(&self, sysPath: &Path, fileOrFolderName: &str) -> PathBuf

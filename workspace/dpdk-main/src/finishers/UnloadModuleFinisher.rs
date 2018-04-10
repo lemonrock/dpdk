@@ -13,7 +13,7 @@ impl Finisher for UnloadModuleFinisher
 	#[allow(unused_variables)]
 	fn finish(&self, sysPath: &Path)
 	{
-		if let Err(error) = ModulesList::unload(self.moduleName)
+		if let Err(error) = LinuxKernelModulesList::unload_linux_kernel_module(self.moduleName)
 		{
 			warn!("Could not unload module we loaded called '{}' because '{:?}'", self.moduleName, error);
 		}

@@ -6,7 +6,7 @@ pub fn isPrimaryProcessAlive(primaryProcessConfigurationFilePath: Option<&Path>)
 {
 	if let Some(primaryProcessConfigurationFilePath) = primaryProcessConfigurationFilePath
 	{
-		let cString = pathToCString(primaryProcessConfigurationFilePath);
+		let cString = primaryProcessConfigurationFilePath.to_c_string();
 
 		isTrue(unsafe { ::dpdk_sys::rte_eal_primary_proc_alive(cString.as_ptr()) })
 	}

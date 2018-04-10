@@ -15,7 +15,7 @@ pub struct Configuration
 	memoryConfiguration: MemoryConfiguration,
 	networkInterfacesConfiguration: NetworkInterfacesConfiguration,
 	
-	#[cfg(any(target_os = "android", target_os = "linux"))] resourceLimits: ResourceLimitsSet,
+	#[cfg(any(target_os = "android", target_os = "linux"))] resource_limits: ResourceLimitsSet,
 }
 
 impl Default for Configuration
@@ -53,9 +53,9 @@ impl Default for Configuration
 		{
 			loadModulesFromPath.push("lib");
 		}
-		loadModulesFromPath.push("modules/dpdk");
+		loadModulesFromPath.push("linux_kernel_modules/dpdk");
 		
-		let resourceLimits = ResourceLimitsSet::defaultish(ResourceLimit::maximumNumberOfFileDescriptors(&procPath).expect("Could not read maximum number of file descriptors"));
+		let resource_limits = ResourceLimitsSet::defaultish(ResourceLimit::maximum_number_of_open_file_descriptors(&procPath).expect("Could not read maximum number of file descriptors"));
 		
 		Configuration
 		{
@@ -68,7 +68,7 @@ impl Default for Configuration
 			memoryConfiguration: MemoryConfiguration::default(),
 			networkInterfacesConfiguration: NetworkInterfacesConfiguration::default(),
 			
-			resourceLimits: resourceLimits,
+			resource_limits: resource_limits,
 		}
 	}
 }
@@ -201,7 +201,7 @@ impl Configuration
 	
 	pub fn changeResourceLimits(&self)
 	{
-		self.resourceLimits.change();
+		self.resource_limits.change();
 	}
 
 	#[cfg(any(target_os = "android", target_os = "linux"))]

@@ -4,12 +4,19 @@
 
 bitflags!
 {
+	/// Unmount flags.
+	#[allow(missing_docs)]
 	#[derive(Serialize, Deserialize)]
-	pub flags UnmountFlags: i32
+	pub struct UnmountFlags: i32
 	{
-		const Force = ::libc::MNT_FORCE,
-		const Detach = ::libc::MNT_DETACH,
-		const Expire = ::libc::MNT_EXPIRE,
+		/// Force.
+		const Force = ::libc::MNT_FORCE;
+		
+		/// Detach.
+		const Detach = ::libc::MNT_DETACH;
+		
+		/// Expire.
+		const Expire = ::libc::MNT_EXPIRE;
 		
 		// Not in libc crate
 		// const NoFollow = ::libc::UMOUNT_NOFOLLOW,

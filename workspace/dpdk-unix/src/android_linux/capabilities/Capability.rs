@@ -2,6 +2,8 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// Linux Security Capabilities.
+#[allow(missing_docs)]
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Capability
@@ -71,25 +73,32 @@ pub enum Capability
 }
 
 impl Capability
-{	
-	pub fn clearAllAmbientCapabilities()
+{
+	/// Clears all ambient capabilities from the current process.
+	pub fn clear_all_ambient_capabilities()
 	{
 		unsafe { prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_CLEAR_ALL, 0) };
 	}
 	
-	pub fn ensureDropped(dropTheseCapabilitiesIfEnabled: &[Capability])
+	/// Ensures the given capabilities are dropped from the current process.
+	///
+	/// Tries to drop each capability separately, ie not all or nothing.
+	pub fn ensure_capabilities_dropped(drop_these_capabilities_if_current_process_has_them: &[Capability])
 	{
-		for capabilityToDrop in dropTheseCapabilitiesIfEnabled
+		for capability_to_drop in drop_these_capabilities_if_current_process_has_them
 		{
-			if capabilityToDrop.processHas().unwrap_or(false)
+			if capability_to_drop.current_process_has().unwrap_or(false)
 			{
-				capabilityToDrop.dropFromProcess().unwrap_or(());
+				capability_to_drop.drop_from_current_process().unwrap_or(());
 			}
 		}
 	}
 	
-		
-	pub fn processHas(&self) -> Option<bool>
+	//noinspection SpellCheckingInspection
+	/// Does the current process have this capability?
+	///
+	/// Returns None if this capability isn't recognised by the Linux kernel.
+	pub fn current_process_has(&self) -> Option<bool>
 	{
 		match unsafe { prctl(PR_CAPBSET_READ, *self as c_ulong) }
 		{
@@ -107,8 +116,11 @@ impl Capability
 			illegal @ _ => panic!("prctl() returned illegal result '{}'", illegal),
 		}
 	}
-		
-	pub fn dropFromProcess(&self) -> Result<(), ()>
+	
+	//noinspection SpellCheckingInspection
+	///
+	/// Returns Err if a lack-of-permssions error occurred.
+	pub fn drop_from_current_process(&self) -> Result<(), ()>
 	{
 		match unsafe { prctl(PR_CAPBSET_DROP, *self as c_ulong) }
 		{

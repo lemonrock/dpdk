@@ -2,18 +2,42 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// Settings for mounting a hugetlbfs file system.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Serialize, Deserialize)]
 pub struct HugePageMountSettings
 {
-	pub mountPoint: PathBuf,
-	pub userId: uid_t,
-	pub groupId: gid_t,
+	/// Mount point for huge pages file system.
+	///
+	/// DPDK dpdk-setup.sh uses /mnt/huge, but:-
+	/// - DPDK docs variously also use /mnt/hugepages and /mnt/hugetlbfs
+	/// - RHEL, Debian tutorials and examples use /hugetlbfs
+	/// - Ubuntu official DEB uses /dev/hugepages (https://gerrit.fd.io/r/gitweb?p=deb_dpdk.git;a=blob;f=debian/dpdk-init;h=86eda2cb9c4e802aa07603761a82b312f4bb7fa2;hb=HEAD)
+	/// - At least one admin on a forum uses /mnt/huge_1gb
+	pub mount_point: PathBuf,
+	
+	/// User id (`uid`), eg `0`.
+	pub user_id: uid_t,
+	
+	/// Group id (`gid`), eg `0`.
+	pub group_id: gid_t,
+	
+	/// Permissions mode.
+	///
+	/// Debian uses 1770 for mode.
 	pub mode: mode_t,
-	pub maximumValueOfMemoryInBytes: Option<u64>,
-	pub minimumValueOfMemoryInBytes: Option<u64>,
-	pub maximumNumberOfINodes: Option<u64>,
-	pub mountFlags: MountFlags,
+	
+	/// eg `None`.
+	pub maximum_value_of_memory_in_bytes: Option<u64>,
+	
+	/// eg `None`.
+	pub minimum_value_of_memory_in_bytes: Option<u64>,
+	
+	/// eg `None`.
+	pub maximum_number_of_inodes: Option<u64>,
+	
+	/// eg `MountFlags::DoNotUpdateAccessTimes | MountFlags::DoNotAllowProgramsToBeExecuted | MountFlags::DoNotHonourSetUidAndSetGidPermissions`.
+	pub mount_flags: MountFlags,
 }
 
 impl Default for HugePageMountSettings
@@ -21,62 +45,52 @@ impl Default for HugePageMountSettings
 	#[inline(always)]
 	fn default() -> Self
 	{
-		HugePageMountSettings
+		Self
 		{
-			// DPDK dpdk-setup.sh uses /mnt/huge, but:-
-			// - DPDK docs variously also use /mnt/hugepages and /mnt/hugetlbfs
-			// - RHEL, Debian tutorials and examples use /hugetlbfs
-			// - Ubuntu official DEB uses /dev/hugepages (https://gerrit.fd.io/r/gitweb?p=deb_dpdk.git;a=blob;f=debian/dpdk-init;h=86eda2cb9c4e802aa07603761a82b312f4bb7fa2;hb=HEAD)
-			// - At least one admin on a forum uses /mnt/huge_1gb
-			mountPoint: PathBuf::from("/mnt/huge"),
-			userId: 0,
-			groupId: 0,
+			mount_point: PathBuf::from("/mnt/huge"),
+			user_id: 0,
+			group_id: 0,
 		
-			// Debian uses 1770 for mode
 			mode: 0o0755,
 			
-			maximumValueOfMemoryInBytes: None,
-			minimumValueOfMemoryInBytes: None,
-			maximumNumberOfINodes: None,
-			mountFlags: MountFlags::DoNotUpdateAccessTimes | MountFlags::DoNotAllowProgramsToBeExecuted | MountFlags::DoNotHonourSetUidAndSetGidPermissions,
+			maximum_value_of_memory_in_bytes: None,
+			minimum_value_of_memory_in_bytes: None,
+			maximum_number_of_inodes: None,
+			mount_flags: MountFlags::DoNotUpdateAccessTimes | MountFlags::DoNotAllowProgramsToBeExecuted | MountFlags::DoNotHonourSetUidAndSetGidPermissions,
 		}
 	}
 }
 
 impl HugePageMountSettings
 {
-	pub fn asMountOptions(&self, overrideDefaultHugePageSize: Option<HugePageSize>) -> HashMap<String, Option<String>>
+	//noinspection SpellCheckingInspection
+	pub(crate) fn as_mount_options(&self, override_default_huge_page_size: Option<HugePageSize>) -> HashMap<String, Option<String>>
 	{
-		let mut mountOptions = HashMap::with_capacity(8);
-		mountOptions.insert("uid".to_owned(), Some(format!("{}", self.userId)));
-		mountOptions.insert("gid".to_owned(), Some(format!("{}", self.groupId)));
-		mountOptions.insert("mode".to_owned(), Some(format!("{:04o}", self.mode)));
+		let mut mount_options = HashMap::with_capacity(8);
+		mount_options.insert("uid".to_owned(), Some(format!("{}", self.user_id)));
+		mount_options.insert("gid".to_owned(), Some(format!("{}", self.group_id)));
+		mount_options.insert("mode".to_owned(), Some(format!("{:04o}", self.mode)));
 		
-		if let Some(hugePageSize) = overrideDefaultHugePageSize
+		if let Some(huge_page_size) = override_default_huge_page_size
 		{
-			mountOptions.insert("pagesize".to_owned(), Some(hugePageSize.to_str().to_owned()));
+			mount_options.insert("pagesize".to_owned(), Some(huge_page_size.to_str().to_owned()));
 		}
 		
-		if let Some(maximumValueOfMemoryInBytes) = self.maximumValueOfMemoryInBytes
+		if let Some(maximumvalue_of_memory_in_bytes) = self.maximum_value_of_memory_in_bytes
 		{
-			mountOptions.insert("size".to_owned(), Some(format!("{}", maximumValueOfMemoryInBytes)));
+			mount_options.insert("size".to_owned(), Some(format!("{}", maximumvalue_of_memory_in_bytes)));
 		}
 		
-		if let Some(minimumValueOfMemoryInBytes) = self.minimumValueOfMemoryInBytes
+		if let Some(minimumvalue_of_memory_in_bytes) = self.minimum_value_of_memory_in_bytes
 		{
-			mountOptions.insert("min_size".to_owned(), Some(format!("{}", minimumValueOfMemoryInBytes)));
+			mount_options.insert("min_size".to_owned(), Some(format!("{}", minimumvalue_of_memory_in_bytes)));
 		}
 		
-		if let Some(maximumNumberOfINodes) = self.maximumNumberOfINodes
+		if let Some(maximum_number_of_inodes) = self.maximum_number_of_inodes
 		{
-			mountOptions.insert("nr_inodes".to_owned(), Some(format!("{}", maximumNumberOfINodes)));
+			mount_options.insert("nr_inodes".to_owned(), Some(format!("{}", maximum_number_of_inodes)));
 		}
 		
-		mountOptions
-	}
-	
-	pub fn mountFlags(&self) -> MountFlags
-	{
-		self.mountFlags
+		mount_options
 	}
 }

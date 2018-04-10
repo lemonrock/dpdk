@@ -62,7 +62,7 @@ impl LogicalCore
 	pub fn kernelMaximumCpuIndex(sysPath: &Path) -> io::Result<u32>
 	{
 		let filePath = Self::cpusItemSysPath(sysPath, "kernel_max");
-		readValueFromFile(&filePath)
+		filePath.read_value()
 	}
 	
 	fn cpulist(sysPath: &Path, fileName: &str) -> Result<LogicalCoresActive, ListParseError>
@@ -74,7 +74,7 @@ impl LogicalCore
 	pub fn topologyCoreId(&self, sysPath: &Path) -> io::Result<u64>
 	{
 		let filePath = self.topologyFilePath(sysPath, "core_id");
-		readValueFromFile(&filePath)
+		filePath.read_value()
 	}
 	
 	#[inline(always)]

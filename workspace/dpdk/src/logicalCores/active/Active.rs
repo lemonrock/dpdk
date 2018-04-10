@@ -45,12 +45,12 @@ pub trait Active : Default + Clone
 		values.shrink_to_fit();
 		values
 	}
-			
+	
 	fn parseFromFilePath(path: &Path) -> Result<Self, ListParseError>
 	{
-		let mut openFile = try!(File::open(path));
+		let mut openFile = File::open(path)?;
 		let mut rawString = String::with_capacity(256);
-		let bytesRead = try!(openFile.read_to_string(&mut rawString));
+		let bytesRead = openFile.read_to_string(&mut rawString)?;
 		
 		// Remove trailing LineFeed
 		if bytesRead == 0
@@ -100,7 +100,7 @@ pub trait Active : Default + Clone
         
 	        let mut iterator = indexOrRange.splitn(2, '-');
 			
-	        let first = try!(parseIndex::<Self>(iterator.next().unwrap(), "first"));
+	        let first = parseIndex::<Self>(iterator.next().unwrap(), "first")?;
 			
 			if first < nextMinimumIndex
 			{
@@ -109,7 +109,7 @@ pub trait Active : Default + Clone
 			
 	        if let Some(second) = iterator.last()
 	        {
-	            let second = try!(parseIndex::<Self>(second, "second"));
+	            let second = parseIndex::<Self>(second, "second")?;
 				if first >= second
 				{
 					return Err(ListParseError::RangeIsNotAnAscendingRangeWithMoreThanOneElement(first, second));
@@ -156,7 +156,7 @@ pub trait Active : Default + Clone
 		});
 		set
 	}
-		
+	
 	fn intersect(&self, other: &Self) -> Self
 	{
 		let mut result = Self::none();
@@ -190,7 +190,7 @@ pub trait Active : Default + Clone
 		{
 			if self.isEnabled(index)
 			{
-				try!(callIfEnabled(index));
+				callIfEnabled(index)?;
 			}
 		}
 		Ok(())
@@ -238,7 +238,7 @@ pub trait Active : Default + Clone
 	{
 		!self.value(index)
 	}
-		
+	
 	#[inline(always)]
 	fn enable(&mut self, index: usize)
 	{

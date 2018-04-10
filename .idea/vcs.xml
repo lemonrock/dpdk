@@ -3,6 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/.cargo" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/workspace/dpdk-sys" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/workspace/dpdk-sys/tools/bindgen-wrapper" vcs="Git" />
   </component>
 </project>
