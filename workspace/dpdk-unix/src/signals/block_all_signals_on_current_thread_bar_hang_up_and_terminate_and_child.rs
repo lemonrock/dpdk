@@ -6,11 +6,11 @@
 #[inline(always)]
 pub fn block_all_signals_on_current_thread_bar_hang_up_and_terminate_and_child()
 {
-	let mut set = SigSet::all();
-	set.remove(Signal::SIGKILL);
-	set.remove(Signal::SIGHUP);
-	set.remove(Signal::SIGTERM);
-	set.remove(Signal::SIGCHLD);
-	
-	set.thread_set_mask().expect("Could not block nearly all signals")
+	let signals = hashset!
+	{
+		SIGHUP,
+		SIGTERM,
+		SIGCHLD,
+	};
+	block_all_signals_on_current_thread_bar(&signals)
 }

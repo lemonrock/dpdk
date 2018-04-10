@@ -6,8 +6,5 @@
 #[inline(always)]
 pub fn block_all_signals_on_current_thread()
 {
-	let mut set = SigSet::all();
-	set.remove(Signal::SIGKILL);
-	
-	set.thread_set_mask().expect("Could not block all signals")
+	block_all_signals_on_current_thread_bar(&HashSet::default())
 }

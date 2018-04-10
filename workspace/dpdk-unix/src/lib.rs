@@ -19,7 +19,7 @@
 extern crate errno;
 extern crate libc;
 extern crate libc_extra;
-#[cfg(unix)] extern crate nix;
+#[cfg(unix)] #[macro_use] extern crate maplit;
 #[macro_use] extern crate quick_error;
 #[cfg(any(target_os = "android", target_os = "linux"))] #[macro_use] extern crate serde_derive;
 extern crate rust_extra;
@@ -52,6 +52,10 @@ use ::std::str::FromStr;
 #[cfg(any(target_os = "android", target_os = "linux"))]
 /// Functionality to provide mid-level wrappers on Linux and Android.
 pub mod android_linux;
+
+
+/// Support for signals.
+#[cfg(unix)] pub mod signals;
 
 
 pub(crate) mod strings;

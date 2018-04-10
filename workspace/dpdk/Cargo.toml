@@ -28,7 +28,7 @@ serde_derive = "0.9"
 
 [target.'cfg(unix)'.dependencies]
 dpdk-ioctl = { path = "../dpdk-ioctl", version = "0.0.1" }
-dpdk-unix = { path = "../dpdk-unix", version = "0.0.1" }
+dpdk-unix = { path = "../dpdk-unix", version = "0.0.2" }
 libc-extra = "0.0.14"
 syscall-alt = "0.0.14"
 
