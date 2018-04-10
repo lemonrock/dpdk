@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk/dpdk.iml" filepath="$PROJECT_DIR$/workspace/dpdk/dpdk.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-alloc/dpdk-alloc.iml" filepath="$PROJECT_DIR$/workspace/dpdk-alloc/dpdk-alloc.iml" />
-      <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-ioctl/dpdk-ioctl.iml" filepath="$PROJECT_DIR$/workspace/dpdk-ioctl/dpdk-ioctl.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-main/dpdk-main.iml" filepath="$PROJECT_DIR$/workspace/dpdk-main/dpdk-main.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-serde/dpdk-serde.iml" filepath="$PROJECT_DIR$/workspace/dpdk-serde/dpdk-serde.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-sys/dpdk-sys.iml" filepath="$PROJECT_DIR$/workspace/dpdk-sys/dpdk-sys.iml" />

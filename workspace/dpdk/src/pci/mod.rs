@@ -4,7 +4,6 @@
 
 use ::const_cstr_fork::ConstCStr;
 #[cfg(unix)] use ::std::os::unix::ffi::OsStrExt;
-use ::dpdk_ioctl::NumberOfBytesInPciAddressString;
 use ::dpdk_sys::rte_eth_dev;
 use ::dpdk_sys::rte_pci_addr;
 use ::dpdk_sys::rte_pci_device;
@@ -12,6 +11,7 @@ use ::dpdk_sys::rte_pci_driver;
 use ::dpdk_sys::rte_pci_id;
 use ::dpdk_sys::rte_pci_ioport;
 use ::dpdk_sys::rust_RTE_DEV_TO_PCI;
+use ::dpdk_unix::android_linux::pci::PciBusInformation;
 use ::libc::c_void;
 use ::libc::FILE;
 use ::libc::off_t;

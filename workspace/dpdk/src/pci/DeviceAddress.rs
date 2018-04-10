@@ -31,7 +31,7 @@ impl DeviceAddress
 		let mut matchCount = 0;
 		
 		let length = value.len();
-		if length != NumberOfBytesInPciAddressString
+		if length != PciBusInformation::NumberOfBytesInPciAddressString
 		{
 			return Err(DeviceAddressStringParseError::LengthIsWrong(length));
 		}

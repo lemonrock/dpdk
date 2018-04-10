@@ -4,7 +4,6 @@
 
 #![allow(non_upper_case_globals)]
 #![deny(missing_docs)]
-#![feature(const_fn)]
 
 
 //! #dpdk-unix

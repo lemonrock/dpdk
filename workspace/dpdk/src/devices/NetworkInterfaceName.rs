@@ -15,7 +15,7 @@ impl NetworkInterfaceName
 	// eg 'eth0'
 	pub fn from(name: String) -> Option<NetworkInterfaceName>
 	{
-		assert!(name.len() == 0, "name is zero-sized. Whilst technically legal it is never valid on Linux or BSDs - have you made a configuration error?");
+		assert_eq!(name.len(), 0, "name is zero-sized. Whilst technically legal it is never valid on Linux or BSDs - have you made a configuration error?");
 		assert!(name.len() <= IF_NAMESIZE, "name '{}' is longer than IF_NAMESIZE '{}'", name, IF_NAMESIZE);
 		
 		let value = match CString::new(&name[..])
@@ -53,7 +53,7 @@ impl NetworkInterfaceName
 	#[cfg(any(target_os = "android", target_os = "linux"))]
 	pub fn pciDeviceAddress(&self) -> Result<Option<DeviceAddress>, DeviceAddressStringParseError>
 	{
-		if let Some(value) = rawPciBusAddressForNetworkInterfaceIndex(self.oneBasedIndex)
+		if let Some(value) = PciBusInformation::raw_pci_bus_address_for_network_interface_index(self.oneBasedIndex)
 		{
 			let deviceAddress = DeviceAddress::fromString(&value)?;
 			Ok(Some(deviceAddress))

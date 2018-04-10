@@ -2,7 +2,7 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-#[cfg(any(target_os = "android", target_os = "linux"))] use ::dpdk_ioctl::android_linux::rawPciBusAddressForNetworkInterfaceIndex;
+#[cfg(any(target_os = "android", target_os = "linux"))] use ::dpdk_ioctl::android_linux::raw_pci_bus_address_for_network_interface_index;
 use ::libc::IF_NAMESIZE;
 use ::libc::if_nametoindex;
 use ::std::ffi::CString;

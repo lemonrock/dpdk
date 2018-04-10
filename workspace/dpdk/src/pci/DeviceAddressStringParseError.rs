@@ -9,7 +9,7 @@ quick_error!
 	{
 		LengthIsWrong(length: usize)
 		{
-			display("Length should be '{}' but was '{}'", NumberOfBytesInPciAddressString, length)
+			display("Length should be '{}' but was '{}'", PciBusInformation::NumberOfBytesInPciAddressString, length)
 		}
 		
 		NoDomain

@@ -16,9 +16,9 @@ include = ["README.md", "src/**/*.rs", "benches/**/*.rs", "examples/**/*.rs", "t
 # Relative to Cargo.toml
 readme = "README.md"
 publish = true
-version = "0.0.1"
+version = "0.0.2"
 
-[dependencies]
+[target.'cfg(unix)'.dependencies]
 errno = "^0.1"
 libc = "^0.2"
 libc-extra = "0.0.14"

@@ -13,7 +13,7 @@ repository = "https://github.com/lemonrock/dpdk.git"
 exclude = ["compile-dpdk-with-tldk.conf.d/temporary", "tools/bindgen-wrapper/temporary", "lib/dpdk/doc/**", "lib/dpdk/test/**", "lib/dpdk/examples/**", "lib/tldk/doc/**", "lib/tldk/test/**", "lib/tldk/examples/**"]
 readme = "README.md"
 publish = true
-version = "0.0.2"
+version = "0.0.3"
 build = "src/build.rs"
 links = "dpdk"
 

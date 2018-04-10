@@ -4,16 +4,22 @@
 
 quick_error!
 {
+	/// Error caused when trying to open an ioctl socket.
 	#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-	pub enum OpenIoCtlSocketError
+	enum OpenPciBusInformationError
 	{
+		/// Permission denied.
 		PermissionDenied
+		{
+		}
 		
+		/// Unsupported.
 		Unsupported(details: &'static str)
 		{
 			display("Unsupported because '{}'", details)
 		}
 		
+		/// Out of memory or resources.
 		OutOfMemoryOrResources(details: &'static str)
 		{
 			display("Out of memory or resources because '{}'", details)
