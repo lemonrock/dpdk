@@ -25,13 +25,12 @@ docopt = "0.6"
 libc = "0.2.21"
 log = "0.3"
 lru_time_cache = "0.5"
-ordermap = "0.2"
+indexmap = "1.0"
 quick-error = "1.1"
 rust-extra = "0.0.13"
 rustc-serialize = "0.3"
-serde = "0.9"
-serde_derive = "0.9"
-serde_json = "0.9"
+serde = "1.0"
+serde_derive = "1.0"
 
 [target.'cfg(unix)'.dependencies]
 libc-extra = "0.0.14"
@@ -39,4 +38,4 @@ stderr-logging = "0.0.1"
 syscall-alt = "0.0.14"
 
 [target.'cfg(any(all(any(target_os = "android", target_os = "linux"), any(target_arch = "aarch64", target_arch = "arm", target_arch = "powerpc64", target_arch = "x86", target_arch = "x86_64")), all(target_os = "freebsd", target_arch = "x86_64")))'.dependencies]
-dpdk = { path = "../dpdk", version = "0.0.1" }
+dpdk = { path = "../dpdk", version = "0.0.3" }

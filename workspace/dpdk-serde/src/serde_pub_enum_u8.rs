@@ -16,6 +16,7 @@ macro_rules! serde_pub_enum_u8
 
 		impl ::serde::Serialize for $name
 		{
+			#[inline(always)]
 			fn serialize<S: ::serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error>
 			{
 				serializer.serialize_u8(*self as u8)
@@ -24,6 +25,7 @@ macro_rules! serde_pub_enum_u8
 
 		impl ::serde::Deserialize for $name
 		{
+			#[inline(always)]
 			fn deserialize<D: ::serde::Deserializer>(deserializer: D) -> Result<Self, D::Error>
 			{
 				struct Visitor;
