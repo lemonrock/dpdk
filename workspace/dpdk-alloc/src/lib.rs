@@ -4,8 +4,6 @@
 
 #![allow(non_upper_case_globals)]
 #![deny(missing_docs)]
-#![feature(allocator)]
-#![allocator]
 #![no_std]
 
 
