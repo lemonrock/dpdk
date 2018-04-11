@@ -4,6 +4,7 @@
       <w>aarch</w>
       <w>addr</w>
       <w>arrayvec</w>
+      <w>bitfield</w>
       <w>bitfields</w>
       <w>bitflags</w>
       <w>capget</w>
@@ -46,6 +47,7 @@
       <w>misconfigured</w>
       <w>mlock</w>
       <w>modprobe</w>
+      <w>mtod</w>
       <w>multicast</w>
       <w>namesize</w>
       <w>numa</w>
@@ -67,6 +69,7 @@
       <w>stormmq</w>
       <w>syscall</w>
       <w>thumbv</w>
+      <w>timespec</w>
       <w>timestamping</w>
       <w>tldk</w>
       <w>txconf</w>

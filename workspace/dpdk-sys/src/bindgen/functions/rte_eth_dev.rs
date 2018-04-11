@@ -1,0 +1,83 @@
+// This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+// Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
+
+
+extern "C"
+{
+	pub fn rte_eth_dev_adjust_nb_rx_tx_desc(port_id: u16, nb_rx_desc: *mut u16, nb_tx_desc: *mut u16) -> c_int;
+	pub fn rte_eth_dev_allocate(name: *const c_char) -> *mut rte_eth_dev;
+	pub fn rte_eth_dev_allocated(name: *const c_char) -> *mut rte_eth_dev;
+	pub fn rte_eth_dev_attach(devargs: *const c_char, port_id: *mut u16) -> c_int;
+	pub fn rte_eth_dev_attach_secondary(name: *const c_char) -> *mut rte_eth_dev;
+	pub fn rte_eth_dev_callback_register(port_id: u16, event: rte_eth_event_type, cb_fn: rte_eth_dev_cb_fn, cb_arg: *mut c_void) -> c_int;
+	pub fn rte_eth_dev_callback_unregister(port_id: u16, event: rte_eth_event_type, cb_fn: rte_eth_dev_cb_fn, cb_arg: *mut c_void) -> c_int;
+	pub fn rte_eth_dev_close(port_id: u16);
+	pub fn rte_eth_dev_configure(port_id: u16, nb_rx_queue: u16, nb_tx_queue: u16, eth_conf: *const rte_eth_conf) -> c_int;
+	pub fn rte_eth_dev_count() -> u16;
+	pub fn rte_eth_dev_default_mac_addr_set(port_id: u16, mac_addr: *mut ether_addr) -> c_int;
+	pub fn rte_eth_dev_detach(port_id: u16, devname: *mut c_char) -> c_int;
+	pub fn rte_eth_dev_filter_ctrl(port_id: u16, filter_type: rte_filter_type, filter_op: rte_filter_op, arg: *mut c_void) -> c_int;
+	pub fn rte_eth_dev_filter_supported(port_id: u16, filter_type: rte_filter_type) -> c_int;
+	pub fn rte_eth_dev_flow_ctrl_get(port_id: u16, fc_conf: *mut rte_eth_fc_conf) -> c_int;
+	pub fn rte_eth_dev_flow_ctrl_set(port_id: u16, fc_conf: *mut rte_eth_fc_conf) -> c_int;
+	pub fn rte_eth_dev_fw_version_get(port_id: u16, fw_version: *mut c_char, fw_size: usize) -> c_int;
+	pub fn rte_eth_dev_get_dcb_info(port_id: u16, dcb_info: *mut rte_eth_dcb_info) -> c_int;
+	pub fn rte_eth_dev_get_eeprom(port_id: u16, info: *mut rte_dev_eeprom_info) -> c_int;
+	pub fn rte_eth_dev_get_eeprom_length(port_id: u16) -> c_int;
+	pub fn rte_eth_dev_get_mtu(port_id: u16, mtu: *mut u16) -> c_int;
+	pub fn rte_eth_dev_get_name_by_port(port_id: u16, name: *mut c_char) -> c_int;
+	pub fn rte_eth_dev_get_port_by_name(name: *const c_char, port_id: *mut u16) -> c_int;
+	pub fn rte_eth_dev_get_reg_info(port_id: u16, info: *mut rte_dev_reg_info) -> c_int;
+	pub fn rte_eth_dev_get_sec_ctx(port_id: u8) -> *mut c_void;
+	pub fn rte_eth_dev_get_supported_ptypes(port_id: u16, ptype_mask: u32, ptypes: *mut u32, num: c_int) -> c_int;
+	pub fn rte_eth_dev_get_vlan_offload(port_id: u16) -> c_int;
+	pub fn rte_eth_dev_info_get(port_id: u16, dev_info: *mut rte_eth_dev_info);
+	pub fn rte_eth_dev_is_removed(port_id: u16) -> c_int;
+	pub fn rte_eth_dev_is_valid_port(port_id: u16) -> c_int;
+	pub fn rte_eth_dev_l2_tunnel_eth_type_conf(port_id: u16, l2_tunnel: *mut rte_eth_l2_tunnel_conf) -> c_int;
+	pub fn rte_eth_dev_l2_tunnel_offload_set(port_id: u16, l2_tunnel: *mut rte_eth_l2_tunnel_conf, mask: u32, en: u8) -> c_int;
+	pub fn rte_eth_dev_mac_addr_add(port_id: u16, mac_addr: *mut ether_addr, pool: u32) -> c_int;
+	pub fn rte_eth_dev_mac_addr_remove(port_id: u16, mac_addr: *mut ether_addr) -> c_int;
+	pub fn rte_eth_dev_owner_delete(owner_id: u64);
+	pub fn rte_eth_dev_owner_get(port_id: u16, owner: *mut rte_eth_dev_owner) -> c_int;
+	pub fn rte_eth_dev_owner_new(owner_id: *mut u64) -> c_int;
+	pub fn rte_eth_dev_owner_set(port_id: u16, owner: *const rte_eth_dev_owner) -> c_int;
+	pub fn rte_eth_dev_owner_unset(port_id: u16, owner_id: u64) -> c_int;
+	pub fn rte_eth_dev_pool_ops_supported(port_id: u16, pool: *const c_char) -> c_int;
+	pub fn rte_eth_dev_priority_flow_ctrl_set(port_id: u16, pfc_conf: *mut rte_eth_pfc_conf) -> c_int;
+	pub fn rte_eth_dev_release_port(eth_dev: *mut rte_eth_dev) -> c_int;
+	pub fn rte_eth_dev_reset(port_id: u16) -> c_int;
+	pub fn rte_eth_dev_rss_hash_conf_get(port_id: u16, rss_conf: *mut rte_eth_rss_conf) -> c_int;
+	pub fn rte_eth_dev_rss_hash_update(port_id: u16, rss_conf: *mut rte_eth_rss_conf) -> c_int;
+	pub fn rte_eth_dev_rss_reta_query(port_id: u16, reta_conf: *mut rte_eth_rss_reta_entry64, reta_size: u16) -> c_int;
+	pub fn rte_eth_dev_rss_reta_update(port_id: u16, reta_conf: *mut rte_eth_rss_reta_entry64, reta_size: u16) -> c_int;
+	pub fn rte_eth_dev_rx_intr_ctl(port_id: u16, epfd: c_int, op: c_int, data: *mut c_void) -> c_int;
+	pub fn rte_eth_dev_rx_intr_ctl_q(port_id: u16, queue_id: u16, epfd: c_int, op: c_int, data: *mut c_void) -> c_int;
+	pub fn rte_eth_dev_rx_intr_disable(port_id: u16, queue_id: u16) -> c_int;
+	pub fn rte_eth_dev_rx_intr_enable(port_id: u16, queue_id: u16) -> c_int;
+	pub fn rte_eth_dev_rx_offload_name(offload: u64) -> *const c_char;
+	pub fn rte_eth_dev_rx_queue_start(port_id: u16, rx_queue_id: u16) -> c_int;
+	pub fn rte_eth_dev_rx_queue_stop(port_id: u16, rx_queue_id: u16) -> c_int;
+	pub fn rte_eth_dev_set_eeprom(port_id: u16, info: *mut rte_dev_eeprom_info) -> c_int;
+	pub fn rte_eth_dev_set_link_down(port_id: u16) -> c_int;
+	pub fn rte_eth_dev_set_link_up(port_id: u16) -> c_int;
+	pub fn rte_eth_dev_set_mc_addr_list(port_id: u16, mc_addr_set: *mut ether_addr, nb_mc_addr: u32) -> c_int;
+	pub fn rte_eth_dev_set_mtu(port_id: u16, mtu: u16) -> c_int;
+	pub fn rte_eth_dev_set_rx_queue_stats_mapping(port_id: u16, rx_queue_id: u16, stat_idx: u8) -> c_int;
+	pub fn rte_eth_dev_set_tx_queue_stats_mapping(port_id: u16, tx_queue_id: u16, stat_idx: u8) -> c_int;
+	pub fn rte_eth_dev_set_vlan_ether_type(port_id: u16, vlan_type: rte_vlan_type, tag_type: u16) -> c_int;
+	pub fn rte_eth_dev_set_vlan_offload(port_id: u16, offload_mask: c_int) -> c_int;
+	pub fn rte_eth_dev_set_vlan_pvid(port_id: u16, pvid: u16, on: c_int) -> c_int;
+	pub fn rte_eth_dev_set_vlan_strip_on_queue(port_id: u16, rx_queue_id: u16, on: c_int) -> c_int;
+	pub fn rte_eth_dev_socket_id(port_id: u16) -> c_int;
+	pub fn rte_eth_dev_start(port_id: u16) -> c_int;
+	pub fn rte_eth_dev_stop(port_id: u16);
+	pub fn rte_eth_dev_tx_offload_name(offload: u64) -> *const c_char;
+	pub fn rte_eth_dev_tx_queue_start(port_id: u16, tx_queue_id: u16) -> c_int;
+	pub fn rte_eth_dev_tx_queue_stop(port_id: u16, tx_queue_id: u16) -> c_int;
+	pub fn rte_eth_dev_uc_all_hash_table_set(port_id: u16, on: u8) -> c_int;
+	pub fn rte_eth_dev_uc_hash_table_set(port_id: u16, addr: *mut ether_addr, on: u8) -> c_int;
+	pub fn rte_eth_dev_udp_tunnel_port_add(port_id: u16, tunnel_udp: *mut rte_eth_udp_tunnel) -> c_int;
+	pub fn rte_eth_dev_udp_tunnel_port_delete(port_id: u16, tunnel_udp: *mut rte_eth_udp_tunnel) -> c_int;
+	pub fn rte_eth_dev_vlan_filter(port_id: u16, vlan_id: u16, on: c_int) -> c_int;
+}

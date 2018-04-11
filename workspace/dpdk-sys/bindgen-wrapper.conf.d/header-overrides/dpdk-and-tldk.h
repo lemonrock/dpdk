@@ -2,7 +2,15 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
+
+#ifndef _BSD_SOURCE
 #define _BSD_SOURCE
+#endif
+
+
 #include <dpdk.h>
 #include <tldk.h>
+#include "lib.h"

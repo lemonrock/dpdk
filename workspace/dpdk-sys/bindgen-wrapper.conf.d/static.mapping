@@ -1,4 +1,3 @@
-cmdline_ cmdline
 eal_default_log log
 eal_timer_ timer
 lcore_config lcore
@@ -13,3 +12,12 @@ rte_cycles_vmware_tsc_map timer
 pci_ pci
 rte_cryptodev rte_cryptodev
 rte_eth_ rte_eth
+rte_flow_item_ rte_flow_item
+rte_rawdev rte_rawdev
+rte_rtm_ rte_rtm
+rte_thash_ rte_thash
+rte_crypto_ rte_crypto
+rte_eventdev rte_eventdev
+rte_bbdev_ rte_bbdev
+rte_cyptodev_ rte_cyptodev
+rte_delay_ rte_delay

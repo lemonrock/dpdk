@@ -18,10 +18,9 @@ build = "src/build.rs"
 links = "dpdk"
 
 [dependencies]
-rust_c = { version = "0.1.1", features = ["macro"] }
 libc = "0.2.40"
 libnuma-sys = "0.0.9"
 rdma-core-sys = "0.1.10"
 
 [build-dependencies]
-rust_c = { version = "0.1.1", features = ["build"] }
+cc = "1.0"

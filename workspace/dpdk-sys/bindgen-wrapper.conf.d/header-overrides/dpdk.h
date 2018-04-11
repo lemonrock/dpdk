@@ -2,17 +2,17 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-#include <cmdline.h>
-#include <cmdline_cirbuf.h>
-#include <cmdline_parse.h>
-#include <cmdline_parse_etheraddr.h>
-#include <cmdline_parse_ipaddr.h>
-#include <cmdline_parse_num.h>
-#include <cmdline_parse_portlist.h>
-#include <cmdline_parse_string.h>
-#include <cmdline_rdline.h>
-#include <cmdline_socket.h>
-#include <cmdline_vt100.h>
+//#include <cmdline.h>
+//#include <cmdline_cirbuf.h>
+//#include <cmdline_parse.h>
+//#include <cmdline_parse_etheraddr.h>
+//#include <cmdline_parse_ipaddr.h>
+//#include <cmdline_parse_num.h>
+//#include <cmdline_parse_portlist.h>
+//#include <cmdline_parse_string.h>
+//#include <cmdline_rdline.h>
+//#include <cmdline_socket.h>
+//#include <cmdline_vt100.h>
 #include <rte_acl.h>
 #include <rte_acl_osdep.h>
 #include <rte_alarm.h>
