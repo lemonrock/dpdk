@@ -6,6 +6,11 @@
 #![deny(missing_docs)]
 
 
+//! #dpdk-serde
+//!
+//! A small crate to abstract away dependencies on Serde.
+
+
 extern crate serde;
 
 
