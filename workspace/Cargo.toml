@@ -5,7 +5,6 @@
 [workspace]
 members = [
     "dpdk",
-    "dpdk-alloc",
     "dpdk-serde",
     "dpdk-sys",
     "dpdk-main",
