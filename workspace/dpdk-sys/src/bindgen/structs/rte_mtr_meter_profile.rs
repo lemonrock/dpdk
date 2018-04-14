@@ -6,7 +6,7 @@
 pub struct rte_mtr_meter_profile
 {
 	pub alg: rte_mtr_algorithm,
-	pub __bindgen_anon_1: rte_mtr_meter_profile__bindgen_ty_1,
+	pub _1: rte_mtr_meter_profile_1,
 }
 
 impl Default for rte_mtr_meter_profile
@@ -23,6 +23,6 @@ impl Debug for rte_mtr_meter_profile
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_mtr_meter_profile {{ alg: {:?}, __bindgen_anon_1: {:?} }}", self.alg, self.__bindgen_anon_1)
+		write!(f, "rte_mtr_meter_profile {{ alg: {:?}, _1: {:?} }}", self.alg, self._1)
 	}
 }

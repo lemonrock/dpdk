@@ -4,17 +4,7 @@
 
 use ::arrayvec::ArrayVec;
 use ::const_cstr_fork::ConstCStr;
-use ::dpdk_sys::lcore_config;
-use ::dpdk_sys::rte_eal_get_configuration;
-use ::dpdk_sys::rte_lcore_role_t;
-use ::dpdk_sys::rte_lcore_state_t;
-use ::dpdk_sys::rte_malloc_socket_stats;
-use ::dpdk_sys::RTE_MAX_LCORE;
-use ::dpdk_sys::RTE_MAX_LCORE_FREQS;
-use ::dpdk_sys::RTE_MAX_NUMA_NODES;
-use ::dpdk_sys::rte_power_freq_change_t;
-use ::dpdk_sys::rte_rmt_call_master_t;
-use ::dpdk_sys::SOCKET_ID_ANY;
+use ::dpdk_sys::*;
 use ::libc::c_char;
 use ::libc::c_int;
 use ::libc::c_uint;
@@ -36,8 +26,7 @@ use ::std::path::PathBuf;
 use ::std::ptr::null;
 use ::syscall_alt::constants::NegativeE;
 use ::dpdk_unix::assert_effective_user_id_is_root;
-use ::dpdk_unix::helpers::readValueFromFile;
-use ::dpdk_unix::helpers::writeValueToFile;
+use ::dpdk_unix::PathExt;
 use ::dpdk_unix::HugePageSize;
 use ::dpdk_unix::android_linux::memory_statistics::MemoryStatisticsParseError;
 use ::dpdk_unix::android_linux::memory_statistics::MemoryStatistics;

@@ -6,7 +6,7 @@
 #[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub struct rte_vdev_driver
 {
-	pub next: rte_vdev_driver__bindgen_ty_1,
+	pub next: rte_vdev_driver_1,
 	pub driver: rte_driver,
 	pub probe: rte_vdev_probe_t,
 	pub remove: rte_vdev_remove_t,

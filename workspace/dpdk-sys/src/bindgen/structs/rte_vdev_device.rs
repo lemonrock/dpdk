@@ -5,7 +5,7 @@
 #[repr(C)]
 pub struct rte_vdev_device
 {
-	pub next: rte_vdev_device__bindgen_ty_1,
+	pub next: rte_vdev_device_1,
 	pub device: rte_device,
 }
 

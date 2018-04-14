@@ -47,4 +47,5 @@ extern "C"
 	pub fn rte_event_ring_free(r: *mut rte_event_ring);
 	pub fn rte_event_ring_init(r: *mut rte_event_ring, name: *const c_char, count: c_uint, flags: c_uint) -> c_int;
 	pub fn rte_event_ring_lookup(name: *const c_char) -> *mut rte_event_ring;
+	pub fn rust___rte_event_enqueue_burst(dev_id: u8, port_id: u8, ev: *const rte_event, nb_events: u16, fn_: event_enqueue_burst_t) -> u16;
 }

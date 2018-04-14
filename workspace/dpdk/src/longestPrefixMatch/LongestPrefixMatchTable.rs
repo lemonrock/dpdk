@@ -5,24 +5,24 @@
 pub trait LongestPrefixMatchTable : Drop
 {
 	type IpHostAddress: Sized;
-	
+
 	type IpNetworkAddress: IpNetworkAddress<IpHostAddress=Self::IpHostAddress> + Sized;
-	
+
 	#[inline(always)]
-	fn new(name: &str, maximumRules: u32, numberOfTable8sToAllocate: u32, numaSocketId: Option<NumaSocketId>) -> Option<Self> where Self: Sized;
-	
+	fn new(name: &str, maximumRules: u32, numberOfTable8sToAllocate: u32, numa_socket_id: Option<NumaSocketId>) -> Option<Self> where Self: Sized;
+
 	#[inline(always)]
-	fn lookUp(&self, ipAddress: &Self::IpHostAddress) -> Option<NextHop>;
-	
+	fn lookUp(&self, internet_protocol_address: &Self::IpHostAddress) -> Option<NextHop>;
+
 	#[inline(always)]
 	fn addRule(&mut self, networkAddress: &Self::IpNetworkAddress, nextHop: NextHop) -> bool;
-	
+
 	#[inline(always)]
 	fn hasRule(&self, networkAddress: &Self::IpNetworkAddress) -> Option<NextHop>;
-	
+
 	#[inline(always)]
 	fn deleteRule(&mut self, networkAddress: &Self::IpNetworkAddress) -> bool;
-	
+
 	#[inline(always)]
 	fn deleteAllRules(&mut self);
 }

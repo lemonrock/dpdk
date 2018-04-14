@@ -5,7 +5,7 @@
 #[repr(C)]
 pub struct rte_intr_handle
 {
-	pub __bindgen_anon_1: rte_intr_handle__bindgen_ty_1,
+	pub _1: rte_intr_handle_1,
 	pub fd: c_int,
 	pub type_: rte_intr_handle_type,
 	pub max_intr: u32,
@@ -32,8 +32,8 @@ impl Debug for rte_intr_handle
 	{
 		write!(
 			f,
-			"rte_intr_handle {{ __bindgen_anon_1: {:?}, type: {:?}, efds: [{}], elist: [{}], intr_vec: {:?} }}",
-			self.__bindgen_anon_1,
+			"rte_intr_handle {{ _1: {:?}, type: {:?}, efds: [{}], elist: [{}], intr_vec: {:?} }}",
+			self._1,
 			self.type_,
 			self.efds
 				.iter()

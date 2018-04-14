@@ -5,7 +5,7 @@
 #[repr(C)]
 pub struct rte_pci_device
 {
-	pub next: rte_pci_device__bindgen_ty_1,
+	pub next: rte_pci_device_1,
 	pub device: rte_device,
 	pub addr: rte_pci_addr,
 	pub id: rte_pci_id,

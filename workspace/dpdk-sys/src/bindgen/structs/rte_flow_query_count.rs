@@ -5,7 +5,7 @@
 #[repr(C)]
 pub struct rte_flow_query_count
 {
-	pub _bitfield_1: __BindgenBitfieldUnit<[u8; 4usize], u32>,
+	pub bitfield_1: BindgenBitfieldUnit<[u8; 4usize], u32>,
 	pub hits: u64,
 	pub bytes: u64,
 }
@@ -34,7 +34,7 @@ impl rte_flow_query_count
 	#[inline(always)]
 	pub fn reset(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(0usize, 1u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -42,14 +42,14 @@ impl rte_flow_query_count
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(0usize, 1u8, val as u64)
+			self.bitfield_1.set(0usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn hits_set(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(1usize, 1u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -57,14 +57,14 @@ impl rte_flow_query_count
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(1usize, 1u8, val as u64)
+			self.bitfield_1.set(1usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn bytes_set(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(2usize, 1u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(2usize, 1u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -72,14 +72,14 @@ impl rte_flow_query_count
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(2usize, 1u8, val as u64)
+			self.bitfield_1.set(2usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn reserved(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(3usize, 29u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(3usize, 29u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -87,14 +87,14 @@ impl rte_flow_query_count
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(3usize, 29u8, val as u64)
+			self.bitfield_1.set(3usize, 29u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
-	pub fn new_bitfield_1(reset: u32, hits_set: u32, bytes_set: u32, reserved: u32) -> __BindgenBitfieldUnit<[u8; 4usize], u32>
+	pub fn newbitfield_1(reset: u32, hits_set: u32, bytes_set: u32, reserved: u32) -> BindgenBitfieldUnit<[u8; 4usize], u32>
 	{
-		let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 4usize], u32> = Default::default();
+		let mut __bindgen_bitfield_unit: BindgenBitfieldUnit<[u8; 4usize], u32> = Default::default();
 		__bindgen_bitfield_unit.set(0usize, 1u8, {
 			let reset: u32 = unsafe { transmute(reset) };
 			reset as u64

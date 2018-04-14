@@ -7,19 +7,19 @@ impl EthernetPort
 	#[inline(always)]
 	pub fn enableAllMulticastReceive(&self)
 	{
-		unsafe { ::dpdk_sys::rte_eth_allmulticast_enable(self.portIdentifier()) };
+		unsafe { rte_eth_allmulticast_enable(self.portIdentifier()) };
 	}
-	
+
 	#[inline(always)]
 	pub fn disableAllMulticastReceive(&self)
 	{
-		unsafe { ::dpdk_sys::rte_eth_allmulticast_disable(self.portIdentifier()) };
+		unsafe { rte_eth_allmulticast_disable(self.portIdentifier()) };
 	}
-	
+
 	#[inline(always)]
 	pub fn isReceiveAllMulticast(&self) -> Result<bool, ()>
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_allmulticast_get(self.portIdentifier()) };
+		let result = unsafe { rte_eth_allmulticast_get(self.portIdentifier()) };
 		if unlikely(result == -1)
 		{
 			Err(())
@@ -29,7 +29,7 @@ impl EthernetPort
 			Ok(isTrue(result))
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn setMulticastMediaAccessControlAddressesToFilter(&self, multicastSet: &HashSet<MediaAccessControlAddress>) -> Result<(), UnsupportedOrFullError>
 	{
@@ -39,14 +39,14 @@ impl EthernetPort
 			return Ok(());
 		}
 		let mut list: Vec<MediaAccessControlAddress> = Vec::with_capacity(length as usize);
-		
+
 		for multicastMediaAccessControlAddress in multicastSet
 		{
 			list.push(*multicastMediaAccessControlAddress);
 		}
 		let mut set = list.as_mut_slice();
-		
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_set_mc_addr_list(self.portIdentifier(), set.internalMutablePointer(), length) };
+
+		let result = unsafe { rte_eth_dev_set_mc_addr_list(self.portIdentifier(), set.internalMutablePointer(), length) };
 		if likely(result == 0)
 		{
 			Ok(())
@@ -57,18 +57,18 @@ impl EthernetPort
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedOrFullError::IsUnsupportedByTheHardware),
 				NegativeE::ENOSPC => Err(UnsupportedOrFullError::MaximumNumberOfItemsAssigned),
-			
+
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-			
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_dev_set_mc_addr_list()", result),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn clearMulticastMediaAccessControlAddressesToFilter(&self) -> Result<(), UnsupportedByHardwareError>
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_set_mc_addr_list(self.portIdentifier(), null_mut(), 0) };
+		let result = unsafe { rte_eth_dev_set_mc_addr_list(self.portIdentifier(), null_mut(), 0) };
 		if likely(result == 0)
 		{
 			Ok(())
@@ -78,10 +78,10 @@ impl EthernetPort
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::ENOSPC => panic!("Maximum number of items assigned but we tried to clear in rte_eth_dev_set_mc_addr_list()"),
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-			
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_dev_set_mc_addr_list()", result),
 			}
 		}

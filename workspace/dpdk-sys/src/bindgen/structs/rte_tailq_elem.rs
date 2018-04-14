@@ -7,7 +7,7 @@
 pub struct rte_tailq_elem
 {
 	pub head: *mut rte_tailq_head,
-	pub next: rte_tailq_elem__bindgen_ty_1,
+	pub next: rte_tailq_elem_1,
 	pub name: [c_char; 32usize],
 }
 

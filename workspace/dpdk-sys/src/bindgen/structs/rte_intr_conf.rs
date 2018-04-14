@@ -6,7 +6,7 @@
 #[repr(align(4))]
 pub struct rte_intr_conf
 {
-	pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize], u8>,
+	pub bitfield_1: BindgenBitfieldUnit<[u8; 1usize], u8>,
 	pub __bindgen_padding_0: [u8; 3usize],
 	pub __bindgen_align: [u32; 0usize],
 }
@@ -35,7 +35,7 @@ impl rte_intr_conf
 	#[inline(always)]
 	pub fn lsc(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(0usize, 1u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -43,14 +43,14 @@ impl rte_intr_conf
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(0usize, 1u8, val as u64)
+			self.bitfield_1.set(0usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn rxq(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(1usize, 1u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -58,14 +58,14 @@ impl rte_intr_conf
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(1usize, 1u8, val as u64)
+			self.bitfield_1.set(1usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn rmv(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(2usize, 1u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(2usize, 1u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -73,14 +73,14 @@ impl rte_intr_conf
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(2usize, 1u8, val as u64)
+			self.bitfield_1.set(2usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
-	pub fn new_bitfield_1(lsc: u32, rxq: u32, rmv: u32) -> __BindgenBitfieldUnit<[u8; 1usize], u8>
+	pub fn newbitfield_1(lsc: u32, rxq: u32, rmv: u32) -> BindgenBitfieldUnit<[u8; 1usize], u8>
 	{
-		let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
+		let mut __bindgen_bitfield_unit: BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
 		__bindgen_bitfield_unit.set(0usize, 1u8, {
 			let lsc: u32 = unsafe { transmute(lsc) };
 			lsc as u64

@@ -7,7 +7,7 @@
 #[derive(Copy, Clone)]
 pub struct tle_event
 {
-	pub ql: tle_event__bindgen_ty_1,
+	pub ql: tle_event_1,
 	pub head: *mut tle_evq,
 	pub data: *const c_void,
 	pub state: tle_ev_state,

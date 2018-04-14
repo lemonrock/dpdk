@@ -7,7 +7,7 @@ pub struct rte_ipv4_tuple
 {
 	pub src_addr: u32,
 	pub dst_addr: u32,
-	pub __bindgen_anon_1: rte_ipv4_tuple__bindgen_ty_1,
+	pub _1: rte_ipv4_tuple_1,
 }
 
 impl Default for rte_ipv4_tuple
@@ -24,6 +24,6 @@ impl Debug for rte_ipv4_tuple
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_ipv4_tuple {{ __bindgen_anon_1: {:?} }}", self.__bindgen_anon_1)
+		write!(f, "rte_ipv4_tuple {{ _1: {:?} }}", self._1)
 	}
 }

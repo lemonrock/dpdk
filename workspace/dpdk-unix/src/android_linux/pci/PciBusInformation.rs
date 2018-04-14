@@ -2,7 +2,7 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-
+/// PCI Bus Information.
 #[derive(Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct PciBusInformation(RawFd);
 

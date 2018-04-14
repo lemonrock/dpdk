@@ -16,25 +16,25 @@ impl<V: Sized> NumaSocketMap<V>
 	{
 		self.map[index].is_some()
 	}
-	
+
 	#[inline(always)]
 	pub fn new() -> Self
 	{
 		let map = [None, None, None, None, None, None, None, None,];
-		
+
 		NumaSocketMap
 		{
-			map: map,
+			map,
 			defaultKey: None,
 		}
 	}
-	
+
 	pub fn iterateSockets<F>(&self, mut callback: F)
 	where F: FnMut(NumaSocketId) -> ()
 	{
-		self.iterate(|numaSocketId, _| { callback(numaSocketId) })
+		self.iterate(|numa_socket_id, _| { callback(numa_socket_id) })
 	}
-	
+
 	pub fn iterate<F>(&self, mut callback: F)
 	where F: FnMut(NumaSocketId, &V) -> ()
 	{
@@ -46,7 +46,7 @@ impl<V: Sized> NumaSocketMap<V>
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn get(&self, key: NumaSocketId) -> Option<&V>
 	{
@@ -60,13 +60,13 @@ impl<V: Sized> NumaSocketMap<V>
 			None
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn getOrPanic(&self, key: NumaSocketId) -> &V
 	{
 		self.get(key).unwrap()
 	}
-	
+
 	#[inline(always)]
 	pub fn lowestKey(&self) -> Option<NumaSocketId>
 	{
@@ -80,21 +80,21 @@ impl<V: Sized> NumaSocketMap<V>
 		}
 		None
 	}
-	
+
 	#[inline(always)]
 	pub fn has(&self, key: NumaSocketId) -> bool
 	{
 		let index = key.as_usize();
 		self.map[index].is_some()
 	}
-	
+
 	#[inline(always)]
 	pub fn doesNotHave(&self, key: NumaSocketId) -> bool
 	{
 		let index = key.as_usize();
 		self.map[index].is_none()
 	}
-	
+
 	#[inline(always)]
 	pub fn putOnce(&mut self, key: NumaSocketId, value: V)
 	{
@@ -105,7 +105,7 @@ impl<V: Sized> NumaSocketMap<V>
 		}
 		self.map[index] = Some(value);
 	}
-	
+
 	// Designed to cope with configuring memory pools / packet buffer pools for EthernetPorts, which may not have an associated NumaSocketId AND we want only one default memory pool which is associated with the first ethernet port configured as they're very expensive
 	#[inline(always)]
 	pub fn getWithPutOnceIfMissingUsingDefaultKeyIfEmpty<F>(&mut self, key: Option<NumaSocketId>, default: F) -> &V
@@ -132,7 +132,7 @@ impl<V: Sized> NumaSocketMap<V>
 				self.defaultKey = Some(NumaSocketId::SocketZeroAlwaysExists);
 			}
 			let defaultKey = self.defaultKey.unwrap();
-			
+
 			let index = defaultKey.as_usize();
 			if let Some(ref value) = self.map[index]
 			{
@@ -144,7 +144,7 @@ impl<V: Sized> NumaSocketMap<V>
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	fn defaultMe<F>(&mut self, key: NumaSocketId, index: usize, default: F) -> &V
 	where F: Fn(NumaSocketId) -> V

@@ -14,15 +14,15 @@ use ::dpdk_main::Networking;
 //noinspection SpellCheckingInspection
 fn main()
 {
-	MainLogic::main(|numaSockets, ethernetPortConfigurations|
+	MainLogic::main(|numa_sockets, ethernetPortConfigurations|
 	{
-		let networkings = startNetworking(&numaSockets, ethernetPortConfigurations);
+		let networkings = startNetworking(&numa_sockets, ethernetPortConfigurations);
 		mainLoop(networkings);
 		0
 	});
 }
 
-fn startNetworking(numaSockets: &NumaSockets, ethernetPortConfigurations: &mut EthernetPortConfigurations) -> Vec<Networking>
+fn startNetworking(numa_sockets: &NumaSockets, ethernetPortConfigurations: &mut EthernetPortConfigurations) -> Vec<Networking>
 {
 	let mut onlyLogicalCoreUserCurrently = LogicalCoreUser::newForNonEthernetThreads(1);
 	
@@ -32,7 +32,7 @@ fn startNetworking(numaSockets: &NumaSockets, ethernetPortConfigurations: &mut E
 	Networking::startAllNetworking
 	(
 		&mut nonEthernetLogicalCoreUsers,
-		numaSockets,
+		numa_sockets,
 		ethernetPortConfigurations
 	)
 }

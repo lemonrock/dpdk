@@ -5,11 +5,11 @@
 impl EthernetPort
 {
 	#[inline(always)]
-	pub fn setDefaultMediaAccessControlAddress(&self, mediaAccessControlAddress: MediaAccessControlAddress) -> Result<(), UnsupportedByHardwareError>
+	pub fn setDefaultMediaAccessControlAddress(&self, media_access_control_address: MediaAccessControlAddress) -> Result<(), UnsupportedByHardwareError>
 	{
-		let mut value = mediaAccessControlAddress.0;
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_default_mac_addr_set(self.portIdentifier(), &mut value) };
-		
+		let mut value = media_access_control_address.0;
+		let result = unsafe { rte_eth_dev_default_mac_addr_set(self.portIdentifier(), &mut value) };
+
 		if likely(result == 0)
 		{
 			Ok(())
@@ -23,41 +23,41 @@ impl EthernetPort
 					NegativeE::ENOTSUP => UnsupportedByHardwareError::IsUnsupportedByTheHardware,
 
 					NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-					NegativeE::EINVAL => panic!("The Media Access Control Address '{}' is invalid", mediaAccessControlAddress),
-		
+					NegativeE::EINVAL => panic!("The Media Access Control Address '{}' is invalid", media_access_control_address),
+
 					_ => panic!("Unexpected error code '{}' from rte_eth_dev_default_mac_addr_set()", result),
 				}
 			)
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn getDefaultMediaAccessControlAddress(&self) -> MediaAccessControlAddress
 	{
 		let mut value = unsafe { uninitialized() };
-		unsafe { ::dpdk_sys::rte_eth_macaddr_get(self.portIdentifier(), &mut value) };
+		unsafe { rte_eth_macaddr_get(self.portIdentifier(), &mut value) };
 		MediaAccessControlAddress(value)
 	}
-	
+
 	const NoVMDqPool: u32 = 0;
 
 	#[inline(always)]
-	pub fn addMediaAccessControlAddress(&self, mediaAccessControlAddress: MediaAccessControlAddress, vmdqPoolIndex: Option<u6>) -> Result<(), UnsupportedOrFullError>
+	pub fn addMediaAccessControlAddress(&self, media_access_control_address: MediaAccessControlAddress, vmdqPoolIndex: Option<u6>) -> Result<(), UnsupportedOrFullError>
 	{
 		let pool = match vmdqPoolIndex
 		{
 			None => Self::NoVMDqPool,
 			Some(pool) =>
 			{
-				assert!(pool != 0, "vmdqPoolIndex can not be zero");
+				assert_ne!(pool, 0, "vmdqPoolIndex can not be zero");
 				assert!(pool < 64, "vmdqPoolIndex must be less than 64, not '{}'", pool);
 				pool as u32
 			}
 		};
-		
-		let mut value = mediaAccessControlAddress.0;
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_mac_addr_add(self.portIdentifier(), &mut value, pool) };
-		
+
+		let mut value = media_access_control_address.0;
+		let result = unsafe { rte_eth_dev_mac_addr_add(self.portIdentifier(), &mut value, pool) };
+
 		if likely(result == 0)
 		{
 			Ok(())
@@ -72,21 +72,21 @@ impl EthernetPort
 					NegativeE::ENOSPC => UnsupportedOrFullError::MaximumNumberOfItemsAssigned,
 
 					NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-					NegativeE::EINVAL => panic!("The Media Access Control Address '{}' is invalid", mediaAccessControlAddress),
-		
+					NegativeE::EINVAL => panic!("The Media Access Control Address '{}' is invalid", media_access_control_address),
+
 					_ => panic!("Unexpected error code '{}' from rte_eth_dev_mac_addr_add()", result),
 				}
 			)
 		}
 	}
-	
-	// Successful even if mediaAccessControlAddress is not assigned to EthernetPort
+
+	// Successful even if media_access_control_address is not assigned to EthernetPort
 	#[inline(always)]
-	pub fn removeMediaAccessControlAddress(&self, mediaAccessControlAddress: MediaAccessControlAddress) -> Result<(), RemoveMediaAccessControlAddressError>
+	pub fn removeMediaAccessControlAddress(&self, media_access_control_address: MediaAccessControlAddress) -> Result<(), RemoveMediaAccessControlAddressError>
 	{
-		let mut value = mediaAccessControlAddress.0;
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_mac_addr_remove(self.portIdentifier(), &mut value) };
-		
+		let mut value = media_access_control_address.0;
+		let result = unsafe { rte_eth_dev_mac_addr_remove(self.portIdentifier(), &mut value) };
+
 		if likely(result == 0)
 		{
 			Ok(())
@@ -101,7 +101,7 @@ impl EthernetPort
 					NegativeE::EADDRINUSE => RemoveMediaAccessControlAddressError::CanNotRemoveDefaultMediaAccessControlAddress,
 
 					NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-		
+
 					_ => panic!("Unexpected error code '{}' from rte_eth_dev_mac_addr_remove()", result),
 				}
 			)

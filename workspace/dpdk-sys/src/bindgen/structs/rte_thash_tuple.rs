@@ -5,8 +5,8 @@
 #[repr(C, align(16))]
 pub struct rte_thash_tuple
 {
-	pub v4: __BindgenUnionField<rte_ipv4_tuple>,
-	pub v6: __BindgenUnionField<rte_ipv6_tuple>,
+	pub v4: BindgenUnionField<rte_ipv4_tuple>,
+	pub v6: BindgenUnionField<rte_ipv6_tuple>,
 	pub bindgen_union_field: [u8; 48usize],
 }
 

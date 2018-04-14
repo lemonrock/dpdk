@@ -7,7 +7,7 @@ impl EthernetPort
 	#[inline(always)]
 	pub fn turnLedOn(&self) -> Result<(), UnsupportedByHardwareError>
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_led_on(self.portIdentifier()) };
+		let result = unsafe { rte_eth_led_on(self.portIdentifier()) };
 		if likely(result == 0)
 		{
 			return Ok(())
@@ -17,9 +17,9 @@ impl EthernetPort
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-				
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_led_on()", result),
 			}
 		}
@@ -28,7 +28,7 @@ impl EthernetPort
 	#[inline(always)]
 	pub fn turnLedOff(&self) -> Result<(), UnsupportedByHardwareError>
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_led_off(self.portIdentifier()) };
+		let result = unsafe { rte_eth_led_off(self.portIdentifier()) };
 		if likely(result == 0)
 		{
 			return Ok(())
@@ -38,9 +38,9 @@ impl EthernetPort
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-				
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_led_off()", result),
 			}
 		}

@@ -10,7 +10,7 @@ pub struct tle_drb
 	pub udata: *mut c_void,
 	pub size: u32,
 	pub start: u32,
-	pub objs: __IncompleteArrayField<*const c_void>,
+	pub objs: IncompleteArrayField<*const c_void>,
 	pub __bindgen_padding_0: [u64; 5usize],
 	pub __bindgen_align: [u8; 0usize],
 }

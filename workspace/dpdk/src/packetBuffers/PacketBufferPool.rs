@@ -11,24 +11,24 @@ const BulkAllocateUsize: usize = BulkAllocate as usize;
 impl PacketBufferPool
 {
 	#[inline(always)]
-	pub fn new(memoryZoneName: &str, numberOfElements: u32, perCoreObjectCacheSize: u32, applicationPrivateSize: u16, dataRoomSize: u16, numaSocketId: Option<NumaSocketId>) -> Option<PacketBufferPool>
+	pub fn new(memoryZoneName: &str, numberOfElements: u32, perCoreObjectCacheSize: u32, applicationPrivateSize: u16, dataRoomSize: u16, numa_socket_id: Option<NumaSocketId>) -> Option<PacketBufferPool>
 	{
 		// rte_pktmbuf_pool_create takes a copy, so this doesn't need to hang around. Phew!
 		let memoryZoneName = CString::new(memoryZoneName).expect("memoryZoneName contained an interior ASCII NUL");
-			
-		let result = unsafe { ::dpdk_sys::rte_pktmbuf_pool_create(memoryZoneName.as_ptr(), numberOfElements, perCoreObjectCacheSize, applicationPrivateSize, dataRoomSize, numaSocketId.as_c_int()) };
+
+		let result = unsafe { rte_pktmbuf_pool_create(memoryZoneName.as_ptr(), numberOfElements, perCoreObjectCacheSize, applicationPrivateSize, dataRoomSize, numa_socket_id.as_c_int()) };
 		if unlikely(result.is_null())
 		{
 			match unsafe { rust_rte_errno() }
 			{
 				E::ENOSPC => None,
 				E::ENOMEM => None,
-				
+
 				E_RTE::NO_CONFIG => panic!("No config"),
 				E_RTE::SECONDARY => panic!("Secondary process"),
 				E::EINVAL => panic!("cache size provided is too large, or priv_size is not aligned"),
 				E::EEXIST => panic!("a memzone with the same name already exists"),
-				
+
 				illegal @ _ => panic!("Unexpected error code '{}' set by rte_pktmbuf_pool_create()", illegal),
 			}
 		}
@@ -37,19 +37,19 @@ impl PacketBufferPool
 			Some(PacketBufferPool(result))
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn memoryPool(&self) -> *mut rte_mempool
 	{
 		self.0
 	}
-	
+
 	#[inline]
 	pub fn dataRoomSize(&self) -> u16
 	{
 		unsafe { rust_rte_pktmbuf_data_room_size(self.memoryPool()) }
 	}
-	
+
 	#[inline]
 	pub fn allocate(&self) -> Option<PacketBuffer>
 	{
@@ -63,7 +63,7 @@ impl PacketBufferPool
 			Some(PacketBuffer(result))
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn bulkAllocate(&self) -> Option<[PacketBuffer; BulkAllocateUsize]>
 	{

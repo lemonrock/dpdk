@@ -11,7 +11,7 @@ pub struct rte_kni_conf
 	pub mbuf_size: c_uint,
 	pub addr: rte_pci_addr,
 	pub id: rte_pci_id,
-	pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize], u8>,
+	pub bitfield_1: BindgenBitfieldUnit<[u8; 1usize], u8>,
 	pub mac_addr: [c_char; 6usize],
 	pub mtu: u16,
 }
@@ -63,7 +63,7 @@ impl rte_kni_conf
 	#[inline(always)]
 	pub fn force_bind(&self) -> u8
 	{
-		unsafe { transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
+		unsafe { transmute(self.bitfield_1.get(0usize, 1u8) as u8) }
 	}
 	
 	#[inline(always)]
@@ -71,14 +71,14 @@ impl rte_kni_conf
 	{
 		unsafe {
 			let val: u8 = transmute(val);
-			self._bitfield_1.set(0usize, 1u8, val as u64)
+			self.bitfield_1.set(0usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
-	pub fn new_bitfield_1(force_bind: u8) -> __BindgenBitfieldUnit<[u8; 1usize], u8>
+	pub fn newbitfield_1(force_bind: u8) -> BindgenBitfieldUnit<[u8; 1usize], u8>
 	{
-		let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
+		let mut __bindgen_bitfield_unit: BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
 		__bindgen_bitfield_unit.set(0usize, 1u8, {
 			let force_bind: u8 = unsafe { transmute(force_bind) };
 			force_bind as u64

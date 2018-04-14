@@ -48,11 +48,11 @@ impl ExecutionRoutineCreatorCreator<RwLock<HashMap<VirtualLanKey, ArpCache>>, Ou
 	fn createWhilstOnMasterLogicalCore(&self, data: Arc<RwLock<HashMap<VirtualLanKey, ArpCache>>>, queuePairIdentifier: QueueIdentifier, slaveLogicalCoreToExecuteOn: LogicalCore, ethernetPortInformation: &EthernetPortInformation) -> OurExecutionRoutineCreator
 	{
 		let ethernetPort = *ethernetPortInformation.ethernetPort();
-		
+
 		OurExecutionRoutineCreator
 		{
 			ethernetPortConfiguration: self.clone(),
-			ethernetPort: ethernetPort,
+			ethernetPort,
 			arpCaches: data,
 			queueIdentifier: queuePairIdentifier,
 			logicalCoreMemorySocket: slaveLogicalCoreToExecuteOn.optionalNumaSocketId(),
@@ -68,37 +68,37 @@ impl EthernetPortConfiguration
 	pub fn configureAndStartEthernetPort(&mut self, ethernetPortInformation: &mut EthernetPortInformation) -> (EthernetPortConfigurationResult, Arc<Mutex<ExecutionRoutineGroup<ReceiveTransmitQueuePairSlaveLogicalCoreTask<OurExecutionRoutineCreator>>>>)
 	{
 		let (defaultEthernetAddress, additionalEthernetAddresses) = self.ethernetAddresses(*ethernetPortInformation.ethernetPort());
-		
+
 		let arpCaches = Arc::new(RwLock::new(HashMap::new()));
-		
+
 		self.ethernetPortDpdkConfiguration.configureAndStartEthernetPort(self, arpCaches, ethernetPortInformation, &defaultEthernetAddress, &additionalEthernetAddresses)
 	}
-	
+
 	pub fn createPerLogicalCore(&self,
 		ethernetPort: EthernetPort, arpCaches: Arc<RwLock<HashMap<VirtualLanKey, ArpCache>>>, // Per ethernet core
 		queueIdentifier: QueueIdentifier, logicalCoreMemorySocket: Option<NumaSocketId> // for this logical core
 	) -> Destinations
 	{
 		let (defaultEthernetAddress, additionalEthernetAddresses) = self.ethernetAddresses(ethernetPort);
-		
+
 		let packetBufferPool = self.udpFragmentsAndTcpControlPacketsMemoryConfiguration.createPacketBufferPool(ethernetPort.portIdentifier(), queueIdentifier, logicalCoreMemorySocket);
 		let udpFragmentsAndTcpControlPacketBufferPool = packetBufferPool.0;
-		
+
 		let mut ourHardwareAddresses = additionalEthernetAddresses.clone();
 		ourHardwareAddresses.insert(defaultEthernetAddress);
-		
+
 		let mut destinations = Destinations
 		{
 			ourHardwareAddresses: ourHardwareAddresses.iter().map(|value| (value.0).0).collect(),
 			sourceEthernetAddressBlackList: SourceEthernetAddressBlackList::from(self.sourceEthernetAddressBlackList.clone()),
 			ipStates: HashMap::new(),
 		};
-		
+
 		self.populateIpStates(ethernetPort, queueIdentifier, logicalCoreMemorySocket, &defaultEthernetAddress, udpFragmentsAndTcpControlPacketBufferPool, arpCaches, &mut destinations.ipStates);
-		
+
 		destinations
 	}
-	
+
 	fn populateIpStates(&self, ethernetPort: EthernetPort, queueIdentifier: QueueIdentifier, logicalCoreMemorySocket: Option<NumaSocketId>, defaultEthernetAddress: &UnicastEthernetAddress, udpFragmentsAndTcpControlPacketBufferPool: *mut rte_mempool, arpCaches: Arc<RwLock<HashMap<VirtualLanKey, ArpCache>>>, ipStates: &mut HashMap<VirtualLanKey, IpState>)
 	{
 		let virtualLanTagging = if self.defaultVirtualLan.settingsAreEquivalentToUnspecified()
@@ -112,33 +112,33 @@ impl EthernetPortConfiguration
 		let ipState = self.defaultVirtualLan.createIpState(ethernetPort, queueIdentifier, logicalCoreMemorySocket, &defaultEthernetAddress, udpFragmentsAndTcpControlPacketBufferPool, &virtualLanTagging, arpCaches.clone());
 		let virtualLanKey = virtualLanTagging.virtualLanKey();
 		ipStates.insert(virtualLanKey, ipState);
-		
+
 		for (innerVirtualLanId, virtualLanConfiguration) in self.singleTaggedVirtualLans.iter()
 		{
 			let inner = virtualLanConfiguration.asVirtualLanTrafficClassIndicator(Some(*innerVirtualLanId));
 			let virtualLanTagging = VirtualLanTagging::Single(inner);
-			
+
 			let ipState = virtualLanConfiguration.createIpState(ethernetPort, queueIdentifier, logicalCoreMemorySocket, &defaultEthernetAddress, udpFragmentsAndTcpControlPacketBufferPool, &virtualLanTagging, arpCaches.clone());
 			let virtualLanKey = virtualLanTagging.virtualLanKey();
 			ipStates.insert(virtualLanKey, ipState);
 		}
-		
+
 		for (outerVirtualLanId, doubleTaggedVirtualLanConfiguration) in self.doubleTaggedVirtualLans.iter()
 		{
 			let outer = doubleTaggedVirtualLanConfiguration.asVirtualLanTrafficClassIndicator(Some(*outerVirtualLanId));
-			
+
 			for (innerVirtualLanId, virtualLanConfiguration) in doubleTaggedVirtualLanConfiguration.innerVirtualLans.iter()
 			{
 				let inner = virtualLanConfiguration.asVirtualLanTrafficClassIndicator(Some(*innerVirtualLanId));
 				let virtualLanTagging = VirtualLanTagging::Double(outer, inner);
-				
+
 				let ipState = virtualLanConfiguration.createIpState(ethernetPort, queueIdentifier, logicalCoreMemorySocket, &defaultEthernetAddress, udpFragmentsAndTcpControlPacketBufferPool, &virtualLanTagging, arpCaches.clone());
 				let virtualLanKey = virtualLanTagging.virtualLanKey();
 				ipStates.insert(virtualLanKey, ipState);
 			}
 		}
 	}
-	
+
 	fn ethernetAddresses(&self, ethernetPort: EthernetPort) -> (UnicastEthernetAddress, HashSet<UnicastEthernetAddress>)
 	{
 		let defaultEthernetAddress = self.ethernetPortDpdkConfiguration.defaultEthernetAddress(ethernetPort);

@@ -11,7 +11,7 @@ pub struct rte_eth_vmdq_rx_conf
 	pub enable_loop_back: u8,
 	pub nb_pool_maps: u8,
 	pub rx_mode: u32,
-	pub pool_map: [rte_eth_vmdq_rx_conf__bindgen_ty_1; 64usize],
+	pub pool_map: [rte_eth_vmdq_rx_conf_1; 64usize],
 }
 
 impl Default for rte_eth_vmdq_rx_conf

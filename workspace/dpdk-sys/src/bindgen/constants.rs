@@ -8,6 +8,7 @@ include!("constants/DEV_RX_OFFLOAD.rs");
 include!("constants/DEV_TX_OFFLOAD.rs");
 include!("constants/EFD.rs");
 include!("constants/ETH.rs");
+include!("constants/ETHER_TYPE.rs");
 include!("constants/ETH_DCB.rs");
 include!("constants/ETH_L2_TUNNEL.rs");
 include!("constants/ETH_LINK.rs");

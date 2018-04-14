@@ -6,11 +6,11 @@
 #[derive(Serialize, Deserialize)]
 pub struct NetworkInterfacesConfiguration
 {
-	pciDevices: HashMap<NetworkPortIdentifier, DeviceConfiguration<PciDriver>>,
+	pci_devices: HashMap<IndirectPciDeviceIdentifier, DeviceConfiguration<PciDriver>>,
 	
 	afPacketNetVirtualDevices: Vec<DeviceConfiguration<AfPacketNetVirtualDevice>>,
 	packetCaptureNetVirtualDevices: Vec<DeviceConfiguration<PacketCaptureNetVirtualDevice>>,
-	virtIoForContainersNetVirtualDevices: Vec<DeviceConfiguration<VirtIoForContainersNetVirtualDevice>>,
+	virtIoNetVirtualDevices: Vec<DeviceConfiguration<VirtIoNetVirtualDevice>>,
 	virtualHostNetVirtualDevices: Vec<DeviceConfiguration<VirtualHostNetVirtualDevice>>,
 	xenNetVirtualDevices: Vec<DeviceConfiguration<XenNetVirtualDevice>>,
 	bondingNetVirtualDevices: Vec<DeviceConfiguration<BondingNetVirtualDevice>>,
@@ -30,11 +30,11 @@ impl Default for NetworkInterfacesConfiguration
 	{
 		NetworkInterfacesConfiguration
 		{
-			pciDevices: HashMap::new(),
+			pci_devices: HashMap::new(),
 			
 			afPacketNetVirtualDevices: Vec::new(),
 			packetCaptureNetVirtualDevices: Vec::new(),
-			virtIoForContainersNetVirtualDevices: Vec::new(),
+			virtIoNetVirtualDevices: Vec::new(),
 			virtualHostNetVirtualDevices: Vec::new(),
 			xenNetVirtualDevices: Vec::new(),
 			
@@ -47,7 +47,7 @@ impl NetworkInterfacesConfiguration
 {
 	pub fn usesPciDriver(&self, usePciDriver: PciDriver) -> bool
 	{
-		for ref deviceConfiguration in self.pciDevices.values()
+		for ref deviceConfiguration in self.pci_devices.values()
 		{
 			if &deviceConfiguration.device == &usePciDriver
 			{
@@ -76,53 +76,53 @@ impl NetworkInterfacesConfiguration
 		}
 	}
 	
-	pub fn addTo(&self, dpdkRteInitData: &mut DpdkRteInitData, sysPath: &Path) -> (Vec<Unbind>, EthernetPortConfigurations)
+	pub fn addTo(&self, dpdkRteInitData: &mut DpdkRteInitData, sys_path: &Path) -> (Vec<Unbind>, EthernetPortConfigurations)
 	{
 		let mut configurations = HashMap::new();
 		
-		let expected = self.pciDevices.iter().map(|(key, value)| { (key.clone(), value.device.clone())}).collect();
-		let unbinds = PciDevice::bindDevices(sysPath, expected);
+		let expected = self.pci_devices.iter().map(|(key, value)| { (key.clone(), value.device.clone())}).collect();
+		let unbinds = PciDevice::bind_all_devices(sys_path, expected);
 		for unbind in &unbinds
 		{
-			dpdkRteInitData.addPciDevice(unbind.pciDevice.0);
+			dpdkRteInitData.add_pci_device(unbind.pci_device.0);
 			
-			let settings = self.pciDevices.get(&unbind.networkPortIdentifier).unwrap().settings.clone();
-			configurations.insert(unbind.pciDevice.0.to_string(), settings);
+			let settings = self.pci_devices.get(&unbind.indirect_pci_device_identifier).unwrap().settings.clone();
+			configurations.insert(unbind.pci_device.0.to_string(), settings);
 		}
 		
 		for ref deviceConfiguration in &self.afPacketNetVirtualDevices
 		{
-			dpdkRteInitData.addAfPacketNetVirtualDevice(deviceConfiguration.device.clone());
+			dpdkRteInitData.add_af_packet_net_virtual_device(deviceConfiguration.device.clone());
 			configurations.insert(deviceConfiguration.device.name().to_string(), deviceConfiguration.settings.clone());
 		}
 		
 		for ref deviceConfiguration in &self.packetCaptureNetVirtualDevices
 		{
-			dpdkRteInitData.addPacketCaptureNetVirtualDevice(deviceConfiguration.device.clone());
+			dpdkRteInitData.add_packet_capture_net_virtual_device(deviceConfiguration.device.clone());
 			configurations.insert(deviceConfiguration.device.name().to_string(), deviceConfiguration.settings.clone());
 		}
 		
-		for ref deviceConfiguration in &self.virtIoForContainersNetVirtualDevices
+		for ref deviceConfiguration in &self.virtIoNetVirtualDevices
 		{
-			dpdkRteInitData.addVirtIoForContainersNetVirtualDevice(deviceConfiguration.device.clone());
+			dpdkRteInitData.add_virt_io_net_virtual_device(deviceConfiguration.device.clone());
 			configurations.insert(deviceConfiguration.device.name().to_string(), deviceConfiguration.settings.clone());
 		}
 		
 		for ref deviceConfiguration in &self.virtualHostNetVirtualDevices
 		{
-			dpdkRteInitData.addVirtualHostNetVirtualDevice(deviceConfiguration.device.clone());
+			dpdkRteInitData.add_virtual_host_net_virtual_device(deviceConfiguration.device.clone());
 			configurations.insert(deviceConfiguration.device.name().to_string(), deviceConfiguration.settings.clone());
 		}
 		
 		for ref deviceConfiguration in &self.xenNetVirtualDevices
 		{
-			dpdkRteInitData.addXenNetVirtualDevice(deviceConfiguration.device.clone());
+			dpdkRteInitData.add_xen_net_virtual_device(deviceConfiguration.device.clone());
 			configurations.insert(deviceConfiguration.device.name().to_string(), deviceConfiguration.settings.clone());
 		}
 		
 		for ref deviceConfiguration in &self.bondingNetVirtualDevices
 		{
-			dpdkRteInitData.addBondingNetVirtualDevice(deviceConfiguration.device.clone());
+			dpdkRteInitData.add_bonding_net_virtual_device(deviceConfiguration.device.clone());
 			configurations.insert(deviceConfiguration.device.name().to_string(), deviceConfiguration.settings.clone());
 		}
 		

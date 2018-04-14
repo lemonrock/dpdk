@@ -18,31 +18,31 @@ impl LogicalCoreUser
 	{
 		Self::new(None, wouldLikeToMakeUseOf)
 	}
-	
-	pub fn new(numaSocketId: Option<NumaSocketId>, wouldLikeToMakeUseOf: usize) -> Self
+
+	pub fn new(numa_socket_id: Option<NumaSocketId>, wouldLikeToMakeUseOf: usize) -> Self
 	{
-		assert!(wouldLikeToMakeUseOf != 0, "wouldLikeToMakeUseOf can not be zero");
-		
+		assert_ne!(wouldLikeToMakeUseOf, 0, "wouldLikeToMakeUseOf can not be zero");
+
 		let canMakeUseOf = min(wouldLikeToMakeUseOf, MaximumLogicalCores);
-		
+
 		LogicalCoreUser
 		{
-			preferredNumaSocketId: numaSocketId,
-			wouldLikeToMakeUseOf: wouldLikeToMakeUseOf,
-			canMakeUseOf: canMakeUseOf,
+			preferredNumaSocketId: numa_socket_id,
+			wouldLikeToMakeUseOf,
+			canMakeUseOf,
 			canStillMakeUseOf: canMakeUseOf,
 			uses: Vec::with_capacity(canMakeUseOf)
 		}
 	}
-	
-	pub fn willMakeUseOf(&mut self, numaSocketId: NumaSocketId, logicalCore: LogicalCore) -> bool
+
+	pub fn willMakeUseOf(&mut self, numa_socket_id: NumaSocketId, logicalCore: LogicalCore) -> bool
 	{
 		if self.canStillMakeUseOf == 0
 		{
 			return false;
 		}
-		
-		if self.preferredNumaSocketId.is_none() || self.preferredNumaSocketId.unwrap() == numaSocketId
+
+		if self.preferredNumaSocketId.is_none() || self.preferredNumaSocketId.unwrap() == numa_socket_id
 		{
 			self.uses.push(logicalCore);
 			self.canStillMakeUseOf -= 1;
@@ -61,7 +61,7 @@ impl LogicalCoreUser
 			false
 		}
 	}
-	
+
 	pub fn willMakeUseOfForNonLocalNumaNode(&mut self, logicalCore: LogicalCore) -> bool
 	{
 		if self.canStillMakeUseOf == 0
@@ -81,19 +81,19 @@ impl LogicalCoreUser
 			false
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn numberOfReceiveThenTransmitQueuePairs(&self) -> u16
 	{
 		self.uses.len() as u16
 	}
-	
+
 	#[inline(always)]
 	pub fn logicalCore(&self, receiveQueueIdentifier: QueueIdentifier) -> Option<&LogicalCore>
 	{
 		self.uses.get(receiveQueueIdentifier as usize)
 	}
-	
+
 	#[inline(always)]
 	pub fn usage(&self) -> (usize, usize, usize, usize)
 	{

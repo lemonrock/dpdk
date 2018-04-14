@@ -2,68 +2,19 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use ::arrayvec::ArrayVec;
-use ::dpdk_sys::*;
-use ::devices::DeviceName;
-use ::devices::virtualDevices::netVirtualDevices::NetVirtualDeviceDriverName;
-use ::devices::virtualDevices::netVirtualDevices::NetVirtualDeviceName;
-use ::libc::c_char;
-use ::libc::c_int;
-use ::libc::c_uint;
-use ::libc::c_void;
-use ::libc::strnlen;
-use ::libc::timespec;
-use ::libc::uint16_t;
-use ::libc::uint32_t;
-use ::libc::uint8_t;
-use ::libc_extra::ffi::isFalse;
-use ::libc_extra::ffi::isTrue;
-use ::logicalCores::*;
-use ::logicalCores::discovery::*;
-use ::logicalCores::receiveTransmitQueuePair::*;
-use ::memory::DpdkAllocatedMemory;
-use ::packetBuffers::PacketBufferPool;
-use ::pci::DeviceAddress;
-use ::rust_extra::arrays::Array40;
-use ::rust_extra::arrays::Array52;
-use ::rust_extra::arrays::Array64;
-use ::rust_extra::likely;
-use ::rust_extra::powersOfTwo::PowerOfTwoSixteenBit;
-use ::rust_extra::u31;
-use ::rust_extra::u5;
-use ::rust_extra::u6;
-use ::rust_extra::unlikely;
-use ::serde::de::Deserialize;
-use ::serde::de::Deserializer;
-use ::serde::de::Visitor;
-use ::serde::de::Error;
-use ::serde::ser::Serialize;
-use ::serde::ser::Serializer;
-use ::std::cmp::min;
-use ::std::collections::HashMap;
-use ::std::collections::HashSet;
-use ::std::ffi::CStr;
-use ::std::ffi::CString;
-use ::std::fmt::Display;
-use ::std::fmt::Formatter;
-use ::std::fmt;
-use ::std::iter::FromIterator;
-use ::std::mem::forget;
-use ::std::mem::size_of_val;
-use ::std::mem::transmute;
-use ::std::mem::uninitialized;
-use ::std::mem::zeroed;
-use ::std::ptr::copy;
-use ::std::ptr::null_mut;
-use ::std::ptr::write;
-use ::std::slice::from_raw_parts_mut;
-use ::std::string::FromUtf8Error;
-use ::std::str::SplitN;
-use ::std::sync::Arc;
-use ::std::sync::Mutex;
-use ::syscall_alt::constants::NegativeE;
+use super::*;
+use super::devices::DeviceName;
+use super::devices::virtual_devices::net_virtual_devices::NetVirtualDeviceDriverName;
+use super::devices::virtual_devices::net_virtual_devices::NetVirtualDeviceName;
+use super::logicalCores::*;
+use super::logicalCores::discovery::*;
+use super::logicalCores::receiveTransmitQueuePair::*;
+use super::memory::DpdkAllocatedMemory;
+use super::packetBuffers::PacketBufferPool;
+use super::pci::PciDeviceAddress;
 
 
+/// Burst packet support.
 pub mod burst;
 
 

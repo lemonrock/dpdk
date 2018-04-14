@@ -15,14 +15,14 @@ impl MainLogic
 	{
 		let mut finishers = Default::default();
 	
-		let (sysPath, numaSockets, mut ethernetPortConfigurations) = initialise::<SampleConfigurationAndProgramArguments>(&mut finishers);
+		let (sys_path, numa_sockets, mut ethernetPortConfigurations) = initialise::<SampleConfigurationAndProgramArguments>(&mut finishers);
 		
 		let result = catch_unwind(AssertUnwindSafe(||
 		{
-			usefulMain(&numaSockets, &mut ethernetPortConfigurations)
+			usefulMain(&numa_sockets, &mut ethernetPortConfigurations)
 		}));
 
-		finishers.finish(sysPath);
+		finishers.finish(sys_path);
 		
 		match result
 		{
@@ -46,6 +46,8 @@ fn initialise<P: ConfigurationAndProgramArguments>(mut finishers: &mut Finishers
 	block_all_signals_on_current_thread_bar_child();
 	restrictUmaskToCurrentUser();
 	
+	let timer_progress_engine = TimerProgressEngine::initialize(Cycles::AroundTenMillisecondsAt2GigaHertzSuitableForATimerProgressEngine);
+	
 	let configuration = programArguments.configurationAsModifiedByCommandLine();
 	configuration.changeResourceLimits();
 	configuration.loadAndConfigureLinuxKernelModules(&mut finishers);
@@ -54,15 +56,15 @@ fn initialise<P: ConfigurationAndProgramArguments>(mut finishers: &mut Finishers
 	let configurations =
 	{
 		let (dpdkRteInitData, configurations) = configuration.dpdkRteInitData(&mut finishers);
-		dpdkRteInitData.initialiseDpdk(configuration.borrowNumaSockets(), hugePageFilePathInformation);
+		dpdkRteInitData.initialize_dpdk(configuration.borrowNumaSockets(), hugePageFilePathInformation);
 		configurations
 	};
-	let sysPathBuf = configuration.sysPath().to_path_buf();
-	let numaSockets = configuration.destroyAsNumaSockets();
+	let sys_pathBuf = configuration.sys_path().to_path_buf();
+	let numa_sockets = configuration.destroyAsNumaSockets();
 	
 	lockDownCapabilitiesOnLinux();
 	
-	(sysPathBuf, numaSockets, configurations)
+	(sys_pathBuf, numa_sockets, configurations)
 }
 
 fn checkWeAreRoot()

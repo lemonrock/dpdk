@@ -7,7 +7,7 @@
 pub struct rte_mempool
 {
 	pub name: [c_char; 32usize],
-	pub __bindgen_anon_1: rte_mempool__bindgen_ty_1,
+	pub _1: rte_mempool_1,
 	pub pool_config: *mut c_void,
 	pub mz: *const rte_memzone,
 	pub flags: c_uint,
@@ -44,7 +44,7 @@ impl Debug for rte_mempool
 	{
 		write!(
 			f,
-			"rte_mempool {{ name: [{}], __bindgen_anon_1: {:?}, pool_config: {:?}, mz: {:?}, local_cache: {:?}, elt_list: {:?}, mem_list: {:?} }}",
+			"rte_mempool {{ name: [{}], _1: {:?}, pool_config: {:?}, mz: {:?}, local_cache: {:?}, elt_list: {:?}, mem_list: {:?} }}",
 			self.name
 				.iter()
 				.enumerate()
@@ -61,7 +61,7 @@ impl Debug for rte_mempool
 					v
 				))
 				.collect::<String>(),
-			self.__bindgen_anon_1,
+			self._1,
 			self.pool_config,
 			self.mz,
 			self.local_cache,

@@ -8,9 +8,9 @@ impl EthernetPortConfigurations
 {
 	pub fn configureAndStartEthernetPort(&mut self, ethernetPortInformation: &mut EthernetPortInformation) -> (EthernetPortConfigurationResult, Arc<Mutex<ExecutionRoutineGroup<ReceiveTransmitQueuePairSlaveLogicalCoreTask<OurExecutionRoutineCreator>>>>)
 	{
-		match self.0.get_mut(ethernetPortInformation.deviceName())
+		match self.0.get_mut(ethernetPortInformation.device_name())
 		{
-			None => panic!("No known ethernet port configuration for '{}'", ethernetPortInformation.deviceName()),
+			None => panic!("No known ethernet port configuration for '{}'", ethernetPortInformation.device_name()),
 			Some(configuration) => configuration.configureAndStartEthernetPort(ethernetPortInformation)
 		}
 	}

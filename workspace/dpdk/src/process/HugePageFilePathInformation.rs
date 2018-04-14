@@ -2,66 +2,65 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-#[cfg(any(target_os = "android", target_os = "linux"))]
+/// Huge page file path information.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct HugePageFilePathInformation
 {
-	hugePageFileSystemMountPath: Option<PathBuf>,
-	hugePageFileNamePrefix: OsString,
+	#[cfg(any(target_os = "android", target_os = "linux"))] huge_page_file_system_mount_path: Option<PathBuf>,
+	#[cfg(any(target_os = "android", target_os = "linux"))] huge_page_file_name_prefix: OsString,
 }
 
-#[cfg(any(target_os = "android", target_os = "linux"))]
 impl HugePageFilePathInformation
 {
-	pub fn new(hugePageFileSystemMountPath: Option<PathBuf>) -> Self
+	/// Create a new instance.
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	#[inline(always)]
+	pub fn new(huge_page_file_system_mount_path: Option<PathBuf>) -> Self
 	{
-		HugePageFilePathInformation
+		fn huge_page_file_prefix_name() -> OsString
 		{
-			hugePageFileSystemMountPath: hugePageFileSystemMountPath,
-			hugePageFileNamePrefix: Self::hugePageFilePrefixName(),
+			fn prefix_to_os_string(prefix: String) -> OsString
+			{
+				assert!(!prefix.is_empty(), "prefix can not be empty");
+				assert!(prefix.contains('%'), "prefix '{:?}' is invalid because it contains a '%'", prefix);
+				
+				OsString::from(prefix)
+			}
+			
+			prefix_to_os_string(format!("{}-{}-", get_program_name(), unsafe { getpid() }))
 		}
-	}
-	
-	pub fn hugePageFileSystemMountPathAndSoOn(&self) -> Option<(&Path, Option<&OsStr>)>
-	{
-		match self.hugePageFileSystemMountPath
-		{
-			None => None,
-			Some(ref path) => Some((path.as_ref(), Some(&self.hugePageFileNamePrefix))),
-		}
-	}
-
-	fn hugePageFilePrefixName() -> OsString
-	{
-		Self::prefixToOsString(format!("{}-{}-", get_program_name(), unsafe { ::libc::getpid() }))
-	}
-	
-	fn prefixToOsString(prefix: String) -> OsString
-	{
-		assert!(!prefix.is_empty(), "prefix can not be empty");
-		assert!(prefix.contains('%'), "prefix '{:?}' is invalid because it contains a '%'", prefix);
 		
-		OsString::from(prefix)
+		Self
+		{
+			huge_page_file_system_mount_path,
+			huge_page_file_name_prefix: Self::huge_page_file_prefix_name(),
+		}
 	}
-}
-
-#[cfg(not(any(target_os = "android", target_os = "linux")))]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct HugePageFilePathInformation
-{
-}
-
-#[cfg(not(any(target_os = "android", target_os = "linux")))]
-impl HugePageFilePathInformation
-{
+	
+	/// Create a new instance.
+	#[cfg(target_os = "freebsd")]
+	#[inline(always)]
 	pub fn new() -> Self
 	{
-		HugePageFilePathInformation
+		Self
 		{
 		}
 	}
 	
-	pub fn hugePageFileSystemMountPathAndSoOn(&self) -> Option<(&Path, Option<&OsStr>)>
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	#[inline(always)]
+	fn huge_page_file_system_mount_path_and_so_on(&self) -> Option<(&Path, Option<&OsStr>)>
+	{
+		match self.huge_page_file_system_mount_path
+		{
+			None => None,
+			Some(ref path) => Some((path.as_ref(), Some(&self.huge_page_file_name_prefix))),
+		}
+	}
+	
+	#[cfg(target_os = "freebsd")]
+	#[inline(always)]
+	fn huge_page_file_system_mount_path_and_so_on(&self) -> Option<(&Path, Option<&OsStr>)>
 	{
 		None
 	}

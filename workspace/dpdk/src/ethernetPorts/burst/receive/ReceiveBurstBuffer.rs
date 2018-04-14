@@ -21,12 +21,12 @@ impl<D: Device> Drop for ReceiveBurstBuffer<D>
 		{
 			return;
 		}
-		
+
 		for index in 0..self.nextIndex
 		{
 			(unsafe { *self.buffer.get_unchecked_mut(index)}).free();
 		}
-		
+
 		self.buffer = unsafe { zeroed() };
 	}
 }
@@ -36,15 +36,15 @@ impl<D: Device> ReceiveBurstBuffer<D>
 	pub fn new(device: D) -> Self
 	{
 		debug_assert!(ReceiveBurstBufferDepth <= 65_535, "ReceiveBurstBufferDepth '{}' is too large", ReceiveBurstBufferDepth);
-		
+
 		Self
 		{
-			device: device,
+			device,
 			buffer: unsafe { uninitialized() },
 			nextIndex: 0,
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn bufferAndSendToTldkWhenFull(&mut self, packet: *mut rte_mbuf)
 	{
@@ -57,14 +57,14 @@ impl<D: Device> ReceiveBurstBuffer<D>
 				return;
 			}
 		}
-		
+
 		unsafe
 		{
 			*self.buffer.get_unchecked_mut(self.nextIndex) = packet;
 		}
 		self.nextIndex += 1;
 	}
-	
+
 	#[inline(always)]
 	pub fn sendToTldk(&mut self)
 	{
@@ -72,10 +72,10 @@ impl<D: Device> ReceiveBurstBuffer<D>
 		{
 			return
 		}
-		
+
 		self.sendToTldkUnchecked();
 	}
-	
+
 	// true if still full after send (Houston, we have a problem)
 	#[inline(always)]
 	fn sendToTldkUnchecked(&mut self) -> bool
@@ -83,13 +83,13 @@ impl<D: Device> ReceiveBurstBuffer<D>
 		let mut rp: [*mut rte_mbuf; ReceiveBurstBufferDepth] = unsafe { uninitialized() };
 		let mut rc: [i32; ReceiveBurstBufferDepth] = unsafe { uninitialized() };
 		let count = self.nextIndex;
-		
+
 		let numberAccepted =
 		{
 			let pkt = unsafe { self.buffer.get_unchecked_mut(0) };
 			self.device.bulkReceive(pkt, rp.as_mut_ptr(), rc.as_mut_ptr(), count as u16) as usize
 		};
-		
+
 		if likely(numberAccepted == count)
 		{
 			self.nextIndex = 0;
@@ -118,10 +118,10 @@ impl<D: Device> ReceiveBurstBuffer<D>
 				}
 			}
 			self.nextIndex = nextIndex;
-			
+
 			forget(rc);
 			forget(rp);
-			
+
 			// Report if full after trying to send, ie all packets were rejected
 			nextIndex == ReceiveBurstBufferDepth
 		}

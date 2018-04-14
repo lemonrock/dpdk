@@ -10,7 +10,7 @@ pub struct rte_bbdev_op_turbo_enc
 	pub op_flags: u32,
 	pub rv_index: u8,
 	pub code_block_mode: u8,
-	pub __bindgen_anon_1: rte_bbdev_op_turbo_enc__bindgen_ty_1,
+	pub _1: rte_bbdev_op_turbo_enc_1,
 }
 
 impl Default for rte_bbdev_op_turbo_enc
@@ -27,6 +27,6 @@ impl Debug for rte_bbdev_op_turbo_enc
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_bbdev_op_turbo_enc {{ input: {:?}, output: {:?}, __bindgen_anon_1: {:?} }}", self.input, self.output, self.__bindgen_anon_1)
+		write!(f, "rte_bbdev_op_turbo_enc {{ input: {:?}, output: {:?}, _1: {:?} }}", self.input, self.output, self._1)
 	}
 }

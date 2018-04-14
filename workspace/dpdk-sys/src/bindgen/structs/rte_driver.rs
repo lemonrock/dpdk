@@ -6,7 +6,7 @@
 #[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub struct rte_driver
 {
-	pub next: rte_driver__bindgen_ty_1,
+	pub next: rte_driver_1,
 	pub name: *const c_char,
 	pub alias: *const c_char,
 }

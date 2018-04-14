@@ -42,36 +42,36 @@ impl EthernetPortDpdkConfiguration
 			Some(address) => address,
 		}
 	}
-	
+
 	// At entry, useLogicalCoreUser() must have been used to allocate the maximum number of logical cores we have
 	pub fn configureAndStartEthernetPort<E: ExecutionRoutineCreatorCreator<D, EC>, D, EC: ExecutionRoutineCreator>(&self, executionRoutineCreatorCreator: &E, data: Arc<D>, ethernetPortInformation: &mut EthernetPortInformation, defaultEthernetAddress: &UnicastEthernetAddress, additionalEthernetAddresses: &HashSet<UnicastEthernetAddress>) -> (EthernetPortConfigurationResult, Arc<Mutex<ExecutionRoutineGroup<ReceiveTransmitQueuePairSlaveLogicalCoreTask<EC>>>>)
 	{
 		let ethernetPortConfigurationResult =
 		{
 			let receiveSideScalingHashChooser = symmetricAllReceiveSideScalingHashChooser;
-			
+
 			let mut ethernetPortConfiguration = self.createEthernetPortConfiguration(ethernetPortInformation, receiveSideScalingHashChooser, defaultEthernetAddress, &additionalEthernetAddresses);
 			let receiveTransmitQueueMemoryConfiguration = self.queueMemorySettings.receiveTransmitQueueMemoryConfiguration();
 			ethernetPortConfiguration.configureAndStartWithQueues(ethernetPortInformation, &receiveTransmitQueueMemoryConfiguration)
 		};
-		
+
 		let linkStatusResult = ethernetPortInformation.waitUntilLinkIsUp();
 		if linkStatusResult.is_err()
 		{
 			warn!("Could not bring link up for ethernet port '{}'", ethernetPortInformation.portIdentifier());
 		}
-		
+
 		let executionRoutineGroup = ethernetPortInformation.startProcessingQueuePairs(executionRoutineCreatorCreator, data);
-		
+
 		(ethernetPortConfigurationResult, executionRoutineGroup)
 	}
-	
+
 	fn createEthernetPortConfiguration<ReceiveSideScalingHashChooser>(&self, ethernetPortInformation: &EthernetPortInformation, receiveSideScalingHashChooser: ReceiveSideScalingHashChooser, defaultEthernetAddress: &UnicastEthernetAddress, additionalEthernetAddresses: &HashSet<UnicastEthernetAddress>) -> ::dpdk::ethernetPorts::EthernetPortConfiguration
 	where ReceiveSideScalingHashChooser: for<'a> Fn(u16, ReceiveSideScalingHashKeySize, &'a str, &'a str) -> (Option<HashFilter>, ReceiveSideScalingHashFunctionConfiguration)
 	{
 		// NOTE: Things such as multiQueuePacketDistributionMode and the receiveSideScaling* fields are automatically adjusted later by EthernetPortConfiguration using EthernetPortInformation
 		// NOTE: The reason create() is passed ethernetPortInformation is to allow decisions to be made based on things like ethernet port defaults and maximums
-		
+
 		let receiveQueueConfigurations =
 		{
 			let receiveQueueConfigurationTemplate = ReceiveQueueConfiguration::new
@@ -80,10 +80,10 @@ impl EthernetPortDpdkConfiguration
 				Some(ReceiveQueueDeviceConfiguration::overrideDropPacketsIfNoDescriptorsAreAvailable()),
 				None
 			);
-			
+
 			ethernetPortInformation.createReceiveQueueConfigurations(&receiveQueueConfigurationTemplate)
 		};
-		
+
 		let transmitQueueConfigurations =
 		{
 			fn startFreeingTransmitBuffersIfThereAreLessFreeDescriptorsThanThis(numberOfTransmitDescriptors: u16) -> u16
@@ -94,28 +94,28 @@ impl EthernetPortDpdkConfiguration
 				assert!(numberOfTransmitDescriptors > 6, "There must be 7 or more numberOfTransmitDescriptors, not '{}'", numberOfTransmitDescriptors);
 				numberOfTransmitDescriptors / 2
 			}
-			
+
 			let numberOfTransmitDescriptors = self.numberOfTransmitDescriptors;
-			
+
 			let transmitQueueConfigurationTemplate = TransmitQueueConfiguration::new
 			(
 				numberOfTransmitDescriptors,
 				Some(TransmitQueueDeviceConfiguration::overrideForTldk(startFreeingTransmitBuffersIfThereAreLessFreeDescriptorsThanThis(numberOfTransmitDescriptors))),
 				None
 			);
-			
+
 			ethernetPortInformation.createTransmitQueueConfigurations(&transmitQueueConfigurationTemplate)
 		};
-		
+
 		let defaultMediaAccessControlAddress = defaultEthernetAddress.0;
-		
+
 		let additionalMediaAccessControlAddresses: HashSet<(MediaAccessControlAddress, Option<u6>)> = additionalEthernetAddresses.iter().map(|value| (value.0, None)).collect();
-		
+
 		let mut configuration = ::dpdk::ethernetPorts::EthernetPortConfiguration
 		{
-			receiveQueueConfigurations: receiveQueueConfigurations,
-			transmitQueueConfigurations: transmitQueueConfigurations,
-			
+			receiveQueueConfigurations,
+			transmitQueueConfigurations,
+
 			linkSpeeds: LinkSpeeds::default(),
 			receiveModeConfiguration: EthernetPortReceiveModeConfiguration
 			{
@@ -163,34 +163,34 @@ impl EthernetPortDpdkConfiguration
 			},
 			enableDeviceIscInterrupts: false,
 			deviceInterruptReceiveQueue: 0,
-			
+
 			flowControl: Some(FlowControl::default()),
 			dataCentreBridgingPriorityFlowControl: None,
-			
+
 			isPromiscuous: self.isPromiscuous,
 			enableAllMulticastReceive: false,
 			maximumTransmissionUnitSizeInBytes: self.maximumTransmissionUnit,
 			multicastMediaAccessControlAddressesToFilter: HashSet::new(),
 			udpTunnelsToOffload: HashSet::new(),
 			enableTimestamping: false,
-			
+
 			linkIsUp: true,
 			ledIsLit: false,
 			defaultMediaAccessControlAddress: Some(defaultMediaAccessControlAddress),
-			additionalMediaAccessControlAddresses: additionalMediaAccessControlAddresses,
+			additionalMediaAccessControlAddresses,
 			trafficMirroringRules: HashMap::new(),
 			virtualLanOffloadFeatures: None,
 		};
-		
+
 		ethernetPortInformation.adjustConfiguration(&mut configuration, &receiveSideScalingHashChooser);
-		
+
 		configuration
 	}
 }
 
 
 #[allow(unused_variables)]
-pub fn tldkTcpReceiveSideScalingHashChooser<'a>(numberOfReceiveQueues: u16, receiveSideScalingHashKeySize: ReceiveSideScalingHashKeySize, driverName: &'a str, deviceName: &'a str) -> ((Option<HashFilter>, ReceiveSideScalingHashFunctionConfiguration))
+pub fn tldkTcpReceiveSideScalingHashChooser<'a>(numberOfReceiveQueues: u16, receiveSideScalingHashKeySize: ReceiveSideScalingHashKeySize, driverName: &'a str, device_name: &'a str) -> ((Option<HashFilter>, ReceiveSideScalingHashFunctionConfiguration))
 {
 	(
 		None,
@@ -203,7 +203,7 @@ pub fn tldkTcpReceiveSideScalingHashChooser<'a>(numberOfReceiveQueues: u16, rece
 }
 
 #[allow(unused_variables)]
-pub fn tldkUdpReceiveSideScalingHashChooser<'a>(numberOfReceiveQueues: u16, receiveSideScalingHashKeySize: ReceiveSideScalingHashKeySize, driverName: &'a str, deviceName: &'a str) -> ((Option<HashFilter>, ReceiveSideScalingHashFunctionConfiguration))
+pub fn tldkUdpReceiveSideScalingHashChooser<'a>(numberOfReceiveQueues: u16, receiveSideScalingHashKeySize: ReceiveSideScalingHashKeySize, driverName: &'a str, device_name: &'a str) -> ((Option<HashFilter>, ReceiveSideScalingHashFunctionConfiguration))
 {
 	(
 		None,
@@ -216,7 +216,7 @@ pub fn tldkUdpReceiveSideScalingHashChooser<'a>(numberOfReceiveQueues: u16, rece
 }
 
 #[allow(unused_variables)]
-pub fn symmetricAllReceiveSideScalingHashChooser<'a>(numberOfReceiveQueues: u16, receiveSideScalingHashKeySize: ReceiveSideScalingHashKeySize, driverName: &'a str, deviceName: &'a str) -> ((Option<HashFilter>, ReceiveSideScalingHashFunctionConfiguration))
+pub fn symmetricAllReceiveSideScalingHashChooser<'a>(numberOfReceiveQueues: u16, receiveSideScalingHashKeySize: ReceiveSideScalingHashKeySize, driverName: &'a str, device_name: &'a str) -> ((Option<HashFilter>, ReceiveSideScalingHashFunctionConfiguration))
 {
 	(
 		Some(HashFilter::GenericToeplitzHashFilter),
@@ -229,10 +229,10 @@ pub fn symmetricAllReceiveSideScalingHashChooser<'a>(numberOfReceiveQueues: u16,
 }
 
 #[allow(unused_variables)]
-pub fn defaultAllReceiveSideScalingHashChooser<'a>(numberOfReceiveQueues: u16, receiveSideScalingHashKeySize: ReceiveSideScalingHashKeySize, driverName: &'a str, deviceName: &'a str) -> ((Option<HashFilter>, ReceiveSideScalingHashFunctionConfiguration))
+pub fn defaultAllReceiveSideScalingHashChooser<'a>(numberOfReceiveQueues: u16, receiveSideScalingHashKeySize: ReceiveSideScalingHashKeySize, driverName: &'a str, device_name: &'a str) -> ((Option<HashFilter>, ReceiveSideScalingHashFunctionConfiguration))
 {
 	println!("TODO: Please double check defaultAllReceiveSideScalingHashChooser() for correct driverName, as we're not sure net_mlx4 is actually rte_mlx4_pmd. This driverName is '{}'", driverName);
-	
+
 	(
 		Some(HashFilter::GenericToeplitzHashFilter),
 		match receiveSideScalingHashKeySize

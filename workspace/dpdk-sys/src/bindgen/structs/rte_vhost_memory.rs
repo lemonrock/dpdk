@@ -7,7 +7,7 @@
 pub struct rte_vhost_memory
 {
 	pub nregions: u32,
-	pub regions: __IncompleteArrayField<rte_vhost_mem_region>,
+	pub regions: IncompleteArrayField<rte_vhost_mem_region>,
 	pub __bindgen_align: [u64; 0usize],
 }
 

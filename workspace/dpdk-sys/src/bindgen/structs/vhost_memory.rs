@@ -7,7 +7,7 @@ pub struct vhost_memory
 {
 	pub nregions: __u32,
 	pub padding: __u32,
-	pub regions: __IncompleteArrayField<vhost_memory_region>,
+	pub regions: IncompleteArrayField<vhost_memory_region>,
 }
 
 impl Default for vhost_memory

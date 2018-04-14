@@ -28,6 +28,6 @@ impl MemoryConfiguration
 {
 	pub fn addTo(&self, dpdkRteInitData: &mut DpdkRteInitData)
 	{
-		dpdkRteInitData.addMemorySettings(self.limits, self.channels, self.ranks);
+		dpdkRteInitData.add_memory_settings(self.limits, self.channels, self.ranks);
 	}
 }

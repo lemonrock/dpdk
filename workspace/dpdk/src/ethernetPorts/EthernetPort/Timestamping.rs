@@ -7,7 +7,7 @@ impl EthernetPort
 	#[inline(always)]
 	pub fn enableTimestamping(&self) -> Result<(), UnsupportedByHardwareError>
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_timesync_enable(self.portIdentifier()) };
+		let result = unsafe { rte_eth_timesync_enable(self.portIdentifier()) };
 		if likely(result == 0)
 		{
 			Ok(())
@@ -17,18 +17,18 @@ impl EthernetPort
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-		
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_timesync_enable()", result),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn disableTimestamping(&self) -> Result<(), UnsupportedByHardwareError>
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_timesync_disable(self.portIdentifier()) };
+		let result = unsafe { rte_eth_timesync_disable(self.portIdentifier()) };
 		if likely(result == 0)
 		{
 			Ok(())
@@ -38,20 +38,20 @@ impl EthernetPort
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-		
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_timesync_disable()", result),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn readReceiveTimestamp(&self, deviceSpecificValueEgRxTimestampRegisterForIntelI40e: Option<u32>) -> Result<Option<timespec>, UnsupportedByHardwareError>
 	{
 		let mut time = unsafe { uninitialized( )};
-		
-		let result = unsafe { ::dpdk_sys::rte_eth_timesync_read_rx_timestamp(self.portIdentifier(), &mut time, deviceSpecificValueEgRxTimestampRegisterForIntelI40e.unwrap_or(0)) };
+
+		let result = unsafe { rte_eth_timesync_read_rx_timestamp(self.portIdentifier(), &mut time, deviceSpecificValueEgRxTimestampRegisterForIntelI40e.unwrap_or(0)) };
 		if likely(result == 0)
 		{
 			Ok(Some(time))
@@ -59,25 +59,25 @@ impl EthernetPort
 		else
 		{
 			forget(time);
-			
+
 			match result
 			{
 				NegativeE::EINVAL => Ok(None),
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-		
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_timesync_read_rx_timestamp()", result),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn readTransmissionTimestamp(&self) -> Result<Option<timespec>, UnsupportedByHardwareError>
 	{
 		let mut time = unsafe { uninitialized( )};
-		
-		let result = unsafe { ::dpdk_sys::rte_eth_timesync_read_tx_timestamp(self.portIdentifier(), &mut time) };
+
+		let result = unsafe { rte_eth_timesync_read_tx_timestamp(self.portIdentifier(), &mut time) };
 		if likely(result == 0)
 		{
 			Ok(Some(time))
@@ -85,23 +85,23 @@ impl EthernetPort
 		else
 		{
 			forget(time);
-			
+
 			match result
 			{
 				NegativeE::EINVAL => Ok(None),
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-		
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_timesync_read_tx_timestamp()", result),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn adjustTimesyncClock(&self, deltaInNanoseconds: i64) -> Result<(), UnsupportedByHardwareError>
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_timesync_adjust_time(self.portIdentifier(), deltaInNanoseconds) };
+		let result = unsafe { rte_eth_timesync_adjust_time(self.portIdentifier(), deltaInNanoseconds) };
 		if likely(result == 0)
 		{
 			Ok(())
@@ -111,20 +111,20 @@ impl EthernetPort
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-		
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_timesync_adjust_time()", result),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn readTimesyncClock(&self) -> Result<timespec, UnsupportedByHardwareError>
 	{
 		let mut time = unsafe { uninitialized( )};
-		
-		let result = unsafe { ::dpdk_sys::rte_eth_timesync_read_time(self.portIdentifier(), &mut time) };
+
+		let result = unsafe { rte_eth_timesync_read_time(self.portIdentifier(), &mut time) };
 		if likely(result == 0)
 		{
 			Ok(time)
@@ -132,22 +132,22 @@ impl EthernetPort
 		else
 		{
 			forget(time);
-			
+
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-		
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_timesync_read_time()", result),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn writeTimesyncClock(&self, time: timespec) -> Result<(), UnsupportedByHardwareError>
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_timesync_write_time(self.portIdentifier(), &time) };
+		let result = unsafe { rte_eth_timesync_write_time(self.portIdentifier(), &time) };
 		if likely(result == 0)
 		{
 			Ok(())
@@ -157,9 +157,9 @@ impl EthernetPort
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-		
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_timesync_write_time()", result),
 			}
 		}

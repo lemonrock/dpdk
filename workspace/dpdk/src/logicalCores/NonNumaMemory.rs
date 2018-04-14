@@ -9,7 +9,7 @@ pub enum NonNumaMemory
 
 impl NonNumaMemory
 {
-	pub fn supportedHugePageSizesLargestFirst(sysPath: &Path, default_huge_page_size: Option<HugePageSize>) -> Vec<HugePageSize>
+	pub fn supportedHugePageSizesLargestFirst(sys_path: &Path, default_huge_page_size: Option<HugePageSize>) -> Vec<HugePageSize>
 	{
 		let length = HugePageSize::PotentiallySupportedHugePageSizesLargestFirst.len();
 		
@@ -17,7 +17,7 @@ impl NonNumaMemory
 		
 		for hugePageSize in HugePageSize::PotentiallySupportedHugePageSizesLargestFirst.iter()
 		{
-			if Self::numberOfNonNumaHugePages(sysPath, *hugePageSize).is_ok()
+			if Self::numberOfNonNumaHugePages(sys_path, *hugePageSize).is_ok()
 			{
 				supported.push(*hugePageSize);
 			}
@@ -43,73 +43,73 @@ impl NonNumaMemory
 	}
 	
 	/// Will only work as root
-	pub fn tryToClearAllNonNumaHugePagesReserved(sysPath: &Path, hugePageSize: HugePageSize) -> io::Result<()>
+	pub fn tryToClearAllNonNumaHugePagesReserved(sys_path: &Path, hugePageSize: HugePageSize) -> io::Result<()>
 	{
 		assert_effective_user_id_is_root(&format!("Clear all non-NUMA huge pages of size '{:?}'", hugePageSize));
-		Self::tryToReserveNonNumaHugePages(sysPath, hugePageSize, 0)
+		Self::tryToReserveNonNumaHugePages(sys_path, hugePageSize, 0)
 	}
 	
 	/// Will only work as root
-	pub fn tryToReserveNonNumaHugePages(sysPath: &Path, hugePageSize: HugePageSize, count: u64) -> io::Result<()>
+	pub fn tryToReserveNonNumaHugePages(sys_path: &Path, hugePageSize: HugePageSize, count: u64) -> io::Result<()>
 	{
 		assert_effective_user_id_is_root(&format!("Reserve '{}' non-NUMA huge pages of size '{:?}'", count, hugePageSize));
 
-		let filePath = Self::nonNumaNumberOfHugePagesFilePath(sysPath, hugePageSize);
-		filePath.write_value(count)
+		let file_path = Self::nonNumaNumberOfHugePagesFilePath(sys_path, hugePageSize);
+		file_path.write_value(count)
 	}
 	
-	pub fn numberOfNonNumaHugePages(sysPath: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
+	pub fn numberOfNonNumaHugePages(sys_path: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
 	{
-		let filePath = Self::nonNumaNumberOfHugePagesFilePath(sysPath, hugePageSize);
-		filePath.read_value()
+		let file_path = Self::nonNumaNumberOfHugePagesFilePath(sys_path, hugePageSize);
+		file_path.read_value()
 	}
 	
-	pub fn numberOfNonNumaFreeHugePages(sysPath: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
+	pub fn numberOfNonNumaFreeHugePages(sys_path: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
 	{
-		let filePath = Self::nonNumaHugePagesFilePath(sysPath, hugePageSize, "free_hugepages");
-		filePath.read_value()
+		let file_path = Self::nonNumaHugePagesFilePath(sys_path, hugePageSize, "free_hugepages");
+		file_path.read_value()
 	}
 	
-	pub fn numberOfNonNumaSurplusHugePages(sysPath: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
+	pub fn numberOfNonNumaSurplusHugePages(sys_path: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
 	{
-		let filePath = Self::nonNumaHugePagesFilePath(sysPath, hugePageSize, "surplus_hugepages");
-		filePath.read_value()
+		let file_path = Self::nonNumaHugePagesFilePath(sys_path, hugePageSize, "surplus_hugepages");
+		file_path.read_value()
 	}
 	
-	pub fn numberOfNonNumaReservedHugePages(sysPath: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
+	pub fn numberOfNonNumaReservedHugePages(sys_path: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
 	{
-		let filePath = Self::nonNumaHugePagesFilePath(sysPath, hugePageSize, "resv_hugepages");
-		filePath.read_value()
+		let file_path = Self::nonNumaHugePagesFilePath(sys_path, hugePageSize, "resv_hugepages");
+		file_path.read_value()
 	}
 	
-	pub fn numberOfNonNumaMemoryPolicyHugePages(sysPath: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
+	pub fn numberOfNonNumaMemoryPolicyHugePages(sys_path: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
 	{
-		let filePath = Self::nonNumaHugePagesFilePath(sysPath, hugePageSize, "nr_hugepages_mempolicy");
-		filePath.read_value()
+		let file_path = Self::nonNumaHugePagesFilePath(sys_path, hugePageSize, "nr_hugepages_mempolicy");
+		file_path.read_value()
 	}
 	
-	pub fn numberOfNonNumaOvercommitHugePages(sysPath: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
+	pub fn numberOfNonNumaOvercommitHugePages(sys_path: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
 	{
-		let filePath = Self::nonNumaHugePagesFilePath(sysPath, hugePageSize, "nr_overcommit_hugepages");
-		filePath.read_value()
+		let file_path = Self::nonNumaHugePagesFilePath(sys_path, hugePageSize, "nr_overcommit_hugepages");
+		file_path.read_value()
 	}
 	
-	fn nonNumaNumberOfHugePagesFilePath(sysPath: &Path, hugePageSize: HugePageSize) -> PathBuf
+	fn nonNumaNumberOfHugePagesFilePath(sys_path: &Path, hugePageSize: HugePageSize) -> PathBuf
 	{
-		Self::nonNumaHugePagesFilePath(sysPath, hugePageSize, "nr_hugepages")
+		Self::nonNumaHugePagesFilePath(sys_path, hugePageSize, "nr_hugepages")
 	}
 	
-	fn nonNumaHugePagesFilePath(sysPath: &Path, hugePageSize: HugePageSize, fileName: &str) -> PathBuf
+	fn nonNumaHugePagesFilePath(sys_path: &Path, hugePageSize: HugePageSize, fileName: &str) -> PathBuf
 	{
-		let mut filePath = Self::nonNumaHugePagesFolderPath(sysPath, hugePageSize);
-		filePath.push(fileName);
-		filePath
+		let mut file_path = Self::nonNumaHugePagesFolderPath(sys_path, hugePageSize);
+		file_path.push(fileName);
+		file_path
 	}
 	
-	fn nonNumaHugePagesFolderPath(sysPath: &Path, hugePageSize: HugePageSize) -> PathBuf
+	fn nonNumaHugePagesFolderPath(sys_path: &Path, hugePageSize: HugePageSize) -> PathBuf
 	{
-		let mut filePath = PathBuf::from(sysPath);
-		filePath.push(format!("kernel/mm/hugepages/hugepages-{}kB", hugePageSize.size()));
-		filePath
+		let mut file_path = PathBuf::from(sys_path);
+		file_path.push(format!("kernel/mm/hugepages/hugepages-{}kB", hugePageSize.size()));
+		file_path
 	}
 }

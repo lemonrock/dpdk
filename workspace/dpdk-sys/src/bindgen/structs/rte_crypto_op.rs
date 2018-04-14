@@ -11,7 +11,7 @@ pub struct rte_crypto_op
 	pub reserved: [u8; 5usize],
 	pub mempool: *mut rte_mempool,
 	pub phys_addr: rte_iova_t,
-	pub __bindgen_anon_1: rte_crypto_op__bindgen_ty_1,
+	pub _1: rte_crypto_op_1,
 }
 
 impl Default for rte_crypto_op
@@ -28,6 +28,6 @@ impl Debug for rte_crypto_op
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_crypto_op {{ reserved: {:?}, mempool: {:?}, __bindgen_anon_1: {:?} }}", self.reserved, self.mempool, self.__bindgen_anon_1)
+		write!(f, "rte_crypto_op {{ reserved: {:?}, mempool: {:?}, _1: {:?} }}", self.reserved, self.mempool, self._1)
 	}
 }

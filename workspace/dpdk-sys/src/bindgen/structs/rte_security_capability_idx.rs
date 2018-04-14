@@ -8,7 +8,7 @@ pub struct rte_security_capability_idx
 {
 	pub action: rte_security_session_action_type,
 	pub protocol: rte_security_session_protocol,
-	pub __bindgen_anon_1: rte_security_capability_idx__bindgen_ty_1,
+	pub _1: rte_security_capability_idx_1,
 }
 
 impl Default for rte_security_capability_idx
@@ -25,6 +25,6 @@ impl Debug for rte_security_capability_idx
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_security_capability_idx {{ action: {:?}, protocol: {:?}, __bindgen_anon_1: {:?} }}", self.action, self.protocol, self.__bindgen_anon_1)
+		write!(f, "rte_security_capability_idx {{ action: {:?}, protocol: {:?}, _1: {:?} }}", self.action, self.protocol, self._1)
 	}
 }

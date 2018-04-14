@@ -2,39 +2,22 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use ::const_cstr_fork::ConstCStr;
-use ::devices::virtualDevices::*;
-use ::devices::virtualDevices::cryptoVirtualDevices::*;
-use ::devices::virtualDevices::netVirtualDevices::*;
-use ::dpdk_unix::get_program_name;
-use ::dpdk_sys::rte_intr_mode;
-use ::dpdk_sys::rte_proc_type_t;
-use ::libc::c_char;
-use ::libc::c_int;
-use ::libc_extra::ffi::isTrue;
-use ::libc_extra::ffi::arguments::VecArguments;
-use ::logicalCores::MaximumNumaSockets;
-use ::logicalCores::discovery::NumaSockets;
-use ::pci::DeviceAddress;
-use ::pci::DeviceListColour;
-use ::rust_extra::likely;
-use ::rust_extra::u31;
-use ::std::collections::HashSet;
-use ::std::ffi::CString;
-use ::std::ffi::OsStr;
-use ::std::ffi::OsString;
-use ::std::path::Path;
-use ::std::path::PathBuf;
-use ::std::ptr::null;
-use ::std::ptr::null_mut;
+use super::*;
+use super::devices::virtual_devices::*;
+use super::devices::virtual_devices::cryptoVirtualDevices::*;
+use super::devices::virtual_devices::net_virtual_devices::*;
+use super::logicalCores::MaximumNumaSockets;
+use super::logicalCores::discovery::NumaSockets;
+use super::pci::PciDeviceAddress;
 
 
 include!("DpdkRteInitData.rs");
-include!("hasHugepages.rs");
+include!("has_huge_pages.rs");
 include!("HugePageFilePathInformation.rs");
-include!("isPrimaryProcessAlive.rs");
+include!("is_primary_dpdk_process_alive.rs");
 include!("MemoryChannels.rs");
 include!("MemoryLimits.rs");
 include!("MemoryRanks.rs");
+include!("PciDeviceListColour.rs");
 include!("ProcessType.rs");
 include!("VfioInterruptMode.rs");

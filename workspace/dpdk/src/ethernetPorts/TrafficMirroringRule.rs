@@ -19,14 +19,14 @@ impl TrafficMirroringRule
 	{
 		TrafficMirroringRule
 		{
-			ruleType: ruleType,
-			destinationPool: destinationPool,
-			poolMask: poolMask,
-			vlanMask: vlanMask,
+			ruleType,
+			destinationPool,
+			poolMask,
+			vlanMask,
 			vlanIds: Array64(vlanIds),
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn as_rte_eth_mirror_conf(&self) -> rte_eth_mirror_conf
 	{

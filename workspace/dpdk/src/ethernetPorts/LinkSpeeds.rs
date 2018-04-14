@@ -19,17 +19,17 @@ impl LinkSpeeds
 	{
 		match *self
 		{
-			LinkSpeeds::AutonegotiationOfAllSupportedSpeeds => ::dpdk_sys::ETH_LINK_SPEED_AUTONEG,
+			LinkSpeeds::AutonegotiationOfAllSupportedSpeeds => ETH_LINK_SPEED_AUTONEG,
 			LinkSpeeds::AutonegotiationOfTheseSpeeds(ref linkSpeeds) =>
 			{
-				let mut bitsSet = ::dpdk_sys::ETH_LINK_SPEED_AUTONEG;
+				let mut bitsSet = ETH_LINK_SPEED_AUTONEG;
 				for linkSpeed in linkSpeeds
 				{
 					bitsSet |= *linkSpeed as u32;
 				}
 				bitsSet
 			},
-			LinkSpeeds::FixedWithoutAutonegotiation(ref fixedLinkSpeed) => *fixedLinkSpeed as u32 | ::dpdk_sys::ETH_LINK_SPEED_FIXED,
+			LinkSpeeds::FixedWithoutAutonegotiation(ref fixedLinkSpeed) => *fixedLinkSpeed as u32 | ETH_LINK_SPEED_FIXED,
 		}
 	}
 }

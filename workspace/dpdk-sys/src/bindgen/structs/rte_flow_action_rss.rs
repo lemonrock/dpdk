@@ -7,7 +7,7 @@ pub struct rte_flow_action_rss
 {
 	pub rss_conf: *const rte_eth_rss_conf,
 	pub num: u16,
-	pub queue: __IncompleteArrayField<u16>,
+	pub queue: IncompleteArrayField<u16>,
 }
 
 impl Default for rte_flow_action_rss

@@ -30,11 +30,11 @@ impl Default for HugePagesConfiguration
 impl HugePagesConfiguration
 {
 	#[cfg(any(target_os = "android", target_os = "linux"))]
-	fn setUpHugePagesAndNumaMemory(&self, proc_path: &Path, sysPath: &Path, numaSockets: &NumaSockets) -> (Option<PathBuf>, HugePageFinisher)
+	fn setUpHugePagesAndNumaMemory(&self, proc_path: &Path, sys_path: &Path, numa_sockets: &NumaSockets) -> (Option<PathBuf>, HugePageFinisher)
 	{
 		let nonNumaHugePageAllocationStrategy = &self.nonNumaHugePageAllocationStrategy;
 		let numaHugePageAllocationStrategy = &self.numaHugePageAllocationStrategy;
-		
+
 		fn verifyLinuxKernelSupportsHugetlbfs(procPath: &Path)
 		{
 			match FileSystemType::parse(procPath).expect("Could not parse list of filesystems").get(&FileSystemType::hugetlbfs)
@@ -46,7 +46,7 @@ impl HugePagesConfiguration
 				},
 			}
 		}
-		
+
 		fn mount_huge_pages<'a>(mounts: &'a HashMap<PathBuf, Mount>, hugePageMountSettings: &HugePageMountSettings, largestHugePageSize: HugePageSize) -> (PathBuf, HugePageFinisher)
 		{
 			fn findAHugeTlbFsMount<'a>(mounts: &'a HashMap<PathBuf, Mount>) -> Option<&'a Path>
@@ -64,7 +64,7 @@ impl HugePagesConfiguration
 				}
 				None
 			}
-			
+
 			match findAHugeTlbFsMount(mounts)
 			{
 				Some(mountPath) =>
@@ -90,54 +90,54 @@ impl HugePagesConfiguration
 							true
 						}
 					};
-					
+
 					(Mount::mount_huge_pages(hugePageMountSettings, Some(largestHugePageSize)).expect("Could not mount hugetlbfs"), HugePageFinisher::new(mount_point, created, true))
 				}
 			}
 		}
-		
+
 		let machineMemoryStatistics = MemoryStatistics::parse_for_machine(proc_path).expect("Could not parse memory statistics");
-		
-		let supportedHugePageSizes = NonNumaMemory::supportedHugePageSizesLargestFirst(sysPath, machineMemoryStatistics.default_huge_page_size());
+
+		let supportedHugePageSizes = NonNumaMemory::supportedHugePageSizesLargestFirst(sys_path, machineMemoryStatistics.default_huge_page_size());
 		if supportedHugePageSizes.is_empty()
 		{
 			return (None, HugePageFinisher::FreeBsd);
 		}
-		
+
 		let largestHugePageSize = supportedHugePageSizes[0];
-		
+
 		verifyLinuxKernelSupportsHugetlbfs(proc_path);
-		
-		numaSockets.iterateUsefulSocketsIfIsANumaMachine(|numaSocketId|
+
+		numa_sockets.iterateUsefulSocketsIfIsANumaMachine(|numa_socket_id|
 		{
-			numaSocketId.tryToCompact(sysPath).expect("Could not write to compact (1)");
-			numaSocketId.tryToEvictPages(sysPath).expect("Could not write to evict (1)");
-			numaSocketId.tryToCompact(sysPath).expect("Could not write to compact (2)");
-			numaSocketId.tryToEvictPages(sysPath).expect("Could not write to evict (2)");
+			numa_socket_id.tryToCompact(sys_path).expect("Could not write to compact (1)");
+			numa_socket_id.tryToEvictPages(sys_path).expect("Could not write to evict (1)");
+			numa_socket_id.tryToCompact(sys_path).expect("Could not write to compact (2)");
+			numa_socket_id.tryToEvictPages(sys_path).expect("Could not write to evict (2)");
 			for hugePageSize in supportedHugePageSizes.iter()
 			{
-				numaSocketId.tryToClearAllHugePagesReserved(&sysPath, *hugePageSize).expect(&format!("Could not clear NUMA huge pages of size '{:?}' on socket '{}'", hugePageSize, numaSocketId.as_c_uint()));
+				numa_socket_id.tryToClearAllHugePagesReserved(&sys_path, *hugePageSize).expect(&format!("Could not clear NUMA huge pages of size '{:?}' on socket '{}'", hugePageSize, numa_socket_id.as_c_uint()));
 			}
 		});
-		
+
 		for hugePageSize in supportedHugePageSizes.iter()
 		{
-			NonNumaMemory::tryToClearAllNonNumaHugePagesReserved(sysPath, *hugePageSize).expect(&format!("Could not clear Non-NUMA huge pages of size '{:?}'", hugePageSize));
+			NonNumaMemory::tryToClearAllNonNumaHugePagesReserved(sys_path, *hugePageSize).expect(&format!("Could not clear Non-NUMA huge pages of size '{:?}'", hugePageSize));
 		}
-		
+
 		let machineTotalFreeMemory = machineMemoryStatistics.free_physical_ram().expect("No machine total free RAM statistic");
 		let count = nonNumaHugePageAllocationStrategy.allocateInPages(largestHugePageSize, machineTotalFreeMemory);
-		NonNumaMemory::tryToReserveNonNumaHugePages(sysPath, largestHugePageSize, count).expect("Could not reserve non-NUMA huge pages");
-		
-		numaSockets.iterateUsefulSocketsIfIsANumaMachine(|numaSocketId|
+		NonNumaMemory::tryToReserveNonNumaHugePages(sys_path, largestHugePageSize, count).expect("Could not reserve non-NUMA huge pages");
+
+		numa_sockets.iterateUsefulSocketsIfIsANumaMachine(|numa_socket_id|
 		{
-			let numaNodeTotalFreeMemory = numaSocketId.meminfo(sysPath).expect(&format!("Could not parse NUMA node memory statistics on socket '{}'", numaSocketId.as_c_uint())).free_physical_ram().expect(&format!("No NUMA node total free RAM statistic on socket '{}'", numaSocketId.as_c_uint()));
+			let numaNodeTotalFreeMemory = numa_socket_id.meminfo(sys_path).expect(&format!("Could not parse NUMA node memory statistics on socket '{}'", numa_socket_id.as_c_uint())).free_physical_ram().expect(&format!("No NUMA node total free RAM statistic on socket '{}'", numa_socket_id.as_c_uint()));
 			let count = numaHugePageAllocationStrategy.allocateInPages(largestHugePageSize, numaNodeTotalFreeMemory);
-			numaSocketId.tryToReserveHugePages(sysPath, largestHugePageSize, count).expect(&format!("Could not reserve NUMA huge pages on socket '{}'", numaSocketId.as_c_uint()));
+			numa_socket_id.tryToReserveHugePages(sys_path, largestHugePageSize, count).expect(&format!("Could not reserve NUMA huge pages on socket '{}'", numa_socket_id.as_c_uint()));
 		});
-		
+
 		adjust_transparent_huge_pages(self.enableTransparentHugePages);
-		
+
 		let mounts = Mounts::parse(proc_path).expect("Could not parse mounts");
 		let (mountPath, finisher) = mount_huge_pages(&mounts, &self.hugePageMountSettings, largestHugePageSize);
 		(Some(mountPath), finisher)

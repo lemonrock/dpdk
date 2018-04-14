@@ -10,11 +10,11 @@ pub struct PciDevicesFinisher
 
 impl Finisher for PciDevicesFinisher
 {
-	fn finish(&self, sysPath: &Path)
+	fn finish(&self, sys_path: &Path)
 	{
 		for unbind in &self.unbinds
 		{
-			unbind.unbindOnTermination(sysPath);
+			unbind.unbind_on_termination(sys_path);
 		}
 	}
 }

@@ -8,7 +8,7 @@ pub struct rte_eth_txmode
 	pub mq_mode: rte_eth_tx_mq_mode,
 	pub offloads: u64,
 	pub pvid: u16,
-	pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize], u8>,
+	pub bitfield_1: BindgenBitfieldUnit<[u8; 1usize], u8>,
 	pub __bindgen_padding_0: [u8; 5usize],
 }
 
@@ -36,7 +36,7 @@ impl rte_eth_txmode
 	#[inline(always)]
 	pub fn hw_vlan_reject_tagged(&self) -> u8
 	{
-		unsafe { transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
+		unsafe { transmute(self.bitfield_1.get(0usize, 1u8) as u8) }
 	}
 	
 	#[inline(always)]
@@ -44,14 +44,14 @@ impl rte_eth_txmode
 	{
 		unsafe {
 			let val: u8 = transmute(val);
-			self._bitfield_1.set(0usize, 1u8, val as u64)
+			self.bitfield_1.set(0usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn hw_vlan_reject_untagged(&self) -> u8
 	{
-		unsafe { transmute(self._bitfield_1.get(1usize, 1u8) as u8) }
+		unsafe { transmute(self.bitfield_1.get(1usize, 1u8) as u8) }
 	}
 	
 	#[inline(always)]
@@ -59,14 +59,14 @@ impl rte_eth_txmode
 	{
 		unsafe {
 			let val: u8 = transmute(val);
-			self._bitfield_1.set(1usize, 1u8, val as u64)
+			self.bitfield_1.set(1usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn hw_vlan_insert_pvid(&self) -> u8
 	{
-		unsafe { transmute(self._bitfield_1.get(2usize, 1u8) as u8) }
+		unsafe { transmute(self.bitfield_1.get(2usize, 1u8) as u8) }
 	}
 	
 	#[inline(always)]
@@ -74,14 +74,14 @@ impl rte_eth_txmode
 	{
 		unsafe {
 			let val: u8 = transmute(val);
-			self._bitfield_1.set(2usize, 1u8, val as u64)
+			self.bitfield_1.set(2usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
-	pub fn new_bitfield_1(hw_vlan_reject_tagged: u8, hw_vlan_reject_untagged: u8, hw_vlan_insert_pvid: u8) -> __BindgenBitfieldUnit<[u8; 1usize], u8>
+	pub fn newbitfield_1(hw_vlan_reject_tagged: u8, hw_vlan_reject_untagged: u8, hw_vlan_insert_pvid: u8) -> BindgenBitfieldUnit<[u8; 1usize], u8>
 	{
-		let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
+		let mut __bindgen_bitfield_unit: BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
 		__bindgen_bitfield_unit.set(0usize, 1u8, {
 			let hw_vlan_reject_tagged: u8 = unsafe { transmute(hw_vlan_reject_tagged) };
 			hw_vlan_reject_tagged as u64

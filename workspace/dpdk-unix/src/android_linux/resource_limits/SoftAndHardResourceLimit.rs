@@ -75,7 +75,7 @@ impl SoftAndHardResourceLimit
 			rlim_max: self.hard.unwrap(),
 		};
 		
-		match unsafe { ::libc::setrlimit64(resource_identifier, &value) }
+		match unsafe { setrlimit64(resource_identifier, &value) }
 		{
 			0 => (),
 			
@@ -101,7 +101,7 @@ impl SoftAndHardResourceLimit
 			rlim_max: 0,
 		};
 		
-		match unsafe { ::libc::getrlimit64(resource_identifier, &mut value) }
+		match unsafe { getrlimit64(resource_identifier, &mut value) }
 		{
 			0 => (),
 			

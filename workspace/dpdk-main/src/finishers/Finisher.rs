@@ -4,5 +4,5 @@
 
 pub trait Finisher : Debug
 {
-	fn finish(&self, sysPath: &Path);
+	fn finish(&self, sys_path: &Path);
 }

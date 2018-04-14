@@ -8,8 +8,8 @@ pub struct BondedEthernetPortConfiguration
 	pub name: String,
 	pub bondingMode: BondingMode,
 	pub balanceBondingModeTransmitPolicy: Option<BalanceBondingModeTransmitPolicy>,
-	pub mediaAccessControlAddress: Option<MediaAccessControlAddress>,
-	pub numaSocketId: NumaSocketId,
+	pub media_access_control_address: Option<MediaAccessControlAddress>,
+	pub numa_socket_id: NumaSocketId,
 	pub linkStatusMonitoringFrequencyInMilliseconds: Option<u31>,
 	pub linkDownDelayBeforeDisablingInMilliseconds: Option<u31>,
 	pub linkUpDelayBeforeEnablingInMilliseconds: Option<u31>,
@@ -21,9 +21,9 @@ impl BondedEthernetPortConfiguration
 	pub fn configure(self) -> BondedEthernetPort
 	{
 		debug_assert!(!self.slaves.is_empty(), "slaves can not be empty; there must be at least one");
-		
-		let bondedEthernetPort = BondedEthernetPort::create(&self.name, self.bondingMode, self.numaSocketId).expect("Could not create BondedEthernetPort");
-		
+
+		let bondedEthernetPort = BondedEthernetPort::create(&self.name, self.bondingMode, self.numa_socket_id).expect("Could not create BondedEthernetPort");
+
 		let mut isFirst = true;
 		for slave in self.slaves
 		{
@@ -34,36 +34,36 @@ impl BondedEthernetPortConfiguration
 				isFirst = false;
 			}
 		}
-		
-		if let Some(mediaAccessControlAddress) = self.mediaAccessControlAddress
+
+		if let Some(media_access_control_address) = self.media_access_control_address
 		{
-			bondedEthernetPort.setMediaAccessControlAddress(mediaAccessControlAddress);
+			bondedEthernetPort.setMediaAccessControlAddress(media_access_control_address);
 		}
 		else
 		{
 			bondedEthernetPort.resetMediaAccessControlAddressToPrimarySlaves();
 		}
-		
+
 		if let Some(balanceBondingModeTransmitPolicy) = self.balanceBondingModeTransmitPolicy
 		{
 			bondedEthernetPort.setBalanceBondingModeTransmitPolicy(balanceBondingModeTransmitPolicy).expect("Could not set balanceBondingModeTransmitPolicy");
 		}
-		
+
 		if let Some(linkStatusMonitoringFrequencyInMilliseconds) = self.linkStatusMonitoringFrequencyInMilliseconds
 		{
 			bondedEthernetPort.setLinkStatusMonitoringFrequency(linkStatusMonitoringFrequencyInMilliseconds).expect("Could not set linkStatusMonitoringFrequencyInMilliseconds");
 		}
-		
+
 		if let Some(linkDownDelayBeforeDisablingInMilliseconds) = self.linkDownDelayBeforeDisablingInMilliseconds
 		{
 			bondedEthernetPort.setLinkDownDelayBeforeDisabling(linkDownDelayBeforeDisablingInMilliseconds).expect("Could not set linkDownDelayBeforeDisablingInMilliseconds");
 		}
-		
+
 		if let Some(linkUpDelayBeforeEnablingInMilliseconds) = self.linkUpDelayBeforeEnablingInMilliseconds
 		{
 			bondedEthernetPort.setLinkUpDelayBeforeEnabling(linkUpDelayBeforeEnablingInMilliseconds).expect("Could not set linkUpDelayBeforeEnablingInMilliseconds");
 		}
-		
+
 		bondedEthernetPort
 	}
 }

@@ -7,7 +7,7 @@
 pub struct rte_eth_link
 {
 	pub link_speed: u32,
-	pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize], u8>,
+	pub bitfield_1: BindgenBitfieldUnit<[u8; 1usize], u8>,
 	pub __bindgen_padding_0: [u8; 3usize],
 	pub __bindgen_align: [u64; 0usize],
 }
@@ -36,7 +36,7 @@ impl rte_eth_link
 	#[inline(always)]
 	pub fn link_duplex(&self) -> u16
 	{
-		unsafe { transmute(self._bitfield_1.get(0usize, 1u8) as u16) }
+		unsafe { transmute(self.bitfield_1.get(0usize, 1u8) as u16) }
 	}
 	
 	#[inline(always)]
@@ -44,14 +44,14 @@ impl rte_eth_link
 	{
 		unsafe {
 			let val: u16 = transmute(val);
-			self._bitfield_1.set(0usize, 1u8, val as u64)
+			self.bitfield_1.set(0usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn link_autoneg(&self) -> u16
 	{
-		unsafe { transmute(self._bitfield_1.get(1usize, 1u8) as u16) }
+		unsafe { transmute(self.bitfield_1.get(1usize, 1u8) as u16) }
 	}
 	
 	#[inline(always)]
@@ -59,14 +59,14 @@ impl rte_eth_link
 	{
 		unsafe {
 			let val: u16 = transmute(val);
-			self._bitfield_1.set(1usize, 1u8, val as u64)
+			self.bitfield_1.set(1usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn link_status(&self) -> u16
 	{
-		unsafe { transmute(self._bitfield_1.get(2usize, 1u8) as u16) }
+		unsafe { transmute(self.bitfield_1.get(2usize, 1u8) as u16) }
 	}
 	
 	#[inline(always)]
@@ -74,14 +74,14 @@ impl rte_eth_link
 	{
 		unsafe {
 			let val: u16 = transmute(val);
-			self._bitfield_1.set(2usize, 1u8, val as u64)
+			self.bitfield_1.set(2usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
-	pub fn new_bitfield_1(link_duplex: u16, link_autoneg: u16, link_status: u16) -> __BindgenBitfieldUnit<[u8; 1usize], u8>
+	pub fn newbitfield_1(link_duplex: u16, link_autoneg: u16, link_status: u16) -> BindgenBitfieldUnit<[u8; 1usize], u8>
 	{
-		let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
+		let mut __bindgen_bitfield_unit: BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
 		__bindgen_bitfield_unit.set(0usize, 1u8, {
 			let link_duplex: u16 = unsafe { transmute(link_duplex) };
 			link_duplex as u64

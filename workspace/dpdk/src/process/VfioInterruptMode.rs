@@ -2,11 +2,17 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// VFIO interrupt mode.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum VfioInterruptMode
 {
+	#[allow(missing_docs)]
 	Legacy,
+	
+	#[allow(missing_docs)]
 	Msi,
+	
+	#[allow(missing_docs)]
 	MsiX,
 }
 
@@ -19,23 +25,31 @@ impl VfioInterruptMode
 		msix = "msix";
 	}
 	
-	pub fn asFfi(self) -> rte_intr_mode
+	/// As DPDK value.
+	#[inline(always)]
+	pub fn to_rte_intr_mode(self) -> rte_intr_mode
 	{
+		use self::VfioInterruptMode::*;
+		use self::rte_intr_mode::*;
+		
 		match self
 		{
-			VfioInterruptMode::Legacy => rte_intr_mode::RTE_INTR_MODE_LEGACY,
-			VfioInterruptMode::Msi => rte_intr_mode::RTE_INTR_MODE_MSI,
-			VfioInterruptMode::MsiX => rte_intr_mode::RTE_INTR_MODE_MSIX,
+			Legacy => RTE_INTR_MODE_LEGACY,
+			Msi => RTE_INTR_MODE_MSI,
+			MsiX => RTE_INTR_MODE_MSIX,
 		}
 	}
 	
-	pub fn asInitialisationArgument(self) -> ConstCStr
+	#[inline(always)]
+	pub(crate) fn as_initialisation_argument(self) -> ConstCStr
 	{
+		use self::VfioInterruptMode::*;
+		
 		match self
 		{
-			VfioInterruptMode::Legacy => Self::legacy,
-			VfioInterruptMode::Msi => Self::msi,
-			VfioInterruptMode::MsiX => Self::msix,
+			Legacy => Self::legacy,
+			Msi => Self::msi,
+			MsiX => Self::msix,
 		}
 	}
 }

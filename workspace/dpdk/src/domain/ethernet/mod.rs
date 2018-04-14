@@ -2,7 +2,7 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use ::domain::arp::SizeOfLayer3ArpPacket;
+use super::arp::SizeOfLayer3ArpPacket;
 
 
 include!("MaximumSizeOfLayer2.rs");

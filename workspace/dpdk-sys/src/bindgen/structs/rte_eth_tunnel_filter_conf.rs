@@ -9,7 +9,7 @@ pub struct rte_eth_tunnel_filter_conf
 	pub inner_mac: ether_addr,
 	pub inner_vlan: u16,
 	pub ip_type: rte_tunnel_iptype,
-	pub ip_addr: rte_eth_tunnel_filter_conf__bindgen_ty_1,
+	pub ip_addr: rte_eth_tunnel_filter_conf_1,
 	pub filter_type: u16,
 	pub tunnel_type: rte_eth_tunnel_type,
 	pub tenant_id: u32,

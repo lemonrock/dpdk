@@ -24,24 +24,24 @@ impl Default for TransmitQueueConfiguration
 impl TransmitQueueConfiguration
 {
 	pub const DefaultNumberOfTransmitDescriptorsForTheTransmitRingAlsoKnownAsRingSize: u16 = 512;
-	
+
 	pub const TldkNumberOfTransmitDescriptorsForTheTransmitRingAlsoKnownAsRingSize: u16 = 2048; // TLDK's l4fwd app's TX_RING_SIZE
-	
+
 	pub fn new(numberOfTransmitDescriptorsForTheTransmitRingAlsoKnownAsRingSize: u16, overrideDefaultDeviceConfiguration: Option<TransmitQueueDeviceConfiguration>, maximumTransmissionRateInMbps: Option<u16>) -> Self
 	{
 		if let Some(overrideDefaultDeviceConfiguration) = overrideDefaultDeviceConfiguration
 		{
 			overrideDefaultDeviceConfiguration.validate(numberOfTransmitDescriptorsForTheTransmitRingAlsoKnownAsRingSize);
 		}
-			
+
 		TransmitQueueConfiguration
 		{
-			numberOfTransmitDescriptorsForTheTransmitRingAlsoKnownAsRingSize: numberOfTransmitDescriptorsForTheTransmitRingAlsoKnownAsRingSize,
-			overrideDefaultDeviceConfiguration: overrideDefaultDeviceConfiguration,
-			maximumTransmissionRateInMbps: maximumTransmissionRateInMbps,
+			numberOfTransmitDescriptorsForTheTransmitRingAlsoKnownAsRingSize,
+			overrideDefaultDeviceConfiguration,
+			maximumTransmissionRateInMbps,
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn startQueueWhenEthernetDeviceStarted(&self) -> bool
 	{

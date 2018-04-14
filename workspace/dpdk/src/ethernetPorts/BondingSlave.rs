@@ -2,38 +2,44 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// How to choose a bonding slave.
+///
+/// Enum constants are listed in the order preferred by the Ethernet Bonding parse code parse_port_id in rte_eth_bond_args.c
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Serialize, Deserialize)]
 pub enum BondingSlave
 {
-	// Enum constants are listed in the order preferred by the Ethernet Bonding parse code parse_port_id in rte_eth_bond_args.c
+	/// By PCI device address.
+	ByPciDeviceAddress(PciDeviceAddress),
 	
-	ByPciDeviceAddress(DeviceAddress),
-	
+	/// By virtual device name.
+	///
+	/// This should not be another bonding device.
 	ByVirtualDeviceName(NetVirtualDeviceName),
 	
+	/// By ethernet port identifier.
 	ByEthernetPortIdentifier(EthernetPortIdentifier),
 }
 
 impl BondingSlave
 {
-	pub fn byVirtualDeviceName(netVirtualDeviceName: NetVirtualDeviceName) -> BondingSlave
-	{
-		assert!(netVirtualDeviceName.isNotBackedByDriverName(NetVirtualDeviceDriverName::Bonding), "A bonding slave can not itself be a bonding device");
-		
-		BondingSlave::ByVirtualDeviceName(netVirtualDeviceName)
-	}
-	
 	#[inline(always)]
-	pub fn asDpdkString(&self) -> String
+	pub(crate) fn as_dpdk_string(&self) -> String
 	{
+		use self::BondingSlave::*;
+		
 		match *self
 		{
-			BondingSlave::ByPciDeviceAddress(ref deviceAddress) => deviceAddress.to_string(),
+			ByPciDeviceAddress(ref device_address) => device_address.to_string(),
 			
-			BondingSlave::ByVirtualDeviceName(ref virtualDeviceName) => virtualDeviceName.to_string(),
+			ByVirtualDeviceName(ref virtual_device_name) =>
+			{
+				assert!(new_virtual_device_name.is_not_backed_by_driver_name(NetVirtualDeviceDriverName::Bonding), "A bonding slave can not itself be a bonding device");
+				
+				virtual_device_name.to_string()
+			}
 
-			BondingSlave::ByEthernetPortIdentifier(ref ethernetPortIdentifier) => format!("{}", ethernetPortIdentifier),
+			ByEthernetPortIdentifier(ref ethernet_port_identifier) => format!("{}", ethernet_port_identifier),
 		}
 	}
 }

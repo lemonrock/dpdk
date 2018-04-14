@@ -6,13 +6,13 @@
 #[derive(Serialize, Deserialize)]
 pub struct IpV6NetworkAddress
 {
-	#[serde(serialize_with = "IpV6NetworkAddress::serde_serialize_network", deserialize_with = "IpV6NetworkAddress::serde_deserialize_network")] pub network: IpV6HostAddress,
+	#[serde(serialize_with = "IpV6NetworkAddress::serde_serialize_network", deserialize_with = "IpV6NetworkAddress::serde_deserialize_network")] pub network: InternetProtocolVersion6HostAddress,
 	pub maskBits: IpV6MaskBits,
 }
 
 impl IpNetworkAddress for IpV6NetworkAddress
 {
-	type IpHostAddress = IpV6HostAddress;
+	type IpHostAddress = InternetProtocolVersion6HostAddress;
 	
 	#[inline(always)]
 	fn network(&self) -> &Self::IpHostAddress
@@ -29,12 +29,12 @@ impl IpNetworkAddress for IpV6NetworkAddress
 
 impl IpV6NetworkAddress
 {
-	fn serde_serialize_network<S: Serializer>(value: &IpV6HostAddress, serializer: S) -> Result<S::Ok, S::Error>
+	fn serde_serialize_network<S: Serializer>(value: &InternetProtocolVersion6HostAddress, serializer: S) -> Result<S::Ok, S::Error>
 	{
 		Ipv6Addr::from(*value).serialize(serializer)
 	}
 	
-	fn serde_deserialize_network<D: Deserializer>(deserializer: D) -> Result<IpV6HostAddress, D::Error>
+	fn serde_deserialize_network<D: Deserializer>(deserializer: D) -> Result<InternetProtocolVersion6HostAddress, D::Error>
 	{
 		let ipv6Addr = Ipv6Addr::deserialize(deserializer)?;
 		Ok(ipv6Addr.octets())

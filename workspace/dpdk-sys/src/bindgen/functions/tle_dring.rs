@@ -4,5 +4,8 @@
 
 extern "C"
 {
+	pub fn rust___tle_dring_copy_objs(dst: *mut *const c_void, src: *const *const c_void, num: u32);
+	pub fn rust___tle_dring_dequeue(dr: *mut tle_dring, head: u32, objs: *mut *const c_void, nb_obj: u32, drbs: *mut *mut tle_drb, nb_drb: u32) -> u32;
+	pub fn rust___tle_dring_enqueue(dr: *mut tle_dring, head: u32, objs: *const *const c_void, nb_obj: u32, drbs: *mut *mut tle_drb, nb_drb: u32) -> u32;
 	pub fn tle_dring_dump(f: *mut FILE, verb: i32, dr: *const tle_dring);
 }

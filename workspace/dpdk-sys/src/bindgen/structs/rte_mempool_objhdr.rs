@@ -5,9 +5,9 @@
 #[repr(C)]
 pub struct rte_mempool_objhdr
 {
-	pub next: rte_mempool_objhdr__bindgen_ty_1,
+	pub next: rte_mempool_objhdr_1,
 	pub mp: *mut rte_mempool,
-	pub __bindgen_anon_1: rte_mempool_objhdr__bindgen_ty_2,
+	pub _1: rte_mempool_objhdr_2,
 }
 
 impl Default for rte_mempool_objhdr
@@ -24,6 +24,6 @@ impl Debug for rte_mempool_objhdr
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_mempool_objhdr {{ next: {:?}, mp: {:?}, __bindgen_anon_1: {:?} }}", self.next, self.mp, self.__bindgen_anon_1)
+		write!(f, "rte_mempool_objhdr {{ next: {:?}, mp: {:?}, _1: {:?} }}", self.next, self.mp, self._1)
 	}
 }

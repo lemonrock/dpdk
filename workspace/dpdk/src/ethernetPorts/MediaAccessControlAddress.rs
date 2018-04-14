@@ -153,13 +153,13 @@ impl MediaAccessControlAddress
 	}
 	
 	#[inline(always)]
-	pub fn isMulticast(&self) -> bool
+	pub fn is_multicast(&self) -> bool
 	{
 		isTrue(unsafe { rust_is_multicast_ether_addr(&self.0) })
 	}
 	
 	#[inline(always)]
-	pub fn isBroadcast(&self) -> bool
+	pub fn is_broadcast(&self) -> bool
 	{
 		isTrue(unsafe { rust_is_broadcast_ether_addr(&self.0) })
 	}
@@ -198,6 +198,6 @@ impl<'a> InternalList<ether_addr> for &'a mut [MediaAccessControlAddress]
 {
 	fn internalMutablePointer(&mut self) -> *mut ether_addr
 	{
-		unsafe { ::std::mem::transmute(self.as_mut_ptr()) }
+		unsafe { transmute(self.as_mut_ptr()) }
 	}
 }

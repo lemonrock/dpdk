@@ -19,7 +19,7 @@ pub struct rte_eventdev_data
 	pub dev_conf: rte_event_dev_config,
 	pub service_inited: u8,
 	pub service_id: u32,
-	pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize], u8>,
+	pub bitfield_1: BindgenBitfieldUnit<[u8; 1usize], u8>,
 	pub name: [c_char; 64usize],
 	pub __bindgen_padding_0: [u8; 39usize],
 	pub __bindgen_align: [u8; 0usize],
@@ -75,7 +75,7 @@ impl rte_eventdev_data
 	#[inline(always)]
 	pub fn dev_started(&self) -> u8
 	{
-		unsafe { transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
+		unsafe { transmute(self.bitfield_1.get(0usize, 1u8) as u8) }
 	}
 	
 	#[inline(always)]
@@ -83,14 +83,14 @@ impl rte_eventdev_data
 	{
 		unsafe {
 			let val: u8 = transmute(val);
-			self._bitfield_1.set(0usize, 1u8, val as u64)
+			self.bitfield_1.set(0usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
-	pub fn new_bitfield_1(dev_started: u8) -> __BindgenBitfieldUnit<[u8; 1usize], u8>
+	pub fn newbitfield_1(dev_started: u8) -> BindgenBitfieldUnit<[u8; 1usize], u8>
 	{
-		let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
+		let mut __bindgen_bitfield_unit: BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
 		__bindgen_bitfield_unit.set(0usize, 1u8, {
 			let dev_started: u8 = unsafe { transmute(dev_started) };
 			dev_started as u64

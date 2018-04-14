@@ -2,4 +2,5 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// Size of a layer 3 ARP packet.
 pub const SizeOfLayer3ArpPacket: u32 = 28;

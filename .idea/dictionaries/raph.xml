@@ -2,15 +2,22 @@
   <dictionary name="raph">
     <words>
       <w>aarch</w>
+      <w>acpi</w>
       <w>addr</w>
       <w>arrayvec</w>
       <w>bitfield</w>
       <w>bitfields</w>
       <w>bitflags</w>
+      <w>bnxt</w>
+      <w>broadcom</w>
       <w>capget</w>
+      <w>chelsio</w>
       <w>chown</w>
       <w>chroot</w>
+      <w>cisco</w>
       <w>cohn</w>
+      <w>cpufreq</w>
+      <w>cryptodev</w>
       <w>cstr</w>
       <w>dataroom</w>
       <w>debian</w>
@@ -30,15 +37,20 @@
       <w>freebsd</w>
       <w>fsck</w>
       <w>giga</w>
+      <w>hpet</w>
       <w>hugetlbs</w>
+      <w>hypervisor</w>
       <w>icmp</w>
       <w>ieee</w>
       <w>inaddr</w>
       <w>inplace</w>
+      <w>ipsec</w>
       <w>iter</w>
       <w>kexec</w>
+      <w>lacp</w>
       <w>lans</w>
       <w>librte</w>
+      <w>macsec</w>
       <w>mbuf</w>
       <w>mbufs</w>
       <w>meminfo</w>
@@ -50,6 +62,7 @@
       <w>mtod</w>
       <w>multicast</w>
       <w>namesize</w>
+      <w>netronome</w>
       <w>numa</w>
       <w>ordermap</w>
       <w>pktmbuf</w>
@@ -57,7 +70,9 @@
       <w>priv</w>
       <w>proc</w>
       <w>qinq</w>
+      <w>qumranet</w>
       <w>rdtsc</w>
+      <w>routable</w>
       <w>rustc</w>
       <w>rxconf</w>
       <w>rxmode</w>
@@ -66,12 +81,14 @@
       <w>sctp</w>
       <w>serde</w>
       <w>setsid</w>
+      <w>srtcm</w>
       <w>stormmq</w>
       <w>syscall</w>
       <w>thumbv</w>
       <w>timespec</w>
       <w>timestamping</w>
       <w>tldk</w>
+      <w>trtcm</w>
       <w>txconf</w>
       <w>uint</w>
       <w>umask</w>
@@ -81,9 +98,12 @@
       <w>unreclaimable</w>
       <w>usize</w>
       <w>vfio</w>
+      <w>vhost</w>
       <w>virt</w>
+      <w>virtio</w>
       <w>vlan</w>
       <w>vmdq</w>
+      <w>vmware</w>
       <w>whitelist</w>
       <w>whitelisted</w>
       <w>writeback</w>

@@ -2,8 +2,10 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// A device name.
 pub trait DeviceName: Hash + PartialEq + Eq + Sized
 {
+	/// Name as a string.
 	#[inline(always)]
 	fn to_string(&self) -> String;
 }

@@ -8,7 +8,7 @@ pub struct vring_used
 {
 	pub flags: __virtio16,
 	pub idx: __virtio16,
-	pub ring: __IncompleteArrayField<vring_used_elem>,
+	pub ring: IncompleteArrayField<vring_used_elem>,
 	pub __bindgen_align: [u32; 0usize],
 }
 

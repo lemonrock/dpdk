@@ -7,8 +7,8 @@ pub struct rte_crypto_sym_op
 {
 	pub m_src: *mut rte_mbuf,
 	pub m_dst: *mut rte_mbuf,
-	pub __bindgen_anon_1: rte_crypto_sym_op__bindgen_ty_1,
-	pub __bindgen_anon_2: rte_crypto_sym_op__bindgen_ty_2,
+	pub _1: rte_crypto_sym_op_1,
+	pub _2: rte_crypto_sym_op_2,
 }
 
 impl Default for rte_crypto_sym_op
@@ -25,6 +25,6 @@ impl Debug for rte_crypto_sym_op
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_crypto_sym_op {{ m_src: {:?}, m_dst: {:?}, __bindgen_anon_1: {:?}, __bindgen_anon_2: {:?} }}", self.m_src, self.m_dst, self.__bindgen_anon_1, self.__bindgen_anon_2)
+		write!(f, "rte_crypto_sym_op {{ m_src: {:?}, m_dst: {:?}, _1: {:?}, _2: {:?} }}", self.m_src, self.m_dst, self._1, self._2)
 	}
 }

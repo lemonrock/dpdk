@@ -6,7 +6,7 @@
 pub struct rte_kni_request
 {
 	pub req_id: u32,
-	pub __bindgen_anon_1: rte_kni_request__bindgen_ty_1,
+	pub _1: rte_kni_request_1,
 	pub result: i32,
 }
 

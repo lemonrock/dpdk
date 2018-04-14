@@ -14,6 +14,9 @@ pub mod linux_kernel_modules;
 /// Mounts.
 pub mod mounts;
 
+/// PCI
+pub mod pci;
+
 /// Process Control.
 pub mod process_control;
 

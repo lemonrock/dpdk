@@ -7,8 +7,8 @@ pub struct rte_crypto_cipher_xform
 {
 	pub op: rte_crypto_cipher_operation,
 	pub algo: rte_crypto_cipher_algorithm,
-	pub key: rte_crypto_cipher_xform__bindgen_ty_1,
-	pub iv: rte_crypto_cipher_xform__bindgen_ty_2,
+	pub key: rte_crypto_cipher_xform_1,
+	pub iv: rte_crypto_cipher_xform_2,
 }
 
 impl Default for rte_crypto_cipher_xform

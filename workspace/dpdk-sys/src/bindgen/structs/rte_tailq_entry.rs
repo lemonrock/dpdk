@@ -6,7 +6,7 @@
 #[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub struct rte_tailq_entry
 {
-	pub next: rte_tailq_entry__bindgen_ty_1,
+	pub next: rte_tailq_entry_1,
 	pub data: *mut c_void,
 }
 

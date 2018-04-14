@@ -3,12 +3,6 @@
 
 
 use ::rust_extra::unlikely;
-use ::serde::Deserialize;
-use ::serde::Serialize;
-use ::serde::de;
-use ::serde::de::Deserializer;
-use ::serde::de::Visitor;
-use ::serde::ser::Serializer;
 use ::std::fmt;
 use ::std::fmt::Formatter;
 

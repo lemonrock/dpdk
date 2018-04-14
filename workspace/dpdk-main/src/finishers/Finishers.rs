@@ -29,12 +29,12 @@ impl Finishers
 	}
 	
 	#[inline(always)]
-	pub fn finish(&mut self, sysPath: PathBuf)
+	pub fn finish(&mut self, sys_path: PathBuf)
 	{
 		self.finishers.reverse();
 		for finisher in self.finishers.drain(..)
 		{
-			finisher.finish(&sysPath);
+			finisher.finish(&sys_path);
 		}
 	}
 }

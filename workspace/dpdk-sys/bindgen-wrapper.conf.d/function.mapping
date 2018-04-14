@@ -112,3 +112,12 @@ rte_efd_ rte_efd
 rte_ctrlmbuf rte_mbuf
 rte_bus_ rte_bus
 rte_bbdev_ rte_bbdev
+rte_stats_bitrate_ rte_stats_bitrate
+rust___mempool_ mempool
+rust___rte_event_ rte_event
+rust___rte_mbuf_ rte_mbuf
+rust___rte_raw_ rte_raw
+rust___rte_ring_ rte_ring
+rust___tle_dring_ tle_dring
+rte_get_rx_ol_flag_list ol_flag
+rte_get_tx_ol_flag_list ol_flag

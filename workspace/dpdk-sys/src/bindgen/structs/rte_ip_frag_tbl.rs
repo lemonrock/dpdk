@@ -16,7 +16,7 @@ pub struct rte_ip_frag_tbl
 	pub lru: ip_pkt_list,
 	pub __bindgen_padding_0: u64,
 	pub stat: ip_frag_tbl_stat,
-	pub pkt: __IncompleteArrayField<ip_frag_pkt>,
+	pub pkt: IncompleteArrayField<ip_frag_pkt>,
 }
 
 impl Default for rte_ip_frag_tbl

@@ -5,8 +5,8 @@
 #[repr(C)]
 pub struct rte_fbk_hash_entry
 {
-	pub whole_entry: __BindgenUnionField<u64>,
-	pub entry: __BindgenUnionField<rte_fbk_hash_entry__bindgen_ty_1>,
+	pub whole_entry: BindgenUnionField<u64>,
+	pub entry: BindgenUnionField<rte_fbk_hash_entry_1>,
 	pub bindgen_union_field: u64,
 }
 

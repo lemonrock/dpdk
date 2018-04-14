@@ -8,7 +8,7 @@ impl EthernetPort
 	#[inline(always)]
 	fn privateRegisterEventCallback<E: EthernetPortEventCallback>(&self, eventType: rte_eth_event_type, ethernetPortEventCallback: &mut E) -> bool
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_callback_register(self.portIdentifier(), eventType, E::asFunctionPointer(), ethernetPortEventCallback.asFunctionArgument()) };
+		let result = unsafe { rte_eth_dev_callback_register(self.portIdentifier(), eventType, E::asFunctionPointer(), ethernetPortEventCallback.asFunctionArgument()) };
 		if likely(result == 0)
 		{
 			true
@@ -18,12 +18,12 @@ impl EthernetPort
 			match result
 			{
 				negative if negative < 0 => false,
-				
+
 				_ => panic!("rte_eth_dev_callback_register() returned illegal result '{}'", result),
 			}
 		}
 	}
-	
+
 	/// TODO: Not really a complete solution. Strong liklihood of change - we ought to hold a reference to the callback - some sort of global state?
 	/// TODO: Support multiple callbacks, deregistration (rte_eth_dev_callback_unregister) too
 	/// TODO: Need to pass our actual ethernet port, not just portIdentifier
@@ -33,7 +33,7 @@ impl EthernetPort
 	{
 		self.privateRegisterEventCallback(rte_eth_event_type::RTE_ETH_EVENT_INTR_LSC, ethernetPortEventCallback)
 	}
-	
+
 	/// TODO: Not really a complete solution. Strong liklihood of change - we ought to hold a reference to the callback
 	/// TODO: Need to pass our actual ethernet port, not just portIdentifier
 	/// Make sure you hold a reference to ethernetPortEventCallback that lives longer than self...
@@ -42,7 +42,7 @@ impl EthernetPort
 	{
 		self.privateRegisterEventCallback(rte_eth_event_type::RTE_ETH_EVENT_QUEUE_STATE, ethernetPortEventCallback)
 	}
-	
+
 	/// TODO: Not really a complete solution. Strong liklihood of change - we ought to hold a reference to the callback
 	/// TODO: Need to pass our actual ethernet port, not just portIdentifier
 	/// Make sure you hold a reference to ethernetPortEventCallback that lives longer than self...

@@ -8,7 +8,7 @@ pub struct ReceiveQueue
 	portIdentifier: EthernetPortIdentifier,
 	pub queueIdentifier: QueueIdentifier,
 	startQueueWhenEthernetDeviceStarted: bool,
-	pub numaSocketId: Option<NumaSocketId>,
+	pub numa_socket_id: Option<NumaSocketId>,
 	pub packetBufferPool: PacketBufferPool,
 }
 
@@ -22,13 +22,13 @@ impl ReceiveQueue
 	pub fn new<Q: QueueMemoryConfiguration>(ethernetPortInformation: &EthernetPortInformation, queueIdentifier: QueueIdentifier, queueMemoryConfiguration: &Q, receiveQueueConfiguration: &ReceiveQueueConfiguration, failures: &mut EthernetPortConfigurationFailures) -> Option<ReceiveQueue>
 	{
 		debug_assert!((queueIdentifier as usize) <= MaximumReceiveQueues, "queueIdentifier '{}' exceeds MaximumReceiveQueues '{}'", queueIdentifier, MaximumReceiveQueues);
-		
+
 		let numberOfReceiveDescriptorsForTheReceiveRingAlsoKnownAsRingSize = receiveQueueConfiguration.numberOfReceiveDescriptorsForTheReceiveRingAlsoKnownAsRingSize;
 		let (receiveQueueDescriptorsDmaMemoryAllocatedFromNumaSocketId, packetBufferPool) = queueMemoryConfiguration.receiveQueueDescriptorsDmaMemoryAllocatedFromNumaSocketIdAndMemoryPool(ethernetPortInformation, queueIdentifier, numberOfReceiveDescriptorsForTheReceiveRingAlsoKnownAsRingSize);
-		
+
 		let mut value = receiveQueueConfiguration.overrideDefaultDeviceConfiguration.as_ref().map(|deviceConfiguration| deviceConfiguration.as_rte_eth_rxconf(ethernetPortInformation.new_default_rxconf()));
 		let configurationMutRefOption = value.as_mut();
-		
+
 		let pointer = if let Some(configuration) = configurationMutRefOption
 		{
 			configuration
@@ -37,9 +37,9 @@ impl ReceiveQueue
 		{
 			null_mut()
 		};
-		
+
 		let portIdentifier = ethernetPortInformation.portIdentifier();
-		
+
 		let result = unsafe
 		{
 			rte_eth_rx_queue_setup
@@ -56,13 +56,13 @@ impl ReceiveQueue
 		{
 			let mut receiveQueue = ReceiveQueue
 			{
-				portIdentifier: portIdentifier,
-				queueIdentifier: queueIdentifier,
-				numaSocketId: receiveQueueDescriptorsDmaMemoryAllocatedFromNumaSocketId,
+				portIdentifier,
+				queueIdentifier,
+				numa_socket_id: receiveQueueDescriptorsDmaMemoryAllocatedFromNumaSocketId,
 				startQueueWhenEthernetDeviceStarted: receiveQueueConfiguration.startQueueWhenEthernetDeviceStarted(),
-				packetBufferPool: packetBufferPool,
+				packetBufferPool,
 			};
-			
+
 			if let Some(enableVlanStripping) = receiveQueueConfiguration.enableVlanStripping
 			{
 				if let Err(error) = receiveQueue.changeVlanStripping(enableVlanStripping)
@@ -70,7 +70,7 @@ impl ReceiveQueue
 					failures.push(EthernetPortConfigurationFailureKind::ReceiveQueueChangeVirtualLanStripping(queueIdentifier, error))
 				}
 			}
-			
+
 			Some(receiveQueue)
 		}
 		else
@@ -79,12 +79,12 @@ impl ReceiveQueue
 			{
 				NegativeE::ENOMEM => None,
 				NegativeE::EINVAL => panic!("The size of network buffers which can be allocated from the memory pool does not fit the various buffer sizes allowed by the device controller"),
-				
+
 				_ => panic!("rte_eth_rx_queue_setup() returned unexpected result '{}'", result),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn startIfDeferred(&self) -> Result<(), ()>
 	{
@@ -92,7 +92,7 @@ impl ReceiveQueue
 		{
 			return Ok(());
 		}
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_rx_queue_start(self.portIdentifier, self.queueIdentifier) };
+		let result = unsafe { rte_eth_dev_rx_queue_start(self.portIdentifier, self.queueIdentifier) };
 		if likely(result == 0)
 		{
 			Ok(())
@@ -102,18 +102,18 @@ impl ReceiveQueue
 			match result
 			{
 				NegativeE::ENOTSUP => Err(()),
-				
+
 				NegativeE::EINVAL => panic!("portIdentifier '{}' or queueIdentifier '{}' out of scope", self.portIdentifier, self.queueIdentifier),
-				
+
 				_ => panic!("Unexpected result '{}' from rte_eth_dev_rx_queue_start()", result),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn stop(&self)
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_rx_queue_stop(self.portIdentifier, self.queueIdentifier) };
+		let result = unsafe { rte_eth_dev_rx_queue_stop(self.portIdentifier, self.queueIdentifier) };
 		if likely(result == 0)
 		{
 			()
@@ -123,14 +123,14 @@ impl ReceiveQueue
 			match result
 			{
 				NegativeE::ENOTSUP => (),
-				
+
 				NegativeE::EINVAL => panic!("portIdentifier '{}' or queueIdentifier '{}' out of scope", self.portIdentifier, self.queueIdentifier),
-				
+
 				_ => panic!("Unexpected result '{}' from rte_eth_dev_rx_queue_stop()", result),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn changeVlanStripping(&mut self, enable: bool) -> Result<(), UnsupportedByHardwareError>
 	{
@@ -142,8 +142,8 @@ impl ReceiveQueue
 		{
 			0
 		};
-		
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_set_vlan_strip_on_queue(self.portIdentifier, self.queueIdentifier, enable) };
+
+		let result = unsafe { rte_eth_dev_set_vlan_strip_on_queue(self.portIdentifier, self.queueIdentifier, enable) };
 		if likely(result == 0)
 		{
 			Ok(())
@@ -153,19 +153,19 @@ impl ReceiveQueue
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::ENODEV => panic!("portIdentifier '{}' is inbalid", self.portIdentifier),
 				NegativeE::EINVAL => panic!("queueIdentifier '{}' is invalid", self.queueIdentifier),
-			
+
 				_ => panic!("Unexpected error code '{}' from second call to rte_eth_dev_set_vlan_strip_on_queue()", result),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn setStatisticMappingIndex(&self, index: u8) -> bool
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_set_rx_queue_stats_mapping(self.portIdentifier, self.queueIdentifier, index) };
+		let result = unsafe { rte_eth_dev_set_rx_queue_stats_mapping(self.portIdentifier, self.queueIdentifier, index) };
 		if likely(result == 0)
 		{
 			true
@@ -175,27 +175,27 @@ impl ReceiveQueue
 			match result
 			{
 				result if result < 0 => false,
-				
+
 				_ => panic!("Unexpected result '{}' from rte_eth_dev_set_rx_queue_stats_mapping()", result),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn receiveBurstArrayVec(&self, readIntoPacketBuffer: &mut ArrayVec<[*mut rte_mbuf; ReceiveQueueBurstBufferSize]>) -> u16
 	{
 		let capacity = readIntoPacketBuffer.capacity();
 		debug_assert!(capacity < MaximumReceiveQueueBurstBufferSize, "ReceiveQueueBurstBufferSize '{}' exceeds MaximumReceiveQueueBurstBufferSize '{}'", capacity, MaximumReceiveQueueBurstBufferSize);
 		let remainder = capacity - ReceiveQueueBurstBufferSize;
-		
+
 		let numberRead = unsafe { rust_rte_eth_rx_burst(self.portIdentifier, self.queueIdentifier, readIntoPacketBuffer.as_mut_ptr(), remainder as u16) };
 		let numberReadUsize = numberRead as usize;
 		debug_assert!(numberReadUsize <= remainder, "numberRead '{}' exceeds remainder '{}'", numberRead, remainder);
 		unsafe { readIntoPacketBuffer.set_len(ReceiveQueueBurstBufferSize + numberReadUsize) };
-		
+
 		numberRead as u16
 	}
-	
+
 	#[inline(always)]
 	pub fn receiveBurstVec(&self, readIntoPacketBuffer: &mut Vec<*mut rte_mbuf>) -> u16
 	{
@@ -203,45 +203,45 @@ impl ReceiveQueue
 		let capacity = readIntoPacketBuffer.capacity();
 		debug_assert!(capacity < MaximumReceiveQueueBurstBufferSize, "readIntoPacketBuffer.capacity() '{}' exceeds MaximumReceiveQueueBurstBufferSize '{}'", capacity, MaximumReceiveQueueBurstBufferSize);
 		let remainder = capacity - length;
-		
+
 		let numberRead = unsafe { rust_rte_eth_rx_burst(self.portIdentifier, self.queueIdentifier, readIntoPacketBuffer.as_mut_ptr(), remainder as u16) };
 		let numberReadUsize = numberRead as usize;
 		debug_assert!(numberReadUsize <= remainder, "numberRead '{}' exceeds remainder '{}'", numberRead, remainder);
 		unsafe { readIntoPacketBuffer.set_len(length + numberReadUsize) };
-		
+
 		numberRead as u16
 	}
-	
+
 	#[inline(always)]
 	pub fn receiveBurstSlice(&self, readIntoPacketBuffer: &mut [*mut rte_mbuf]) -> u16
 	{
 		let length = readIntoPacketBuffer.len();
 		debug_assert!(length < MaximumReceiveQueueBurstBufferSize, "readIntoPacketBuffer.len() '{}' exceeds MaximumReceiveQueueBurstBufferSize '{}'", length, MaximumReceiveQueueBurstBufferSize);
-		
+
 		unsafe { rust_rte_eth_rx_burst(self.portIdentifier, self.queueIdentifier, readIntoPacketBuffer.as_mut_ptr(), length as u16) }
 	}
-	
+
 	#[inline(always)]
 	pub fn receiveBurstArray(&self, readIntoPacketBuffer: &mut [*mut rte_mbuf; ReceiveQueueBurstBufferSize]) -> u16
 	{
 		unsafe { rust_rte_eth_rx_burst(self.portIdentifier, self.queueIdentifier, readIntoPacketBuffer.as_mut_ptr(), ReceiveQueueBurstBufferSize as u16) }
 	}
-	
+
 	#[inline(always)]
 	pub fn numberOfUsedReceiveDescriptors(&self) -> Result<u16, UnsupportedByHardwareError>
 	{
 		match unsafe { rust_rte_eth_rx_queue_count(self.portIdentifier, self.queueIdentifier) }
 		{
 			number if number >=0 && number <= ::std::u16::MAX as i32 => Ok(number as u16),
-			
+
 			NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-			
+
 			NegativeE::EINVAL => panic!("portIdentifier '{}' or queueIdentifier '{}' out of scope", self.portIdentifier, self.queueIdentifier),
-			
+
 			result @ _ => panic!("Unexpected result '{}' from rte_eth_rx_queue_count()", result),
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn isDdBitOfReceiveDescriptorSet(&self, receiveDescriptorOffsetFromTail: u16) -> Result<bool, UnsupportedByHardwareError>
 	{
@@ -255,14 +255,14 @@ impl ReceiveQueue
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::EINVAL => panic!("portIdentifier '{}' or queueIdentifier '{}' out of scope", self.portIdentifier, self.queueIdentifier),
-				
+
 				_ => panic!("Unexpected result '{}' from rte_eth_rx_descriptor_done()", result),
 			}
 		}
 	}
-	
+
 	// See http://www.dpdk.org/doc/api/l3fwd-power_2main_8c-example.html
 	/*
                         if (lcore_idle_hint < SUSPEND_THRESHOLD)
@@ -278,11 +278,11 @@ impl ReceiveQueue
                                 goto start_rx;
                         }
 	*/
-	
+
 	#[inline(always)]
 	pub fn enableSleepWithInterrupt(&mut self) -> Result<(), UnsupportedByHardwareError>
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_rx_intr_enable(self.portIdentifier, self.queueIdentifier) };
+		let result = unsafe { rte_eth_dev_rx_intr_enable(self.portIdentifier, self.queueIdentifier) };
 		if likely(result == 0)
 		{
 			Ok(())
@@ -292,18 +292,18 @@ impl ReceiveQueue
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::EINVAL => panic!("portIdentifier '{}' or queueIdentifier '{}' out of scope", self.portIdentifier, self.queueIdentifier),
-				
+
 				_ => panic!("Unexpected result '{}' from rte_eth_dev_rx_intr_enable()", result),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn disableSleepWithInterrupt(&mut self) -> Result<(), UnsupportedByHardwareError>
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_rx_intr_disable(self.portIdentifier, self.queueIdentifier) };
+		let result = unsafe { rte_eth_dev_rx_intr_disable(self.portIdentifier, self.queueIdentifier) };
 		if likely(result == 0)
 		{
 			Ok(())
@@ -313,20 +313,20 @@ impl ReceiveQueue
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::EINVAL => panic!("portIdentifier '{}' or queueIdentifier '{}' out of scope", self.portIdentifier, self.queueIdentifier),
-				
+
 				_ => panic!("Unexpected result '{}' from rte_eth_dev_rx_intr_disable()", result),
 			}
 		}
 	}
-	
+
 	// userData could, be say, &self, or a structure holding self
 	#[inline(always)]
 	pub fn receiveInterruptEpollControl(&self, epollFileDescriptor: Option<i32>, ePollInterruptEvent: EPollInterruptEvent, userData: *mut c_void) -> bool
 	{
 		let epollFileDescriptor: i32 = epollFileDescriptor.unwrap_or(RTE_EPOLL_PER_THREAD);
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_rx_intr_ctl_q(self.portIdentifier, self.queueIdentifier, epollFileDescriptor, ePollInterruptEvent as i32, userData) };
+		let result = unsafe { rte_eth_dev_rx_intr_ctl_q(self.portIdentifier, self.queueIdentifier, epollFileDescriptor, ePollInterruptEvent as i32, userData) };
 		if likely(result == 0)
 		{
 			true
@@ -336,18 +336,18 @@ impl ReceiveQueue
 			match result
 			{
 				negative if negative < 0 => false,
-				
+
 				_ => panic!("Illegal result '{}' from rte_eth_dev_rx_intr_ctl_q()"),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn getInformation(&self) -> Result<rte_eth_rxq_info, UnsupportedByHardwareError>
 	{
 		let mut information = unsafe { uninitialized() };
-		
-		let result = unsafe { ::dpdk_sys::rte_eth_rx_queue_info_get(self.portIdentifier, self.queueIdentifier, &mut information) };
+
+		let result = unsafe { rte_eth_rx_queue_info_get(self.portIdentifier, self.queueIdentifier, &mut information) };
 		if likely(result == 0)
 		{
 			Ok(information)
@@ -355,18 +355,18 @@ impl ReceiveQueue
 		else
 		{
 			forget(information);
-			
+
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::EINVAL => panic!("portIdentifier '{}' or queueIdentifier '{}' out of scope", self.portIdentifier, self.queueIdentifier),
-			
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_rx_queue_info_get()", result),
 			}
 		}
 	}
-	
+
 	/*
 		rte_eth_add_rx_callback QUEUE
 		rte_eth_remove_rx_callback QUEUE

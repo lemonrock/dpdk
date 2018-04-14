@@ -9,7 +9,7 @@ pub struct rte_eth_dev_tx_buffer
 	pub error_userdata: *mut c_void,
 	pub size: u16,
 	pub length: u16,
-	pub pkts: __IncompleteArrayField<*mut rte_mbuf>,
+	pub pkts: IncompleteArrayField<*mut rte_mbuf>,
 }
 
 impl Default for rte_eth_dev_tx_buffer

@@ -6,7 +6,7 @@
 pub struct rte_security_ipsec_tunnel_param
 {
 	pub type_: rte_security_ipsec_tunnel_type,
-	pub __bindgen_anon_1: rte_security_ipsec_tunnel_param__bindgen_ty_1,
+	pub _1: rte_security_ipsec_tunnel_param_1,
 }
 
 impl Default for rte_security_ipsec_tunnel_param
@@ -23,6 +23,6 @@ impl Debug for rte_security_ipsec_tunnel_param
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_security_ipsec_tunnel_param {{ type: {:?}, __bindgen_anon_1: {:?} }}", self.type_, self.__bindgen_anon_1)
+		write!(f, "rte_security_ipsec_tunnel_param {{ type: {:?}, _1: {:?} }}", self.type_, self._1)
 	}
 }

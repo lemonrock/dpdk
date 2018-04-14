@@ -17,15 +17,15 @@ impl MemoryDetails
 	{
 		MemoryDetails
 		{
-			physicalMemorySizeInBytes: unsafe { ::dpdk_sys::rte_eal_get_physmem_size() },
-			numberOfChannels: unsafe { ::dpdk_sys::rte_memory_get_nchannel() },
-			numberOfRanks: (unsafe { ::dpdk_sys::rte_memory_get_nrank() }) as u8,
+			physicalMemorySizeInBytes: unsafe { rte_eal_get_physmem_size() },
+			numberOfChannels: unsafe { rte_memory_get_nchannel() },
+			numberOfRanks: (unsafe { rte_memory_get_nrank() }) as u8,
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn dumpPhysicalMemoryLayoutToStandardError()
 	{
-		unsafe { ::dpdk_sys::rte_dump_physmem_layout(stderr as *mut FILE)}
+		unsafe { rte_dump_physmem_layout(stderr as *mut FILE)}
 	}
 }

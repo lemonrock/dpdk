@@ -2,8 +2,7 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use ::dpdk_sys::ETHER_TYPE_VLAN;
-use ::dpdk_sys::ETHER_TYPE_QINQ;
+use ::dpdk_sys::*;
 use ::domain::ethernet::MinimumSizeOfEthernetPacketSizeAssumingArp;
 use ::domain::ethernet::SizeOfEthernetHeader;
 use ::domain::ethernet::SizeOfEthernetHeaderLessEtherType;

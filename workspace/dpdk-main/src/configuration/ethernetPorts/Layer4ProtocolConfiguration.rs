@@ -54,7 +54,7 @@ impl Layer4ProtocolConfiguration
 		if let Some((context, mut optionDeviceList)) = C::create(logicalCoreMemorySocket, self.maximumNumberOfStreams, self.maximumNumberOfReceiveBuffers, self.maximumNumberOfSendBuffers, self.sendMaximumBulkNumber, addressLookUpForSendToIpV4.clone(), addressLookUpForSendToIpV6, deviceConfigurations)
 		{
 			let (deviceConfiguration, mut device) = optionDeviceList.pop().unwrap();
-			let handle = device._opaqueFfiHandle();
+			let handle = device.handle();
 			addressLookUpForSendToIpV4.borrow_mut().assignTleDeviceAfterContextCreated(handle);
 			
 			(context, device)

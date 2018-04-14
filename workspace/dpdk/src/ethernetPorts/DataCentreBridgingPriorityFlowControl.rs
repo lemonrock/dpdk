@@ -25,8 +25,8 @@ impl DataCentreBridgingPriorityFlowControl
 	{
 		DataCentreBridgingPriorityFlowControl
 		{
-			flowControl: flowControl,
-			priority: priority,
+			flowControl,
+			priority,
 		}
 	}
 	

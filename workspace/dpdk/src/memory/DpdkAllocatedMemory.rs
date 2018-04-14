@@ -10,23 +10,23 @@ impl<T> Drop for DpdkAllocatedMemory<T>
 	#[inline(always)]
 	fn drop(&mut self)
 	{
-		unsafe { ::dpdk_sys::rte_free(self.0 as *mut c_void) }
+		unsafe { rte_free(self.0 as *mut c_void) }
 	}
 }
 
 impl<T> DpdkAllocatedMemory<T>
-{	
+{
 	#[inline(always)]
 	pub fn physicalAddress(&self) -> phys_addr_t
 	{
-		unsafe { ::dpdk_sys::rte_malloc_virt2phy(self.0 as *mut c_void) }
+		unsafe { rte_malloc_virt2phy(self.0 as *mut c_void) }
 	}
-	
+
 	#[inline(always)]
 	pub fn validate(&self) -> Option<usize>
 	{
 		let mut size = unsafe { uninitialized() };
-		let result = unsafe { ::dpdk_sys::rte_malloc_validate(self.0 as *mut c_void, &mut size) };
+		let result = unsafe { rte_malloc_validate(self.0 as *mut c_void, &mut size) };
 		if likely(result == 0)
 		{
 			Some(size)
@@ -34,32 +34,32 @@ impl<T> DpdkAllocatedMemory<T>
 		else
 		{
 			forget(size);
-			
+
 			match result
 			{
 				-1 => None,
-			
+
 				illegal @ _ => panic!("Unexpected result '{}' from rte_malloc_validate()", illegal),
 			}
 		}
 	}
-	
+
 	// Page must be locked
 	#[inline(always)]
 	pub fn physicalAddressForAnyMemory(virtualAddress: *const c_void) -> phys_addr_t
 	{
-		unsafe { ::dpdk_sys::rte_mem_virt2phy(virtualAddress) }
+		unsafe { rte_mem_virt2phy(virtualAddress) }
 	}
-	
+
 	#[inline(always)]
 	pub fn lockPageToPreventSwapping(virtualAddress: *const c_void) -> bool
 	{
-		match unsafe { ::dpdk_sys::rte_mem_lock_page(virtualAddress) }
+		match unsafe { rte_mem_lock_page(virtualAddress) }
 		{
 			0 => true,
-			
+
 			negative if negative < 0 => false,
-			
+
 			illegal @ _ => panic!("Unexpected result '{}' from rte_mem_lock_page()", illegal),
 		}
 	}

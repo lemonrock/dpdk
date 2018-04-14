@@ -20,42 +20,42 @@ impl LinkStatus
 			ETH_LINK_UP => true,
 			illegal @ _ => panic!("Invalid link_status bitfield '{}'", illegal),
 		};
-		
+
 		if !isUp
 		{
 			return None;
 		}
-		
+
 		let isFullDuplex = match unsafe { rust_rte_eth_link_getBitField_link_duplex(linkDetails) }
 		{
 			ETH_LINK_HALF_DUPLEX => false,
 			ETH_LINK_FULL_DUPLEX => true,
 			illegal @ _ => panic!("Invalid link_duplex bitfield '{}'", illegal),
 		};
-		
+
 		let isAutoNegotiated = match unsafe { rust_rte_eth_link_getBitField_link_autoneg(linkDetails) }
 		{
 			ETH_LINK_FIXED => false,
 			ETH_LINK_AUTONEG => true,
 			illegal @ _ => panic!("Invalid link_autoneg bitfield '{}'", illegal),
 		};
-		
+
 		Some
 		(
 			LinkStatus
 			{
 				speed: LinkSpeed::fromLinkStatusPanicOnInvalidValue(linkDetails.link_speed, isFullDuplex, isUp).unwrap(),
-				isAutoNegotiated: isAutoNegotiated,
+				isAutoNegotiated,
 			}
 		)
 	}
-		
+
 	#[inline(always)]
 	pub fn isAutoNegotiated(&self) -> bool
 	{
 		self.isAutoNegotiated
 	}
-	
+
 	#[inline(always)]
 	pub fn isFixed(&self) -> bool
 	{

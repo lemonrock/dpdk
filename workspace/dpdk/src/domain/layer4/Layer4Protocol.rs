@@ -15,15 +15,17 @@ impl Layer4Protocol
 	#[inline(always)]
 	pub fn tldkValue(&self) -> u32
 	{
+		use self::Layer4Protocol::*;
+		
 		match *self
 		{
-			Layer4Protocol::Udp => ::dpdk_sys::TLE_PROTO_UDP,
-			Layer4Protocol::Tcp => ::dpdk_sys::TLE_PROTO_TCP,
+			Udp => TLE_PROTO_UDP,
+			Tcp => TLE_PROTO_TCP,
 		}
 	}
 	
 	#[inline(always)]
-	pub fn libcValue(&self) -> u8
+	pub fn libc_value(&self) -> u8
 	{
 		*self as u8
 	}

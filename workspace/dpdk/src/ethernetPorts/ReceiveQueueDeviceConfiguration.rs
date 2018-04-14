@@ -28,21 +28,21 @@ impl ReceiveQueueDeviceConfiguration
 	{
 		ReceiveQueueDeviceConfiguration
 		{
-			ringPrefetchThreshold: ringPrefetchThreshold,
-			ringHostThreshold: ringHostThreshold,
-			ringWritebackThreshold: ringWritebackThreshold,
-			startFreeingReceiveBuffersIfThereAreLessFreeDescriptorsThanThis: startFreeingReceiveBuffersIfThereAreLessFreeDescriptorsThanThis,
-			dropPacketsIfNoDescriptorsAreAvailable: dropPacketsIfNoDescriptorsAreAvailable,
-			startQueueWhenEthernetDeviceStarted: startQueueWhenEthernetDeviceStarted,
+			ringPrefetchThreshold,
+			ringHostThreshold,
+			ringWritebackThreshold,
+			startFreeingReceiveBuffersIfThereAreLessFreeDescriptorsThanThis,
+			dropPacketsIfNoDescriptorsAreAvailable,
+			startQueueWhenEthernetDeviceStarted,
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn overrideDropPacketsIfNoDescriptorsAreAvailable() -> Self
 	{
 		Self::new(None, None, None, None, Some(true), true)
 	}
-	
+
 	#[inline(always)]
 	pub fn as_rte_eth_rxconf(&self, mut configuration: rte_eth_rxconf) -> rte_eth_rxconf
 	{
@@ -50,27 +50,27 @@ impl ReceiveQueueDeviceConfiguration
 		{
 			configuration.rx_thresh.pthresh = ringPrefetchThreshold;
 		}
-		
+
 		if let Some(ringHostThreshold) = self.ringHostThreshold
 		{
 			configuration.rx_thresh.hthresh = ringHostThreshold;
 		}
-		
+
 		if let Some(ringWritebackThreshold) = self.ringWritebackThreshold
 		{
 			configuration.rx_thresh.wthresh = ringWritebackThreshold;
 		}
-		
+
 		if let Some(startFreeingReceiveBuffersIfThereAreLessFreeDescriptorsThanThis) = self.startFreeingReceiveBuffersIfThereAreLessFreeDescriptorsThanThis
 		{
 			configuration.rx_free_thresh = startFreeingReceiveBuffersIfThereAreLessFreeDescriptorsThanThis;
 		}
-		
+
 		if let Some(startFreeingReceiveBuffersIfThereAreLessFreeDescriptorsThanThis) = self.startFreeingReceiveBuffersIfThereAreLessFreeDescriptorsThanThis
 		{
 			configuration.rx_free_thresh = startFreeingReceiveBuffersIfThereAreLessFreeDescriptorsThanThis;
 		}
-		
+
 		if let Some(dropPacketsIfNoDescriptorsAreAvailable) = self.dropPacketsIfNoDescriptorsAreAvailable
 		{
 			configuration.rx_drop_en = if dropPacketsIfNoDescriptorsAreAvailable
@@ -82,7 +82,7 @@ impl ReceiveQueueDeviceConfiguration
 				0
 			};
 		}
-		
+
 		configuration.rx_deferred_start = if self.startQueueWhenEthernetDeviceStarted
 		{
 			0
@@ -91,10 +91,10 @@ impl ReceiveQueueDeviceConfiguration
 		{
 			1
 		};
-		
+
 		configuration
 	}
-	
+
 	#[inline(always)]
 	pub fn startQueueWhenEthernetDeviceStarted(&self) -> bool
 	{

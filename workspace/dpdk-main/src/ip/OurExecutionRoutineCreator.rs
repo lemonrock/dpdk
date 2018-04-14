@@ -18,14 +18,14 @@ impl ExecutionRoutineCreator for OurExecutionRoutineCreator
 	fn createExecutionRoutineWhilstExecutingOnSlaveLogicalCore(&mut self) -> Box<ExecutionRoutine>
 	{
 		let outboundQueue = TransmitBurstQueue::new(self.transmitBurst);
-		
+
 		Box::new(OurExecutionRoutine
 		{
 			receiveBurst: self.receiveBurst,
 			receivedPacketProcessor: ReceivedPacketProcessor
 			{
 				destinations: self.ethernetPortConfiguration.createPerLogicalCore(self.ethernetPort, self.arpCaches.clone(), self.queueIdentifier, self.logicalCoreMemorySocket),
-				outboundQueue: outboundQueue,
+				outboundQueue,
 			},
 		})
 	}

@@ -7,7 +7,7 @@ impl EthernetPort
 	#[inline(always)]
 	pub fn start(&self) -> Result<(), i32>
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_start(self.portIdentifier()) };
+		let result = unsafe { rte_eth_dev_start(self.portIdentifier()) };
 		if likely(result == 0)
 		{
 			Ok(())
@@ -24,16 +24,16 @@ impl EthernetPort
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn stop(&self)
 	{
-		unsafe { ::dpdk_sys::rte_eth_dev_stop(self.portIdentifier()) }
+		unsafe { rte_eth_dev_stop(self.portIdentifier()) }
 	}
-	
+
 	#[inline(always)]
 	pub fn close(&self)
 	{
-		unsafe { ::dpdk_sys::rte_eth_dev_close(self.portIdentifier()) };
+		unsafe { rte_eth_dev_close(self.portIdentifier()) };
 	}
 }

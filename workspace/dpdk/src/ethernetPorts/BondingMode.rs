@@ -12,5 +12,5 @@ pub enum BondingMode
 	Broadcast = 3,
 	Lacp = 4, // IEEE 802.23ad
 	AdaptiveTransmitLoadBalancing = 5,
-	AdapativeLoadBalancing = 6,
+	AdaptiveLoadBalancing = 6,
 }

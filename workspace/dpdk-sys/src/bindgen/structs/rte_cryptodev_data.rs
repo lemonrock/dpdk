@@ -9,7 +9,7 @@ pub struct rte_cryptodev_data
 	pub dev_id: u8,
 	pub socket_id: u8,
 	pub name: [c_char; 64usize],
-	pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize], u8>,
+	pub bitfield_1: BindgenBitfieldUnit<[u8; 1usize], u8>,
 	pub session_pool: *mut rte_mempool,
 	pub queue_pairs: *mut *mut c_void,
 	pub nb_queue_pairs: u16,
@@ -65,7 +65,7 @@ impl rte_cryptodev_data
 	#[inline(always)]
 	pub fn dev_started(&self) -> u8
 	{
-		unsafe { transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
+		unsafe { transmute(self.bitfield_1.get(0usize, 1u8) as u8) }
 	}
 	
 	#[inline(always)]
@@ -73,14 +73,14 @@ impl rte_cryptodev_data
 	{
 		unsafe {
 			let val: u8 = transmute(val);
-			self._bitfield_1.set(0usize, 1u8, val as u64)
+			self.bitfield_1.set(0usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
-	pub fn new_bitfield_1(dev_started: u8) -> __BindgenBitfieldUnit<[u8; 1usize], u8>
+	pub fn newbitfield_1(dev_started: u8) -> BindgenBitfieldUnit<[u8; 1usize], u8>
 	{
-		let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
+		let mut __bindgen_bitfield_unit: BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
 		__bindgen_bitfield_unit.set(0usize, 1u8, {
 			let dev_started: u8 = unsafe { transmute(dev_started) };
 			dev_started as u64

@@ -7,7 +7,7 @@ pub struct rte_security_capability
 {
 	pub action: rte_security_session_action_type,
 	pub protocol: rte_security_session_protocol,
-	pub __bindgen_anon_1: rte_security_capability__bindgen_ty_1,
+	pub _1: rte_security_capability_1,
 	pub crypto_capabilities: *const rte_cryptodev_capabilities,
 	pub ol_flags: u32,
 }
@@ -26,6 +26,6 @@ impl Debug for rte_security_capability
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_security_capability {{ action: {:?}, protocol: {:?}, __bindgen_anon_1: {:?}, crypto_capabilities: {:?} }}", self.action, self.protocol, self.__bindgen_anon_1, self.crypto_capabilities)
+		write!(f, "rte_security_capability {{ action: {:?}, protocol: {:?}, _1: {:?}, crypto_capabilities: {:?} }}", self.action, self.protocol, self._1, self.crypto_capabilities)
 	}
 }

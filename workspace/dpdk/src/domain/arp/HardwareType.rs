@@ -3,6 +3,9 @@
 
 
 //noinspection SpellCheckingInspection
+/// ARP Hardware type.
+///
+/// Representation as an u16 is in native endian order.
 #[allow(non_camel_case_types)]
 #[repr(u16)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -51,75 +54,81 @@ pub enum HardwareType
 
 impl HardwareType
 {
+	/// Convert ARP hardware type to network byte order.
 	#[inline(always)]
-	pub fn isNotEthernet2(hardwareTypeBigEndianValue: u16) -> bool
+	pub fn to_network_byte_order(self) -> NetworkByteOrderEndianU16
 	{
-		hardwareTypeBigEndianValue != HardwareType::Ethernet2.toNetworkByteOrder()
+		NetworkByteOrderEndianU16::from_native_byte_order_value(self as u16)
 	}
 	
-	/// AKA Big Endian
+	/// Is not Ethernet 2?
 	#[inline(always)]
-	pub fn toNetworkByteOrder(self) -> u16
+	pub fn is_not_ethernet_2(hardware_type: NetworkByteOrderEndianU16) -> bool
 	{
-		(self as u16).to_be()
+		hardware_type != HardwareType::Ethernet2.to_network_byte_order()
 	}
 	
+	/// Parse ARP operation from network byte order; special cased for Ethernet2.
 	#[inline(always)]
-	pub fn parseFromNetworkByteOrderIsEthernet2(bigEndianValue: u16) -> bool
+	pub fn parse_from_network_byte_order_is_ethernet_2(big_endian_value: NetworkByteOrderEndianU16) -> bool
 	{
 		// This operation occurs so frequently we avoid an if statement and object construction
-		bigEndianValue == HardwareType::Ethernet2.toNetworkByteOrder()
+		big_endian_value == HardwareType::Ethernet2.to_network_byte_order()
 	}
 	
+	/// Parse ARP operation from network byte order.
 	#[inline(always)]
-	pub fn parseFromNetworkByteOrder(bigEndianValue: u16) -> Result<HardwareType, ParseError>
+	pub fn parse_from_network_byte_order(hardware_type: NetworkByteOrderEndianU16) -> Result<HardwareType, ParseError>
 	{
-		match u16::from_be(bigEndianValue)
+		use self::ParseError::*;
+		use self::HardwareType::*;
+		
+		match hardware_type.to_native_byte_order_value()
 		{
-			0 => Err(ParseError::Reserved(0)),
-			1 => Ok(HardwareType::Ethernet2),
-			2 => Ok(HardwareType::Experimental_Ethernet),
-			3 => Ok(HardwareType::Amateur_Radio_AX_25),
-			4 => Ok(HardwareType::Proteon_ProNET_Token_Ring),
-			5 => Ok(HardwareType::Chaos),
-			6 => Ok(HardwareType::IEEE_802_Networks),
-			7 => Ok(HardwareType::ARCNET),
-			8 => Ok(HardwareType::Hyperchannel),
-			9 => Ok(HardwareType::Lanstar),
-			10 => Ok(HardwareType::Autonet_Short_Address),
-			11 => Ok(HardwareType::LocalTalk),
-			12 => Ok(HardwareType::LocalNet),
-			13 => Ok(HardwareType::Ultra_link),
-			14 => Ok(HardwareType::SMDS),
-			15 => Ok(HardwareType::Frame_Relay),
-			16 => Ok(HardwareType::Asynchronous_Transmission_Mode1),
-			17 => Ok(HardwareType::HDLC),
-			18 => Ok(HardwareType::Fibre_Channel),
-			19 => Ok(HardwareType::Asynchronous_Transmission_Mode2),
-			20 => Ok(HardwareType::Serial_Line),
-			21 => Ok(HardwareType::Asynchronous_Transmission_Mode3),
-			22 => Ok(HardwareType::MIL_STD_188_220),
-			23 => Ok(HardwareType::Metricom),
-			24 => Ok(HardwareType::IEEE_1394_1995),
-			25 => Ok(HardwareType::MAPOS),
-			26 => Ok(HardwareType::Twinaxial),
-			27 => Ok(HardwareType::EUI_64),
-			28 => Ok(HardwareType::HIPARP),
-			29 => Ok(HardwareType::IP_and_ARP_over_ISO_7816_3),
-			30 => Ok(HardwareType::ARPSec),
-			31 => Ok(HardwareType::IPsec_Tunnel),
-			32 => Ok(HardwareType::InfiniBand),
-			33 => Ok(HardwareType::TIA_102_Project_25_Common_Air_Interface),
-			34 => Ok(HardwareType::Wiegand_Interface),
-			35 => Ok(HardwareType::Pure_IP),
-			36 => Ok(HardwareType::HW_EXP1),
-			37 => Ok(HardwareType::HFI),
-			unassigned @ 38 ... 255 => Err(ParseError::Unassigned(unassigned)),
-			256 => Ok(HardwareType::HW_EXP2),
-			257 => Ok(HardwareType::AEthernet),
-			unassigned @ 258 ... 65534 => Err(ParseError::Unassigned(unassigned)),
-			65535 => Err(ParseError::Reserved(65535)),
-			unassigned @ _ => Err(ParseError::Unassigned(unassigned)),
+			0 => Err(Reserved(0)),
+			1 => Ok(Ethernet2),
+			2 => Ok(Experimental_Ethernet),
+			3 => Ok(Amateur_Radio_AX_25),
+			4 => Ok(Proteon_ProNET_Token_Ring),
+			5 => Ok(Chaos),
+			6 => Ok(IEEE_802_Networks),
+			7 => Ok(ARCNET),
+			8 => Ok(Hyperchannel),
+			9 => Ok(Lanstar),
+			10 => Ok(Autonet_Short_Address),
+			11 => Ok(LocalTalk),
+			12 => Ok(LocalNet),
+			13 => Ok(Ultra_link),
+			14 => Ok(SMDS),
+			15 => Ok(Frame_Relay),
+			16 => Ok(Asynchronous_Transmission_Mode1),
+			17 => Ok(HDLC),
+			18 => Ok(Fibre_Channel),
+			19 => Ok(Asynchronous_Transmission_Mode2),
+			20 => Ok(Serial_Line),
+			21 => Ok(Asynchronous_Transmission_Mode3),
+			22 => Ok(MIL_STD_188_220),
+			23 => Ok(Metricom),
+			24 => Ok(IEEE_1394_1995),
+			25 => Ok(MAPOS),
+			26 => Ok(Twinaxial),
+			27 => Ok(EUI_64),
+			28 => Ok(HIPARP),
+			29 => Ok(IP_and_ARP_over_ISO_7816_3),
+			30 => Ok(ARPSec),
+			31 => Ok(IPsec_Tunnel),
+			32 => Ok(InfiniBand),
+			33 => Ok(TIA_102_Project_25_Common_Air_Interface),
+			34 => Ok(Wiegand_Interface),
+			35 => Ok(Pure_IP),
+			36 => Ok(HW_EXP1),
+			37 => Ok(HFI),
+			unassigned @ 38 ... 255 => Err(Unassigned(unassigned)),
+			256 => Ok(HW_EXP2),
+			257 => Ok(AEthernet),
+			unassigned @ 258 ... 65534 => Err(Unassigned(unassigned)),
+			65535 => Err(Reserved(65535)),
+			unassigned @ _ => Err(Unassigned(unassigned)),
 		}
 	}
 	

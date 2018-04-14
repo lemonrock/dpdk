@@ -2,8 +2,10 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// A device driver name.
 pub trait DeviceDriverName : Debug + PartialEq + Eq + PartialOrd + Ord + Hash
 {
+	/// DPDK name.
 	#[inline(always)]
 	fn value(&self) -> &'static str;
 }

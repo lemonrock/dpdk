@@ -16,10 +16,10 @@ impl<'a, D> CircularIterator<'a, D>
 	pub fn new(data: &'a mut [&'a mut D]) -> Self
 	{
 		let length = data.len();
-		
+
 		CircularIterator
 		{
-			length: length,
+			length,
 			lastIndex: if length == 0
 			{
 				0
@@ -29,10 +29,10 @@ impl<'a, D> CircularIterator<'a, D>
 				length - 1
 			},
 			nextIndex: 0,
-			data: data,
+			data,
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn iter_mut<F>(&mut self, mut callback: F)
 	where F: FnMut(&mut D) -> bool
@@ -40,13 +40,13 @@ impl<'a, D> CircularIterator<'a, D>
 		let length = self.length;
 		let lastIndex = self.lastIndex;
 		let mut nextIndex;
-		
+
 		let mut count = 0;
 		let ref mut data = self.data;
 		while count < length
 		{
 			nextIndex = self.nextIndex;
-			
+
 			if nextIndex == lastIndex
 			{
 				nextIndex = 0;
@@ -62,7 +62,7 @@ impl<'a, D> CircularIterator<'a, D>
 				self.nextIndex = nextIndex;
 				break;
 			}
-			
+
 			count += 1;
 		}
 	}

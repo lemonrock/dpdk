@@ -13,7 +13,7 @@ pub struct rte_fbk_hash_table
 	pub bucket_shift: u32,
 	pub hash_func: rte_fbk_hash_fn,
 	pub init_val: u32,
-	pub t: __IncompleteArrayField<rte_fbk_hash_entry>,
+	pub t: IncompleteArrayField<rte_fbk_hash_entry>,
 }
 
 impl Default for rte_fbk_hash_table

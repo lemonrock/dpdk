@@ -40,7 +40,7 @@ impl DoubleTaggedVirtualLanConfiguration
 		VirtualLanTrafficClassIndicator
 		{
 			virtualLanValue: self.settings,
-			virtualLanId: virtualLanId
+			virtualLanId
 		}
 	}
 }

@@ -5,8 +5,8 @@
 #[repr(C)]
 pub struct rte_eth_dcb_tc_queue_mapping
 {
-	pub tc_rxq: [[rte_eth_dcb_tc_queue_mapping__bindgen_ty_1; 8usize]; 64usize],
-	pub tc_txq: [[rte_eth_dcb_tc_queue_mapping__bindgen_ty_2; 8usize]; 64usize],
+	pub tc_rxq: [[rte_eth_dcb_tc_queue_mapping_1; 8usize]; 64usize],
+	pub tc_txq: [[rte_eth_dcb_tc_queue_mapping_2; 8usize]; 64usize],
 }
 
 impl Default for rte_eth_dcb_tc_queue_mapping

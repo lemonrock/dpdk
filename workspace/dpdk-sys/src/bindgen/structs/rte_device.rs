@@ -5,7 +5,7 @@
 #[repr(C)]
 pub struct rte_device
 {
-	pub next: rte_device__bindgen_ty_1,
+	pub next: rte_device_1,
 	pub name: *const c_char,
 	pub driver: *const rte_driver,
 	pub numa_node: c_int,

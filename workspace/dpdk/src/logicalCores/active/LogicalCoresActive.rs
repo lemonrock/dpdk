@@ -111,7 +111,7 @@ impl Active for LogicalCoresActive
 
 impl LogicalCoresActive
 {
-	pub fn asHexadecimalCoreMaskCString(&self) -> CString
+	pub fn as_hexadecimal_core_mask_c_string(&self) -> CString
 	{
 		let mut setBits = 0;
 		for index in 0..MaximumLogicalCores

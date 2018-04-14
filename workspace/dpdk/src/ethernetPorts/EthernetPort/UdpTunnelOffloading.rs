@@ -8,8 +8,8 @@ impl EthernetPort
 	pub fn addUdpTunnelOffload(&self, udpTunnelConfiguration: UdpTunnelConfiguration) -> Result<(), UnsupportedByHardwareError>
 	{
 		let mut tunnel = udpTunnelConfiguration.as_rte_eth_udp_tunnel();
-		
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_udp_tunnel_port_add(self.portIdentifier(), &mut tunnel) };
+
+		let result = unsafe { rte_eth_dev_udp_tunnel_port_add(self.portIdentifier(), &mut tunnel) };
 		if likely(result == 0)
 		{
 			Ok(())
@@ -19,20 +19,20 @@ impl EthernetPort
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-		
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_dev_udp_tunnel_port_add()", result),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn removeUdpTunnelOffload(&self, udpTunnelConfiguration: UdpTunnelConfiguration) -> Result<(), UnsupportedByHardwareError>
 	{
 		let mut tunnel = udpTunnelConfiguration.as_rte_eth_udp_tunnel();
-		
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_udp_tunnel_port_delete(self.portIdentifier(), &mut tunnel) };
+
+		let result = unsafe { rte_eth_dev_udp_tunnel_port_delete(self.portIdentifier(), &mut tunnel) };
 		if likely(result == 0)
 		{
 			Ok(())
@@ -42,9 +42,9 @@ impl EthernetPort
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-		
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_dev_udp_tunnel_port_delete()", result),
 			}
 		}

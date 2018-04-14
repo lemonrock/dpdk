@@ -7,8 +7,8 @@ pub struct rte_crypto_aead_xform
 {
 	pub op: rte_crypto_aead_operation,
 	pub algo: rte_crypto_aead_algorithm,
-	pub key: rte_crypto_aead_xform__bindgen_ty_1,
-	pub iv: rte_crypto_aead_xform__bindgen_ty_2,
+	pub key: rte_crypto_aead_xform_1,
+	pub iv: rte_crypto_aead_xform_2,
 	pub digest_length: u16,
 	pub aad_length: u16,
 }

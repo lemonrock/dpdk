@@ -10,7 +10,7 @@ pub struct rte_avp_fifo
 	pub read: c_uint,
 	pub len: c_uint,
 	pub elem_size: c_uint,
-	pub buffer: __IncompleteArrayField<*mut c_void>,
+	pub buffer: IncompleteArrayField<*mut c_void>,
 	pub __bindgen_align: [u64; 0usize],
 }
 

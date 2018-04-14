@@ -6,7 +6,7 @@
 #[repr(align(4))]
 pub struct rte_security_ipsec_sa_options
 {
-	pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize], u8>,
+	pub bitfield_1: BindgenBitfieldUnit<[u8; 1usize], u8>,
 	pub __bindgen_padding_0: [u8; 3usize],
 	pub __bindgen_align: [u32; 0usize],
 }
@@ -35,7 +35,7 @@ impl rte_security_ipsec_sa_options
 	#[inline(always)]
 	pub fn esn(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(0usize, 1u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -43,14 +43,14 @@ impl rte_security_ipsec_sa_options
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(0usize, 1u8, val as u64)
+			self.bitfield_1.set(0usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn udp_encap(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(1usize, 1u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -58,14 +58,14 @@ impl rte_security_ipsec_sa_options
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(1usize, 1u8, val as u64)
+			self.bitfield_1.set(1usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn copy_dscp(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(2usize, 1u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(2usize, 1u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -73,14 +73,14 @@ impl rte_security_ipsec_sa_options
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(2usize, 1u8, val as u64)
+			self.bitfield_1.set(2usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn copy_flabel(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(3usize, 1u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(3usize, 1u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -88,14 +88,14 @@ impl rte_security_ipsec_sa_options
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(3usize, 1u8, val as u64)
+			self.bitfield_1.set(3usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn copy_df(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(4usize, 1u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(4usize, 1u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -103,14 +103,14 @@ impl rte_security_ipsec_sa_options
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(4usize, 1u8, val as u64)
+			self.bitfield_1.set(4usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn dec_ttl(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(5usize, 1u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(5usize, 1u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -118,14 +118,14 @@ impl rte_security_ipsec_sa_options
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(5usize, 1u8, val as u64)
+			self.bitfield_1.set(5usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
-	pub fn new_bitfield_1(esn: u32, udp_encap: u32, copy_dscp: u32, copy_flabel: u32, copy_df: u32, dec_ttl: u32) -> __BindgenBitfieldUnit<[u8; 1usize], u8>
+	pub fn newbitfield_1(esn: u32, udp_encap: u32, copy_dscp: u32, copy_flabel: u32, copy_df: u32, dec_ttl: u32) -> BindgenBitfieldUnit<[u8; 1usize], u8>
 	{
-		let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
+		let mut __bindgen_bitfield_unit: BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
 		__bindgen_bitfield_unit.set(0usize, 1u8, {
 			let esn: u32 = unsafe { transmute(esn) };
 			esn as u64

@@ -7,14 +7,14 @@ impl EthernetPort
 	#[inline(always)]
 	pub fn resetStatistics(&self)
 	{
-		unsafe { ::dpdk_sys::rte_eth_stats_reset(self.portIdentifier()) }
+		unsafe { rte_eth_stats_reset(self.portIdentifier()) }
 	}
-	
+
 	#[inline(always)]
 	pub fn getStatistics(&self) -> Result<rte_eth_stats, i32>
 	{
 		let mut statistics = unsafe { uninitialized() };
-		let result = unsafe { ::dpdk_sys::rte_eth_stats_get(self.portIdentifier(), &mut statistics) };
+		let result = unsafe { rte_eth_stats_get(self.portIdentifier(), &mut statistics) };
 		if likely(result == 0)
 		{
 			Ok(statistics)

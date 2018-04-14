@@ -10,7 +10,7 @@ impl EthernetPort
 	pub fn receiveInterruptEpollControl(&self, epollFileDescriptor: Option<i32>, ePollInterruptEvent: EPollInterruptEvent, userData: *mut c_void) -> bool
 	{
 		let epollFileDescriptor: i32 = epollFileDescriptor.unwrap_or(RTE_EPOLL_PER_THREAD);
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_rx_intr_ctl(self.portIdentifier(), epollFileDescriptor, ePollInterruptEvent as i32, userData) };
+		let result = unsafe { rte_eth_dev_rx_intr_ctl(self.portIdentifier(), epollFileDescriptor, ePollInterruptEvent as i32, userData) };
 		if likely(result == 0)
 		{
 			true
@@ -20,7 +20,7 @@ impl EthernetPort
 			match result
 			{
 				negative if negative < 0 => false,
-				
+
 				_ => panic!("Illegal result '{}' from rte_eth_dev_rx_intr_ctl()"),
 			}
 		}

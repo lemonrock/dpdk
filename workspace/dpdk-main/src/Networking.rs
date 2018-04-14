@@ -19,57 +19,57 @@ impl Networking
 			Ok(guard) => guard,
 			Err(poisoned) => poisoned.into_inner(),
 		};
-		
+
 		guard.makeStop();
 	}
-	
+
 	//noinspection SpellCheckingInspection
 	pub fn startAllNetworking
 	(
 		nonEthernetPortLogicalCoreUsers: &mut [&mut LogicalCoreUser],
-		numaSockets: &NumaSockets,
+		numa_sockets: &NumaSockets,
 		ethernetPortConfigurations: &mut EthernetPortConfigurations,
 	) -> Vec<Networking>
 	{
 		let (allEthernetPortsExcludingBondedSlaves, _) = EthernetPort::allEthernetPortsExcludingBondedSlavesAndBondedSlaves();
-		
+
 		let mut ethernetPortInformationVec: Vec<EthernetPortInformation> = allEthernetPortsExcludingBondedSlaves.iter().map(|ethernetPort| ethernetPort.information()).collect();
-		
-		Self::allocateSlaveLogicalCoresToUsersFairly(numaSockets, nonEthernetPortLogicalCoreUsers, &mut ethernetPortInformationVec);
-		
+
+		Self::allocateSlaveLogicalCoresToUsersFairly(numa_sockets, nonEthernetPortLogicalCoreUsers, &mut ethernetPortInformationVec);
+
 		let mut networkings = Vec::with_capacity(allEthernetPortsExcludingBondedSlaves.len());
-		
+
 		for mut ethernetPortInformation in ethernetPortInformationVec.drain(..)
 		{
 			let (ethernetPortConfigurationResult, executionRoutineGroup) = ethernetPortConfigurations.configureAndStartEthernetPort(&mut ethernetPortInformation);
-			
+
 			networkings.push(Networking
 			{
-				ethernetPortInformation: ethernetPortInformation,
-				ethernetPortConfigurationResult: ethernetPortConfigurationResult,
-				executionRoutineGroup: executionRoutineGroup,
+				ethernetPortInformation,
+				ethernetPortConfigurationResult,
+				executionRoutineGroup,
 			})
 		}
-		
+
 		networkings.sort_by_key(|value| value.ethernetPortInformation.portIdentifier());
 		networkings
 	}
-	
-	fn allocateSlaveLogicalCoresToUsersFairly(numaSockets: &NumaSockets, nonEthernetPortLogicalCoreUsers: &mut [&mut LogicalCoreUser], mut ethernetPortInformationSlice: &mut [EthernetPortInformation])
+
+	fn allocateSlaveLogicalCoresToUsersFairly(numa_sockets: &NumaSockets, nonEthernetPortLogicalCoreUsers: &mut [&mut LogicalCoreUser], mut ethernetPortInformationSlice: &mut [EthernetPortInformation])
 	{
 		let mut logicalCoreUsers: Vec<&mut LogicalCoreUser> = Vec::with_capacity(nonEthernetPortLogicalCoreUsers.len() + ethernetPortInformationSlice.len());
-		
+
 		for mut nonEthernetPortLogicalCoreUser in nonEthernetPortLogicalCoreUsers.iter_mut()
 		{
 			logicalCoreUsers.push(nonEthernetPortLogicalCoreUser);
 		}
-		
+
 		for mut ethernetPortInformation in ethernetPortInformationSlice.iter_mut()
 		{
 			let logicalCoreUser = ethernetPortInformation.useLogicalCoreUser();
 			logicalCoreUsers.push(logicalCoreUser);
 		}
-		
-		numaSockets.allocateSlaveLogicalCores(logicalCoreUsers.as_mut_slice());
+
+		numa_sockets.allocateSlaveLogicalCores(logicalCoreUsers.as_mut_slice());
 	}
 }

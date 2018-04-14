@@ -6,13 +6,13 @@ impl EthernetPort
 {
 	// From RFC 791 (ETHER_MIN_MTU)
 	pub const MinimumTransmissionUnitSize: u16 = 68;
-	
+
 	#[inline(always)]
 	pub fn getMaximumTransmissionUnit(&self) -> u16
 	{
 		let mut mtu = unsafe { uninitialized() };
-		
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_get_mtu(self.portIdentifier(), &mut mtu) };
+
+		let result = unsafe { rte_eth_dev_get_mtu(self.portIdentifier(), &mut mtu) };
 		if likely(result == 0)
 		{
 			debug_assert!(mtu >= Self::MinimumTransmissionUnitSize, "mtu '{}' must be equal to or greater than the MinimumTransmissionUnitSize, '{}'", mtu, Self::MinimumTransmissionUnitSize);
@@ -21,22 +21,22 @@ impl EthernetPort
 		else
 		{
 			forget(mtu);
-			
+
 			match result
 			{
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-		
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_dev_get_mtu()", result),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn setMaximumTransmissionUnit(&self, sizeInBytes: u16) -> Result<(), CouldNotSetMaximumTransmissionUnitError>
 	{
 		debug_assert!(sizeInBytes >= Self::MinimumTransmissionUnitSize, "sizeInBytes '{}' must be equal to or greater than the MinimumTransmissionUnitSize, '{}'", sizeInBytes, Self::MinimumTransmissionUnitSize);
-		
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_set_mtu(self.portIdentifier(), sizeInBytes) };
+
+		let result = unsafe { rte_eth_dev_set_mtu(self.portIdentifier(), sizeInBytes) };
 		if likely(result == 0)
 		{
 			Ok(())
@@ -50,7 +50,7 @@ impl EthernetPort
 
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
 				NegativeE::EINVAL => panic!("The MTU '{}' is invalid", sizeInBytes),
-		
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_dev_set_mtu()", result),
 			}
 		}

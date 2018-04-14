@@ -2,51 +2,26 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use ::const_cstr_fork::ConstCStr;
-#[cfg(unix)] use ::std::os::unix::ffi::OsStrExt;
-use ::dpdk_sys::rte_eth_dev;
-use ::dpdk_sys::rte_pci_addr;
-use ::dpdk_sys::rte_pci_device;
-use ::dpdk_sys::rte_pci_driver;
-use ::dpdk_sys::rte_pci_id;
-use ::dpdk_sys::rte_pci_ioport;
-use ::dpdk_sys::rust_RTE_DEV_TO_PCI;
-use ::dpdk_unix::android_linux::pci::PciBusInformation;
-use ::libc::c_void;
-use ::libc::FILE;
-use ::libc::off_t;
-use ::libc::PATH_MAX;
-use ::libc::strnlen;
-use ::libc_extra::stderr;
-use ::rust_extra::likely;
-use ::rust_extra::u4;
-use ::rust_extra::unlikely;
-use ::std::ffi::CStr;
-use ::std::ffi::CString;
-use ::std::ffi::OsStr;
-use ::std::mem::forget;
-use ::std::mem::uninitialized;
-use ::std::num::ParseIntError;
-use ::std::path::PathBuf;
-use ::std::slice::from_raw_parts;
-use ::ethernetPorts::EthernetPort;
-use ::devices::DeviceName;
-use ::logicalCores::NumaSocketId;
+use super::*;
+use super::super::devices::DeviceName;
+use super::super::domain::NetworkInterfaceName;
+use super::super::ethernetPorts::EthernetPort;
+use super::super::logicalCores::NumaSocketId;
+use super::super::logicalCores::active::Active;
+use super::super::logicalCores::active::LogicalCoresActive;
 
 
-
-#[cfg(any(target_os = "android", target_os = "linux"))] pub mod android_linux;
-
-
-include!("Device.rs");
-include!("DeviceAddress.rs");
-include!("DeviceAddressStringParseError.rs");
-include!("DeviceConfigurationMatch.rs");
-include!("DeviceId.rs");
-include!("DeviceListColour.rs");
-include!("Driver.rs");
-include!("DriverFlags.rs");
-include!("DriverIdentifier.rs");
-include!("InputOutputPort.rs");
+include!("DpdkPciDevice.rs");
+include!("DpdkPciDriver.rs");
+include!("DpdkPciDriverFlags.rs");
+include!("DpdkPciInputOutputPort.rs");
+include!("IndirectPciDeviceIdentifier.rs");
+include!("PciDevice.rs");
+include!("PciDeviceAddress.rs");
+include!("PciDeviceAddressStringParseError.rs");
+include!("PciDeviceIdentifier.rs");
+include!("PciDriver.rs");
+include!("PciVendorIdentifier.rs");
 include!("SupportedDevice.rs");
-include!("VendorId.rs");
+include!("SupportedDriverIdentifier.rs");
+include!("Unbind.rs");

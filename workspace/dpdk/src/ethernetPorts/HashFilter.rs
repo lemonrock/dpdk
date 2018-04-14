@@ -9,7 +9,7 @@ pub enum HashFilter
 	{
 		enable: bool,
 	},
-	
+
 	GlobalConfigurationForAllPortsOfSameNic
 	{
 		hashFilterFunction: HashFilterFunction,
@@ -18,7 +18,7 @@ pub enum HashFilter
 		appliesToFlowTypes: ReceiveSideScalingOffloadFlowTypeSet,
 		flowTypesValidForEthernetDeviceDriver: ReceiveSideScalingOffloadFlowTypeSet,
 	},
-	
+
 	InputSetSelect
 	{
 		flowType: ReceiveSideScalingOffloadFlowType,
@@ -35,12 +35,12 @@ impl HashFilter
 		appliesToFlowTypes: ReceiveSideScalingOffloadFlowTypeSet::empty(),
 		flowTypesValidForEthernetDeviceDriver: ReceiveSideScalingOffloadFlowTypeSet::empty(),
 	};
-	
+
 	#[inline(always)]
 	pub fn as_rte_eth_hash_filter_info(&self) -> rte_eth_hash_filter_info
 	{
-		let mut info = rte_eth_hash_filter_info_AnonymousUnion_info::default();
-		
+		let mut info = rte_eth_hash_filter_info__bindgen_ty_1::default();
+
 		let info_type = match *self
 		{
 			HashFilter::SymmetricHashPerPort { enable } =>
@@ -54,10 +54,10 @@ impl HashFilter
 					0
 				};
 				unsafe { write(info.enable(), enable) };
-				
+
 				rte_eth_hash_filter_info_type::RTE_ETH_HASH_FILTER_SYM_HASH_ENA_PER_PORT
 			},
-			
+
 			HashFilter::GlobalConfigurationForAllPortsOfSameNic { hashFilterFunction, appliesToFlowTypes, flowTypesValidForEthernetDeviceDriver } =>
 			{
 				let globalConfiguration = rte_eth_hash_global_conf
@@ -66,44 +66,44 @@ impl HashFilter
 					sym_hash_enable_mask: appliesToFlowTypes.asHashFilterSet(),
 					valid_bit_mask: flowTypesValidForEthernetDeviceDriver.asHashFilterSet(),
 				};
-				
+
 				unsafe { write(info.global_conf(), globalConfiguration) };
-				
+
 				rte_eth_hash_filter_info_type::RTE_ETH_HASH_FILTER_GLOBAL_CONFIG
 			},
-			
+
 			HashFilter::InputSetSelect { flowType, ref inputSet, filterInputSetOperation } =>
-			{  
+			{
 				let length = inputSet.len();
 				assert!(length < RTE_ETH_INSET_SIZE_MAX, "inputSet.len() '{}' exceeds RTE_ETH_INSET_SIZE_MAX '{}'", length, RTE_ETH_INSET_SIZE_MAX);
-				
+
 				let mut field: [rte_eth_input_set_field; RTE_ETH_INSET_SIZE_MAX] = unsafe { zeroed() };
-				
+
 				let mut index = 0;
 				for value in inputSet.iter()
 				{
 					field[index] = value.as_rte_eth_input_set_field();
 					index += 1;
 				}
-				
+
 				let inputSetConfiguration = rte_eth_input_set_conf
 				{
 					flow_type: flowType as u16,
 					inset_size: length as u16,
-					field: field,
+					field,
 					op: filterInputSetOperation.as_rte_filter_input_set_op()
 				};
-				
+
 				unsafe { write(info.input_set_conf(), inputSetConfiguration) };
-				
+
 				rte_eth_hash_filter_info_type::RTE_ETH_HASH_FILTER_INPUT_SET_SELECT
 			},
 		};
-		
+
 		rte_eth_hash_filter_info
 		{
-			info_type: info_type,
-			info: info,
+			info_type,
+			info,
 		}
 	}
 }

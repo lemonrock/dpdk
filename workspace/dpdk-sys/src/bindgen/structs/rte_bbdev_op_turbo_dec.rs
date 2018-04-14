@@ -10,12 +10,12 @@ pub struct rte_bbdev_op_turbo_dec
 	pub soft_output: rte_bbdev_op_data,
 	pub op_flags: u32,
 	pub rv_index: u8,
-	pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize], u8>,
+	pub bitfield_1: BindgenBitfieldUnit<[u8; 1usize], u8>,
 	pub iter_count: u8,
 	pub ext_scale: u8,
 	pub num_maps: u8,
 	pub code_block_mode: u8,
-	pub __bindgen_anon_1: rte_bbdev_op_turbo_dec__bindgen_ty_1,
+	pub _1: rte_bbdev_op_turbo_dec_1,
 }
 
 impl Default for rte_bbdev_op_turbo_dec
@@ -32,7 +32,7 @@ impl Debug for rte_bbdev_op_turbo_dec
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_bbdev_op_turbo_dec {{ input: {:?}, hard_output: {:?}, soft_output: {:?}, iter_min : {:?}, iter_max : {:?}, __bindgen_anon_1: {:?} }}", self.input, self.hard_output, self.soft_output, self.iter_min(), self.iter_max(), self.__bindgen_anon_1)
+		write!(f, "rte_bbdev_op_turbo_dec {{ input: {:?}, hard_output: {:?}, soft_output: {:?}, iter_min : {:?}, iter_max : {:?}, _1: {:?} }}", self.input, self.hard_output, self.soft_output, self.iter_min(), self.iter_max(), self._1)
 	}
 }
 
@@ -42,7 +42,7 @@ impl rte_bbdev_op_turbo_dec
 	#[inline(always)]
 	pub fn iter_min(&self) -> u8
 	{
-		unsafe { transmute(self._bitfield_1.get(0usize, 4u8) as u8) }
+		unsafe { transmute(self.bitfield_1.get(0usize, 4u8) as u8) }
 	}
 	
 	#[inline(always)]
@@ -50,14 +50,14 @@ impl rte_bbdev_op_turbo_dec
 	{
 		unsafe {
 			let val: u8 = transmute(val);
-			self._bitfield_1.set(0usize, 4u8, val as u64)
+			self.bitfield_1.set(0usize, 4u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn iter_max(&self) -> u8
 	{
-		unsafe { transmute(self._bitfield_1.get(4usize, 4u8) as u8) }
+		unsafe { transmute(self.bitfield_1.get(4usize, 4u8) as u8) }
 	}
 	
 	#[inline(always)]
@@ -65,14 +65,14 @@ impl rte_bbdev_op_turbo_dec
 	{
 		unsafe {
 			let val: u8 = transmute(val);
-			self._bitfield_1.set(4usize, 4u8, val as u64)
+			self.bitfield_1.set(4usize, 4u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
-	pub fn new_bitfield_1(iter_min: u8, iter_max: u8) -> __BindgenBitfieldUnit<[u8; 1usize], u8>
+	pub fn newbitfield_1(iter_min: u8, iter_max: u8) -> BindgenBitfieldUnit<[u8; 1usize], u8>
 	{
-		let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
+		let mut __bindgen_bitfield_unit: BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
 		__bindgen_bitfield_unit.set(0usize, 4u8, {
 			let iter_min: u8 = unsafe { transmute(iter_min) };
 			iter_min as u64

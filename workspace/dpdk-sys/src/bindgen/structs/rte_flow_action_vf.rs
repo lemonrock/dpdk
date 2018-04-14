@@ -5,7 +5,7 @@
 #[repr(C)]
 pub struct rte_flow_action_vf
 {
-	pub _bitfield_1: __BindgenBitfieldUnit<[u8; 4usize], u32>,
+	pub bitfield_1: BindgenBitfieldUnit<[u8; 4usize], u32>,
 	pub id: u32,
 }
 
@@ -33,7 +33,7 @@ impl rte_flow_action_vf
 	#[inline(always)]
 	pub fn original(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(0usize, 1u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -41,14 +41,14 @@ impl rte_flow_action_vf
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(0usize, 1u8, val as u64)
+			self.bitfield_1.set(0usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn reserved(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(1usize, 31u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(1usize, 31u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -56,14 +56,14 @@ impl rte_flow_action_vf
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(1usize, 31u8, val as u64)
+			self.bitfield_1.set(1usize, 31u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
-	pub fn new_bitfield_1(original: u32, reserved: u32) -> __BindgenBitfieldUnit<[u8; 4usize], u32>
+	pub fn newbitfield_1(original: u32, reserved: u32) -> BindgenBitfieldUnit<[u8; 4usize], u32>
 	{
-		let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 4usize], u32> = Default::default();
+		let mut __bindgen_bitfield_unit: BindgenBitfieldUnit<[u8; 4usize], u32> = Default::default();
 		__bindgen_bitfield_unit.set(0usize, 1u8, {
 			let original: u32 = unsafe { transmute(original) };
 			original as u64

@@ -3,15 +3,15 @@
 
 
 include!("unions/rte_acl_field_types.rs");
-include!("unions/rte_crypto_sym_op__bindgen_ty_1.rs");
-include!("unions/rte_cryptodev_sym_capability_idx__bindgen_ty_1.rs");
-include!("unions/rte_eth_global_cfg__bindgen_ty_1.rs");
-include!("unions/rte_event__bindgen_ty_2.rs");
-include!("unions/rte_intr_handle__bindgen_ty_1.rs");
-include!("unions/rte_lpm_tbl_entry_v20__bindgen_ty_1.rs");
-include!("unions/rte_mbuf__bindgen_ty_5.rs");
-include!("unions/rte_mempool__bindgen_ty_1.rs");
-include!("unions/rte_memseg__bindgen_ty_2.rs");
-include!("unions/rte_memzone__bindgen_ty_2.rs");
-include!("unions/rte_pipeline_table_entry__bindgen_ty_1.rs");
-include!("unions/rte_security_capability_idx__bindgen_ty_1.rs");
+include!("unions/rte_crypto_sym_op_1.rs");
+include!("unions/rte_cryptodev_sym_capability_idx_1.rs");
+include!("unions/rte_eth_global_cfg_1.rs");
+include!("unions/rte_event_2.rs");
+include!("unions/rte_intr_handle_1.rs");
+include!("unions/rte_lpm_tbl_entry_v20_1.rs");
+include!("unions/rte_mbuf_5.rs");
+include!("unions/rte_mempool_1.rs");
+include!("unions/rte_memseg_2.rs");
+include!("unions/rte_memzone_2.rs");
+include!("unions/rte_pipeline_table_entry_1.rs");
+include!("unions/rte_security_capability_idx_1.rs");

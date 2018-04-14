@@ -16,7 +16,7 @@ impl EthernetPort
 			0
 		};
 		let mut mirrorConfiguration = trafficMirroringRule.as_rte_eth_mirror_conf();
-		let result = unsafe { ::dpdk_sys::rte_eth_mirror_rule_set(self.portIdentifier, &mut mirrorConfiguration, trafficMirroringRuleNumber as u8, on) };
+		let result = unsafe { rte_eth_mirror_rule_set(self.portIdentifier, &mut mirrorConfiguration, trafficMirroringRuleNumber as u8, on) };
 		if likely(result == 0)
 		{
 			Ok(())
@@ -26,31 +26,31 @@ impl EthernetPort
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
 				NegativeE::EINVAL => panic!("mirrorConfiguration was invalid"),
-		
+
 				unexpected @ _ => panic!("Unexpected error code '{}' from rte_eth_mirror_rule_set()", unexpected),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn enableTrafficMirroringRule(&self, trafficMirroringRuleNumber: TrafficMirroringRuleNumber, trafficMirroringRule: &TrafficMirroringRule) -> Result<(), UnsupportedByHardwareError>
 	{
 		self.privateSetTrafficMirroringRule(trafficMirroringRuleNumber, trafficMirroringRule, true)
 	}
-	
+
 	#[inline(always)]
 	pub fn disableTrafficMirroringRule(&self, trafficMirroringRuleNumber: TrafficMirroringRuleNumber, trafficMirroringRule: &TrafficMirroringRule) -> Result<(), UnsupportedByHardwareError>
 	{
 		self.privateSetTrafficMirroringRule(trafficMirroringRuleNumber, trafficMirroringRule, false)
 	}
-	
+
 	#[inline(always)]
 	pub fn clearTrafficMirroringRule(&self, trafficMirroringRuleNumber: TrafficMirroringRuleNumber) -> Result<(), UnsupportedByHardwareError>
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_mirror_rule_reset(self.portIdentifier, trafficMirroringRuleNumber as u8) };
+		let result = unsafe { rte_eth_mirror_rule_reset(self.portIdentifier, trafficMirroringRuleNumber as u8) };
 		if likely(result == 0)
 		{
 			Ok(())
@@ -60,10 +60,10 @@ impl EthernetPort
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
 				NegativeE::EINVAL => panic!("mirrorConfiguration was invalid?"),
-		
+
 				unexpected @ _ => panic!("Unexpected error code '{}' from rte_eth_mirror_rule_reset()", unexpected),
 			}
 		}

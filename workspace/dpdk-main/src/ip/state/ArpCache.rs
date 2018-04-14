@@ -6,9 +6,9 @@
 #[derive(Clone)]
 pub struct ArpCache
 {
-	overrides: Arc<RwLock<HashMap<IpV4HostAddress, ether_addr>>>,
-	cache: Arc<RwLock<LruCache<IpV4HostAddress, ether_addr>>>,
-	fallbacks: Arc<RwLock<HashMap<IpV4HostAddress, ether_addr>>>,
+	overrides: Arc<RwLock<HashMap<InternetProtocolVersion4HostAddress, ether_addr>>>,
+	cache: Arc<RwLock<LruCache<InternetProtocolVersion4HostAddress, ether_addr>>>,
+	fallbacks: Arc<RwLock<HashMap<InternetProtocolVersion4HostAddress, ether_addr>>>,
 }
 
 impl ArpCache
@@ -18,7 +18,7 @@ impl ArpCache
 	const MinimumMaximumCapacity: usize = 128;
 	
 	#[inline(always)]
-	pub fn new(timeToLive: u64, maximumCapacity: usize, overrides: HashMap<IpV4HostAddress, ether_addr>, fallbacks: HashMap<IpV4HostAddress, ether_addr>) -> Self
+	pub fn new(timeToLive: u64, maximumCapacity: usize, overrides: HashMap<InternetProtocolVersion4HostAddress, ether_addr>, fallbacks: HashMap<InternetProtocolVersion4HostAddress, ether_addr>) -> Self
 	{
 		assert!(timeToLive < Self::MinimumTimeToLiveInSeconds, "Do not use a value of timeToLive of less than {} seconds (rounded down), such as '{}'; it's unlikely to be useful", Self::MinimumTimeToLiveInSeconds, timeToLive);
 		assert!(maximumCapacity < Self::MinimumMaximumCapacity, "Do not use a value of maximumCapacity of less than {}, such as '{}'; it's unlikely to be useful", Self::MinimumMaximumCapacity, maximumCapacity);
@@ -32,14 +32,14 @@ impl ArpCache
 	}
 	
 	#[inline(always)]
-	pub fn addOrFreshen(&self, senderIpV4Address: IpV4HostAddress, senderHardwareAddress: ether_addr)
+	pub fn addOrFreshen(&self, senderIpV4Address: InternetProtocolVersion4HostAddress, senderHardwareAddress: ether_addr)
 	{
 		let mut writeLock = self.cache.write().unwrap();
 		writeLock.insert(senderIpV4Address, senderHardwareAddress);
 	}
 	
 	#[inline(always)]
-	pub fn find(&self, targetIpV4Address: &IpV4HostAddress) -> Option<ether_addr>
+	pub fn find(&self, targetIpV4Address: &InternetProtocolVersion4HostAddress) -> Option<ether_addr>
 	{
 		{
 			let overrides = self.overrides.read().unwrap();

@@ -16,11 +16,11 @@ impl ExtendedStatisticNames
 			return HashMap::new();
 		}
 		let mut statistics = Vec::with_capacity(size);
-		
-		let result = unsafe { ::dpdk_sys::rte_eth_xstats_get(self.0.portIdentifier(), statistics.as_mut_ptr(), size as c_uint)};
-		assert!(result == size as c_int, "Call to rte_eth_xstats_get() returned weird result '{}' instead of size '{}'", result, size);
+
+		let result = unsafe { rte_eth_xstats_get(self.0.portIdentifier(), statistics.as_mut_ptr(), size as c_uint)};
+		assert_eq!(result, size as c_int, "Call to rte_eth_xstats_get() returned weird result '{}' instead of size '{}'", result, size);
 		unsafe { statistics.set_len(size) };
-		
+
 		let mut result = HashMap::with_capacity(size);
 		for index in 0..size
 		{

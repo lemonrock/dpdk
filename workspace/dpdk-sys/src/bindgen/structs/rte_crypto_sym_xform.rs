@@ -7,7 +7,7 @@ pub struct rte_crypto_sym_xform
 {
 	pub next: *mut rte_crypto_sym_xform,
 	pub type_: rte_crypto_sym_xform_type,
-	pub __bindgen_anon_1: rte_crypto_sym_xform__bindgen_ty_1,
+	pub _1: rte_crypto_sym_xform_1,
 }
 
 impl Default for rte_crypto_sym_xform
@@ -24,6 +24,6 @@ impl Debug for rte_crypto_sym_xform
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_crypto_sym_xform {{ next: {:?}, type: {:?}, __bindgen_anon_1: {:?} }}", self.next, self.type_, self.__bindgen_anon_1)
+		write!(f, "rte_crypto_sym_xform {{ next: {:?}, type: {:?}, _1: {:?} }}", self.next, self.type_, self._1)
 	}
 }

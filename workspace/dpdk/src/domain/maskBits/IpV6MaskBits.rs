@@ -139,5 +139,5 @@ serde_pub_enum_u8!
 
 impl MaskBits for IpV6MaskBits
 {
-	type IpHostAddress = IpV4HostAddress;
+	type IpHostAddress = InternetProtocolVersion4HostAddress;
 }

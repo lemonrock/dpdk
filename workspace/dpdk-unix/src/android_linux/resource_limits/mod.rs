@@ -4,8 +4,10 @@
 
 use super::super::PathExt;
 use ::errno::errno;
+use ::libc::getrlimit64;
 use ::libc::rlimit64;
 use ::libc::rlim64_t;
+use ::libc::setrlimit64;
 use ::std::collections::HashMap;
 use ::std::io;
 use ::std::path::Path;

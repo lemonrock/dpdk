@@ -7,7 +7,7 @@ pub struct vring_avail
 {
 	pub flags: __virtio16,
 	pub idx: __virtio16,
-	pub ring: __IncompleteArrayField<__virtio16>,
+	pub ring: IncompleteArrayField<__virtio16>,
 }
 
 impl Default for vring_avail

@@ -8,7 +8,7 @@ pub struct vfio_eeh_pe_op
 	pub argsz: __u32,
 	pub flags: __u32,
 	pub op: __u32,
-	pub __bindgen_anon_1: vfio_eeh_pe_op__bindgen_ty_1,
+	pub _1: vfio_eeh_pe_op_1,
 }
 
 impl Default for vfio_eeh_pe_op
@@ -25,6 +25,6 @@ impl Debug for vfio_eeh_pe_op
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "vfio_eeh_pe_op {{ __bindgen_anon_1: {:?} }}", self.__bindgen_anon_1)
+		write!(f, "vfio_eeh_pe_op {{ _1: {:?} }}", self._1)
 	}
 }

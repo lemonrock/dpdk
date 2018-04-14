@@ -13,41 +13,47 @@ pub enum PowerManagement
 impl PowerManagement
 {
 	#[inline(always)]
-	pub fn current() -> Option<PowerManagement>
+	pub fn current() -> Option<Self>
 	{
-		match unsafe { ::dpdk_sys::rte_power_get_env() }
+		use self::power_management_env::*;
+		use self::PowerManagement::*;
+		
+		match unsafe { rte_power_get_env() }
 		{
-			power_management_env::PM_ENV_NOT_SET => None,
-			power_management_env::PM_ENV_ACPI_CPUFREQ => Some(PowerManagement::Physical),
-			power_management_env::PM_ENV_KVM_VM => Some(PowerManagement::Kvm),
+			PM_ENV_NOT_SET => None,
+			PM_ENV_ACPI_CPUFREQ => Some(Physical),
+			PM_ENV_KVM_VM => Some(Kvm),
 		}
 	}
-	
+
 	// Not thread safe
 	// Not really needed; auto-detection occurs whenever a LogicalCore has power management started
 	#[inline(always)]
 	pub fn start(&self) -> Result<(), i32>
 	{
+		use self::PowerManagement::*;
+		use self::power_management_env::*;
+		
 		let environment = match *self
 		{
-			PowerManagement::Physical => power_management_env::PM_ENV_ACPI_CPUFREQ,
-			PowerManagement::Kvm => power_management_env::PM_ENV_KVM_VM,
+			Physical => PM_ENV_ACPI_CPUFREQ,
+			Kvm => PM_ENV_KVM_VM,
 		};
-		
-		match unsafe { ::dpdk_sys::rte_power_set_env(environment) }
+
+		match unsafe { rte_power_set_env(environment) }
 		{
 			0 => Ok(()),
-			
+
 			x if x < 0 => Err(x),
-			
+
 			illegal @ _ => panic!("rte_power_set_env() returned an invalid positive return code of '{}'", illegal),
 		}
 	}
-	
+
 	// Should only be called when all threads have finished!
 	#[inline(always)]
 	pub fn stop()
 	{
-		unsafe { ::dpdk_sys::rte_power_unset_env() }
+		unsafe { rte_power_unset_env() }
 	}
 }

@@ -2,12 +2,24 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// DPDK process type of process.
+///
+/// Defaults to `Auto`.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ProcessType
 {
 	Auto,
 	Primary,
 	Secondary,
+}
+
+impl Default for ProcessType
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		ProcessType::Auto
+	}
 }
 
 impl ProcessType
@@ -19,25 +31,32 @@ impl ProcessType
 		secondary = "secondary";
 	}
 	
+	/// Process type of current process.
 	#[inline(always)]
 	pub fn current() -> Option<ProcessType>
 	{
-		match unsafe { ::dpdk_sys::rte_eal_process_type() }
+		use self::rte_proc_type_t::*;
+		use self::ProcessType::*;
+		
+		match unsafe { rte_eal_process_type() }
 		{
-			rte_proc_type_t::RTE_PROC_AUTO => Some(ProcessType::Auto),
-			rte_proc_type_t::RTE_PROC_PRIMARY => Some(ProcessType::Primary),
-			rte_proc_type_t::RTE_PROC_SECONDARY => Some(ProcessType::Secondary),
-			rte_proc_type_t::RTE_PROC_INVALID => None,
+			RTE_PROC_AUTO => Some(Auto),
+			RTE_PROC_PRIMARY => Some(Primary),
+			RTE_PROC_SECONDARY => Some(Secondary),
+			RTE_PROC_INVALID => None,
 		}
 	}
 	
-	pub fn asInitialisationArgument(self) -> ConstCStr
+	#[inline(always)]
+	pub(crate) fn as_initialisation_argument(self) -> ConstCStr
 	{
+		use self::ProcessType::*;
+		
 		match self
 		{
-			ProcessType::Auto => Self::auto,
-			ProcessType::Primary => Self::primary,
-			ProcessType::Secondary => Self::secondary,
+			Auto => Self::auto,
+			Primary => Self::primary,
+			Secondary => Self::secondary,
 		}
 	}
 }

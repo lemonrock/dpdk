@@ -7,7 +7,7 @@ impl EthernetPort
 	#[inline(always)]
 	pub fn getEepromSize(&self) -> Result<u31, UnsupportedByHardwareError>
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_get_eeprom_length(self.portIdentifier()) };
+		let result = unsafe { rte_eth_dev_get_eeprom_length(self.portIdentifier()) };
 		if likely(result >= 0)
 		{
 			Ok(result as u31)
@@ -34,7 +34,7 @@ impl EthernetPort
 	pub fn getEepromInformation(&self) -> Result<EepromInformation, UnsupportedByHardwareError>
 	{
 		let mut value = unsafe { uninitialized() };
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_get_eeprom(self.portIdentifier(), &mut value) };
+		let result = unsafe { rte_eth_dev_get_eeprom(self.portIdentifier(), &mut value) };
 		if likely(result >= 0)
 		{
 			Ok(EepromInformation(value))
@@ -62,7 +62,7 @@ impl EthernetPort
 	pub fn reprogramEeprom(&self, eepromInformation: &EepromInformation) -> Result<(), UnsupportedByHardwareError>
 	{
 		let mut value = eepromInformation.0;
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_set_eeprom(self.portIdentifier(), &mut value) };
+		let result = unsafe { rte_eth_dev_set_eeprom(self.portIdentifier(), &mut value) };
 		if likely(result >= 0)
 		{
 			Ok(())

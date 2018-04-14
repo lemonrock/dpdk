@@ -7,11 +7,11 @@ impl EthernetPort
 	#[inline(always)]
 	pub fn numberOfAttachedPorts() -> usize
 	{
-		(unsafe { ::dpdk_sys::rte_eth_dev_count() }) as usize
+		(unsafe { rte_eth_dev_count() }) as usize
 	}
 	
 	#[inline(always)]
-	pub fn newVecWithCapacityForAllAttachedPorts<E>() -> Vec<E>
+	pub fn new_vec_with_capacity_for_all_attached_ports<E>() -> Vec<E>
 	{
 		Vec::with_capacity(Self::numberOfAttachedPorts())
 	}
@@ -20,12 +20,12 @@ impl EthernetPort
 	fn isAttachedPort(portIdentifier: u8) -> bool
 	{
 		// rte_eth_dev_is_valid_port() also checks that portIdentifier < RTE_MAX_PORTS
-		isTrue(unsafe { ::dpdk_sys::rte_eth_dev_is_valid_port(portIdentifier) })
+		isTrue(unsafe { rte_eth_dev_is_valid_port(portIdentifier) })
 	}
 	
 	pub fn allAttachedEthernetPorts() -> Vec<EthernetPort>
 	{
-		let mut list: Vec<EthernetPort> = Self::newVecWithCapacityForAllAttachedPorts();
+		let mut list: Vec<EthernetPort> = Self::new_vec_with_capacity_for_all_attached_ports();
 		
 		let mut portIdentifier = 0;
 		while portIdentifier < Self::MaximumEthernetPortsU8
@@ -34,7 +34,7 @@ impl EthernetPort
 			{
 				list.push(EthernetPort
 				{
-					portIdentifier: portIdentifier,
+					portIdentifier,
 				});
 			}
 			portIdentifier += 1;
@@ -73,7 +73,7 @@ impl EthernetPort
 		let devicePciAddressOrNameCStr = CString::new(devicePciAddressOrName).expect("The provided devicePciAddressOrName contained an interior ASCII NUL");
 
 		let mut portIdentifier = unsafe { uninitialized() };
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_attach(devicePciAddressOrNameCStr.as_ptr(), &mut portIdentifier) };
+		let result = unsafe { rte_eth_dev_attach(devicePciAddressOrNameCStr.as_ptr(), &mut portIdentifier) };
 		if likely(result == 0)
 		{
 			Ok(EthernetPort::new(portIdentifier).unwrap())
@@ -91,12 +91,12 @@ impl EthernetPort
 	#[inline(always)]
 	pub fn detach(self) -> Result<String, (CouldNotDetachError, Self)>
 	{
-		let (deviceName, pointerToDeviceName) = Self::initialiseDeviceNameBuffer();
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_detach(self.portIdentifier(), pointerToDeviceName) };
+		let (device_name, pointerToDeviceName) = Self::initialiseDeviceNameBuffer();
+		let result = unsafe { rte_eth_dev_detach(self.portIdentifier(), pointerToDeviceName) };
 		
 		if likely(result == 0)
 		{
-			if let Ok(ourDeviceName) = Self::parseDeviceName(deviceName, pointerToDeviceName)
+			if let Ok(ourDeviceName) = Self::parseDeviceName(device_name, pointerToDeviceName)
 			{
 				Ok(ourDeviceName)
 			}
@@ -107,7 +107,7 @@ impl EthernetPort
 		}
 		else
 		{
-			Err((CouldNotDetachError::Unknown {result: result}, self))
+			Err((CouldNotDetachError::Unknown {result }, self))
 		}
 	}
 }

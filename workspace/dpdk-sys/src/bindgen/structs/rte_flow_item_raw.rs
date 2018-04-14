@@ -5,11 +5,11 @@
 #[repr(C)]
 pub struct rte_flow_item_raw
 {
-	pub _bitfield_1: __BindgenBitfieldUnit<[u8; 4usize], u32>,
+	pub bitfield_1: BindgenBitfieldUnit<[u8; 4usize], u32>,
 	pub offset: i32,
 	pub limit: u16,
 	pub length: u16,
-	pub pattern: __IncompleteArrayField<u8>,
+	pub pattern: IncompleteArrayField<u8>,
 }
 
 impl Default for rte_flow_item_raw
@@ -36,7 +36,7 @@ impl rte_flow_item_raw
 	#[inline(always)]
 	pub fn relative(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(0usize, 1u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(0usize, 1u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -44,14 +44,14 @@ impl rte_flow_item_raw
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(0usize, 1u8, val as u64)
+			self.bitfield_1.set(0usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn search(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(1usize, 1u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(1usize, 1u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -59,14 +59,14 @@ impl rte_flow_item_raw
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(1usize, 1u8, val as u64)
+			self.bitfield_1.set(1usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn reserved(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(2usize, 30u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(2usize, 30u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -74,14 +74,14 @@ impl rte_flow_item_raw
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(2usize, 30u8, val as u64)
+			self.bitfield_1.set(2usize, 30u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
-	pub fn new_bitfield_1(relative: u32, search: u32, reserved: u32) -> __BindgenBitfieldUnit<[u8; 4usize], u32>
+	pub fn newbitfield_1(relative: u32, search: u32, reserved: u32) -> BindgenBitfieldUnit<[u8; 4usize], u32>
 	{
-		let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 4usize], u32> = Default::default();
+		let mut __bindgen_bitfield_unit: BindgenBitfieldUnit<[u8; 4usize], u32> = Default::default();
 		__bindgen_bitfield_unit.set(0usize, 1u8, {
 			let relative: u32 = unsafe { transmute(relative) };
 			relative as u64

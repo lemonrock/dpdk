@@ -6,7 +6,7 @@
 #[repr(align(4))]
 pub struct rte_lpm_tbl_entry
 {
-	pub _bitfield_1: __BindgenBitfieldUnit<[u8; 4usize], u32>,
+	pub bitfield_1: BindgenBitfieldUnit<[u8; 4usize], u32>,
 	pub __bindgen_align: [u32; 0usize],
 }
 
@@ -34,7 +34,7 @@ impl rte_lpm_tbl_entry
 	#[inline(always)]
 	pub fn next_hop(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(0usize, 24u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(0usize, 24u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -42,14 +42,14 @@ impl rte_lpm_tbl_entry
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(0usize, 24u8, val as u64)
+			self.bitfield_1.set(0usize, 24u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn valid(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(24usize, 1u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(24usize, 1u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -57,14 +57,14 @@ impl rte_lpm_tbl_entry
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(24usize, 1u8, val as u64)
+			self.bitfield_1.set(24usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn valid_group(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(25usize, 1u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(25usize, 1u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -72,14 +72,14 @@ impl rte_lpm_tbl_entry
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(25usize, 1u8, val as u64)
+			self.bitfield_1.set(25usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn depth(&self) -> u32
 	{
-		unsafe { transmute(self._bitfield_1.get(26usize, 6u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(26usize, 6u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -87,14 +87,14 @@ impl rte_lpm_tbl_entry
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self._bitfield_1.set(26usize, 6u8, val as u64)
+			self.bitfield_1.set(26usize, 6u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
-	pub fn new_bitfield_1(next_hop: u32, valid: u32, valid_group: u32, depth: u32) -> __BindgenBitfieldUnit<[u8; 4usize], u32>
+	pub fn newbitfield_1(next_hop: u32, valid: u32, valid_group: u32, depth: u32) -> BindgenBitfieldUnit<[u8; 4usize], u32>
 	{
-		let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 4usize], u32> = Default::default();
+		let mut __bindgen_bitfield_unit: BindgenBitfieldUnit<[u8; 4usize], u32> = Default::default();
 		__bindgen_bitfield_unit.set(0usize, 24u8, {
 			let next_hop: u32 = unsafe { transmute(next_hop) };
 			next_hop as u64

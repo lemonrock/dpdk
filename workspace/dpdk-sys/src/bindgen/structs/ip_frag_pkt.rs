@@ -6,7 +6,7 @@
 #[repr(align(64))]
 pub struct ip_frag_pkt
 {
-	pub lru: ip_frag_pkt__bindgen_ty_1,
+	pub lru: ip_frag_pkt_1,
 	pub key: ip_frag_key,
 	pub start: u64,
 	pub total_size: u32,

@@ -7,14 +7,14 @@
 pub struct Configuration
 {
 	procPath: PathBuf,
-	sysPath: PathBuf,
+	sys_path: PathBuf,
 	devPath: PathBuf,
 	loadModulesFromPath: PathBuf,
 	hugePagesConfiguration: HugePagesConfiguration,
-	numaSockets: NumaSockets,
+	numa_sockets: NumaSockets,
 	memoryConfiguration: MemoryConfiguration,
 	networkInterfacesConfiguration: NetworkInterfacesConfiguration,
-	
+
 	#[cfg(any(target_os = "android", target_os = "linux"))] resource_limits: ResourceLimitsSet,
 }
 
@@ -23,11 +23,11 @@ impl Default for Configuration
 	fn default() -> Self
 	{
 		let procPath = PathBuf::from("/proc");
-		let sysPath = PathBuf::from("/sys");
-		
-		let numaNodeData = NumaSocketId::numaNodesData(&sysPath).expect("Could not read NUMA nodes data");
-		let numaSockets = NumaSockets::detectNumaSockets(&sysPath, numaNodeData).expect("Could not detect CPUs or NUMA sockets");
-		
+		let sys_path = PathBuf::from("/sys");
+
+		let numaNodeData = NumaSocketId::numaNodesData(&sys_path).expect("Could not read NUMA nodes data");
+		let numa_sockets = NumaSockets::detectNumaSockets(&sys_path, numaNodeData).expect("Could not detect CPUs or NUMA sockets");
+
 		fn parentPath() -> PathBuf
 		{
 			if let Ok(path) = current_exe()
@@ -42,7 +42,7 @@ impl Default for Configuration
 			}
 			PathBuf::from("/")
 		}
-		
+
 		// remove bin and replace with lib, or push lib (eg if not in /bin, /usr/bin, /usr/local/bin or /opt/<package>/bin
 		let mut loadModulesFromPath = parentPath();
 		if loadModulesFromPath.to_str().map(|path| path.ends_with("/bin") || path.ends_with("/sbin")).unwrap_or(false)
@@ -54,21 +54,21 @@ impl Default for Configuration
 			loadModulesFromPath.push("lib");
 		}
 		loadModulesFromPath.push("linux_kernel_modules/dpdk");
-		
+
 		let resource_limits = ResourceLimitsSet::defaultish(ResourceLimit::maximum_number_of_open_file_descriptors(&procPath).expect("Could not read maximum number of file descriptors"));
-		
+
 		Configuration
 		{
-			procPath: procPath,
-			sysPath: sysPath,
+			procPath,
+			sys_path,
 			devPath: PathBuf::from("/dev"),
-			loadModulesFromPath: loadModulesFromPath,
+			loadModulesFromPath,
 			hugePagesConfiguration: HugePagesConfiguration::default(),
-			numaSockets: numaSockets,
+			numa_sockets,
 			memoryConfiguration: MemoryConfiguration::default(),
 			networkInterfacesConfiguration: NetworkInterfacesConfiguration::default(),
-			
-			resource_limits: resource_limits,
+
+			resource_limits,
 		}
 	}
 }
@@ -80,125 +80,125 @@ impl Configuration
 	{
 		&self.procPath
 	}
-	
+
 	#[inline(always)]
-	pub fn sysPath(&self) -> &Path
+	pub fn sys_path(&self) -> &Path
 	{
-		&self.sysPath
+		&self.sys_path
 	}
-	
+
 	#[inline(always)]
 	pub fn devPath(&self) -> &Path
 	{
 		&self.devPath
 	}
-	
+
 	#[inline(always)]
 	pub fn borrowNumaSockets(&self) -> &NumaSockets
 	{
-		&self.numaSockets
+		&self.numa_sockets
 	}
-	
+
 	pub fn destroyAsNumaSockets(self) -> NumaSockets
 	{
-		self.numaSockets
+		self.numa_sockets
 	}
-	
+
 	fn usesPciDriver(&self, pciDriver: PciDriver) -> bool
 	{
 		self.networkInterfacesConfiguration.usesPciDriver(pciDriver)
 	}
-	
+
 	#[cfg(any(target_os = "android", target_os = "linux"))]
 	pub fn linuxModules(&self) -> (&Path, Vec<LinuxKernelModule>, bool)
 	{
 		let usesVfioPciKernelModule = self.usesVfioPciKernelModule();
 		(self.loadModulesFromPath(), self.dpdkModulesToEnsureLoaded(usesVfioPciKernelModule), usesVfioPciKernelModule)
 	}
-	
+
 	fn usesVfioPciKernelModule(&self) -> bool
 	{
 		self.usesPciDriver(PciDriver::VfioPci)
 	}
-	
+
 	fn loadModulesFromPath(&self) -> &Path
 	{
 		&self.loadModulesFromPath
 	}
-	
+
 	#[cfg(any(target_os = "android", target_os = "linux"))]
 	fn dpdkModulesToEnsureLoaded(&self, usesVfioPciKernelModule: bool) -> Vec<LinuxKernelModule>
 	{
 		let mut modules = Vec::with_capacity(6);
-		
+
 		let mut dependsOnUio = false;
 		if self.usesPciDriver(PciDriver::IgbUio)
 		{
 			dependsOnUio = true;
 			modules.push(LinuxKernelModule::IgbUio);
 		}
-		
+
 		if self.usesPciDriver(PciDriver::UioPciGeneric)
 		{
 			dependsOnUio = true;
 			modules.push(LinuxKernelModule::UioPciGeneric);
 		}
-		
+
 		if dependsOnUio
 		{
 			modules.insert(0, LinuxKernelModule::Uio);
 		}
-		
+
 		if self.networkInterfacesConfiguration.hasKernelNativeInterfaceDevices()
 		{
 			modules.push(LinuxKernelModule::RteKni);
 		}
-		
+
 		if usesVfioPciKernelModule
 		{
 			modules.push(LinuxKernelModule::VfioPci);
 		}
-		
+
 		if self.networkInterfacesConfiguration.hasXenVirtualDevices()
 		{
 			modules.push(LinuxKernelModule::XenDom0Mm);
 		}
-		
+
 		modules
 	}
 
 	#[cfg(any(target_os = "android", target_os = "linux"))]
 	pub fn setUpHugePagesAndNumaMemory(&self, finishers: &mut Finishers) -> HugePageFilePathInformation
 	{
-		let (hugePageMountPathOption, hugePageFinisher) = self.hugePagesConfiguration.setUpHugePagesAndNumaMemory(self.procPath(), self.sysPath(), self.borrowNumaSockets());
-		
+		let (hugePageMountPathOption, hugePageFinisher) = self.hugePagesConfiguration.setUpHugePagesAndNumaMemory(self.procPath(), self.sys_path(), self.borrowNumaSockets());
+
 		finishers.push(Box::new(hugePageFinisher));
 		HugePageFilePathInformation::new(hugePageMountPathOption)
 	}
-
-	#[cfg(not(any(target_os = "android", target_os = "linux")))]
+	
+	#[cfg(target_os = "freebsd")]
 	pub fn setUpHugePagesAndNumaMemory(&self, finishers: &mut Finishers) -> (HugePageFilePathInformation, HugePageFinisher)
 	{
 		finishers.push(Box::new(HugePageFinisher::FreeBsd));
 		HugePageFilePathInformation::new()
 	}
-	
+
 	pub fn dpdkRteInitData(&self, finishers: &mut Finishers) -> (DpdkRteInitData, EthernetPortConfigurations)
 	{
 		let mut dpdkRteInitData = DpdkRteInitData::default();
-		
+
 		self.memoryConfiguration.addTo(&mut dpdkRteInitData);
-		let (unbinds, ethernetPortConfigurations) = self.networkInterfacesConfiguration.addTo(&mut dpdkRteInitData, &self.sysPath);
-	
-		let pciDevicesFinisher = PciDevicesFinisher
+		let (unbinds, ethernetPortConfigurations) = self.networkInterfacesConfiguration.addTo(&mut dpdkRteInitData, &self.sys_path);
+
+		let pci_devices_finisher = PciDevicesFinisher
 		{
-			unbinds: unbinds,
+			unbinds,
 		};
-		finishers.push(Box::new(pciDevicesFinisher));
-		
+		finishers.push(Box::new(pci_devices_finisher));
+
 		(dpdkRteInitData, ethernetPortConfigurations)
 	}
-	
+
 	pub fn changeResourceLimits(&self)
 	{
 		self.resource_limits.change();

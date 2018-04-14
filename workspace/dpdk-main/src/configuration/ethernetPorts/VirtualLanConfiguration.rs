@@ -10,16 +10,16 @@ struct VirtualLanConfiguration
 	settings: VirtualLanValue,
 	ipV4Addresses: HashMap<Ipv4Addr, IpV4AddressConfiguration>,
 	ipV6Addresses: HashMap<Ipv6Addr, IpV6AddressConfiguration>,
-	
+
 	// The black lists could operate at the level of a locally bound IP address, but they are not intended to be an access control. Rather, it is intended to let us drop traffic that is coming from misconfigured or DoS'ing hosts
 	// This lets us use them to 'defend' the ARP cache (and IPv6 equivalents) from some poisoning attacks
 	sourceIpV4NetworksToBlackList: IpNetworkAddressBlackListConfiguration<IpV4NetworkAddress>,
 	sourceIpV6NetworksToBlackList: IpNetworkAddressBlackListConfiguration<IpV6NetworkAddress>,
-	
+
 	// Routing could be different for different local IP addresses but this is a niche use case
 	ipV4RoutingTableConfiguration: IpV4RoutingTableConfiguration,
 	arp: ArpCacheConfiguration,
-	
+
 	// Fragmentation
 	ipV4Fragmentation: IpFragmentationConfiguration,
 	ipV6Fragmentation: IpFragmentationConfiguration,
@@ -61,21 +61,21 @@ impl VirtualLanConfiguration
 	{
 		self.settings.equivalentToUnspecified()
 	}
-	
+
 	pub fn asVirtualLanTrafficClassIndicator(&self, virtualLanId: Option<VirtualLanId>) -> VirtualLanTrafficClassIndicator
 	{
 		VirtualLanTrafficClassIndicator
 		{
 			virtualLanValue: self.settings,
-			virtualLanId: virtualLanId
+			virtualLanId
 		}
 	}
-	
+
 	fn createArpCache(&self) -> ArpCache
 	{
 		self.arp.createArpCache()
 	}
-	
+
 	pub fn createIpState(&self, ethernetPort: EthernetPort, queueIdentifier: QueueIdentifier, logicalCoreMemorySocket: Option<NumaSocketId>, defaultEthernetAddress: &UnicastEthernetAddress, udpFragmentsAndTcpControlPacketBufferPool: *mut rte_mempool, virtualLanTagging: &VirtualLanTagging, mut arpCaches: Arc<RwLock<HashMap<VirtualLanKey, ArpCache>>>) -> IpState
 	{
 		let arpCache =
@@ -83,100 +83,100 @@ impl VirtualLanConfiguration
 			let mut arpCaches = arpCaches.write().unwrap();
 			arpCaches.entry(virtualLanTagging.virtualLanKey()).or_insert_with(|| self.createArpCache()).clone()
 		};
-		
+
 		let name = LongestPrefixMatchName
 		{
 			ethernetPortIdentifier: ethernetPort.portIdentifier(),
-			queueIdentifier: queueIdentifier,
+			queueIdentifier,
 			virtualLanKey: virtualLanTagging.virtualLanKey(),
 		};
-		
+
 		IpState
 		{
 			ipV4State: self.createIpV4State(ethernetPort, &name, logicalCoreMemorySocket, defaultEthernetAddress, udpFragmentsAndTcpControlPacketBufferPool, virtualLanTagging, arpCache),
 			ipV6State: self.createIpV6State(ethernetPort, &name, logicalCoreMemorySocket, defaultEthernetAddress, udpFragmentsAndTcpControlPacketBufferPool, virtualLanTagging),
 		}
 	}
-	
+
 	fn createIpV4State(&self, ethernetPort: EthernetPort, name: &LongestPrefixMatchName, logicalCoreMemorySocket: Option<NumaSocketId>, defaultEthernetAddress: &UnicastEthernetAddress, udpFragmentsAndTcpControlPacketBufferPool: *mut rte_mempool, virtualLanTagging: &VirtualLanTagging, arpCache: ArpCache) -> IpV4State
 	{
 		let routingTable = Rc::new(RefCell::new(self.createIpV4RoutingTable(name, logicalCoreMemorySocket, arpCache.clone(), virtualLanTagging.size() as u16)));
-		
+
 		let sourceIpV4AddressesBlackList = self.createSourceIpV4AddressesBlackList(name, logicalCoreMemorySocket);
-		
+
 		let mut ourIpV4Addresses = HashMap::with_capacity(self.ipV4Addresses.len());
-		
+
 		// These need to be used ONLY within a Logical Core
 		for (ipV4Address, ipV4AddressConfiguration) in self.ipV4Addresses.iter()
 		{
 			let ethernetAddress = ipV4AddressConfiguration.ethernetAddress(defaultEthernetAddress);
-			
+
 			let (tcpContext, tcpDevice) = ipV4AddressConfiguration.createTcpContextAndDevice(ethernetPort, logicalCoreMemorySocket, udpFragmentsAndTcpControlPacketBufferPool, ipV4Address, virtualLanTagging, routingTable.clone());
 			let (udpContext, udpDevice) = ipV4AddressConfiguration.createUdpContextAndDevice(ethernetPort, logicalCoreMemorySocket, udpFragmentsAndTcpControlPacketBufferPool, ipV4Address, virtualLanTagging, routingTable.clone());
-			
-			ourIpV4Addresses.insert(IpV4HostAddress::fromIpv4Addr(ipV4Address), IpAddressInformation
+
+			ourIpV4Addresses.insert(InternetProtocolVersion4HostAddress::from_ipv4_addr(ipV4Address), IpAddressInformation
 			{
 				ourEthernetAddress: ethernetAddress,
-				tcpContext: tcpContext,
+				tcpContext,
 				tcpReceiveBurstBuffer: ReceiveBurstBuffer::new(tcpDevice),
-				udpContext: udpContext,
+				udpContext,
 				udpReceiveBurstBuffer: ReceiveBurstBuffer::new(udpDevice),
 			});
 		}
-		
+
 		IpV4State
 		{
 			sourceIpV4AddressBlackList: sourceIpV4AddressesBlackList,
-			arpCache: arpCache,
-			ourIpV4Addresses: ourIpV4Addresses,
+			arpCache,
+			ourIpV4Addresses,
 			packetReassemblyTable: self.ipV4Fragmentation.create(logicalCoreMemorySocket),
 		}
 	}
-	
+
 	fn createIpV6State(&self, ethernetPort: EthernetPort, name: &LongestPrefixMatchName, logicalCoreMemorySocket: Option<NumaSocketId>, defaultEthernetAddress: &UnicastEthernetAddress, udpFragmentsAndTcpControlPacketBufferPool: *mut rte_mempool, virtualLanTagging: &VirtualLanTagging) -> IpV6State
 	{
 		let sourceIpV6AddressesBlackList = self.createSourceIpV6AddressesBlackList(name, logicalCoreMemorySocket);
-		
+
 		let mut ourIpV6Addresses = HashMap::with_capacity(self.ipV6Addresses.len());
-		
+
 		// These need to be used ONLY within a Logical Core
 		for (ipV6Address, ipV6AddressConfiguration) in self.ipV6Addresses.iter()
 		{
 			let ethernetAddress = ipV6AddressConfiguration.ethernetAddress(defaultEthernetAddress);
-			
+
 			let (tcpContext, tcpDevice) = ipV6AddressConfiguration.createTcpContextAndDevice(ethernetPort, logicalCoreMemorySocket, udpFragmentsAndTcpControlPacketBufferPool, ipV6Address, virtualLanTagging);
 			let (udpContext, udpDevice) = ipV6AddressConfiguration.createUdpContextAndDevice(ethernetPort, logicalCoreMemorySocket, udpFragmentsAndTcpControlPacketBufferPool, ipV6Address, virtualLanTagging);
-			
-			ourIpV6Addresses.insert(IpV6HostAddress::fromIpv6Addr(ipV6Address), IpAddressInformation
+
+			ourIpV6Addresses.insert(InternetProtocolVersion6HostAddress::from_ipv6_addr(ipV6Address), IpAddressInformation
 			{
 				ourEthernetAddress: ethernetAddress,
-				tcpContext: tcpContext,
-				tcpDevice: tcpDevice,
-				udpContext: udpContext,
-				udpDevice: udpDevice,
+				tcpContext,
+				tcpDevice,
+				udpContext,
+				udpDevice,
 			});
 		}
-		
+
 		IpV6State
 		{
 			sourceIpV6AddressBlackList: sourceIpV6AddressesBlackList,
-			ourIpV6Addresses: ourIpV6Addresses,
+			ourIpV6Addresses,
 			packetReassemblyTable: self.ipV6Fragmentation.create(logicalCoreMemorySocket),
 		}
 	}
-	
+
 	fn createIpV4RoutingTable(&self, name: &LongestPrefixMatchName, logicalCoreMemorySocket: Option<NumaSocketId>, arpCache: ArpCache, virtualLanSizeCorrection: u16) -> IpV4RoutingTable
 	{
 		let mut routingTable = IpV4RoutingTable::new(name, logicalCoreMemorySocket, arpCache, self.ipV4RoutingTableConfiguration.defaultMaximumTransmissionUnitAfterVirtualLanAdjustments(virtualLanSizeCorrection));
 		self.ipV4RoutingTableConfiguration.reconfigure(&mut routingTable, virtualLanSizeCorrection);
 		routingTable
 	}
-	
+
 	fn createSourceIpV4AddressesBlackList(&self, name: &LongestPrefixMatchName, logicalCoreMemorySocket: Option<NumaSocketId>) -> IpV4AddressBlackList
 	{
 		self.sourceIpV4NetworksToBlackList.create(name, logicalCoreMemorySocket)
 	}
-	
+
 	fn createSourceIpV6AddressesBlackList(&self, name: &LongestPrefixMatchName, logicalCoreMemorySocket: Option<NumaSocketId>) -> IpV6AddressBlackList
 	{
 		self.sourceIpV6NetworksToBlackList.create(name, logicalCoreMemorySocket)

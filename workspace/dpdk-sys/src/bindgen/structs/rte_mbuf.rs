@@ -8,27 +8,27 @@ pub struct rte_mbuf
 {
 	pub cacheline0: MARKER,
 	pub buf_addr: *mut c_void,
-	pub __bindgen_anon_1: rte_mbuf__bindgen_ty_1,
+	pub _1: rte_mbuf_1,
 	pub rearm_data: MARKER64,
 	pub data_off: u16,
-	pub __bindgen_anon_2: rte_mbuf__bindgen_ty_2,
+	pub _2: rte_mbuf_2,
 	pub nb_segs: u16,
 	pub port: u16,
 	pub ol_flags: u64,
 	pub rx_descriptor_fields1: MARKER,
-	pub __bindgen_anon_3: rte_mbuf__bindgen_ty_3,
+	pub _3: rte_mbuf_3,
 	pub pkt_len: u32,
 	pub data_len: u16,
 	pub vlan_tci: u16,
-	pub hash: rte_mbuf__bindgen_ty_4,
+	pub hash: rte_mbuf_4,
 	pub vlan_tci_outer: u16,
 	pub buf_len: u16,
 	pub timestamp: u64,
 	pub cacheline1: MARKER,
-	pub __bindgen_anon_4: rte_mbuf__bindgen_ty_5,
+	pub _4: rte_mbuf_5,
 	pub pool: *mut rte_mempool,
 	pub next: *mut rte_mbuf,
-	pub __bindgen_anon_5: rte_mbuf__bindgen_ty_6,
+	pub _5: rte_mbuf_6,
 	pub priv_size: u16,
 	pub timesync: u16,
 	pub seqn: u32,
@@ -50,6 +50,6 @@ impl Debug for rte_mbuf
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_mbuf {{ buf_addr: {:?}, __bindgen_anon_1: {:?}, __bindgen_anon_2: {:?}, __bindgen_anon_3: {:?}, hash: {:?}, __bindgen_anon_4: {:?}, pool: {:?}, next: {:?}, __bindgen_anon_5: {:?} }}", self.buf_addr, self.__bindgen_anon_1, self.__bindgen_anon_2, self.__bindgen_anon_3, self.hash, self.__bindgen_anon_4, self.pool, self.next, self.__bindgen_anon_5)
+		write!(f, "rte_mbuf {{ buf_addr: {:?}, _1: {:?}, _2: {:?}, _3: {:?}, hash: {:?}, _4: {:?}, pool: {:?}, next: {:?}, _5: {:?} }}", self.buf_addr, self._1, self._2, self._3, self.hash, self._4, self.pool, self.next, self._5)
 	}
 }

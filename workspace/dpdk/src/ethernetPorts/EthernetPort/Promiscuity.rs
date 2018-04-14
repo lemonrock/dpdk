@@ -7,19 +7,19 @@ impl EthernetPort
 	#[inline(always)]
 	pub fn enablePromiscuousReceive(&self)
 	{
-		unsafe { ::dpdk_sys::rte_eth_promiscuous_enable(self.portIdentifier()) };
+		unsafe { rte_eth_promiscuous_enable(self.portIdentifier()) };
 	}
-	
+
 	#[inline(always)]
 	pub fn disablePromiscuousReceive(&self)
 	{
-		unsafe { ::dpdk_sys::rte_eth_promiscuous_disable(self.portIdentifier()) };
+		unsafe { rte_eth_promiscuous_disable(self.portIdentifier()) };
 	}
-	
+
 	#[inline(always)]
 	pub fn isReceivePromiscuous(&self) -> Result<bool, ()>
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_promiscuous_get(self.portIdentifier()) };
+		let result = unsafe { rte_eth_promiscuous_get(self.portIdentifier()) };
 		if unlikely(result == -1)
 		{
 			Err(())

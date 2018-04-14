@@ -38,7 +38,7 @@ impl Mount
 		use self::ErrorKind::*;
 		
 		let target = mount_point.to_c_string();
-		match unsafe { ::libc::umount2(target.as_ptr(), unmount_flags.bits()) }
+		match unsafe { umount2(target.as_ptr(), unmount_flags.bits()) }
 		{
 			0 => Ok(()),
 			
@@ -172,7 +172,7 @@ impl Mount
 		let file_system_type = self.file_system_type.to_c_string();
 		let data = to_mount_options_c_string(&self.mount_options);
 		
-		match unsafe { ::libc::mount(self.source.as_ptr(), target.as_ptr(), file_system_type.as_ptr(), mount_flags.bits(), data.as_ptr() as *mut c_void) }
+		match unsafe { mount(self.source.as_ptr(), target.as_ptr(), file_system_type.as_ptr(), mount_flags.bits(), data.as_ptr() as *mut c_void) }
 		{
 			0 => Ok(()),
 			

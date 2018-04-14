@@ -6,7 +6,7 @@
 #[derive(Serialize, Deserialize)]
 pub struct IpV4Route
 {
-	router: IpV4HostAddress,
+	router: InternetProtocolVersion4HostAddress,
 	tldkMtu: MaximumTransmissionUnitSizeInBytes,
 }
 

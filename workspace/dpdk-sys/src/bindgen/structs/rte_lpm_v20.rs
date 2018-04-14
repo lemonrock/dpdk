@@ -11,7 +11,7 @@ pub struct rte_lpm_v20
 	pub rule_info: [rte_lpm_rule_info; 32usize],
 	pub tbl24: [rte_lpm_tbl_entry_v20; 16777216usize],
 	pub tbl8: [rte_lpm_tbl_entry_v20; 65536usize],
-	pub rules_tbl: __IncompleteArrayField<rte_lpm_rule_v20>,
+	pub rules_tbl: IncompleteArrayField<rte_lpm_rule_v20>,
 	pub __bindgen_padding_0: [u32; 7usize],
 	pub __bindgen_align: [u8; 0usize],
 }

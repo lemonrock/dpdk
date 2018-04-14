@@ -10,7 +10,7 @@ pub struct rte_tm_level_capabilities
 	pub n_nodes_leaf_max: u32,
 	pub non_leaf_nodes_identical: c_int,
 	pub leaf_nodes_identical: c_int,
-	pub __bindgen_anon_1: rte_tm_level_capabilities__bindgen_ty_1,
+	pub _1: rte_tm_level_capabilities_1,
 }
 
 impl Default for rte_tm_level_capabilities
@@ -27,6 +27,6 @@ impl Debug for rte_tm_level_capabilities
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_tm_level_capabilities {{ __bindgen_anon_1: {:?} }}", self.__bindgen_anon_1)
+		write!(f, "rte_tm_level_capabilities {{ _1: {:?} }}", self._1)
 	}
 }

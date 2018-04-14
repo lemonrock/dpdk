@@ -46,7 +46,7 @@ pub trait Active : Default + Clone
 		values
 	}
 	
-	fn parseFromFilePath(path: &Path) -> Result<Self, ListParseError>
+	fn parse_from_file_path(path: &Path) -> Result<Self, ListParseError>
 	{
 		let mut openFile = File::open(path)?;
 		let mut rawString = String::with_capacity(256);

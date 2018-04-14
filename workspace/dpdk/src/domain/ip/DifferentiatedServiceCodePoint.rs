@@ -2,9 +2,12 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// Differentiated Service Code Point (DSCP) value.
+///
+/// Defaults to `DefaultForwarding`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Serialize, Deserialize)]
-pub struct DifferentiatedServiceCodePoint(pub u8);
+pub struct DifferentiatedServiceCodePoint(pub(crate) u8);
 
 impl Default for DifferentiatedServiceCodePoint
 {
@@ -15,54 +18,74 @@ impl Default for DifferentiatedServiceCodePoint
 	}
 }
 
+impl From<u8> for DifferentiatedServiceCodePoint
+{
+	#[inline(always)]
+	fn from(value: u8) -> Self
+	{
+		DifferentiatedServiceCodePoint(value)
+	}
+}
+
+impl Into<u8> for DifferentiatedServiceCodePoint
+{
+	#[inline(always)]
+	fn into(self) -> u8
+	{
+		self.0
+	}
+}
+
 impl DifferentiatedServiceCodePoint
 {
-	// AKA Best Effort
+	// Also known as Best Effort.
 	pub const DefaultForwarding: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b000000);
 	
+	/// Expedited Forwarding.
 	pub const ExpeditedForwarding: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b101110);
 	
+	/// Voice Admit.
 	pub const VoiceAdmit: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b101100);
 	
-	// AKA AF11
+	/// Also known as AF11.
 	pub const AssuredForwardingClass1LowDropProbability: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b001010);
 	
-	// AKA AF12
+	/// Also known as AF12.
 	pub const AssuredForwardingClass1MediumDropProbability: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b001100);
 	
-	// AKA AF13
+	/// Also known as AF13.
 	pub const AssuredForwardingClass1HighDropProbability: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b001110);
 	
-	// AKA AF21
+	/// Also known as AF21.
 	pub const AssuredForwardingClass2LowDropProbability: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b010010);
 	
-	// AKA AF22
+	/// Also known as AF22.
 	pub const AssuredForwardingClass2MediumDropProbability: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b010100);
 	
-	// AKA AF23
+	/// Also known as AF23.
 	pub const AssuredForwardingClass2HighDropProbability: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b010110);
 	
-	// AKA AF31
+	/// Also known as AF31.
 	pub const AssuredForwardingClass3LowDropProbability: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b011010);
 	
-	// AKA AF32
+	/// Also known as AF32.
 	pub const AssuredForwardingClass3MediumDropProbability: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b011100);
 	
-	// AKA AF43
+	/// Also known as AF43.
 	pub const AssuredForwardingClass3HighDropProbability: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b011110);
 	
-	// AKA AF41
+	/// Also known as AF41.
 	pub const AssuredForwardingClass4LowDropProbability: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b100010);
 	
-	// AKA AF42
+	/// Also known as AF42.
 	pub const AssuredForwardingClass4MediumDropProbability: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b100100);
 	
-	// AKA AF43
+	/// Also known as AF43.
 	pub const AssuredForwardingClass4HighDropProbability: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b100110);
 	
-	// ?
+	/// ?
 	pub const InterNetworkControl: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b110000);
 	
-	// ?
+	/// ?
 	pub const NetworkControl: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b111000);
 }

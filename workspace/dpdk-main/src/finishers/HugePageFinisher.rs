@@ -13,7 +13,7 @@ pub struct HugePageFinisher
 impl Finisher for HugePageFinisher
 {
 	#[allow(unused_variables)]
-	fn finish(&self, sysPath: &Path)
+	fn finish(&self, sys_path: &Path)
 	{
 		if let Some(ref mountPath) = self.mountPath
 		{
@@ -43,14 +43,14 @@ impl HugePageFinisher
 		weCreated: false,
 		weMounted: false,
 	};
-	
+
 	pub fn new(mountPoint: &Path, weCreated: bool, weMounted: bool) -> Self
 	{
 		HugePageFinisher
 		{
 			mountPath: Some(PathBuf::from(mountPoint)),
-			weCreated: weCreated,
-			weMounted: weMounted,
+			weCreated,
+			weMounted,
 		}
 	}
 }

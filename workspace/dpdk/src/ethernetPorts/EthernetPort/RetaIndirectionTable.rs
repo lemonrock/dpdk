@@ -7,26 +7,26 @@ impl EthernetPort
 	#[inline(always)]
 	pub fn updateRetaIndirectionTable(&self, receiveSideScalingRetaIndirectionTable: &mut ReceiveSideScalingRetaIndirectionTable) -> Result<(), UnsupportedByHardwareError>
 	{
-		match unsafe { ::dpdk_sys::rte_eth_dev_rss_reta_update(self.portIdentifier(), receiveSideScalingRetaIndirectionTable.as_rte_eth_rss_reta_entry64(), receiveSideScalingRetaIndirectionTable.retaSize()) }
+		match unsafe { rte_eth_dev_rss_reta_update(self.portIdentifier(), receiveSideScalingRetaIndirectionTable.as_rte_eth_rss_reta_entry64(), receiveSideScalingRetaIndirectionTable.retaSize()) }
 		{
 			0 => Ok(()),
 			NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-			
+
 			NegativeE::EINVAL => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
 			result @ _ => panic!("Unexpected error code '{}' from rte_eth_dev_rss_reta_update()", result),
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn queryRetaIndirectionTable(&self, size: PowerOfTwoSixteenBit) -> Result<ReceiveSideScalingRetaIndirectionTable, UnsupportedByHardwareError>
 	{
 		let mut receiveSideScalingRetaIndirectionTable = ReceiveSideScalingRetaIndirectionTable::empty(size);
-		
-		match unsafe { ::dpdk_sys::rte_eth_dev_rss_reta_query(self.portIdentifier(), receiveSideScalingRetaIndirectionTable.as_rte_eth_rss_reta_entry64(), receiveSideScalingRetaIndirectionTable.retaSize()) }
+
+		match unsafe { rte_eth_dev_rss_reta_query(self.portIdentifier(), receiveSideScalingRetaIndirectionTable.as_rte_eth_rss_reta_entry64(), receiveSideScalingRetaIndirectionTable.retaSize()) }
 		{
 			0 => Ok(receiveSideScalingRetaIndirectionTable),
 			NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-			
+
 			NegativeE::EINVAL => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
 			result @ _ => panic!("Unexpected error code '{}' from rte_eth_dev_rss_reta_query()", result),
 		}

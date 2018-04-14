@@ -2,4 +2,4 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-pub type rte_eal_alarm_callback = Option<unsafe extern "C" fn(arg: *mut c_void)>;
+pub type rte_eal_alarm_callback = unsafe extern "C" fn(arg: *mut c_void);

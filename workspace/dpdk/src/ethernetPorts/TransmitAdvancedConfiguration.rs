@@ -14,24 +14,17 @@ pub enum TransmitAdvancedConfiguration
 impl TransmitAdvancedConfiguration
 {
 	#[allow(trivial_casts)]
-	pub fn as_rte_eth_conf_AnonymousUnion_tx_adv_conf(&self) -> rte_eth_conf_AnonymousUnion_tx_adv_conf
+	pub fn as_eth_conf__bindgen_ty_2(&self) -> rte_eth_conf__bindgen_ty_2
 	{
-		let result = rte_eth_conf_AnonymousUnion_tx_adv_conf::default();
+		use self::TransmitAdvancedConfiguration::*;
 		
-		unsafe
+		match *self
 		{
-			let raw: *mut u8 = transmute(&result._bindgen_data_);
-			
-			match *self
-			{
-				TransmitAdvancedConfiguration::None => (),
-				TransmitAdvancedConfiguration::DataCentreBridging(ref data) => copy(raw, data as *const rte_eth_dcb_tx_conf as *mut rte_eth_dcb_tx_conf as *mut u8, size_of_val(&data)),
-				TransmitAdvancedConfiguration::VmdQ(ref data) => copy(raw, data as *const rte_eth_vmdq_tx_conf as *mut rte_eth_vmdq_tx_conf as *mut u8, size_of_val(&data)),
-				TransmitAdvancedConfiguration::DataCentreBridgingAndVmdQ(ref data) => copy(raw, data as *const rte_eth_vmdq_dcb_tx_conf as *mut rte_eth_vmdq_dcb_tx_conf as *mut u8, size_of_val(&data)),
-			}
+			None => unsafe { uninitialized() },
+			DataCentreBridging(ref data) => unsafe { transmute_copy(data) },
+			VmdQ(ref data) => unsafe { transmute_copy(data) },
+			DataCentreBridgingAndVmdQ(ref data) => unsafe { transmute_copy(data) },
 		}
-		
-		result
 	}
 }
 

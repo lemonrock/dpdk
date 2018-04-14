@@ -6,7 +6,7 @@
 pub struct rte_cryptodev_capabilities
 {
 	pub op: rte_crypto_op_type,
-	pub __bindgen_anon_1: rte_cryptodev_capabilities__bindgen_ty_1,
+	pub _1: rte_cryptodev_capabilities_1,
 }
 
 impl Default for rte_cryptodev_capabilities
@@ -23,6 +23,6 @@ impl Debug for rte_cryptodev_capabilities
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_cryptodev_capabilities {{ op: {:?}, __bindgen_anon_1: {:?} }}", self.op, self.__bindgen_anon_1)
+		write!(f, "rte_cryptodev_capabilities {{ op: {:?}, _1: {:?} }}", self.op, self._1)
 	}
 }

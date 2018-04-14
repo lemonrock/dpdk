@@ -6,13 +6,13 @@
 #[derive(Serialize, Deserialize)]
 pub struct IpV4NetworkAddress
 {
-	#[serde(serialize_with = "IpV4NetworkAddress::serde_serialize_network", deserialize_with = "IpV4NetworkAddress::serde_deserialize_network")] pub network: IpV4HostAddress,
+	#[serde(serialize_with = "IpV4NetworkAddress::serde_serialize_network", deserialize_with = "IpV4NetworkAddress::serde_deserialize_network")] pub network: InternetProtocolVersion4HostAddress,
 	pub maskBits: IpV4MaskBits,
 }
 
 impl IpNetworkAddress for IpV4NetworkAddress
 {
-	type IpHostAddress = IpV4HostAddress;
+	type IpHostAddress = InternetProtocolVersion4HostAddress;
 	
 	#[inline(always)]
 	fn network(&self) -> &Self::IpHostAddress
@@ -32,80 +32,79 @@ impl IpV4NetworkAddress
 	// RFC 1122
 	pub const Loopback: IpV4NetworkAddress = IpV4NetworkAddress
 	{
-		network: ipv4HostAddressFromNumbers(127, 0, 0, 0),
+		network: InternetProtocolVersion4HostAddress([127, 0, 0, 0]),
 		maskBits: IpV4MaskBits::_8,
 	};
 	
 	pub const Multicast: IpV4NetworkAddress = IpV4NetworkAddress
 	{
-		network: ipv4HostAddressFromNumbers(224, 0, 0, 0),
+		network: InternetProtocolVersion4HostAddress([224, 0, 0, 0]),
 		maskBits: IpV4MaskBits::_4,
 	};
 	
 	// RFC 5737
 	pub const TestNet1: IpV4NetworkAddress = IpV4NetworkAddress
 	{
-		network: ipv4HostAddressFromNumbers(192, 0, 2, 0),
+		network: InternetProtocolVersion4HostAddress([192, 0, 2, 0]),
 		maskBits: IpV4MaskBits::_24,
 	};
 	
 	// RFC 5737
 	pub const TestNet2: IpV4NetworkAddress = IpV4NetworkAddress
 	{
-		network: ipv4HostAddressFromNumbers(198, 51, 100, 0),
+		network: InternetProtocolVersion4HostAddress([198, 51, 100, 0]),
 		maskBits: IpV4MaskBits::_24,
 	};
 	
 	// RFC 5737
 	pub const TestNet3: IpV4NetworkAddress = IpV4NetworkAddress
 	{
-		network: ipv4HostAddressFromNumbers(203, 0, 113, 0),
+		network: InternetProtocolVersion4HostAddress([203, 0, 113, 0]),
 		maskBits: IpV4MaskBits::_24,
 	};
 	
 	// RFC 1918
 	pub const Private1: IpV4NetworkAddress = IpV4NetworkAddress
 	{
-		network: ipv4HostAddressFromNumbers(10, 0, 0, 0),
+		network: InternetProtocolVersion4HostAddress([10, 0, 0, 0]),
 		maskBits: IpV4MaskBits::_8,
 	};
 	
 	// RFC 1918
 	pub const Private2: IpV4NetworkAddress = IpV4NetworkAddress
 	{
-		network: ipv4HostAddressFromNumbers(172, 16, 0, 0),
+		network: InternetProtocolVersion4HostAddress([172, 16, 0, 0]),
 		maskBits: IpV4MaskBits::_12,
 	};
 	
 	// RFC 1918
 	pub const Private3: IpV4NetworkAddress = IpV4NetworkAddress
 	{
-		network: ipv4HostAddressFromNumbers(192, 168, 0, 0),
+		network: InternetProtocolVersion4HostAddress([192, 168, 0, 0]),
 		maskBits: IpV4MaskBits::_16,
 	};
 	
 	// RFC 3927
 	pub const LinkLocal: IpV4NetworkAddress = IpV4NetworkAddress
 	{
-		network: ipv4HostAddressFromNumbers(169, 254, 0, 0),
+		network: InternetProtocolVersion4HostAddress([169, 254, 0, 0]),
 		maskBits: IpV4MaskBits::_16,
 	};
 	
 	#[inline(always)]
-	pub fn contains(&self, ipV4HostAddress: IpV4HostAddress) -> bool
+	pub fn contains(&self, ipV4HostAddress: InternetProtocolVersion4HostAddress) -> bool
 	{
 		ipV4HostAddress & self.maskBits.asMask() == self.network
 	}
 	
-	fn serde_serialize_network<S: Serializer>(value: &IpV4HostAddress, serializer: S) -> Result<S::Ok, S::Error>
+	fn serde_serialize_network<S: Serializer>(value: &InternetProtocolVersion4HostAddress, serializer: S) -> Result<S::Ok, S::Error>
 	{
 		Ipv4Addr::from(*value).serialize(serializer)
 	}
 	
-	fn serde_deserialize_network<D: Deserializer>(deserializer: D) -> Result<IpV4HostAddress, D::Error>
+	fn serde_deserialize_network<D: Deserializer>(deserializer: D) -> Result<InternetProtocolVersion4HostAddress, D::Error>
 	{
-		let ipV4Addr = Ipv4Addr::deserialize(deserializer)?;
-		let octets = ipV4Addr.octets();
-		Ok(ipv4HostAddressFromNumbers(octets[0], octets[1], octets[2], octets[3]))
+		let ipv4_addr = Ipv4Addr::deserialize(deserializer)?;
+		Ok(InternetProtocolVersion4HostAddress::from_ipv4_addr(&ipv4_addr))
 	}
 }

@@ -5,7 +5,7 @@
 #[repr(C)]
 pub struct rte_devargs
 {
-	pub next: rte_devargs__bindgen_ty_1,
+	pub next: rte_devargs_1,
 	pub type_: rte_devtype,
 	pub policy: rte_dev_policy,
 	pub bus: *mut rte_bus,

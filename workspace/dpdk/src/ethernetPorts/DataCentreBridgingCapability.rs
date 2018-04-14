@@ -1,13 +1,13 @@
-// This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+// This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk; including this file; may be copied; modified; propagated; or distributed except according to the terms contained in the COPYRIGHT file.
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
 bitflags!
 {
-	pub flags DataCentreBridgingCapability: u32
+	pub struct DataCentreBridgingCapability: u32
 	{
-		const PriorityGroup = ::dpdk_sys::ETH_DCB_PG_SUPPORT,
-		const PriorityFlowControl = ::dpdk_sys::ETH_DCB_PFC_SUPPORT,
+		const PriorityGroup = ETH_DCB_PG_SUPPORT;
+		const PriorityFlowControl = ETH_DCB_PFC_SUPPORT;
 	}
 }
 

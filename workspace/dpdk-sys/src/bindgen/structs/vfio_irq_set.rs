@@ -10,7 +10,7 @@ pub struct vfio_irq_set
 	pub index: __u32,
 	pub start: __u32,
 	pub count: __u32,
-	pub data: __IncompleteArrayField<__u8>,
+	pub data: IncompleteArrayField<__u8>,
 }
 
 impl Default for vfio_irq_set

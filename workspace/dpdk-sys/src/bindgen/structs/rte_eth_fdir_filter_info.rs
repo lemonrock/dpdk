@@ -6,7 +6,7 @@
 pub struct rte_eth_fdir_filter_info
 {
 	pub info_type: rte_eth_fdir_filter_info_type,
-	pub info: rte_eth_fdir_filter_info__bindgen_ty_1,
+	pub info: rte_eth_fdir_filter_info_1,
 }
 
 impl Default for rte_eth_fdir_filter_info

@@ -6,7 +6,7 @@
 #[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub struct tle_stream_cb
 {
-	pub func: Option<unsafe extern "C" fn(arg1: *mut c_void, arg2: *mut tle_stream)>,
+	pub func: unsafe extern "C" fn(arg1: *mut c_void, arg2: *mut tle_stream),
 	pub data: *mut c_void,
 }
 

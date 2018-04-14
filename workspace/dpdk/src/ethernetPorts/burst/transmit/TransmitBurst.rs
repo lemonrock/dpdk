@@ -13,28 +13,28 @@ impl TransmitBurst
 {
 	pub fn new(ethernetPort: EthernetPort, transmitQueueIdentifier: QueueIdentifier) -> Self
 	{
-		let underlyingEthernetDevice = ethernetPort.underlyingEthernetDevice();
-		
+		let underlying_ethernet_device = ethernetPort.underlying_ethernet_device();
+
 		let data = unsafe
 		{
-			let ethernetDeviceData = *(underlyingEthernetDevice.data);
+			let ethernetDeviceData = *(underlying_ethernet_device.data);
 			*(ethernetDeviceData.tx_queues.offset(transmitQueueIdentifier as isize))
 		};
-		
+
 		Self
 		{
-			function: underlyingEthernetDevice.tx_pkt_burst.unwrap(),
-			data: data,
+			function: underlying_ethernet_device.tx_pkt_burst.unwrap(),
+			data,
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn transmit(&self, queue: *mut *mut rte_mbuf, count: usize) -> usize
 	{
 		let numberTransmitted = unsafe { (self.function)(self.data, queue, count as u16) } as usize;
-		
+
 		debug_assert!(numberTransmitted <= count, "transmitBurstFunction transmitted more '{}' than was possible, '{}'", numberTransmitted, count);
-		
+
 		numberTransmitted
 	}
 }

@@ -2,22 +2,11 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use ::domain::ipNetworkAddresses::*;
-use ::libc::in_addr;
-use ::libc::in6_addr;
-use ::std::mem::transmute;
-use ::std::mem::uninitialized;
-use ::std::net::Ipv4Addr;
-use ::std::net::Ipv6Addr;
-use ::std::ptr::copy_nonoverlapping;
+use super::*;
+use super::ipNetworkAddresses::*;
 
 
-include!("IpV4HostAddress.rs");
-include!("IpV4HostAddressEx.rs");
-include!("ipv4HostAddressFromNumbers.rs");
-include!("IpV4HostAddressOctets.rs");
-include!("ipV4HostAddressToMappedIpV6HostAddress.rs");
-include!("IpV6HostAddress.rs");
-include!("IpV6HostAddressEx.rs");
-include!("SizeOfIpV4HostAddress.rs");
-include!("SizeOfIpV6HostAddress.rs");
+include!("InternetProtocolVersion4HostAddress.rs");
+include!("InternetProtocolVersion6HostAddress.rs");
+include!("InternetProtocolVersion6MulticastAddressLifetime.rs");
+include!("InternetProtocolVersion6MulticastAddressScope.rs");

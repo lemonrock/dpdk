@@ -7,10 +7,10 @@
 pub struct NumaSockets
 {
 	pub isANumaMachine: bool,
-	pub logicalCoresActive: LogicalCoresActive,
+	pub logical_cores_active: LogicalCoresActive,
 	pub activeCpusByNumaSocket: NumaSocketMap<HashSet<LogicalCore>>,
-	pub masterLogicalCoreNumaSocketId: NumaSocketId,
-	pub masterLogicalCore: LogicalCore,
+	pub master_logical_core_numa_socket_id: NumaSocketId,
+	pub master_logical_core: LogicalCore,
 }
 
 impl NumaSockets
@@ -19,7 +19,7 @@ impl NumaSockets
 	{
 		self.activeCpusByNumaSocket.isValidNumaSocket(index)
 	}
-	
+
 	pub fn iterateUsefulSocketsIfIsANumaMachine<F>(&self, callback: F)
 	where F: FnMut(NumaSocketId) -> ()
 	{
@@ -28,12 +28,12 @@ impl NumaSockets
 			self.activeCpusByNumaSocket.iterateSockets(callback);
 		}
 	}
-	
+
 	fn allocateSlaveAndMasterLogicalCoresAsBestWeCanWhenThereAreTooManyLogicalCoreUsers(&self, logicalCoreUsers: &mut [&mut LogicalCoreUser])
 	{
-		let availableCores = self.logicalCoresActive.asVec();
+		let availableCores = self.logical_cores_active.asVec();
 		let numberOfAvailableCores = availableCores.len();
-		
+
 		let mut nextCoreIndex = 0;
 		for logicalCoreUser in logicalCoreUsers
 		{
@@ -46,41 +46,41 @@ impl NumaSockets
 			nextCoreIndex += 1;
 		}
 	}
-	
+
 	pub fn allocateSlaveLogicalCores<'a>(&self, logicalCoreUsers: &'a mut [&'a mut LogicalCoreUser])
 	{
-		assert!(logicalCoreUsers.len() != 0, "logicalCoreUsers can not be empty");
-		
+		assert_ne!(logicalCoreUsers.len(), 0, "logicalCoreUsers can not be empty");
+
 		// Are there more logical core users than available slave cores?
 		// Then we need to use a different allocation strategy; no one is going to get their first choice of NUMA socket
-		if logicalCoreUsers.len() > (self.logicalCoresActive.count() - 1)
+		if logicalCoreUsers.len() > (self.logical_cores_active.count() - 1)
 		{
 			self.allocateSlaveAndMasterLogicalCoresAsBestWeCanWhenThereAreTooManyLogicalCoreUsers(logicalCoreUsers);
 			return;
 		}
-		
+
 		let mut socketCorePairs = Vec::new();
-		self.activeCpusByNumaSocket.iterate(|numaSocketId, activeCpus|
+		self.activeCpusByNumaSocket.iterate(|numa_socket_id, activeCpus|
 		{
 			for logicalCore in activeCpus
 			{
-				if !(numaSocketId == self.masterLogicalCoreNumaSocketId && logicalCore.isMaster())
+				if !(numa_socket_id == self.master_logical_core_numa_socket_id && logicalCore.isMaster())
 				{
-					socketCorePairs.push((numaSocketId, *logicalCore))
+					socketCorePairs.push((numa_socket_id, *logicalCore))
 				}
 			}
 		});
-		
+
 		let mut iterateFairlyOverLogicalCoreUsersStartingWithNext = CircularIterator::new(logicalCoreUsers);
-		
+
 		let mut unwanted = Vec::new();
-		for (numaSocketId, logicalCore) in socketCorePairs
+		for (numa_socket_id, logicalCore) in socketCorePairs
 		{
 			let mut unwantedSocketCorePair = true;
-			
+
 			iterateFairlyOverLogicalCoreUsersStartingWithNext.iter_mut(|logicalCoreUser|
 			{
-				if logicalCoreUser.willMakeUseOf(numaSocketId, logicalCore)
+				if logicalCoreUser.willMakeUseOf(numa_socket_id, logicalCore)
 				{
 					unwantedSocketCorePair = false;
 					true
@@ -90,13 +90,13 @@ impl NumaSockets
 					false
 				}
 			});
-			
+
 			if unwantedSocketCorePair
 			{
 				unwanted.push(logicalCore)
 			}
 		}
-		
+
 		for logicalCore in unwanted
 		{
 			iterateFairlyOverLogicalCoreUsersStartingWithNext.iter_mut(|logicalCoreUser|
@@ -105,22 +105,22 @@ impl NumaSockets
 			});
 		}
 	}
-	
-	pub fn detectNumaSockets(sysPath: &Path, numaNodesData: Option<NumaNodesData>) -> Result<Self, NumaSocketsDiscoveryError>
+
+	pub fn detectNumaSockets(sys_path: &Path, numaNodesData: Option<NumaNodesData>) -> Result<Self, NumaSocketsDiscoveryError>
 	{
 		let mut activeCpusByNumaSocket: NumaSocketMap<HashSet<LogicalCore>> = NumaSocketMap::new();
-		
-		let logicalCoresActive = LogicalCore::online(&sysPath)?;
-		
+
+		let logical_cores_active = LogicalCore::online(&sys_path)?;
+
 		let isANumaMachine = if numaNodesData.is_none()
 		{
-			activeCpusByNumaSocket.putOnce(NumaSocketId::SocketZeroAlwaysExists, logicalCoresActive.asHashSet());
-			
+			activeCpusByNumaSocket.putOnce(NumaSocketId::SocketZeroAlwaysExists, logical_cores_active.asHashSet());
+
 			false
 		}
 		else
 		{
-			let mut shouldNotContainAnyLogicalCoresWhenAllNumaNodesConsidered = logicalCoresActive.clone();
+			let mut shouldNotContainAnyLogicalCoresWhenAllNumaNodesConsidered = logical_cores_active.clone();
 
 			let numaNodesData = numaNodesData.unwrap();
 			let usefulNumaNodes = numaNodesData.nodesThatAreOnlineWithACpuAndMemory();
@@ -128,10 +128,10 @@ impl NumaSockets
 			match usefulNumaNodes.iterateEnabledWithEarlyReturn(|numaNodeIndex|
 			{
 				// Read cpus - not definitive, as may not be online
-				let numaSocketId = NumaSocketId::fromU32(numaNodeIndex as u32).unwrap();
-				let logicalCoresPotentiallyActive = numaSocketId.cpuList(sysPath)?;
-				let activeCpus = logicalCoresPotentiallyActive.intersect(&logicalCoresActive);
-			
+				let numa_socket_id = NumaSocketId::fromU32(numaNodeIndex as u32).unwrap();
+				let logicalCoresPotentiallyActive = numa_socket_id.cpuList(sys_path)?;
+				let activeCpus = logicalCoresPotentiallyActive.intersect(&logical_cores_active);
+
 				if activeCpus.hasAtLeastOneActive()
 				{
 					activeCpus.iterateEnabledWithEarlyReturn(|cpuIndex|
@@ -141,38 +141,38 @@ impl NumaSockets
 							return Err(NumaSocketsDiscoveryError::CpuIsInMoreThanOneNumaNode(cpuIndex))
 						}
 						shouldNotContainAnyLogicalCoresWhenAllNumaNodesConsidered.disable(cpuIndex);
-						
+
 						Ok(())
 					})?;
-					
-					activeCpusByNumaSocket.putOnce(numaSocketId, activeCpus.asHashSet());
+
+					activeCpusByNumaSocket.putOnce(numa_socket_id, activeCpus.asHashSet());
 				}
-			
+
 				Ok(())
 			})
 			{
 				Ok(()) => (),
 				Err(error) => return Err(error),
 			}
-		
+
 			if shouldNotContainAnyLogicalCoresWhenAllNumaNodesConsidered.hasAtLeastOneActive()
 			{
 				return Err(NumaSocketsDiscoveryError::UnassignedCpuIndices(shouldNotContainAnyLogicalCoresWhenAllNumaNodesConsidered))
 			}
-			
+
 			true
 		};
-		
-		Ok(Self::new(isANumaMachine, logicalCoresActive, activeCpusByNumaSocket))
+
+		Ok(Self::new(isANumaMachine, logical_cores_active, activeCpusByNumaSocket))
 	}
-	
-	fn masterLogicalCore(activeCpusByNumaSocket: &NumaSocketMap<HashSet<LogicalCore>>) -> (NumaSocketId, LogicalCore)
+
+	fn master_logical_core(activeCpusByNumaSocket: &NumaSocketMap<HashSet<LogicalCore>>) -> (NumaSocketId, LogicalCore)
 	{
 		let lowestNumaSocket = activeCpusByNumaSocket.lowestKey().expect("There should always be at least one NUMA socket");
-		let logicalCoresActiveForLowestNumaSocket = activeCpusByNumaSocket.getOrPanic(lowestNumaSocket);
-		
+		let logical_cores_activeForLowestNumaSocket = activeCpusByNumaSocket.getOrPanic(lowestNumaSocket);
+
 		let mut lowestLogicalCore = None;
-		for nextLogicalCore in logicalCoresActiveForLowestNumaSocket.iter()
+		for nextLogicalCore in logical_cores_activeForLowestNumaSocket.iter()
 		{
 			lowestLogicalCore = match lowestLogicalCore
 			{
@@ -187,21 +187,21 @@ impl NumaSockets
 				})
 			}
 		}
-		
+
 		(lowestNumaSocket, lowestLogicalCore.expect("There should always be at least one CPU"))
 	}
-	
-	fn new(isANumaMachine: bool, logicalCoresActive: LogicalCoresActive, activeCpusByNumaSocket: NumaSocketMap<HashSet<LogicalCore>>) -> Self
+
+	fn new(isANumaMachine: bool, logical_cores_active: LogicalCoresActive, activeCpusByNumaSocket: NumaSocketMap<HashSet<LogicalCore>>) -> Self
 	{
-		let (masterLogicalCoreNumaSocketId, masterLogicalCore) = Self::masterLogicalCore(&activeCpusByNumaSocket);
-		
+		let (master_logical_core_numa_socket_id, master_logical_core) = Self::master_logical_core(&activeCpusByNumaSocket);
+
 		NumaSockets
 		{
-			isANumaMachine: isANumaMachine,
-			logicalCoresActive: logicalCoresActive,
-			activeCpusByNumaSocket: activeCpusByNumaSocket,
-			masterLogicalCoreNumaSocketId: masterLogicalCoreNumaSocketId,
-			masterLogicalCore: masterLogicalCore,
+			isANumaMachine,
+			logical_cores_active,
+			activeCpusByNumaSocket,
+			master_logical_core_numa_socket_id,
+			master_logical_core,
 		}
 	}
 }

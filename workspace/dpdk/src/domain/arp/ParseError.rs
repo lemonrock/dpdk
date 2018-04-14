@@ -4,17 +4,20 @@
 
 quick_error!
 {
+	/// ARP packet parse error.
 	#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 	pub enum ParseError
 	{
-		Reserved(valueInTargetEndianness: u16)
+		/// Reserved.
+		Reserved(value_in_target_endianness: u16)
 		{
-			display("value '{}' is reserved", valueInTargetEndianness)
+			display("value '{}' is reserved", value_in_target_endianness)
 		}
 		
-		Unassigned(valueInTargetEndianness: u16)
+		/// Unassigned.
+		Unassigned(value_in_target_endianness: u16)
 		{
-			display("value '{}' is unassigned", valueInTargetEndianness)
+			display("value '{}' is unassigned", value_in_target_endianness)
 		}
 	}
 }

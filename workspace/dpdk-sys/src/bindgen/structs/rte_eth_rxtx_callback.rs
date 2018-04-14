@@ -6,7 +6,7 @@
 pub struct rte_eth_rxtx_callback
 {
 	pub next: *mut rte_eth_rxtx_callback,
-	pub fn_: rte_eth_rxtx_callback__bindgen_ty_1,
+	pub fn_: rte_eth_rxtx_callback_1,
 	pub param: *mut c_void,
 }
 

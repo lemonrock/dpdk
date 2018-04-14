@@ -3,11 +3,11 @@
 
 
 #[repr(C)]
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct rte_timer_status
 {
-	pub state: uint16_t,
-	pub owner: int16_t,
+	pub _1: BindgenUnionField<rte_timer_status_1>,
+	pub u32: BindgenUnionField<u32>,
+	pub bindgen_union_field: u32,
 }
 
 impl Default for rte_timer_status
@@ -15,10 +15,15 @@ impl Default for rte_timer_status
 	#[inline(always)]
 	fn default() -> Self
 	{
-		rte_timer_status
-		{
-			state: RTE_TIMER_STOP,
-			owner: RTE_TIMER_NO_OWNER,
-		}
+		unsafe { zeroed() }
+	}
+}
+
+impl Debug for rte_timer_status
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> Result
+	{
+		write!(f, "rte_timer_status {{ union }}")
 	}
 }

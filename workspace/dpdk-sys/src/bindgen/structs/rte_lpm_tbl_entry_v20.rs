@@ -5,8 +5,8 @@
 #[repr(C)]
 pub struct rte_lpm_tbl_entry_v20
 {
-	pub __bindgen_anon_1: rte_lpm_tbl_entry_v20__bindgen_ty_1,
-	pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize], u8>,
+	pub _1: rte_lpm_tbl_entry_v20_1,
+	pub bitfield_1: BindgenBitfieldUnit<[u8; 1usize], u8>,
 }
 
 impl Default for rte_lpm_tbl_entry_v20
@@ -23,7 +23,7 @@ impl Debug for rte_lpm_tbl_entry_v20
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_lpm_tbl_entry_v20 {{ __bindgen_anon_1: {:?}, valid : {:?}, valid_group : {:?}, depth : {:?} }}", self.__bindgen_anon_1, self.valid(), self.valid_group(), self.depth())
+		write!(f, "rte_lpm_tbl_entry_v20 {{ _1: {:?}, valid : {:?}, valid_group : {:?}, depth : {:?} }}", self._1, self.valid(), self.valid_group(), self.depth())
 	}
 }
 
@@ -33,7 +33,7 @@ impl rte_lpm_tbl_entry_v20
 	#[inline(always)]
 	pub fn valid(&self) -> u8
 	{
-		unsafe { transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
+		unsafe { transmute(self.bitfield_1.get(0usize, 1u8) as u8) }
 	}
 	
 	#[inline(always)]
@@ -41,14 +41,14 @@ impl rte_lpm_tbl_entry_v20
 	{
 		unsafe {
 			let val: u8 = transmute(val);
-			self._bitfield_1.set(0usize, 1u8, val as u64)
+			self.bitfield_1.set(0usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn valid_group(&self) -> u8
 	{
-		unsafe { transmute(self._bitfield_1.get(1usize, 1u8) as u8) }
+		unsafe { transmute(self.bitfield_1.get(1usize, 1u8) as u8) }
 	}
 	
 	#[inline(always)]
@@ -56,14 +56,14 @@ impl rte_lpm_tbl_entry_v20
 	{
 		unsafe {
 			let val: u8 = transmute(val);
-			self._bitfield_1.set(1usize, 1u8, val as u64)
+			self.bitfield_1.set(1usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn depth(&self) -> u8
 	{
-		unsafe { transmute(self._bitfield_1.get(2usize, 6u8) as u8) }
+		unsafe { transmute(self.bitfield_1.get(2usize, 6u8) as u8) }
 	}
 	
 	#[inline(always)]
@@ -71,14 +71,14 @@ impl rte_lpm_tbl_entry_v20
 	{
 		unsafe {
 			let val: u8 = transmute(val);
-			self._bitfield_1.set(2usize, 6u8, val as u64)
+			self.bitfield_1.set(2usize, 6u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
-	pub fn new_bitfield_1(valid: u8, valid_group: u8, depth: u8) -> __BindgenBitfieldUnit<[u8; 1usize], u8>
+	pub fn newbitfield_1(valid: u8, valid_group: u8, depth: u8) -> BindgenBitfieldUnit<[u8; 1usize], u8>
 	{
-		let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
+		let mut __bindgen_bitfield_unit: BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
 		__bindgen_bitfield_unit.set(0usize, 1u8, {
 			let valid: u8 = unsafe { transmute(valid) };
 			valid as u64

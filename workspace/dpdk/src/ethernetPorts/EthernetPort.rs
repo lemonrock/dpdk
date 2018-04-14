@@ -20,20 +20,20 @@ impl EthernetPort
 {
 	pub const MaximumEthernetPorts: usize = RTE_MAX_ETHPORTS;
 	pub const MaximumEthernetPortsU8: u8 = Self::MaximumEthernetPorts as u8;
-	
+
 	/// Returns None if not attached
 	#[inline(always)]
 	pub fn new(portIdentifier: EthernetPortIdentifier) -> Option<Self>
 	{
 		debug_assert!(portIdentifier < Self::MaximumEthernetPortsU8, "portIdentifier '{}' equals or exceeds MaximumEthernetPortsU8 '{}'", portIdentifier, Self::MaximumEthernetPortsU8);
-		
+
 		if Self::isAttachedPort(portIdentifier)
 		{
 			Some
 			(
 				EthernetPort
 				{
-					portIdentifier: portIdentifier,
+					portIdentifier,
 				}
 			)
 		}
@@ -42,7 +42,7 @@ impl EthernetPort
 			None
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn portIdentifier(&self) -> EthernetPortIdentifier
 	{
@@ -80,54 +80,54 @@ impl EthernetPort
 	#[inline(always)]
 	pub fn parentNumaSocketId(&self) -> Option<NumaSocketId>
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_socket_id(self.portIdentifier()) };
+		let result = unsafe { rte_eth_dev_socket_id(self.portIdentifier()) };
 		if unlikely(result < 0)
 		{
 			match result
 			{
 				-1 => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-				
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_dev_socket_id()", result),
 			}
 		}
 		else
 		{
 			// The documentation of DPDK suggests 0 means indeterminate, but that can't be right as 0 is a valid NUMA socket id, and the code doesn't seem to support this
-			NumaSocketId::fromI32(result)
+			NumaSocketId::from_i32(result)
 		}
 	}
-	
+
 	// Only call this AFTER the device and receive queue is started for accuracy
 	#[inline(always)]
 	pub fn allSupportedPacketTypes(&self) -> HashSet<PacketType>
 	{
 		let mut supportedPacketTypes = HashSet::with_capacity(64);
-		
+
 		let packetTypesSet = self.supportedPacketTypes(PacketTypeMask::All);
-		
+
 		for packetType in packetTypesSet.iter()
 		{
 			supportedPacketTypes.insert(*packetType);
 		}
-		
+
 		supportedPacketTypes.shrink_to_fit();
-		
+
 		supportedPacketTypes
 	}
-	
+
 	#[inline(always)]
 	pub fn information(&self) -> EthernetPortInformation
 	{
 		let mut deviceInformation: rte_eth_dev_info = unsafe { uninitialized() };
-		
-		unsafe { ::dpdk_sys::rte_eth_dev_info_get(self.portIdentifier(), &mut deviceInformation) };
-		
-		let underlyingEthernetDevice = self.underlyingEthernetDevice();
-		
-		let deviceName = self.getDeviceName().expect("Device name is not UTF-8 compliant");
-		
+
+		unsafe { rte_eth_dev_info_get(self.portIdentifier(), &mut deviceInformation) };
+
+		let underlying_ethernet_device = self.underlying_ethernet_device();
+
+		let device_name = self.getDeviceName().expect("Device name is not UTF-8 compliant");
+
 		let parentNumaSocketId = self.parentNumaSocketId();
-		
+
 		let mut supportedFilterTypes = HashSet::with_capacity(FilterType::All.len());
 		for filterType in FilterType::All.iter()
 		{
@@ -137,16 +137,16 @@ impl EthernetPort
 			}
 		}
 		supportedFilterTypes.shrink_to_fit();
-		
+
 		let dataCentreBridgingInformation = self.getDataCentreBridgingInformation().ok();
-		
+
 		let eepromSize = self.getEepromSize().ok();
-		
+
 		let eepromInformation = self.getEepromInformation().ok();
-		
+
 		let deviceRegisters = self.getDeviceRegistersInformation().ok();
-		
-		EthernetPortInformation::new(*self, deviceInformation, underlyingEthernetDevice, deviceName, parentNumaSocketId, supportedFilterTypes, dataCentreBridgingInformation, eepromSize, eepromInformation, deviceRegisters)
+
+		EthernetPortInformation::new(*self, deviceInformation, underlying_ethernet_device, device_name, parentNumaSocketId, supportedFilterTypes, dataCentreBridgingInformation, eepromSize, eepromInformation, deviceRegisters)
 	}
 
 	/// Note: Statistics are not available until after a link comes up
@@ -155,30 +155,30 @@ impl EthernetPort
 	pub fn linkStatusWaitingUpToNineSeconds(&self) -> Result<LinkStatus, ()>
 	{
 		let mut linkDetails = unsafe { zeroed() };
-		unsafe { ::dpdk_sys::rte_eth_link_get(self.portIdentifier(), &mut linkDetails) };
+		unsafe { rte_eth_link_get(self.portIdentifier(), &mut linkDetails) };
 		match LinkStatus::from_rte_eth_link(&linkDetails)
 		{
 			Some(linkStatus) => Ok(linkStatus),
 			None => Err(()),
 		}
 	}
-	
+
 	/// Note: Statistics are not available until after a link comes up
 	/// None can mean either the link is Down or the link is not yet Up
 	#[inline(always)]
 	pub fn linkStatusWithoutWaitingUpToNineSeconds(&self) -> Option<LinkStatus>
 	{
 		let mut linkDetails = unsafe { zeroed() };
-		unsafe { ::dpdk_sys::rte_eth_link_get_nowait(self.portIdentifier(), &mut linkDetails) };
+		unsafe { rte_eth_link_get_nowait(self.portIdentifier(), &mut linkDetails) };
 		LinkStatus::from_rte_eth_link(&linkDetails)
 	}
-	
+
 	#[inline(always)]
 	fn getDataCentreBridgingInformation(&self) -> Result<rte_eth_dcb_info, UnsupportedByHardwareError>
 	{
 		let mut information = unsafe { uninitialized() };
-		
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_get_dcb_info(self.portIdentifier(), &mut information) };
+
+		let result = unsafe { rte_eth_dev_get_dcb_info(self.portIdentifier(), &mut information) };
 		if likely(result == 0)
 		{
 			Ok(information)
@@ -186,34 +186,34 @@ impl EthernetPort
 		else
 		{
 			forget(information);
-			
+
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-		
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_dev_get_dcb_info()", result),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	fn supportedPacketTypes(&self, packetTypeMask: PacketTypeMask) -> HashSet<PacketType>
 	{
 		let mask = packetTypeMask.bits();
-		
-		let number = match unsafe { ::dpdk_sys::rte_eth_dev_get_supported_ptypes(self.portIdentifier(), mask, null_mut(), 0) }
+
+		let number = match unsafe { rte_eth_dev_get_supported_ptypes(self.portIdentifier(), mask, null_mut(), 0) }
 		{
 			number if number >= 0 => number,
-			
+
 			NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
 			result @ _ => panic!("Unexpected error code '{}' from rte_eth_dev_get_supported_ptypes() when trying to find supported number", result),
 		};
-		
+
 		let mut packetTypes = Vec::with_capacity(number as usize);
-		
-		match unsafe { ::dpdk_sys::rte_eth_dev_get_supported_ptypes(self.portIdentifier(), mask, packetTypes.as_mut_ptr(), number) }
+
+		match unsafe { rte_eth_dev_get_supported_ptypes(self.portIdentifier(), mask, packetTypes.as_mut_ptr(), number) }
 		{
 			asExpected if asExpected == number =>
 			{
@@ -226,9 +226,9 @@ impl EthernetPort
 				}
 				setOfPacketTypes
 			},
-			
+
 			wrongNumber if wrongNumber >= 0 => panic!("rte_eth_dev_get_supported_ptypes() changed the returned number from '{}' to '{}'", number, wrongNumber),
-			
+
 			NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
 			result @ _ => panic!("Unexpected error code '{}' from rte_eth_dev_get_supported_ptypes() when trying to find supported number", result),
 		}
@@ -246,8 +246,8 @@ impl EthernetPort
 			width: 0,
 			version: 0,
 		};
-		
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_get_reg_info(self.portIdentifier(), &mut findWidthAndLength) };
+
+		let result = unsafe { rte_eth_dev_get_reg_info(self.portIdentifier(), &mut findWidthAndLength) };
 		if likely(result == 0)
 		{
 			let width = findWidthAndLength.width;
@@ -255,8 +255,8 @@ impl EthernetPort
 			let bufferSize = width * length;
 			let mut registers: Vec<u8> = Vec::with_capacity(bufferSize as usize);
 			findWidthAndLength.data = registers.as_mut_ptr() as *mut c_void;
-			
-			let result = unsafe { ::dpdk_sys::rte_eth_dev_get_reg_info(self.portIdentifier(), &mut findWidthAndLength) };
+
+			let result = unsafe { rte_eth_dev_get_reg_info(self.portIdentifier(), &mut findWidthAndLength) };
 			if likely(result == 0)
 			{
 				unsafe
@@ -270,11 +270,11 @@ impl EthernetPort
 				match result
 				{
 					NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 					NegativeE::ENODEV => panic!("The port identifier '{}' is invalid - how if it worked for the first call to rte_eth_dev_get_reg_info()?", self.portIdentifier()),
-				
+
 					negative if negative < 0 => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 					_ => panic!("Unexpected error code '{}' from second call to rte_eth_dev_get_reg_info()", result),
 				}
 			}
@@ -284,11 +284,11 @@ impl EthernetPort
 			match result
 			{
 				NegativeE::ENOTSUP => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				NegativeE::ENODEV => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-				
+
 				negative if negative < 0 => Err(UnsupportedByHardwareError::IsUnsupportedByTheHardware),
-				
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_dev_get_reg_info()", result),
 			}
 		}
@@ -299,42 +299,42 @@ impl EthernetPort
 impl EthernetPort
 {
 	#[inline(always)]
-	pub fn parseDeviceName(mut deviceName: Vec<u8>, pointerToDeviceName: *mut c_char) -> Result<String, FromUtf8Error>
+	pub fn parseDeviceName(mut device_name: Vec<u8>, pointerToDeviceName: *mut c_char) -> Result<String, FromUtf8Error>
 	{
 		let length = unsafe { strnlen(pointerToDeviceName, RTE_ETH_NAME_MAX_LEN) };
-		unsafe { deviceName.set_len(length) };
-		deviceName.shrink_to_fit();
-		String::from_utf8(deviceName)
+		unsafe { device_name.set_len(length) };
+		device_name.shrink_to_fit();
+		String::from_utf8(device_name)
 	}
-	
+
 	#[inline(always)]
 	fn initialiseDeviceNameBuffer() -> (Vec<u8>, *mut c_char)
 	{
-		let mut deviceName: Vec<u8> = Vec::with_capacity(RTE_ETH_NAME_MAX_LEN);
-		let pointerToDeviceName = deviceName.as_mut_ptr() as *mut c_char;
-		(deviceName, pointerToDeviceName)
+		let mut device_name: Vec<u8> = Vec::with_capacity(RTE_ETH_NAME_MAX_LEN);
+		let pointerToDeviceName = device_name.as_mut_ptr() as *mut c_char;
+		(device_name, pointerToDeviceName)
 	}
-	
+
 	#[inline(always)]
 	pub fn asBondedEthernetPort(&self) -> Option<BondedEthernetPort>
 	{
 		BondedEthernetPort::fromEthernetPort(*self)
 	}
-	
+
 	#[inline(always)]
-	pub fn underlyingEthernetDevice(&self) -> rte_eth_dev
+	pub fn underlying_ethernet_device(&self) -> rte_eth_dev
 	{
 		unsafe { rte_eth_devices[self.portIdentifier() as usize] }
 	}
-	
+
 	#[inline(always)]
-	pub fn getForDeviceName<D: DeviceName>(deviceName: &D) -> Option<EthernetPort>
+	pub fn getForDeviceName<D: DeviceName>(device_name: &D) -> Option<EthernetPort>
 	{
-		let deviceName = deviceName.to_string();
-		
-		let cDeviceName = CString::new(deviceName).expect("deviceName contained an interior ASCII NUL");
+		let device_name = device_name.to_string();
+
+		let cDeviceName = CString::new(device_name).expect("device_name contained an interior ASCII NUL");
 		let mut portIdentifier = unsafe { uninitialized() };
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_get_port_by_name(cDeviceName.as_ptr(), &mut portIdentifier) };
+		let result = unsafe { rte_eth_dev_get_port_by_name(cDeviceName.as_ptr(), &mut portIdentifier) };
 		if likely(result == 0)
 		{
 			// Should always return Some()
@@ -343,32 +343,32 @@ impl EthernetPort
 		else
 		{
 			forget(portIdentifier);
-			
+
 			match result
 			{
 				NegativeE::ENODEV | NegativeE::EINVAL => None,
-			
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_dev_get_port_by_name()", result),
 			}
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn getDeviceName(&self) -> Result<String, FromUtf8Error>
 	{
-		let (deviceName, pointerToDeviceName) = Self::initialiseDeviceNameBuffer();
-		let result = unsafe { ::dpdk_sys::rte_eth_dev_get_name_by_port(self.portIdentifier(), pointerToDeviceName) };
-		
+		let (device_name, pointerToDeviceName) = Self::initialiseDeviceNameBuffer();
+		let result = unsafe { rte_eth_dev_get_name_by_port(self.portIdentifier(), pointerToDeviceName) };
+
 		if likely(result == 0)
 		{
-			Self::parseDeviceName(deviceName, pointerToDeviceName)
+			Self::parseDeviceName(device_name, pointerToDeviceName)
 		}
 		else
 		{
 			match result
 			{
 				NegativeE::EINVAL => panic!("The port identifier '{}' is invalid", self.portIdentifier()),
-			
+
 				_ => panic!("Unexpected error code '{}' from rte_eth_dev_get_name_by_port()", result),
 			}
 		}

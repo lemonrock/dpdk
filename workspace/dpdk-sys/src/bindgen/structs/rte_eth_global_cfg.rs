@@ -6,7 +6,7 @@
 pub struct rte_eth_global_cfg
 {
 	pub cfg_type: rte_eth_global_cfg_type,
-	pub cfg: rte_eth_global_cfg__bindgen_ty_1,
+	pub cfg: rte_eth_global_cfg_1,
 }
 
 impl Default for rte_eth_global_cfg

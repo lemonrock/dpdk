@@ -6,20 +6,20 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum LinkSpeed
 {
-	_10MbpsHalfDuplex = ::dpdk_sys::ETH_LINK_SPEED_10M_HD,
-	_10Mbps = ::dpdk_sys::ETH_LINK_SPEED_10M,
-	_100MbpsHalfDuplex = ::dpdk_sys::ETH_LINK_SPEED_100M_HD,
-	_100Mbps = ::dpdk_sys::ETH_LINK_SPEED_100M,
-	_1Gbps = ::dpdk_sys::ETH_LINK_SPEED_1G,
-	_2AndAHalfGbps = ::dpdk_sys::ETH_LINK_SPEED_2_5G,
-	_5Gbps = ::dpdk_sys::ETH_LINK_SPEED_5G,
-	_10Gbps = ::dpdk_sys::ETH_LINK_SPEED_10G,
-	_20Gbps = ::dpdk_sys::ETH_LINK_SPEED_20G,
-	_25Gbps = ::dpdk_sys::ETH_LINK_SPEED_25G,
-	_40Gbps = ::dpdk_sys::ETH_LINK_SPEED_40G,
-	_50Gbps = ::dpdk_sys::ETH_LINK_SPEED_50G,
-	_56Gbps = ::dpdk_sys::ETH_LINK_SPEED_56G,
-	_100Gbps = ::dpdk_sys::ETH_LINK_SPEED_100G,
+	_10MbpsHalfDuplex = ETH_LINK_SPEED_10M_HD,
+	_10Mbps = ETH_LINK_SPEED_10M,
+	_100MbpsHalfDuplex = ETH_LINK_SPEED_100M_HD,
+	_100Mbps = ETH_LINK_SPEED_100M,
+	_1Gbps = ETH_LINK_SPEED_1G,
+	_2AndAHalfGbps = ETH_LINK_SPEED_2_5G,
+	_5Gbps = ETH_LINK_SPEED_5G,
+	_10Gbps = ETH_LINK_SPEED_10G,
+	_20Gbps = ETH_LINK_SPEED_20G,
+	_25Gbps = ETH_LINK_SPEED_25G,
+	_40Gbps = ETH_LINK_SPEED_40G,
+	_50Gbps = ETH_LINK_SPEED_50G,
+	_56Gbps = ETH_LINK_SPEED_56G,
+	_100Gbps = ETH_LINK_SPEED_100G,
 }
 
 impl LinkSpeed

@@ -2,67 +2,69 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// Represents total memory available per NUMA socket.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Serialize, Deserialize)]
 pub struct MemoryLimits
 {
-	perNumaNodeMemoryInMegabytes: [Option<u31>; MaximumNumaSockets],
+	/// Adjust as desired.
+	pub per_numa_node_memory_in_megabytes: [Option<u31>; MaximumNumaSockets],
 }
 
 impl MemoryLimits
 {
-	/// If not a NUMA machine, total memory is memory assigned to first valid Numa Socket (usually zero)
-	/// If there are no valid sockets, or the memory total is zero, then None is returned
-	/// If total exceeds 512Gb, capped at 512Gb
-	pub fn totalMemoryInMegabytes(&self, numaSockets: &NumaSockets) -> Option<u31>
+	// If not a NUMA machine, total memory is memory assigned to first valid Numa Socket (usually zero).
+	// If there are no valid sockets, or the memory total is zero, then None is returned.
+	// If total exceeds 512Gb, capped at 512Gb.
+	pub(crate) fn total_memory_in_megabytes(&self, numa_sockets: &NumaSockets) -> Option<u31>
 	{
 		const _512GbInMegabytes: u31 = 524_288;
 		
-		let memoryTotal = if numaSockets.isANumaMachine
+		let memory_total = if numa_sockets.isANumaMachine
 		{
-			let mut memoryTotal = 0;
+			let mut memory_total = 0;
 			for numaMemoryIndex in 0..MaximumNumaSockets
 			{
-				if let Some(megabytes) = self.perNumaNodeMemoryInMegabytes[numaMemoryIndex]
+				if let Some(megabytes) = self.per_numa_node_memory_in_megabytes[numaMemoryIndex]
 				{
-					if numaSockets.isValidNumaSocket(numaMemoryIndex)
+					if numa_sockets.isValidNumaSocket(numaMemoryIndex)
 					{
-						memoryTotal += megabytes;
+						memory_total += megabytes;
 					}
 				}
 			}
-			memoryTotal
+			memory_total
 		}
 		else
 		{
-			let mut memoryTotal = 0;
+			let mut memory_total = 0;
 			for index in 0..MaximumNumaSockets
 			{
-				if let Some(megabytes) = self.perNumaNodeMemoryInMegabytes[index]
+				if let Some(megabytes) = self.per_numa_node_memory_in_megabytes[index]
 				{
-					memoryTotal = megabytes;
+					memory_total = megabytes;
 					break;
 				}
 			}
-			memoryTotal
+			memory_total
 		};
 		
-		match memoryTotal
+		match memory_total
 		{
 			0 => None,
-			doesNotExceed512Gb if doesNotExceed512Gb < _512GbInMegabytes => Some(doesNotExceed512Gb),
+			does_not_exceed_512Gb if does_not_exceed_512Gb < _512GbInMegabytes => Some(does_not_exceed_512Gb),
 			_ => Some(_512GbInMegabytes),
 		}
 	}
 	
-	// Need to pass in valid numa nodes to do this
-	pub fn asInitialisationStringIfIsANumaMachine(&self, useHugePages: bool, numaSockets: &NumaSockets) -> (Option<CString>, Option<u31>)
+	// Need to pass in valid numa nodes to do this.
+	pub(crate) fn as_initialisation_string_if_is_a_numa_machine(&self, use_huge_pages: bool, numa_sockets: &NumaSockets) -> (Option<CString>, Option<u31>)
 	{
 		const SOCKET_MEM_STRLEN: usize = MaximumNumaSockets * 10;
 		
-		if useHugePages && numaSockets.isANumaMachine
+		if use_huge_pages && numa_sockets.isANumaMachine
 		{
-			assert!(useHugePages, "Can not have per NUMA socket memory (memoryLimits) and then have useHugePages as false");
+			assert!(use_huge_pages, "Can not have per NUMA socket memory (memoryLimits) and then have use_huge_pages as false");
 			
 			let mut numaMemoryString = String::with_capacity(SOCKET_MEM_STRLEN);
 			let mut hasValidEntries = false;
@@ -73,9 +75,9 @@ impl MemoryLimits
 					numaMemoryString.push(',')
 				}
 				
-				if let Some(megabytes) = self.perNumaNodeMemoryInMegabytes[numaMemoryIndex]
+				if let Some(megabytes) = self.per_numa_node_memory_in_megabytes[numaMemoryIndex]
 				{
-					if numaSockets.isValidNumaSocket(numaMemoryIndex)
+					if numa_sockets.isValidNumaSocket(numaMemoryIndex)
 					{
 						hasValidEntries = true;
 						
@@ -95,7 +97,7 @@ impl MemoryLimits
 		}
 		else
 		{
-			(None, self.totalMemoryInMegabytes(numaSockets))
+			(None, self.total_memory_in_megabytes(numa_sockets))
 		}
 	}
 }

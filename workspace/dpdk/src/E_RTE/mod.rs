@@ -2,8 +2,9 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+use super::*;
 use ::syscall_alt::PosixErrorNumber;
 
 
-pub const NO_CONFIG: PosixErrorNumber = ::dpdk_sys::E_RTE_NO_CONFIG;
-pub const SECONDARY: PosixErrorNumber = ::dpdk_sys::E_RTE_SECONDARY;
+pub const NO_CONFIG: PosixErrorNumber = E_RTE_NO_CONFIG;
+pub const SECONDARY: PosixErrorNumber = E_RTE_SECONDARY;

@@ -8,7 +8,7 @@ pub struct rte_tm_node_params
 	pub shaper_profile_id: u32,
 	pub shared_shaper_id: *mut u32,
 	pub n_shared_shapers: u32,
-	pub __bindgen_anon_1: rte_tm_node_params__bindgen_ty_1,
+	pub _1: rte_tm_node_params_1,
 	pub stats_mask: u64,
 }
 
@@ -26,6 +26,6 @@ impl Debug for rte_tm_node_params
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_tm_node_params {{ shared_shaper_id: {:?}, __bindgen_anon_1: {:?} }}", self.shared_shaper_id, self.__bindgen_anon_1)
+		write!(f, "rte_tm_node_params {{ shared_shaper_id: {:?}, _1: {:?} }}", self.shared_shaper_id, self._1)
 	}
 }

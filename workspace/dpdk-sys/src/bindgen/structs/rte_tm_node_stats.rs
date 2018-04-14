@@ -7,7 +7,7 @@ pub struct rte_tm_node_stats
 {
 	pub n_pkts: u64,
 	pub n_bytes: u64,
-	pub leaf: rte_tm_node_stats__bindgen_ty_1,
+	pub leaf: rte_tm_node_stats_1,
 }
 
 impl Default for rte_tm_node_stats

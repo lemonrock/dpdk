@@ -6,7 +6,7 @@
 #[derive(Hash)]
 pub struct rte_bus
 {
-	pub next: rte_bus__bindgen_ty_1,
+	pub next: rte_bus_1,
 	pub name: *const c_char,
 	pub scan: rte_bus_scan_t,
 	pub probe: rte_bus_probe_t,

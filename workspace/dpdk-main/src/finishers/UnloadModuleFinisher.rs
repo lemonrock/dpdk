@@ -11,7 +11,7 @@ pub struct UnloadModuleFinisher
 impl Finisher for UnloadModuleFinisher
 {
 	#[allow(unused_variables)]
-	fn finish(&self, sysPath: &Path)
+	fn finish(&self, sys_path: &Path)
 	{
 		if let Err(error) = LinuxKernelModulesList::unload_linux_kernel_module(self.moduleName)
 		{
@@ -28,7 +28,7 @@ impl UnloadModuleFinisher
 		{
 			finishers.push(Box::new(UnloadModuleFinisher
 			{
-				moduleName: moduleName,
+				moduleName,
 			}))
 		}
 	}

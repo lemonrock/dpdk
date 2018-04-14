@@ -9,8 +9,8 @@ struct ArpCacheConfiguration
 {
 	timeToLiveInSeconds: u64,
 	maximumCapacity: usize,
-	overrides: HashMap<IpV4HostAddress, UnicastEthernetAddress>,
-	fallbacks: HashMap<IpV4HostAddress, UnicastEthernetAddress>,
+	overrides: HashMap<InternetProtocolVersion4HostAddress, UnicastEthernetAddress>,
+	fallbacks: HashMap<InternetProtocolVersion4HostAddress, UnicastEthernetAddress>,
 }
 
 impl Default for ArpCacheConfiguration

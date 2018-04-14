@@ -5,7 +5,7 @@
 pub struct IpV6State
 {
 	pub sourceIpV6AddressBlackList: IpV6AddressBlackList,
-	pub ourIpV6Addresses: HashMap<IpV6HostAddress, IpAddressInformation>,
+	pub ourIpV6Addresses: HashMap<InternetProtocolVersion6HostAddress, IpAddressInformation>,
 }
 
 impl IpV6State
@@ -283,7 +283,7 @@ impl IpV6State
 				};
 				
 				let senderIpV6Address = ipV6HeaderData.src_addr;
-				discardPacketIf!(packet, senderIpV6Address.isNotValidUnicast());
+				discardPacketIf!(packet, senderIpV6Address.is_not_valid_unicast());
 				discardPacketIf!(packet, self.isBlackListedSourceIpV6Address(&senderIpV6Address));
 				discardPacketIf!(packet, self.isOneOfOurIpV6Addresses(&senderIpV6Address));
 				
@@ -302,19 +302,19 @@ impl IpV6State
 	}
 	
 	#[inline(always)]
-	fn isBlackListedSourceIpV6Address(&self, senderIpV6Address: &IpV6HostAddress) -> bool
+	fn isBlackListedSourceIpV6Address(&self, senderIpV6Address: &InternetProtocolVersion6HostAddress) -> bool
 	{
 		self.sourceIpV6AddressBlackList.isIpAddressBlackListed(&senderIpV6Address)
 	}
 	
 	#[inline(always)]
-	fn isOneOfOurIpV6Addresses(&self, senderIpV6Address: &IpV6HostAddress) -> bool
+	fn isOneOfOurIpV6Addresses(&self, senderIpV6Address: &InternetProtocolVersion6HostAddress) -> bool
 	{
 		self.ourIpV6Addresses.get(senderIpV6Address).is_some()
 	}
 	
 	#[inline(always)]
-	fn isNotOneOfOurIpV6Addresses(&self, destinationIpV6Address: &IpV6HostAddress, destinationEthernetAddress: *const ether_addr) -> bool
+	fn isNotOneOfOurIpV6Addresses(&self, destinationIpV6Address: &InternetProtocolVersion6HostAddress, destinationEthernetAddress: *const ether_addr) -> bool
 	{
 		match self.ourIpV6Addresses.get(destinationIpV6Address)
 		{

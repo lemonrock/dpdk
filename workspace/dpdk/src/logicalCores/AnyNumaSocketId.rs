@@ -6,25 +6,25 @@ pub trait AnyNumaSocketId
 {
 	#[inline(always)]
 	fn isAny(&self) -> bool;
-	
+
 	#[inline(always)]
 	fn as_c_int(&self) -> c_int;
-	
+
 	#[inline(always)]
 	fn as_c_uint(&self) -> c_uint;
-	
+
 	#[inline(always)]
 	fn as_int32_t(&self) -> int32_t;
-	
+
 	const CacheLineSize: u32 = 64;
-	
+
 	#[inline(always)]
 	fn allocate<T>(&self, typeOfMemory: Option<ConstCStr>, size: usize, alignment: Option<PowerOfTwoThirtyTwoBit>) -> Option<DpdkAllocatedMemory<T>>
 	{
 		let alignment = alignment.as_u32();
 		debug_assert!(alignment == 0 || alignment >= Self::CacheLineSize, "alignment must be greater than or equal to cache line size '{}', not '{}'", Self::CacheLineSize, alignment);
-		
-		let result = unsafe { ::dpdk_sys::rte_malloc_socket(typeOfMemoryX(typeOfMemory), size, alignment, self.as_c_int()) };
+
+		let result = unsafe { rte_malloc_socket(typeOfMemoryX(typeOfMemory), size, alignment, self.as_c_int()) };
 		if unlikely(result.is_null())
 		{
 			None
@@ -40,8 +40,8 @@ pub trait AnyNumaSocketId
 	{
 		let alignment = alignment.as_u32();
 		debug_assert!(alignment == 0 || alignment >= Self::CacheLineSize, "alignment must be greater than or equal to cache line size '{}', not '{}'", Self::CacheLineSize, alignment);
-		
-		let result = unsafe { ::dpdk_sys::rte_zmalloc_socket(typeOfMemoryX(typeOfMemory), size, alignment, self.as_c_int()) };
+
+		let result = unsafe { rte_zmalloc_socket(typeOfMemoryX(typeOfMemory), size, alignment, self.as_c_int()) };
 		if unlikely(result.is_null())
 		{
 			None
@@ -57,8 +57,8 @@ pub trait AnyNumaSocketId
 	{
 		let alignment = alignment.as_u32();
 		debug_assert!(alignment == 0 || alignment >= Self::CacheLineSize, "alignment must be greater than or equal to cache line size '{}', not '{}'", Self::CacheLineSize, alignment);
-		
-		let result = unsafe { ::dpdk_sys::rte_calloc_socket(typeOfMemoryX(typeOfMemory), numberOfElements, sizeOfAnElement, alignment, self.as_c_int()) };
+
+		let result = unsafe { rte_calloc_socket(typeOfMemoryX(typeOfMemory), numberOfElements, sizeOfAnElement, alignment, self.as_c_int()) };
 		if unlikely(result.is_null())
 		{
 			None
@@ -71,26 +71,26 @@ pub trait AnyNumaSocketId
 }
 
 impl AnyNumaSocketId for Option<NumaSocketId>
-{	
+{
 	#[inline(always)]
 	fn isAny(&self) -> bool
 	{
 		true
 	}
-	
+
 	#[inline(always)]
 	fn as_c_int(&self) -> c_int
 	{
 		SOCKET_ID_ANY as c_int
 	}
-	
+
 	// Weird
 	#[inline(always)]
 	fn as_c_uint(&self) -> c_uint
 	{
 		0xFFFF_FFFF
 	}
-	
+
 	#[inline(always)]
 	fn as_int32_t(&self) -> int32_t
 	{

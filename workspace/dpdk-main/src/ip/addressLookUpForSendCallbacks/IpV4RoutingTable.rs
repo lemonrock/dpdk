@@ -29,8 +29,8 @@ impl IpV4RoutingTable
 		{
 			longestPrefixMatchTable: table,
 			nextHopsToDeviceAndMtuAndIpAddress: ArrayVec::new(),
-			arpCache: arpCache,
-			defaultMaximumTransmissionUnit: defaultMaximumTransmissionUnit,
+			arpCache,
+			defaultMaximumTransmissionUnit,
 		}
 	}
 	
@@ -67,9 +67,9 @@ impl IpV4RoutingTable
 		{
 			const AlwaysPresentNextHop: NextHop = 0;
 			
-			let ipAddress: &IpV4HostAddress = unsafe { transmute(destinationAddress) };
+			let internet_protocol_address: &InternetProtocolVersion4HostAddress = unsafe { transmute(destinationAddress) };
 			
-			match self.arpCache.find(ipAddress)
+			match self.arpCache.find(internet_protocol_address)
 			{
 				Some(ethernetAddress) => (ethernetAddress, self.defaultMaximumTransmissionUnit),
 				None =>
@@ -78,7 +78,7 @@ impl IpV4RoutingTable
 					{
 						let nextHop =
 						{
-							match self.longestPrefixMatchTable.lookUp(ipAddress)
+							match self.longestPrefixMatchTable.lookUp(internet_protocol_address)
 							{
 								None => AlwaysPresentNextHop,
 								Some(nextHop) => nextHop,
@@ -87,7 +87,7 @@ impl IpV4RoutingTable
 						self.nextHopsToDeviceAndMtuAndIpAddress.get(nextHop as usize).unwrap()
 					};
 					
-					match self.arpCache.find(ipAddress)
+					match self.arpCache.find(internet_protocol_address)
 					{
 						None => return NegativeE::EDESTADDRREQ,
 						Some(ethernetAddress) => (ethernetAddress, ipV4Route.tldkMtu)

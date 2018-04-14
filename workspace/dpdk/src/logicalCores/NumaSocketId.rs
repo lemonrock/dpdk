@@ -16,19 +16,19 @@ impl AnyNumaSocketId for NumaSocketId
 	{
 		false
 	}
-	
+
 	#[inline(always)]
 	fn as_c_int(&self) -> c_int
 	{
 		self.0 as c_int
 	}
-	
+
 	#[inline(always)]
 	fn as_c_uint(&self) -> c_uint
 	{
 		self.0 as u32
 	}
-	
+
 	#[inline(always)]
 	fn as_int32_t(&self) -> int32_t
 	{
@@ -53,26 +53,26 @@ impl NumaSocketId
 {
 	pub const SocketZeroAlwaysExists: NumaSocketId = NumaSocketId(0);
 	pub const Any: Option<NumaSocketId> = None;
-	
+
 	#[inline(always)]
-	pub fn numaNodesData(sysPath: &Path) -> Result<Option<NumaNodesData>, ListParseError>
+	pub fn numaNodesData(sys_path: &Path) -> Result<Option<NumaNodesData>, ListParseError>
 	{
 		// Check is this a NUMA machine (ie kernel has CONFIG_NUMA = y)
-		let nodesPath = Self::nodesSysPath(sysPath);
+		let nodesPath = Self::nodesSysPath(sys_path);
 		if !nodesPath.is_dir()
 		{
 			return Ok(None);
 		}
-		
+
 		fn parse(nodesPath: &Path, item: &str) -> Result<NumaSocketsActive, ListParseError>
 		{
 			let mut nodesItemPath = PathBuf::from(nodesPath);
 			nodesItemPath.push(item);
-			NumaSocketsActive::parseFromFilePath(&nodesItemPath)
+			NumaSocketsActive::parse_from_file_path(&nodesItemPath)
 		}
-		
+
 		let nodesPath = &nodesPath;
-		
+
 		Ok
 		(
 			Some
@@ -92,92 +92,92 @@ impl NumaSocketId
 
 	/// Do not use this; everything here and more is in virtualMemoryPageUsageStatistics()
 	/// Interpret this by multiplying counts by small PageSize
-	pub fn numaStatistics(&self, sysPath: &Path) -> io::Result<NumaNodeStatistics>
+	pub fn numaStatistics(&self, sys_path: &Path) -> io::Result<NumaNodeStatistics>
 	{
-		self.statisticListParse(sysPath, "numastat")
+		self.statisticListParse(sys_path, "numastat")
 	}
-	
+
 	/// Interpret this by multiplying counts by small PageSize
-	pub fn virtualMemoryPageUsageStatistics(&self, sysPath: &Path) -> io::Result<NumaNodeStatistics>
+	pub fn virtualMemoryPageUsageStatistics(&self, sys_path: &Path) -> io::Result<NumaNodeStatistics>
 	{
-		self.statisticListParse(sysPath, "vmstat")
+		self.statisticListParse(sys_path, "vmstat")
 	}
 
 	/// Similar to virtualMemoryPageUsageStatistics() except (a) values are sized in KiloBytes and (b) values take into account huge pages (we think)
 	/// Also contains MemoryStatisticName::TotalPhysicalRam and MemoryStatisticName::FreePhysicalRam
-	pub fn meminfo(&self, sysPath: &Path) -> Result<MemoryStatistics, MemoryStatisticsParseError>
+	pub fn meminfo(&self, sys_path: &Path) -> Result<MemoryStatistics, MemoryStatisticsParseError>
 	{
-		let folderPath = self.nodeSysPath(sysPath);
+		let folderPath = self.nodeSysPath(sys_path);
 		MemoryStatistics::parse(&folderPath, &format!("Node {} ", self.0))
 	}
-	
-	pub fn cpuList(&self, sysPath: &Path) -> Result<LogicalCoresActive, ListParseError>
+
+	pub fn cpuList(&self, sys_path: &Path) -> Result<LogicalCoresActive, ListParseError>
 	{
-		let filePath = self.itemPath(sysPath, "cpulist");
-		LogicalCoresActive::parseFromFilePath(&filePath)
+		let file_path = self.itemPath(sys_path, "cpulist");
+		LogicalCoresActive::parse_from_file_path(&file_path)
 	}
-	
-	pub fn distance(&self, sysPath: &Path) -> io::Result<u8>
+
+	pub fn distance(&self, sys_path: &Path) -> io::Result<u8>
 	{
-		let filePath = self.itemPath(sysPath, "distance");
-		filePath.read_value()
+		let file_path = self.itemPath(sys_path, "distance");
+		file_path.read_value()
 	}
-	
-	pub fn numberOfHugePages(&self, sysPath: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
+
+	pub fn numberOfHugePages(&self, sys_path: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
 	{
-		let filePath = self.numberOfHugePagesFilePath(sysPath, hugePageSize);
-		filePath.read_value()
+		let file_path = self.numberOfHugePagesFilePath(sys_path, hugePageSize);
+		file_path.read_value()
 	}
-	
-	pub fn numberOfFreeHugePages(&self, sysPath: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
+
+	pub fn numberOfFreeHugePages(&self, sys_path: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
 	{
-		let filePath = self.hugepagesPath(sysPath, hugePageSize, "free_hugepages");
-		filePath.read_value()
+		let file_path = self.hugepagesPath(sys_path, hugePageSize, "free_hugepages");
+		file_path.read_value()
 	}
-	
-	pub fn numberOfSurplusHugePages(&self, sysPath: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
+
+	pub fn numberOfSurplusHugePages(&self, sys_path: &Path, hugePageSize: HugePageSize) -> io::Result<u64>
 	{
-		let filePath = self.hugepagesPath(sysPath, hugePageSize, "surplus_hugepages");
-		filePath.read_value()
+		let file_path = self.hugepagesPath(sys_path, hugePageSize, "surplus_hugepages");
+		file_path.read_value()
 	}
-	
+
 	/// Will only work as root
-	pub fn tryToCompact(&self, sysPath: &Path) -> io::Result<()>
+	pub fn tryToCompact(&self, sys_path: &Path) -> io::Result<()>
 	{
 		assert_effective_user_id_is_root(&format!("Compact NUMA node '{}'", self.0));
 
-		let path = self.itemPath(sysPath, "compact");
+		let path = self.itemPath(sys_path, "compact");
 		path.write_value(1)
 	}
-	
+
 	/// Will only work as root
-	pub fn tryToEvictPages(&self, sysPath: &Path) -> io::Result<()>
+	pub fn tryToEvictPages(&self, sys_path: &Path) -> io::Result<()>
 	{
 		assert_effective_user_id_is_root(&format!("Evict pages on NUMA node '{}'", self.0));
 
-		let path = self.itemPath(sysPath, "scan_unevictable_pages");
+		let path = self.itemPath(sys_path, "scan_unevictable_pages");
 		path.write_value(1)
 	}
-	
+
 	/// Will only work as root
-	pub fn tryToClearAllHugePagesReserved(&self, sysPath: &Path, hugePageSize: HugePageSize) -> io::Result<()>
+	pub fn tryToClearAllHugePagesReserved(&self, sys_path: &Path, hugePageSize: HugePageSize) -> io::Result<()>
 	{
 		assert_effective_user_id_is_root(&format!("Clear all huge pages of size '{:?}' reserved on NUMA node '{}'", hugePageSize, self.0));
-		self.tryToReserveHugePages(sysPath, hugePageSize, 0)
+		self.tryToReserveHugePages(sys_path, hugePageSize, 0)
 	}
-	
+
 	/// Will only work as root
-	pub fn tryToReserveHugePages(&self, sysPath: &Path, hugePageSize: HugePageSize, count: u64) -> io::Result<()>
+	pub fn tryToReserveHugePages(&self, sys_path: &Path, hugePageSize: HugePageSize, count: u64) -> io::Result<()>
 	{
 		assert_effective_user_id_is_root(&format!("Reserve '{}' huge pages of size '{:?}' reserved on NUMA node '{}'", count, hugePageSize, self.0));
 
-		let filePath = self.numberOfHugePagesFilePath(sysPath, hugePageSize);
-		filePath.write_value(count)
+		let file_path = self.numberOfHugePagesFilePath(sys_path, hugePageSize);
+		file_path.write_value(count)
 	}
-	
-	fn statisticListParse(&self, sysPath: &Path, statisticsFileName: &str) -> io::Result<NumaNodeStatistics>
+
+	fn statisticListParse(&self, sys_path: &Path, statisticsFileName: &str) -> io::Result<NumaNodeStatistics>
 	{
-		let path = self.itemPath(sysPath, statisticsFileName);
+		let path = self.itemPath(sys_path, statisticsFileName);
 		let openFile = File::open(path)?;
 
 		let mut reader = BufReader::with_capacity(4096, openFile);
@@ -189,9 +189,9 @@ impl NumaSocketId
 		{
 			{
 				let mut split = line.splitn(2, ' ');
-				
+
 				let numaNodeStatisticName = NumaNodeStatisticName::parse(split.next().unwrap());
-				
+
 				let statisticValue = match split.next()
 				{
 					None => return Err(io::Error::new(ErrorKind::InvalidData, format!("Zero based line '{}' does not have a value second column", lineNumber))),
@@ -204,90 +204,90 @@ impl NumaSocketId
 						}
 					}
 				};
-				
+
 				if let Some(previous) = numaNodeStatistics.insert(numaNodeStatisticName, statisticValue)
 				{
 					return Err(io::Error::new(ErrorKind::InvalidData, format!("Zero based line '{}' has a duplicate statistic (was '{}')", lineNumber, previous)))
 				}
 			}
-			
+
 			line.clear();
 			lineNumber += 1;
 		}
-		
+
 		Ok(numaNodeStatistics)
 	}
-	
-	fn numberOfHugePagesFilePath(&self, sysPath: &Path, hugePageSize: HugePageSize) -> PathBuf
+
+	fn numberOfHugePagesFilePath(&self, sys_path: &Path, hugePageSize: HugePageSize) -> PathBuf
 	{
-		self.hugepagesPath(sysPath, hugePageSize, "nr_hugepages")
+		self.hugepagesPath(sys_path, hugePageSize, "nr_hugepages")
 	}
-	
+
 	#[inline(always)]
-	fn nodesSysPath(sysPath: &Path) -> PathBuf
+	fn nodesSysPath(sys_path: &Path) -> PathBuf
 	{
-		let mut nodesSysPath = PathBuf::from(sysPath);
+		let mut nodesSysPath = PathBuf::from(sys_path);
 		nodesSysPath.push("devices/system/node");
 		nodesSysPath
 	}
-	
+
 	#[inline(always)]
-	fn nodesItemSysPath(sysPath: &Path, item: &str) -> PathBuf
+	fn nodesItemSysPath(sys_path: &Path, item: &str) -> PathBuf
 	{
-		let mut nodesItemSysPath = Self::nodesSysPath(sysPath);
+		let mut nodesItemSysPath = Self::nodesSysPath(sys_path);
 		nodesItemSysPath.push(item);
 		nodesItemSysPath
 	}
-	
+
 	#[inline(always)]
-	fn nodeSysPath(&self, sysPath: &Path) -> PathBuf
+	fn nodeSysPath(&self, sys_path: &Path) -> PathBuf
 	{
-		Self::nodesItemSysPath(sysPath, &format!("node{}", self.0))
+		Self::nodesItemSysPath(sys_path, &format!("node{}", self.0))
 	}
-	
+
 	#[inline(always)]
-	fn itemPath(&self, sysPath: &Path, item: &str) -> PathBuf
+	fn itemPath(&self, sys_path: &Path, item: &str) -> PathBuf
 	{
-		let mut path = self.nodeSysPath(sysPath);
+		let mut path = self.nodeSysPath(sys_path);
 		path.push(item);
 		path
 	}
-	
+
 	#[inline(always)]
-	fn hugepagesPath(&self, sysPath: &Path, hugePageSize: HugePageSize, item: &str) -> PathBuf
+	fn hugepagesPath(&self, sys_path: &Path, hugePageSize: HugePageSize, item: &str) -> PathBuf
 	{
-		self.itemPath(sysPath, &format!("hugepages/hugepages-{}kB/{}", hugePageSize.size(), item.to_owned()))
+		self.itemPath(sys_path, &format!("hugepages/hugepages-{}kB/{}", hugePageSize.size(), item.to_owned()))
 	}
-	
+
 	#[inline(always)]
 	pub fn findInstalledNumberOfNumaSockets() -> usize
 	{
 		let mut currentMaximum = NumaSocketId::SocketZeroAlwaysExists;
 		for logicalCoreIdentifier in 0..(MaximumLogicalCores as u32)
 		{
-			if let Some(numaSocketId) = LogicalCore(logicalCoreIdentifier).optionalNumaSocketId()
+			if let Some(numa_socket_id) = LogicalCore(logicalCoreIdentifier).optionalNumaSocketId()
 			{
-				if numaSocketId > currentMaximum
+				if numa_socket_id > currentMaximum
 				{
-					currentMaximum = numaSocketId;
+					currentMaximum = numa_socket_id;
 				}
 			}
 		}
-		
+
 		(currentMaximum.0 + 1) as usize
 	}
-	
+
 	#[inline(always)]
 	pub fn choose<'a, V>(&'a self, from: &'a [V; MaximumNumaSockets]) -> &V
 	{
 		&from[self.0 as usize]
 	}
-	
+
 	#[inline(always)]
 	pub fn getSocketStatistics(&self) -> rte_malloc_socket_stats
 	{
 		let mut statistics = unsafe { uninitialized() };
-		let result = unsafe { ::dpdk_sys::rte_malloc_get_socket_stats(self.as_c_int(), &mut statistics) };
+		let result = unsafe { rte_malloc_get_socket_stats(self.as_c_int(), &mut statistics) };
 		if likely(result == 0)
 		{
 			statistics
@@ -295,25 +295,25 @@ impl NumaSocketId
 		else
 		{
 			forget(statistics);
-			
+
 			panic!("rte_malloc_get_socket_stats() returned '{}'", result);
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn dumpAllocationStatisticsToStandardError(typeOfMemory: Option<ConstCStr>)
 	{
-		unsafe { ::dpdk_sys::rte_malloc_dump_stats(stderr as *mut FILE, typeOfMemoryX(typeOfMemory)) }
+		unsafe { rte_malloc_dump_stats(stderr as *mut FILE, typeOfMemoryX(typeOfMemory)) }
 	}
-	
+
 	#[inline(always)]
 	pub fn forCurrentLogicalCore() -> Option<NumaSocketId>
 	{
-		Self::fromU32(unsafe { ::dpdk_sys::rte_socket_id() })
+		Self::fromU32(unsafe { rte_socket_id() })
 	}
-	
+
 	#[inline(always)]
-	pub fn fromI32(value: i32) -> Option<NumaSocketId>
+	pub fn from_i32(value: i32) -> Option<NumaSocketId>
 	{
 		if unlikely(value == SOCKET_ID_ANY)
 		{
@@ -324,20 +324,20 @@ impl NumaSocketId
 			Self::fromU32(value as u32)
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn fromU32(value: u32) -> Option<NumaSocketId>
 	{
 		debug_assert!(value <= MaximumNumaSockets as u32, "value '{}' is equal to or exceeds MaximumNumaSockets, '{}'", value, MaximumNumaSockets);
 		Some(NumaSocketId(value as u8))
 	}
-	
+
 	#[inline(always)]
 	pub fn as_u8(&self) -> u8
 	{
 		self.0
 	}
-	
+
 	#[inline(always)]
 	pub fn as_usize(&self) -> usize
 	{

@@ -10,7 +10,7 @@ pub struct rte_tm_node_capabilities
 	pub shaper_private_rate_min: u64,
 	pub shaper_private_rate_max: u64,
 	pub shaper_shared_n_max: u32,
-	pub __bindgen_anon_1: rte_tm_node_capabilities__bindgen_ty_1,
+	pub _1: rte_tm_node_capabilities_1,
 	pub stats_mask: u64,
 }
 
@@ -28,6 +28,6 @@ impl Debug for rte_tm_node_capabilities
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_tm_node_capabilities {{ __bindgen_anon_1: {:?} }}", self.__bindgen_anon_1)
+		write!(f, "rte_tm_node_capabilities {{ _1: {:?} }}", self._1)
 	}
 }

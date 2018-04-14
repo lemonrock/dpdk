@@ -5,8 +5,8 @@
 #[repr(C, packed)]
 pub struct rte_memseg
 {
-	pub __bindgen_anon_1: rte_memseg__bindgen_ty_1,
-	pub __bindgen_anon_2: rte_memseg__bindgen_ty_2,
+	pub _1: rte_memseg_1,
+	pub _2: rte_memseg_2,
 	pub len: usize,
 	pub hugepage_sz: u64,
 	pub socket_id: i32,

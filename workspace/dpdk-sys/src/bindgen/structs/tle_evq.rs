@@ -10,10 +10,10 @@ pub struct tle_evq
 	pub nb_events: u32,
 	pub nb_armed: u32,
 	pub nb_free: u32,
-	pub armed: tle_evq__bindgen_ty_1,
-	pub free: tle_evq__bindgen_ty_2,
+	pub armed: tle_evq_1,
+	pub free: tle_evq_2,
 	pub __bindgen_padding_0: [u64; 2usize],
-	pub events: __IncompleteArrayField<tle_event>,
+	pub events: IncompleteArrayField<tle_event>,
 	pub __bindgen_align: [u8; 0usize],
 }
 

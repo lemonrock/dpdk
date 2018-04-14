@@ -7,7 +7,7 @@
 pub struct rte_cryptodev_sym_capability_idx
 {
 	pub type_: rte_crypto_sym_xform_type,
-	pub algo: rte_cryptodev_sym_capability_idx__bindgen_ty_1,
+	pub algo: rte_cryptodev_sym_capability_idx_1,
 }
 
 impl Default for rte_cryptodev_sym_capability_idx

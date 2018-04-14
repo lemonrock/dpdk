@@ -4,17 +4,17 @@
 
 bitflags!
 {
-	pub flags MemoryZoneReservationPageChoice: u32
+	pub struct MemoryZoneReservationPageChoice: u32
 	{
-		const ReservedFrom256KbPages = ::dpdk_sys::RTE_MEMZONE_256KB,
-		const ReservedFrom2MbPages = ::dpdk_sys::RTE_MEMZONE_2MB,
-		const ReservedFrom16MbPages = ::dpdk_sys::RTE_MEMZONE_16MB,
-		const ReservedFrom256MbPages = ::dpdk_sys::RTE_MEMZONE_256MB,
-		const ReservedFrom512MbPages = ::dpdk_sys::RTE_MEMZONE_512MB,
-		const ReservedFrom1GbPages = ::dpdk_sys::RTE_MEMZONE_1GB,
-		const ReservedFrom4GbPages = ::dpdk_sys::RTE_MEMZONE_4GB,
-		const ReservedFrom16GbPages = ::dpdk_sys::RTE_MEMZONE_16GB,
-		const IsSizeHintOnly = ::dpdk_sys::RTE_MEMZONE_SIZE_HINT_ONLY,
+		const ReservedFrom256KbPages = RTE_MEMZONE_256KB;
+		const ReservedFrom2MbPages = RTE_MEMZONE_2MB;
+		const ReservedFrom16MbPages = RTE_MEMZONE_16MB;
+		const ReservedFrom256MbPages = RTE_MEMZONE_256MB;
+		const ReservedFrom512MbPages = RTE_MEMZONE_512MB;
+		const ReservedFrom1GbPages = RTE_MEMZONE_1GB;
+		const ReservedFrom4GbPages = RTE_MEMZONE_4GB;
+		const ReservedFrom16GbPages = RTE_MEMZONE_16GB;
+		const IsSizeHintOnly = RTE_MEMZONE_SIZE_HINT_ONLY;
 	}
 }
 

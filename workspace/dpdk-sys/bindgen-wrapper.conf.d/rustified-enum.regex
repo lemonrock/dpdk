@@ -102,3 +102,6 @@ rte_tunnel_iptype
 rte_vlan_type
 timer_source
 tle_ev_state
+rte_crypto_auth_operation
+rte_crypto_cipher_operation
+rte_meter_color_e

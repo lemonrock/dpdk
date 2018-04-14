@@ -36,30 +36,30 @@ impl TransmitQueueDeviceConfiguration
 			{
 				if let Some(transmitDescriptorsRSbitThreshold) = transmitDescriptorsRSbitThreshold
 				{
-					assert!(transmitDescriptorsRSbitThreshold == 1, "if ringWritebackThreshold '{}' is greater than zero, then transmitDescriptorsRSbitThreshold '{}' must be one", ringWritebackThreshold, transmitDescriptorsRSbitThreshold);
+					assert_eq!(transmitDescriptorsRSbitThreshold, 1, "if ringWritebackThreshold '{}' is greater than zero, then transmitDescriptorsRSbitThreshold '{}' must be one", ringWritebackThreshold, transmitDescriptorsRSbitThreshold);
 				}
 			}
 		}
-		
+
 		TransmitQueueDeviceConfiguration
 		{
-			ringPrefetchThreshold: ringPrefetchThreshold,
-			ringHostThreshold: ringHostThreshold,
-			ringWritebackThreshold: ringWritebackThreshold,
-			transmitDescriptorsRSbitThreshold: transmitDescriptorsRSbitThreshold,
-			startFreeingTransmitBuffersIfThereAreLessFreeDescriptorsThanThis: startFreeingTransmitBuffersIfThereAreLessFreeDescriptorsThanThis,
-			flagsToRemove: flagsToRemove,
-			flagsToInsert: flagsToInsert,
-			startQueueWhenEthernetDeviceStarted: startQueueWhenEthernetDeviceStarted,
+			ringPrefetchThreshold,
+			ringHostThreshold,
+			ringWritebackThreshold,
+			transmitDescriptorsRSbitThreshold,
+			startFreeingTransmitBuffersIfThereAreLessFreeDescriptorsThanThis,
+			flagsToRemove,
+			flagsToInsert,
+			startQueueWhenEthernetDeviceStarted,
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn overrideForTldk(startFreeingTransmitBuffersIfThereAreLessFreeDescriptorsThanThis: u16) -> Self
 	{
 		Self::new(None, None, None, Some(startFreeingTransmitBuffersIfThereAreLessFreeDescriptorsThanThis), None, TransmitQueueFlags::all(), TransmitQueueFlags::empty(), true)
 	}
-	
+
 	#[inline(always)]
 	pub fn validate(&self, numberOfTransmitDescriptorsForTheTransmitRingAlsoKnownAsRingSize: u16)
 	{
@@ -67,13 +67,13 @@ impl TransmitQueueDeviceConfiguration
 		{
 			assert!(transmitDescriptorsRSbitThreshold < numberOfTransmitDescriptorsForTheTransmitRingAlsoKnownAsRingSize - 3, "transmitDescriptorsRSbitThreshold '{}' is too large for numberOfTransmitDescriptorsForTheTransmitRingAlsoKnownAsRingSize '{}' - 3", transmitDescriptorsRSbitThreshold, numberOfTransmitDescriptorsForTheTransmitRingAlsoKnownAsRingSize);
 		}
-		
+
 		if let Some(startFreeingTransmitBuffersIfThereAreLessFreeDescriptorsThanThis) = self.startFreeingTransmitBuffersIfThereAreLessFreeDescriptorsThanThis
 		{
 			assert!(startFreeingTransmitBuffersIfThereAreLessFreeDescriptorsThanThis < numberOfTransmitDescriptorsForTheTransmitRingAlsoKnownAsRingSize - 3, "startFreeingTransmitBuffersIfThereAreLessFreeDescriptorsThanThis '{}' is too large for numberOfTransmitDescriptorsForTheTransmitRingAlsoKnownAsRingSize '{}' - 3", startFreeingTransmitBuffersIfThereAreLessFreeDescriptorsThanThis, numberOfTransmitDescriptorsForTheTransmitRingAlsoKnownAsRingSize);
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn as_rte_eth_txconf(&self, mut configuration: rte_eth_txconf) -> rte_eth_txconf
 	{
@@ -81,32 +81,32 @@ impl TransmitQueueDeviceConfiguration
 		{
 			configuration.tx_thresh.pthresh = ringPrefetchThreshold;
 		}
-		
+
 		if let Some(ringHostThreshold) = self.ringHostThreshold
 		{
 			configuration.tx_thresh.hthresh = ringHostThreshold;
 		}
-		
+
 		if let Some(ringWritebackThreshold) = self.ringWritebackThreshold
 		{
 			configuration.tx_thresh.wthresh = ringWritebackThreshold;
 		}
-		
+
 		if let Some(startFreeingTransmitBuffersIfThereAreLessFreeDescriptorsThanThis) = self.startFreeingTransmitBuffersIfThereAreLessFreeDescriptorsThanThis
 		{
 			configuration.tx_free_thresh = startFreeingTransmitBuffersIfThereAreLessFreeDescriptorsThanThis;
 		}
-		
+
 		if let Some(transmitDescriptorsRSbitThreshold) = self.transmitDescriptorsRSbitThreshold
 		{
 			configuration.tx_rs_thresh = transmitDescriptorsRSbitThreshold;
 		}
-		
+
 		let mut flags = TransmitQueueFlags::from_bits_truncate(configuration.txq_flags);
 		flags.remove(self.flagsToRemove);
 		flags.insert(self.flagsToInsert);
 		configuration.txq_flags = flags.bits();
-		
+
 		configuration.tx_deferred_start = if self.startQueueWhenEthernetDeviceStarted
 		{
 			0
@@ -115,10 +115,10 @@ impl TransmitQueueDeviceConfiguration
 		{
 			1
 		};
-		
+
 		configuration
 	}
-	
+
 	#[inline(always)]
 	pub fn startQueueWhenEthernetDeviceStarted(&self) -> bool
 	{

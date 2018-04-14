@@ -7,7 +7,7 @@ pub struct rte_ipv6_tuple
 {
 	pub src_addr: [u8; 16usize],
 	pub dst_addr: [u8; 16usize],
-	pub __bindgen_anon_1: rte_ipv6_tuple__bindgen_ty_1,
+	pub _1: rte_ipv6_tuple_1,
 }
 
 impl Default for rte_ipv6_tuple
@@ -24,6 +24,6 @@ impl Debug for rte_ipv6_tuple
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_ipv6_tuple {{ src_addr: {:?}, dst_addr: {:?}, __bindgen_anon_1: {:?} }}", self.src_addr, self.dst_addr, self.__bindgen_anon_1)
+		write!(f, "rte_ipv6_tuple {{ src_addr: {:?}, dst_addr: {:?}, _1: {:?} }}", self.src_addr, self.dst_addr, self._1)
 	}
 }

@@ -2,4 +2,5 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// Minimum size of an Ethernet packet size assuming ARP.
 pub const MinimumSizeOfEthernetPacketSizeAssumingArp: u32 = SizeOfEthernetHeader + SizeOfLayer3ArpPacket;

@@ -120,7 +120,7 @@ impl ReceiveSideScalingHashFunctionKeyData
 		ReceiveSideScalingHashFunctionConfiguration
 		{
 			key: self,
-			hashFunctionFlowApplicability: hashFunctionFlowApplicability
+			hashFunctionFlowApplicability
 		}
 	}
 	

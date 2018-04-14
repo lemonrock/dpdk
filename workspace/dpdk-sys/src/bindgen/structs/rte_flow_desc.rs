@@ -9,7 +9,7 @@ pub struct rte_flow_desc
 	pub attr: rte_flow_attr,
 	pub items: *mut rte_flow_item,
 	pub actions: *mut rte_flow_action,
-	pub data: __IncompleteArrayField<u8>,
+	pub data: IncompleteArrayField<u8>,
 }
 
 impl Default for rte_flow_desc

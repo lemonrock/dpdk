@@ -3,15 +3,7 @@
 
 
 use ::arrayvec::ArrayVec;
-use ::dpdk::dpdk_sys::ether_addr;
-use ::dpdk::dpdk_sys::ether_hdr;
-use ::dpdk::dpdk_sys::ETHER_TYPE_IPv4;
-use ::dpdk::dpdk_sys::ETHER_TYPE_IPv6;
-use ::dpdk::dpdk_sys::ipv4_hdr;
-use ::dpdk::dpdk_sys::ipv6_hdr;
-use ::dpdk::dpdk_sys::rte_mempool;
-use ::dpdk::dpdk_sys::tle_dest;
-use ::dpdk::dpdk_sys::tle_dev;
+use ::dpdk::dpdk_sys::*;
 use ::dpdk::domain::ethernet::*;
 use ::dpdk::domain::ip::*;
 use ::dpdk::domain::ipHostAddresses::*;
@@ -25,7 +17,7 @@ use ::dpdk::ethernetPorts::MediaAccessControlAddress;
 use ::dpdk::ethernetPorts::QueueIdentifier;
 use ::dpdk::logicalCores::NumaSocketId;
 use ::dpdk::longestPrefixMatch::*;
-use ::dpdk::tldk::layer4::AddressLookUpForSendCallback;
+use ::dpdk::tldk::AddressLookUpForSendCallback;
 use ::libc::in_addr;
 use ::libc::in6_addr;
 use ::ip::state::ArpCache;

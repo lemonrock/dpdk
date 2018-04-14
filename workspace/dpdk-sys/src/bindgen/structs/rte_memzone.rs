@@ -6,8 +6,8 @@
 pub struct rte_memzone
 {
 	pub name: [c_char; 32usize],
-	pub __bindgen_anon_1: rte_memzone__bindgen_ty_1,
-	pub __bindgen_anon_2: rte_memzone__bindgen_ty_2,
+	pub _1: rte_memzone_1,
+	pub _2: rte_memzone_2,
 	pub len: usize,
 	pub hugepage_sz: u64,
 	pub socket_id: i32,

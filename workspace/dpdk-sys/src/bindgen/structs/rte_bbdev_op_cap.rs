@@ -6,7 +6,7 @@
 pub struct rte_bbdev_op_cap
 {
 	pub type_: rte_bbdev_op_type,
-	pub cap: rte_bbdev_op_cap__bindgen_ty_1,
+	pub cap: rte_bbdev_op_cap_1,
 }
 
 impl Default for rte_bbdev_op_cap

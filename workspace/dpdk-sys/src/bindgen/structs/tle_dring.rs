@@ -7,9 +7,9 @@ pub struct tle_dring
 {
 	pub flags: u32,
 	pub __bindgen_padding_0: [u64; 7usize],
-	pub prod: tle_dring__bindgen_ty_1,
+	pub prod: tle_dring_1,
 	pub __bindgen_padding_1: [u64; 5usize],
-	pub cons: tle_dring__bindgen_ty_2,
+	pub cons: tle_dring_2,
 	pub __bindgen_padding_2: [u64; 5usize],
 	pub dummy: tle_drb,
 }

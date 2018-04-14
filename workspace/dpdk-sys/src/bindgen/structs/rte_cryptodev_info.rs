@@ -11,7 +11,7 @@ pub struct rte_cryptodev_info
 	pub feature_flags: u64,
 	pub capabilities: *const rte_cryptodev_capabilities,
 	pub max_nb_queue_pairs: c_uint,
-	pub sym: rte_cryptodev_info__bindgen_ty_1,
+	pub sym: rte_cryptodev_info_1,
 }
 
 impl Default for rte_cryptodev_info

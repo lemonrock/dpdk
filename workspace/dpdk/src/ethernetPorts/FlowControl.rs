@@ -32,16 +32,16 @@ impl FlowControl
 		debug_assert!(highThresholdValueToTriggerXOFF > lowThresholdValueToTriggerXON, "highThresholdValueToTriggerXOFF '{}' > lowThresholdValueToTriggerXON '{}'", highThresholdValueToTriggerXOFF, lowThresholdValueToTriggerXON);
 		FlowControl
 		{
-			enableTransmitFlowControl: enableTransmitFlowControl,
-			enableReceiveFlowControl: enableReceiveFlowControl,
-			highThresholdValueToTriggerXOFF: highThresholdValueToTriggerXOFF,
-			lowThresholdValueToTriggerXON: lowThresholdValueToTriggerXON,
-			pauseQuota: pauseQuota,
-			forwardMediaAccessControlFrames: forwardMediaAccessControlFrames,
-			usePauseAutonegotiation: usePauseAutonegotiation,
+			enableTransmitFlowControl,
+			enableReceiveFlowControl,
+			highThresholdValueToTriggerXOFF,
+			lowThresholdValueToTriggerXON,
+			pauseQuota,
+			forwardMediaAccessControlFrames,
+			usePauseAutonegotiation,
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn as_rte_eth_fc_conf(&self) -> rte_eth_fc_conf
 	{
@@ -66,14 +66,14 @@ impl FlowControl
 		{
 			rte_eth_fc_mode::RTE_FC_NONE
 		};
-		
+
 		rte_eth_fc_conf
 		{
 		 	high_water: self.highThresholdValueToTriggerXOFF,
 			low_water: self.lowThresholdValueToTriggerXON,
 			pause_time: self.pauseQuota,
 			send_xon: 0,
-			mode: mode,
+			mode,
 			mac_ctrl_frame_fwd: if self.forwardMediaAccessControlFrames
 			{
 				1

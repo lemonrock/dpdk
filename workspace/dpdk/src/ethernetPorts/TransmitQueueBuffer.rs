@@ -18,47 +18,47 @@ impl<E: TransmitQueueBufferErrorCallback> TransmitQueueBuffer<E>
 	{
 		self.buffer.0
 	}
-	
+
 	const_cstr!
 	{
 		tx_buffer = "tx_buffer";
 	}
-	
+
 	// maximumPacketBurst is something like 32
 	#[inline(always)]
 	pub fn newWithoutCallback(transmitQueue: TransmitQueue, maximumPacketBurst: u16) -> Option<TransmitQueueBuffer<NoTransmitQueueBufferErrorCallback>>
 	{
 		TransmitQueueBuffer::<NoTransmitQueueBufferErrorCallback>::new(transmitQueue, maximumPacketBurst, None)
 	}
-	
+
 	// maximumPacketBurst is something like 32
 	#[inline(always)]
 	pub fn new(transmitQueue: TransmitQueue, maximumPacketBurst: u16, errorCallback: Option<E>) -> Option<TransmitQueueBuffer<E>>
 	{
 		let SIZE = unsafe { rust_RTE_ETH_TX_BUFFER_SIZE(maximumPacketBurst) };
-		let buffer = transmitQueue.numaSocketId.zeroAllocate(Some(Self::tx_buffer), SIZE, None);
+		let buffer = transmitQueue.numa_socket_id.zeroAllocate(Some(Self::tx_buffer), SIZE, None);
 		if buffer.is_none()
 		{
 			return None;
 		}
 		let buffer = buffer.unwrap();
-		
-		let result = unsafe { ::dpdk_sys::rte_eth_tx_buffer_init(buffer.0, maximumPacketBurst) };
+
+		let result = unsafe { rte_eth_tx_buffer_init(buffer.0, maximumPacketBurst) };
 		if likely(result == 0)
 		{
 			let mut transmitQueueBuffer = TransmitQueueBuffer
 			{
 				portIdentifier: transmitQueue.portIdentifier,
 				queueIdentifier: transmitQueue.queueIdentifier,
-				buffer: buffer,
+				buffer,
 				errorCallback: None,
 			};
-			
+
 			if let Some(errorCallback) = errorCallback
 			{
 				transmitQueueBuffer.setErrorCallback(errorCallback);
 			}
-			
+
 			Some(transmitQueueBuffer)
 		}
 		else
@@ -66,23 +66,23 @@ impl<E: TransmitQueueBufferErrorCallback> TransmitQueueBuffer<E>
 			None
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn flush(&self) -> u16
 	{
 		unsafe { rust_rte_eth_tx_buffer_flush(self.portIdentifier, self.queueIdentifier, self.as_rte_eth_dev_tx_buffer()) }
 	}
-	
+
 	#[inline(always)]
 	pub fn buffer(&self, packet: *mut rte_mbuf) -> u16
 	{
 		unsafe { rust_rte_eth_tx_buffer(self.portIdentifier, self.queueIdentifier, self.as_rte_eth_dev_tx_buffer(), packet) }
 	}
-	
+
 	#[inline(always)]
 	pub fn setErrorCallback(&mut self, mut errorCallback: E)
 	{
-		let result = unsafe { ::dpdk_sys::rte_eth_tx_buffer_set_err_callback(self.as_rte_eth_dev_tx_buffer(), E::asFunctionPointer(), errorCallback.asFunctionArgument()) };
+		let result = unsafe { rte_eth_tx_buffer_set_err_callback(self.as_rte_eth_dev_tx_buffer(), E::asFunctionPointer(), errorCallback.asFunctionArgument()) };
 		if likely(result == 0)
 		{
 			// Take ownership; when we get dropped, errorCallback gets dropped
@@ -93,7 +93,7 @@ impl<E: TransmitQueueBufferErrorCallback> TransmitQueueBuffer<E>
 			match result
 			{
 				-1 => panic!("rte_eth_tx_buffer_set_err_callback() failed with error number '{}'", unsafe { rust_rte_errno() }),
-				
+
 				_ => panic!("rte_eth_tx_buffer_set_err_callback() returned an invalid result '{}'", result),
 			}
 		}

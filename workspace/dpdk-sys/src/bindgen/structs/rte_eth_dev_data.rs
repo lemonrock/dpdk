@@ -22,7 +22,7 @@ pub struct rte_eth_dev_data
 	pub mac_pool_sel: [u64; 128usize],
 	pub hash_mac_addrs: *mut ether_addr,
 	pub port_id: u16,
-	pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize], u8>,
+	pub bitfield_1: BindgenBitfieldUnit<[u8; 1usize], u8>,
 	pub rx_queue_state: [u8; 1024usize],
 	pub tx_queue_state: [u8; 1024usize],
 	pub dev_flags: u32,
@@ -141,7 +141,7 @@ impl rte_eth_dev_data
 	#[inline(always)]
 	pub fn promiscuous(&self) -> u8
 	{
-		unsafe { transmute(self._bitfield_1.get(0usize, 1u8) as u8) }
+		unsafe { transmute(self.bitfield_1.get(0usize, 1u8) as u8) }
 	}
 	
 	#[inline(always)]
@@ -149,14 +149,14 @@ impl rte_eth_dev_data
 	{
 		unsafe {
 			let val: u8 = transmute(val);
-			self._bitfield_1.set(0usize, 1u8, val as u64)
+			self.bitfield_1.set(0usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn scattered_rx(&self) -> u8
 	{
-		unsafe { transmute(self._bitfield_1.get(1usize, 1u8) as u8) }
+		unsafe { transmute(self.bitfield_1.get(1usize, 1u8) as u8) }
 	}
 	
 	#[inline(always)]
@@ -164,14 +164,14 @@ impl rte_eth_dev_data
 	{
 		unsafe {
 			let val: u8 = transmute(val);
-			self._bitfield_1.set(1usize, 1u8, val as u64)
+			self.bitfield_1.set(1usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn all_multicast(&self) -> u8
 	{
-		unsafe { transmute(self._bitfield_1.get(2usize, 1u8) as u8) }
+		unsafe { transmute(self.bitfield_1.get(2usize, 1u8) as u8) }
 	}
 	
 	#[inline(always)]
@@ -179,14 +179,14 @@ impl rte_eth_dev_data
 	{
 		unsafe {
 			let val: u8 = transmute(val);
-			self._bitfield_1.set(2usize, 1u8, val as u64)
+			self.bitfield_1.set(2usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn dev_started(&self) -> u8
 	{
-		unsafe { transmute(self._bitfield_1.get(3usize, 1u8) as u8) }
+		unsafe { transmute(self.bitfield_1.get(3usize, 1u8) as u8) }
 	}
 	
 	#[inline(always)]
@@ -194,14 +194,14 @@ impl rte_eth_dev_data
 	{
 		unsafe {
 			let val: u8 = transmute(val);
-			self._bitfield_1.set(3usize, 1u8, val as u64)
+			self.bitfield_1.set(3usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
 	pub fn lro(&self) -> u8
 	{
-		unsafe { transmute(self._bitfield_1.get(4usize, 1u8) as u8) }
+		unsafe { transmute(self.bitfield_1.get(4usize, 1u8) as u8) }
 	}
 	
 	#[inline(always)]
@@ -209,14 +209,14 @@ impl rte_eth_dev_data
 	{
 		unsafe {
 			let val: u8 = transmute(val);
-			self._bitfield_1.set(4usize, 1u8, val as u64)
+			self.bitfield_1.set(4usize, 1u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
-	pub fn new_bitfield_1(promiscuous: u8, scattered_rx: u8, all_multicast: u8, dev_started: u8, lro: u8) -> __BindgenBitfieldUnit<[u8; 1usize], u8>
+	pub fn newbitfield_1(promiscuous: u8, scattered_rx: u8, all_multicast: u8, dev_started: u8, lro: u8) -> BindgenBitfieldUnit<[u8; 1usize], u8>
 	{
-		let mut __bindgen_bitfield_unit: __BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
+		let mut __bindgen_bitfield_unit: BindgenBitfieldUnit<[u8; 1usize], u8> = Default::default();
 		__bindgen_bitfield_unit.set(0usize, 1u8, {
 			let promiscuous: u8 = unsafe { transmute(promiscuous) };
 			promiscuous as u64

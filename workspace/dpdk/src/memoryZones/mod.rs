@@ -3,10 +3,8 @@
 
 
 use ::const_cstr_fork::ConstCStr;
-use ::dpdk_sys::rust_rte_errno;
-use ::dpdk_sys::rte_memzone;
-use ::dpdk_sys::RTE_MEMZONE_NAMESIZE;
-use ::libc::FILE;
+use ::dpdk_sys::*;
+use ::libc::*;
 use ::libc_extra::stderr;
 use ::rust_extra::unlikely;
 use ::syscall_alt::constants::E;

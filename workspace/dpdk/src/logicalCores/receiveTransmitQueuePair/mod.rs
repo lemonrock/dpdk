@@ -3,7 +3,7 @@
 
 
 use ::arrayvec::ArrayVec;
-#[cfg(any(target_os = "android", target_os = "linux"))] use ::dpdk_unix::android_linux::process_control::set_current_thread_name;
+use ::dpdk_unix::set_current_thread_name;
 use ::dpdk_sys::*;
 use ::libc_extra::ffi::callbacks::MutableCallback1;
 use ::rust_extra::likely;

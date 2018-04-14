@@ -5,7 +5,7 @@
 #[repr(C)]
 pub struct rte_cryptodev_sym_session
 {
-	pub sess_private_data: __IncompleteArrayField<*mut c_void>,
+	pub sess_private_data: IncompleteArrayField<*mut c_void>,
 }
 
 impl Default for rte_cryptodev_sym_session

@@ -9,12 +9,12 @@ pub struct ReceiveTransmitQueuePairSlaveLogicalCoreTask<EC: ExecutionRoutineCrea
 	executionRoutineGroup: Arc<Mutex<ExecutionRoutineGroup<ReceiveTransmitQueuePairSlaveLogicalCoreTask<EC>>>>,
 	executionRoutineCreator: EC,
 	slaveLogicalCoreToExecuteOn: LogicalCore,
-	
-	underlyingEthernetDevice: rte_eth_dev,
-	
+
+	underlying_ethernet_device: rte_eth_dev,
+
 	receiveQueueStopFunction: eth_queue_stop_t,
 	receiveQueueIdentifier: QueueIdentifier,
-	
+
 	transmitQueueStopFunction: eth_queue_stop_t,
 	transmitQueueIdentifier: QueueIdentifier,
 }
@@ -34,7 +34,7 @@ impl<EC: ExecutionRoutineCreator> MutableCallback1<i32> for ReceiveTransmitQueue
 	fn call(&mut self) -> i32
 	{
 		let result = self.callUnwindSafe();
-		
+
 		let (valueResult, causeOfDeath) = match result
 		{
 			Ok(_) => (0, Ok(())),
@@ -44,17 +44,17 @@ impl<EC: ExecutionRoutineCreator> MutableCallback1<i32> for ReceiveTransmitQueue
 				(-1, Err(()))
 			}
 		};
-		
+
 		{
 			let mut guard = match self.executionRoutineGroup.lock()
 			{
 				Ok(guard) => guard,
 				Err(poisoned) => poisoned.into_inner(),
 			};
-			
+
 			guard.notifyOfDeath(self.queueIdentifier(), causeOfDeath);
 		}
-		
+
 		valueResult
 	}
 }
@@ -67,13 +67,13 @@ impl<EC: ExecutionRoutineCreator> ReceiveTransmitQueuePairSlaveLogicalCoreTask<E
 		{
 			debug_assert!(LogicalCore::isCurrentSlave(), "Can not call call() on a master logical core");
 			debug_assert!(self.isCurrentCorrectLogicalCoreToExecuteOn(), "Can not call call() on a different slave logical core");
-			
+
 			#[cfg(any(target_os = "android", target_os = "linux"))] set_current_thread_name(&format!("Slave-{}", self.slaveLogicalCoreToExecuteOn.as_u32())).expect("Could not set thread name");
-			
+
 			let mut executionRoutine = self.executionRoutineCreator.createExecutionRoutineWhilstExecutingOnSlaveLogicalCore();
-			
+
 			executionRoutine.start();
-			
+
 			while likely(self.canContinue())
 			{
 				if unlikely(executionRoutine.execute())
@@ -81,13 +81,13 @@ impl<EC: ExecutionRoutineCreator> ReceiveTransmitQueuePairSlaveLogicalCoreTask<E
 					break;
 				}
 			}
-			
+
 			executionRoutine.stop();
-			
+
 			self.stopOurReceiveQueueAndOurTransmitQueue();
 		}))
 	}
-	
+
 	pub fn new<Creator: ExecutionRoutineCreatorCreator<D, EC>, D>
 	(
 		canContinue: CanContinue,
@@ -100,54 +100,54 @@ impl<EC: ExecutionRoutineCreator> ReceiveTransmitQueuePairSlaveLogicalCoreTask<E
 	) -> ReceiveTransmitQueuePairSlaveLogicalCoreTask<EC>
 	{
 		debug_assert!(LogicalCore::isCurrentMaster(), "Can not call new() on a slave logical core");
-		
-		let underlyingEthernetDevice = ethernetPortInformation.underlyingEthernetDevice();
-		let deviceOperations = unsafe { *(underlyingEthernetDevice.dev_ops) };
-		
+
+		let underlying_ethernet_device = ethernetPortInformation.underlying_ethernet_device();
+		let deviceOperations = unsafe { *(underlying_ethernet_device.dev_ops) };
+
 		ReceiveTransmitQueuePairSlaveLogicalCoreTask
 		{
-			canContinue: canContinue,
-			executionRoutineGroup: executionRoutineGroup,
+			canContinue,
+			executionRoutineGroup,
 			executionRoutineCreator: executionRoutineCreatorCreator.createWhilstOnMasterLogicalCore(data, queuePairIdentifier, slaveLogicalCoreToExecuteOn, ethernetPortInformation),
-			slaveLogicalCoreToExecuteOn: slaveLogicalCoreToExecuteOn,
-		
-			underlyingEthernetDevice: underlyingEthernetDevice.clone(),
-			
+			slaveLogicalCoreToExecuteOn,
+
+			underlying_ethernet_device: underlying_ethernet_device.clone(),
+
 			receiveQueueStopFunction: deviceOperations.rx_queue_stop,
 			receiveQueueIdentifier: queuePairIdentifier,
-			
+
 			transmitQueueStopFunction: deviceOperations.tx_queue_stop,
 			transmitQueueIdentifier: queuePairIdentifier,
 		}
 	}
-	
+
 	#[inline(always)]
 	fn queueIdentifier(&self) -> QueueIdentifier
 	{
 		self.receiveQueueIdentifier
 	}
-	
+
 	#[inline(always)]
 	fn canContinue(&mut self) -> bool
 	{
 		debug_assert!(self.isCurrentCorrectLogicalCoreToExecuteOn(), "Can not call canContinue() on a different slave logical core");
-		
+
 		self.canContinue.canContinue()
 	}
-	
+
 	#[inline(always)]
 	fn stopOurReceiveQueueAndOurTransmitQueue(&mut self)
 	{
-		let underlyingEthernetDevice = &mut self.underlyingEthernetDevice;
-		
+		let underlying_ethernet_device = &mut self.underlying_ethernet_device;
+
 		if let Some(receiveQueueStopFunction) = self.receiveQueueStopFunction
 		{
-			unsafe { receiveQueueStopFunction(underlyingEthernetDevice, self.receiveQueueIdentifier) };
+			unsafe { receiveQueueStopFunction(underlying_ethernet_device, self.receiveQueueIdentifier) };
 		}
-		
+
 		if let Some(transmitQueueStopFunction) = self.transmitQueueStopFunction
 		{
-			unsafe { transmitQueueStopFunction(underlyingEthernetDevice, self.transmitQueueIdentifier) };
+			unsafe { transmitQueueStopFunction(underlying_ethernet_device, self.transmitQueueIdentifier) };
 		}
 	}
 }

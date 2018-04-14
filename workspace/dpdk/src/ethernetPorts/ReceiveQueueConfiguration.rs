@@ -29,20 +29,20 @@ impl Default for ReceiveQueueConfiguration
 impl ReceiveQueueConfiguration
 {
 	pub const DefaultNumberOfReceiveDescriptorsForTheReceiveRingAlsoKnownAsRingSize: u16 = 512;
-	
+
 	pub const TldkNumberOfReceiveDescriptorsForTheReceiveRingAlsoKnownAsRingSize: u16 = 1024; // TLDK l4fwd app's RX_RING_SIZE
-	
+
 	#[inline(always)]
 	pub fn new(numberOfReceiveDescriptorsForTheReceiveRingAlsoKnownAsRingSize: u16, overrideDefaultDeviceConfiguration: Option<ReceiveQueueDeviceConfiguration>, enableVlanStripping: Option<bool>) -> Self
 	{
 		ReceiveQueueConfiguration
 		{
-			numberOfReceiveDescriptorsForTheReceiveRingAlsoKnownAsRingSize: numberOfReceiveDescriptorsForTheReceiveRingAlsoKnownAsRingSize,
-			overrideDefaultDeviceConfiguration: overrideDefaultDeviceConfiguration,
-			enableVlanStripping: enableVlanStripping,
+			numberOfReceiveDescriptorsForTheReceiveRingAlsoKnownAsRingSize,
+			overrideDefaultDeviceConfiguration,
+			enableVlanStripping,
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn startQueueWhenEthernetDeviceStarted(&self) -> bool
 	{

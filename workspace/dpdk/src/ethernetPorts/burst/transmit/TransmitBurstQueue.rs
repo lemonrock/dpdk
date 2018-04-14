@@ -78,7 +78,7 @@ macro_rules! fillFromTldkDeviceTransmittingAsRequired
 			
 			loop
 			{
-				let enqueuedCount = unsafe { $tldkBulkTransmitFunction($device._opaqueFfiHandle(), $self.queue.get_unchecked_mut($self.highestExclusiveIndex), capacityAvailable as u16) } as usize;
+				let enqueuedCount = unsafe { $tldkBulkTransmitFunction($device.handle(), $self.queue.get_unchecked_mut($self.highestExclusiveIndex), capacityAvailable as u16) } as usize;
 				debug_assert!(enqueuedCount <= capacityAvailable, "enqueueCount '{}' exceeded capacityAvailable '{}'", enqueuedCount, capacityAvailable);
 				
 				$self.highestExclusiveIndex += enqueuedCount;
@@ -107,7 +107,7 @@ impl TransmitBurstQueue
 		
 		Self
 		{
-			transmitBurst: transmitBurst,
+			transmitBurst,
 			queue: unsafe { uninitialized() },
 			count: 0,
 			highestExclusiveIndex: 0,
@@ -158,14 +158,14 @@ impl TransmitBurstQueue
 	#[inline(always)]
 	pub fn fillFromTldkTcpDeviceTransmittingAsRequired(&mut self, mut tcpDevice: TcpDevice) -> bool
 	{
-		fillFromTldkDeviceTransmittingAsRequired!(self, tcpDevice, ::dpdk_sys::tle_tcp_tx_bulk)
+		fillFromTldkDeviceTransmittingAsRequired!(self, tcpDevice, tle_tcp_tx_bulk)
 	}
 	
 	// true if managed to fill something; false only if can not (in essence, we are completely full and we did not transmit anything when we tried)
 	#[inline(always)]
 	pub fn fillFromTldkUdpDeviceTransmittingAsRequired(&mut self, mut udpDevice: UdpDevice) -> bool
 	{
-		fillFromTldkDeviceTransmittingAsRequired!(self, udpDevice, ::dpdk_sys::tle_udp_tx_bulk)
+		fillFromTldkDeviceTransmittingAsRequired!(self, udpDevice, tle_udp_tx_bulk)
 	}
 	
 	#[inline(always)]

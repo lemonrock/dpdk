@@ -8,7 +8,7 @@ pub struct vfio_pci_hot_reset
 	pub argsz: __u32,
 	pub flags: __u32,
 	pub count: __u32,
-	pub group_fds: __IncompleteArrayField<__s32>,
+	pub group_fds: IncompleteArrayField<__s32>,
 }
 
 impl Default for vfio_pci_hot_reset

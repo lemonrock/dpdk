@@ -6,7 +6,7 @@
 pub struct rte_security_stats
 {
 	pub protocol: rte_security_session_protocol,
-	pub __bindgen_anon_1: rte_security_stats__bindgen_ty_1,
+	pub _1: rte_security_stats_1,
 }
 
 impl Default for rte_security_stats
@@ -23,6 +23,6 @@ impl Debug for rte_security_stats
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_security_stats {{ protocol: {:?}, __bindgen_anon_1: {:?} }}", self.protocol, self.__bindgen_anon_1)
+		write!(f, "rte_security_stats {{ protocol: {:?}, _1: {:?} }}", self.protocol, self._1)
 	}
 }

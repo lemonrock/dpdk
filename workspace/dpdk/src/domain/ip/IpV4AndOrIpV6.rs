@@ -70,9 +70,9 @@ impl<A, B> IpV4AndOrIpV6<A, B>
 impl IpV4AndOrIpV6<Ipv4Addr, Ipv6Addr>
 {
 	#[inline(always)]
-	pub fn oneOrTheOther(ipAddress: IpAddr) -> Self
+	pub fn oneOrTheOther(internet_protocol_address: IpAddr) -> Self
 	{
-		match ipAddress
+		match internet_protocol_address
 		{
 			IpAddr::V4(value) => Self::onlyIpV4(value),
 			IpAddr::V6(value) => Self::onlyIpV6(value),

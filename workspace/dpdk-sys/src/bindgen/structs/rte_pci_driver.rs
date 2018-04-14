@@ -5,7 +5,7 @@
 #[repr(C)]
 pub struct rte_pci_driver
 {
-	pub next: rte_pci_driver__bindgen_ty_1,
+	pub next: rte_pci_driver_1,
 	pub driver: rte_driver,
 	pub bus: *mut rte_pci_bus,
 	pub probe: pci_probe_t,

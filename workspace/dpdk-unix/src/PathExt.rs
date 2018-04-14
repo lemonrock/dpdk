@@ -22,7 +22,7 @@ pub trait PathExt
 	
 	/// Reads a value from a file which is line-feed terminated and is hexadecimal using a parser.
 	#[inline(always)]
-	fn read_hexadecimal_value_with_prefix<P, T>(&self, size: usize, parser: P) -> io::Result<T> where P: Fn(&str) -> Result<T, ParseIntError>;
+	fn read_hexadecimal_value_with_prefix<P: Fn(&str) -> Result<T, ParseIntError>, T>(&self, size: usize, parser: P) -> io::Result<T>;
 	
 	/// Reads a value from a file which is line-feed terminated and is hexadecimal into an u16.
 	#[inline(always)]
@@ -76,7 +76,7 @@ impl PathExt for Path
 	}
 	
 	#[inline(always)]
-	fn read_hexadecimal_value_with_prefix<P, T>(&self, size: usize, parser: P) -> io::Result<T> where P: Fn(&str) -> Result<T, ParseIntError>
+	fn read_hexadecimal_value_with_prefix<P: Fn(&str) -> Result<T, ParseIntError>, T>(&self, size: usize, parser: P) -> io::Result<T>
 	{
 		let mut opened_file = File::open(self)?;
 		let mut raw_string = String::with_capacity(128);

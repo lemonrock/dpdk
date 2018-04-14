@@ -13,7 +13,7 @@ pub struct rte_bitmap
 	pub offset1: u32,
 	pub index2: u32,
 	pub go2: u32,
-	pub memory: __IncompleteArrayField<u8>,
+	pub memory: IncompleteArrayField<u8>,
 }
 
 impl Default for rte_bitmap

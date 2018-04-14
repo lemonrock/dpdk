@@ -7,7 +7,7 @@ pub struct rte_security_session_conf
 {
 	pub action_type: rte_security_session_action_type,
 	pub protocol: rte_security_session_protocol,
-	pub __bindgen_anon_1: rte_security_session_conf__bindgen_ty_1,
+	pub _1: rte_security_session_conf_1,
 	pub crypto_xform: *mut rte_crypto_sym_xform,
 	pub userdata: *mut c_void,
 }
@@ -26,6 +26,6 @@ impl Debug for rte_security_session_conf
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_security_session_conf {{ action_type: {:?}, protocol: {:?}, __bindgen_anon_1: {:?}, crypto_xform: {:?}, userdata: {:?} }}", self.action_type, self.protocol, self.__bindgen_anon_1, self.crypto_xform, self.userdata)
+		write!(f, "rte_security_session_conf {{ action_type: {:?}, protocol: {:?}, _1: {:?}, crypto_xform: {:?}, userdata: {:?} }}", self.action_type, self.protocol, self._1, self.crypto_xform, self.userdata)
 	}
 }

@@ -7,7 +7,7 @@
 pub struct rte_acl_rule
 {
 	pub data: rte_acl_rule_data,
-	pub field: __IncompleteArrayField<rte_acl_field>,
+	pub field: IncompleteArrayField<rte_acl_field>,
 	pub __bindgen_align: [u64; 0usize],
 }
 

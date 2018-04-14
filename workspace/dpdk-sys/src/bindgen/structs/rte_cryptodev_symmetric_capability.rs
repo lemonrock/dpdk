@@ -6,7 +6,7 @@
 pub struct rte_cryptodev_symmetric_capability
 {
 	pub xform_type: rte_crypto_sym_xform_type,
-	pub __bindgen_anon_1: rte_cryptodev_symmetric_capability__bindgen_ty_1,
+	pub _1: rte_cryptodev_symmetric_capability_1,
 }
 
 impl Default for rte_cryptodev_symmetric_capability
@@ -23,6 +23,6 @@ impl Debug for rte_cryptodev_symmetric_capability
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_cryptodev_symmetric_capability {{ xform_type: {:?}, __bindgen_anon_1: {:?} }}", self.xform_type, self.__bindgen_anon_1)
+		write!(f, "rte_cryptodev_symmetric_capability {{ xform_type: {:?}, _1: {:?} }}", self.xform_type, self._1)
 	}
 }

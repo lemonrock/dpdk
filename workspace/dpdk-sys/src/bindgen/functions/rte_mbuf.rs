@@ -5,4 +5,5 @@
 extern "C"
 {
 	pub fn rte_ctrlmbuf_init(mp: *mut rte_mempool, opaque_arg: *mut c_void, m: *mut c_void, i: c_uint);
+	pub fn rust___rte_mbuf_refcnt_update(m: *mut rte_mbuf, value: i16) -> u16;
 }

@@ -2,6 +2,29 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-pub mod event;
-pub mod layer4;
-pub mod timer;
+use self::devices::*;
+use super::*;
+use super::domain::ip::IpV4AndOrIpV6;
+use super::domain::ipHostAddresses::*;
+use super::domain::layer4::Layer4Port;
+use super::domain::layer4::Layer4Protocol;
+use super::ethernetPorts::DeviceReceiveOffloadCapabilities;
+use super::ethernetPorts::DeviceTransmitOffloadCapabilities;
+use super::logicalCores::AnyNumaSocketId;
+use super::logicalCores::NumaSocketId;
+
+
+/// Devices.
+pub mod devices;
+
+// /// Streams.
+// pub mod streams;
+
+
+include!("AddressLookUpForSendCallback.rs");
+include!("AddressWithListOfOpenLayer4Ports.rs");
+include!("Context.rs");
+include!("DeviceConfiguration.rs");
+include!("TldkBlockedPortsList.rs");
+include!("TcpContext.rs");
+include!("UdpContext.rs");

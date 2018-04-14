@@ -9,7 +9,7 @@ pub struct rte_eth_vmdq_dcb_conf
 	pub enable_default_pool: u8,
 	pub default_pool: u8,
 	pub nb_pool_maps: u8,
-	pub pool_map: [rte_eth_vmdq_dcb_conf__bindgen_ty_1; 64usize],
+	pub pool_map: [rte_eth_vmdq_dcb_conf_1; 64usize],
 	pub dcb_tc: [u8; 8usize],
 }
 

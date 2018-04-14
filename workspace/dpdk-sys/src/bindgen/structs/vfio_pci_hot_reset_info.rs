@@ -8,7 +8,7 @@ pub struct vfio_pci_hot_reset_info
 	pub argsz: __u32,
 	pub flags: __u32,
 	pub count: __u32,
-	pub devices: __IncompleteArrayField<vfio_pci_dependent_device>,
+	pub devices: IncompleteArrayField<vfio_pci_dependent_device>,
 }
 
 impl Default for vfio_pci_hot_reset_info

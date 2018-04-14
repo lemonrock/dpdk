@@ -5,7 +5,7 @@
 #[repr(C)]
 pub struct cryptodev_driver
 {
-	pub next: cryptodev_driver__bindgen_ty_1,
+	pub next: cryptodev_driver_1,
 	pub driver: *const rte_driver,
 	pub id: u8,
 }

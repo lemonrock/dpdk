@@ -13,21 +13,21 @@ impl ReceiveBurst
 {
 	pub fn new(ethernetPort: EthernetPort, receiveQueueIdentifier: QueueIdentifier) -> Self
 	{
-		let underlyingEthernetDevice = ethernetPort.underlyingEthernetDevice();
-		
+		let underlying_ethernet_device = ethernetPort.underlying_ethernet_device();
+
 		let data = unsafe
 		{
-			let ethernetDeviceData = *(underlyingEthernetDevice.data);
+			let ethernetDeviceData = *(underlying_ethernet_device.data);
 			*(ethernetDeviceData.rx_queues.offset(receiveQueueIdentifier as isize))
 		};
-		
+
 		Self
 		{
-			function: underlyingEthernetDevice.rx_pkt_burst.unwrap(),
-			data: data,
+			function: underlying_ethernet_device.rx_pkt_burst.unwrap(),
+			data,
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn receive(&self, queue: *mut *mut rte_mbuf, count: u16) -> u16
 	{

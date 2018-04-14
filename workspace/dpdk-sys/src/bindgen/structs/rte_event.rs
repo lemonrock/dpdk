@@ -5,8 +5,8 @@
 #[repr(C)]
 pub struct rte_event
 {
-	pub __bindgen_anon_1: rte_event__bindgen_ty_1,
-	pub __bindgen_anon_2: rte_event__bindgen_ty_2,
+	pub _1: rte_event_1,
+	pub _2: rte_event_2,
 }
 
 impl Default for rte_event
@@ -23,6 +23,6 @@ impl Debug for rte_event
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_event {{ __bindgen_anon_1: {:?}, __bindgen_anon_2: {:?} }}", self.__bindgen_anon_1, self.__bindgen_anon_2)
+		write!(f, "rte_event {{ _1: {:?}, _2: {:?} }}", self._1, self._2)
 	}
 }
