@@ -34,7 +34,7 @@ impl<A> AddressWithListOfOpenLocalLayer4Ports<A>
 		for port in MinimumPortInclusive .. MaximumPortExclusive
 		{
 			let port = port as u16;
-			if !self.whitelist_of_ports.contains(&Layer4Port::convertFromTcpOrUdpOrSctpPortValueInLayer4Header(port).unwrap())
+			if !self.whitelist_of_ports.contains(&Layer4Port::convert_from_tcp_or_udp_or_sctp_port_value_in_layer_4_header(port).unwrap())
 			{
 				blocked_ports.push(port);
 			}

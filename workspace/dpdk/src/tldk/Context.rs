@@ -39,7 +39,7 @@ pub trait Context<IpV4: AddressLookUpForSendCallback<in_addr>, IpV6: AddressLook
 		let parameters = tle_ctx_param
 		{
 			socket_id: numa_socket_idToAllocateMemoryFrom.as_int32_t(),
-			proto: Self::Protocol.tldkValue(),
+			proto: Self::Protocol.tldk_value(),
 			max_streams: maximumNumberOfStreams,
 			max_stream_rbufs: maximumNumberOfReceiveBuffers,
 			max_stream_sbufs: maximumNumberOfSendBuffers,

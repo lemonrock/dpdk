@@ -12,22 +12,13 @@ pub mod arp;
 pub mod ethernet;
 
 /// Internet Protocol (IP) versions 4 and 6.
-pub mod ip;
-
-/// Internet Protocol (IP) host addresses.
-pub mod ipHostAddresses;
-
-/// Internet Protocol (IP) network addresses.
-pub mod ipNetworkAddresses;
+pub mod internet_protocol;
 
 /// Layer 4 protocols (TCP, UDP).
 pub mod layer4;
 
-/// Masks.
-pub mod maskBits;
-
 /// Virtual LANs (VLANs).
-pub mod virtualLans;
+pub mod virtual_lans;
 
 
 include!("NetworkByteOrderEndianU16.rs");

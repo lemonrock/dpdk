@@ -3,8 +3,7 @@
 
 
 use super::*;
-use ::syscall_alt::PosixErrorNumber;
 
 
-pub const NO_CONFIG: PosixErrorNumber = E_RTE_NO_CONFIG;
-pub const SECONDARY: PosixErrorNumber = E_RTE_SECONDARY;
+include!("NO_CONFIG.rs");
+include!("SECONDARY.rs");

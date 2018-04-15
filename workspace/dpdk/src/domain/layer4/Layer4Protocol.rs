@@ -2,6 +2,7 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// Represents the Layer 4 protocol number.
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Layer4Protocol
@@ -12,8 +13,9 @@ pub enum Layer4Protocol
 
 impl Layer4Protocol
 {
+	/// As the value used by TLDK.
 	#[inline(always)]
-	pub fn tldkValue(&self) -> u32
+	pub fn tldk_value(&self) -> u32
 	{
 		use self::Layer4Protocol::*;
 		
@@ -24,6 +26,7 @@ impl Layer4Protocol
 		}
 	}
 	
+	/// As the value used by libc.
 	#[inline(always)]
 	pub fn libc_value(&self) -> u8
 	{

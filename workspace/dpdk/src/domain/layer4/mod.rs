@@ -2,9 +2,7 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use ::rust_extra::unlikely;
-use ::std::fmt;
-use ::std::fmt::Formatter;
+use super::*;
 
 
 include!("Layer4Port.rs");

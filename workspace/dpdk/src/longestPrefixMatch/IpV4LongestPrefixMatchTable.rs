@@ -16,9 +16,9 @@ impl Drop for IpV4LongestPrefixMatchTable
 
 impl LongestPrefixMatchTable for IpV4LongestPrefixMatchTable
 {
-	type IpHostAddress = InternetProtocolVersion4HostAddress;
+	type InternetProtocolHostAddress = InternetProtocolVersion4HostAddress;
 
-	type IpNetworkAddress = IpV4NetworkAddress;
+	type InternetProtocolNetworkAddress = InternetProtocolVersion4NetworkAddress;
 
 	#[inline(always)]
 	fn new(name: &str, maximumRules: u32, numberOfTable8sToAllocate: u32, numa_socket_id: Option<NumaSocketId>) -> Option<Self>
@@ -57,7 +57,7 @@ impl LongestPrefixMatchTable for IpV4LongestPrefixMatchTable
 	}
 
 	#[inline(always)]
-	fn lookUp(&self, internet_protocol_address: &Self::IpHostAddress) -> Option<NextHop>
+	fn lookUp(&self, internet_protocol_address: &Self::InternetProtocolHostAddress) -> Option<NextHop>
 	{
 		let mut nextHop: NextHop = unsafe { uninitialized() };
 
@@ -75,10 +75,10 @@ impl LongestPrefixMatchTable for IpV4LongestPrefixMatchTable
 	}
 
 	#[inline(always)]
-	fn addRule(&mut self, networkAddress: &Self::IpNetworkAddress, nextHop: NextHop) -> bool
+	fn addRule(&mut self, networkAddress: &Self::InternetProtocolNetworkAddress, nextHop: NextHop) -> bool
 	{
 		let internet_protocol_address = networkAddress.network();
-		let depth = networkAddress.maskBitsAsDepth();
+		let depth = networkAddress.mask_bits_as_depth();
 
 		let result = unsafe { rte_lpm_add(self.0, *internet_protocol_address, depth, nextHop) };
 		if likely(result == 0)
@@ -96,10 +96,10 @@ impl LongestPrefixMatchTable for IpV4LongestPrefixMatchTable
 	}
 
 	#[inline(always)]
-	fn hasRule(&self, networkAddress: &Self::IpNetworkAddress) -> Option<NextHop>
+	fn hasRule(&self, networkAddress: &Self::InternetProtocolNetworkAddress) -> Option<NextHop>
 	{
 		let internet_protocol_address = networkAddress.network();
-		let depth = networkAddress.maskBitsAsDepth();
+		let depth = networkAddress.mask_bits_as_depth();
 
 		let mut nextHop: NextHop = unsafe { uninitialized() };
 
@@ -115,10 +115,10 @@ impl LongestPrefixMatchTable for IpV4LongestPrefixMatchTable
 	}
 
 	#[inline(always)]
-	fn deleteRule(&mut self, networkAddress: &Self::IpNetworkAddress) -> bool
+	fn deleteRule(&mut self, networkAddress: &Self::InternetProtocolNetworkAddress) -> bool
 	{
 		let internet_protocol_address = networkAddress.network();
-		let depth = networkAddress.maskBitsAsDepth();
+		let depth = networkAddress.mask_bits_as_depth();
 
 		let result = unsafe { rte_lpm_delete(self.0, *internet_protocol_address, depth) };
 		if likely(result == 0)

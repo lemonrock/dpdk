@@ -16,9 +16,9 @@ impl Drop for IpV6LongestPrefixMatchTable
 
 impl LongestPrefixMatchTable for IpV6LongestPrefixMatchTable
 {
-	type IpHostAddress = InternetProtocolVersion6HostAddress;
+	type InternetProtocolHostAddress = InternetProtocolVersion6HostAddress;
 
-	type IpNetworkAddress = IpV6NetworkAddress;
+	type InternetProtocolNetworkAddress = InternetProtocolVersion6NetworkAddress;
 
 	#[inline(always)]
 	fn new(name: &str, maximumRules: u32, numberOfTable8sToAllocate: u32, numa_socket_id: Option<NumaSocketId>) -> Option<Self>
@@ -58,7 +58,7 @@ impl LongestPrefixMatchTable for IpV6LongestPrefixMatchTable
 
 	#[allow(trivial_casts)]
 	#[inline(always)]
-	fn lookUp(&self, internet_protocol_address: &Self::IpHostAddress) -> Option<NextHop>
+	fn lookUp(&self, internet_protocol_address: &Self::InternetProtocolHostAddress) -> Option<NextHop>
 	{
 		let mut nextHop: NextHop = unsafe { uninitialized() };
 
@@ -77,10 +77,10 @@ impl LongestPrefixMatchTable for IpV6LongestPrefixMatchTable
 
 	#[allow(trivial_casts)]
 	#[inline(always)]
-	fn addRule(&mut self, networkAddress: &Self::IpNetworkAddress, nextHop: NextHop) -> bool
+	fn addRule(&mut self, networkAddress: &Self::InternetProtocolNetworkAddress, nextHop: NextHop) -> bool
 	{
 		let internet_protocol_address = networkAddress.network();
-		let depth = networkAddress.maskBitsAsDepth();
+		let depth = networkAddress.mask_bits_as_depth();
 
 		let result = unsafe { rte_lpm6_add(self.0, internet_protocol_address as *const _ as *mut _, depth, nextHop) };
 		if likely(result == 0)
@@ -99,10 +99,10 @@ impl LongestPrefixMatchTable for IpV6LongestPrefixMatchTable
 
 	#[allow(trivial_casts)]
 	#[inline(always)]
-	fn hasRule(&self, networkAddress: &Self::IpNetworkAddress) -> Option<NextHop>
+	fn hasRule(&self, networkAddress: &Self::InternetProtocolNetworkAddress) -> Option<NextHop>
 	{
 		let internet_protocol_address = networkAddress.network();
-		let depth = networkAddress.maskBitsAsDepth();
+		let depth = networkAddress.mask_bits_as_depth();
 
 		let mut nextHop: NextHop = unsafe { uninitialized() };
 
@@ -119,10 +119,10 @@ impl LongestPrefixMatchTable for IpV6LongestPrefixMatchTable
 
 	#[allow(trivial_casts)]
 	#[inline(always)]
-	fn deleteRule(&mut self, networkAddress: &Self::IpNetworkAddress) -> bool
+	fn deleteRule(&mut self, networkAddress: &Self::InternetProtocolNetworkAddress) -> bool
 	{
 		let internet_protocol_address = networkAddress.network();
-		let depth = networkAddress.maskBitsAsDepth();
+		let depth = networkAddress.mask_bits_as_depth();
 
 		let result = unsafe { rte_lpm6_delete(self.0, internet_protocol_address as *const _ as *mut _, depth) };
 		if likely(result == 0)

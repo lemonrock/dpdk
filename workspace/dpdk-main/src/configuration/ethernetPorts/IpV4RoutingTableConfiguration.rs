@@ -7,7 +7,7 @@
 #[serde(default)]
 pub struct IpV4RoutingTableConfiguration
 {
-	rules: HashMap<IpV4NetworkAddress, NextHop>,
+	rules: HashMap<InternetProtocolVersion4NetworkAddress, NextHop>,
 	#[serde(deserialize_with = "IpV4RoutingTableConfiguration::serde_deserialize_routes")] routes: Vec<IpV4Route>,
 	defaultMaximumTransmissionUnitBeforeVirtualLanAdjustments: MaximumTransmissionUnitSizeInBytes,
 }

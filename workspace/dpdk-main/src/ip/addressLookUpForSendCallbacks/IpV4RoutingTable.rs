@@ -34,7 +34,7 @@ impl IpV4RoutingTable
 		}
 	}
 	
-	pub fn reconfigureRulesAndRoutes(&mut self, rules: &HashMap<IpV4NetworkAddress, NextHop>, routes: &[IpV4Route])
+	pub fn reconfigureRulesAndRoutes(&mut self, rules: &HashMap<InternetProtocolVersion4NetworkAddress, NextHop>, routes: &[IpV4Route])
 	{
 		assert!(!routes.is_empty(), "routes is empty");
 		

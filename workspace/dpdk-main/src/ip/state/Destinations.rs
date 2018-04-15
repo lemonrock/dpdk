@@ -16,22 +16,22 @@ impl Destinations
 	{
 		self.ourHardwareAddresses.contains(unsafe { &*sourceEthernetAddress })
 	}
-	
+
 	#[inline(always)]
 	pub fn isOneOfOurEthernetAddresses(&self, ethernetAddress: *const ether_addr) -> bool
 	{
 		self.ourHardwareAddresses.contains(unsafe { &*ethernetAddress })
 	}
-	
+
 	#[inline(always)]
 	pub fn isSourceEthernetAddressInvalidOrBlackListed(&self, sourceEthernetAddress: *const ether_addr) -> bool
 	{
 		self.sourceEthernetAddressBlackList.isSourceEthernetAddressInvalidOrBlackListed(unsafe { &*sourceEthernetAddress })
 	}
-	
+
 	#[inline(always)]
-	pub fn ipState(&mut self, virtualLanKey: VirtualLanKey) -> Option<&mut IpState>
+	pub fn ipState(&mut self, virtual_lan_key: VirtualLanKey) -> Option<&mut IpState>
 	{
-		self.ipStates.get_mut(&virtualLanKey)
+		self.ipStates.get_mut(&virtual_lan_key)
 	}
 }

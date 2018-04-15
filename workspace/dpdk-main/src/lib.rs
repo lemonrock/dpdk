@@ -70,7 +70,7 @@ use ::programArguments::ConfigurationAndProgramArguments;
 use ::configuration::*;
 use ::configuration::ethernetPorts::*;
 use ::finishers::*;
-use ::ip::*;
+use ::internet_protocol::*;
 use ::libc::c_char;
 use ::libc::c_int;
 use ::libc::setpgid;

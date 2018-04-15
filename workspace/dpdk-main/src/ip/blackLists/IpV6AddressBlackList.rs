@@ -10,9 +10,9 @@ pub struct IpV6AddressBlackList
 
 impl IpAddressBlackList for IpV6AddressBlackList
 {
-	type IpHostAddress = InternetProtocolVersion6HostAddress;
+	type InternetProtocolHostAddress = InternetProtocolVersion6HostAddress;
 	
-	type IpNetworkAddress = IpV6NetworkAddress;
+	type InternetProtocolNetworkAddress = InternetProtocolVersion6NetworkAddress;
 	
 	type LongestPrefixMatchTable = IpV6LongestPrefixMatchTable;
 	

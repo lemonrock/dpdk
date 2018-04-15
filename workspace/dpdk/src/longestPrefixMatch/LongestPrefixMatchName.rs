@@ -7,20 +7,20 @@ pub struct LongestPrefixMatchName
 {
 	pub ethernetPortIdentifier: EthernetPortIdentifier,
 	pub queueIdentifier: QueueIdentifier,
-	pub virtualLanKey: VirtualLanKey,
+	pub virtual_lan_key: VirtualLanKey,
 }
 
 impl LongestPrefixMatchName
 {
 	pub fn toName(&self, prefix: &str) -> String
 	{
-		let outerVlan = match self.virtualLanKey.0
+		let outerVlan = match self.virtual_lan_key.0
 		{
 			None => 0,
 			Some(value) => value.value(),
 		};
 		
-		let innerVlan = match self.virtualLanKey.1
+		let innerVlan = match self.virtual_lan_key.1
 		{
 			None => 0,
 			Some(value) => value.value(),

@@ -5,14 +5,14 @@
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Serialize, Deserialize)]
 #[serde(default)]
-struct IpNetworkAddressBlackListConfiguration<IpNetworkAddress>
+struct InternetProtocolNetworkAddressBlackListConfiguration<InternetProtocolNetworkAddress>
 {
 	maximumRulesInBlackList: u32,
 	numberOfTable8sToAllocateInBlackList: u32,
-	ipNetworksToBlackList: Vec<IpNetworkAddress>,
+	ipNetworksToBlackList: Vec<InternetProtocolNetworkAddress>,
 }
 
-impl<IpNetworkAddress> Default for IpNetworkAddressBlackListConfiguration<IpNetworkAddress>
+impl<InternetProtocolNetworkAddress> Default for InternetProtocolNetworkAddressBlackListConfiguration<InternetProtocolNetworkAddress>
 {
 	#[inline(always)]
 	fn default() -> Self
@@ -26,7 +26,7 @@ impl<IpNetworkAddress> Default for IpNetworkAddressBlackListConfiguration<IpNetw
 	}
 }
 
-impl IpNetworkAddressBlackListConfiguration<IpV4NetworkAddress>
+impl InternetProtocolNetworkAddressBlackListConfiguration<InternetProtocolVersion4NetworkAddress>
 {
 	#[inline(always)]
 	pub fn create(&self, name: &LongestPrefixMatchName, logicalCoreMemorySocket: Option<NumaSocketId>) -> IpV4AddressBlackList
@@ -35,7 +35,7 @@ impl IpNetworkAddressBlackListConfiguration<IpV4NetworkAddress>
 	}
 }
 
-impl IpNetworkAddressBlackListConfiguration<IpV6NetworkAddress>
+impl InternetProtocolNetworkAddressBlackListConfiguration<InternetProtocolVersion6NetworkAddress>
 {
 	#[inline(always)]
 	pub fn create(&self, name: &LongestPrefixMatchName, logicalCoreMemorySocket: Option<NumaSocketId>) -> IpV6AddressBlackList

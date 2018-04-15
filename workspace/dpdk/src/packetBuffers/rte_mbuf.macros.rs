@@ -38,14 +38,14 @@ macro_rules! discardPacketIfDropEligibleBitSetOrTagControlInformationIsInvalid
 	($packet: ident, $tagControlInformation: ident) =>
 	{
 		{
-			use $crate::domain::virtualLans::VirtualLanId;
+			use $crate::domain::virtual_lans::VirtualLanIdentifier;
 		
 			// Formerly CFI, used to drop Token Ring frames received at Ethernet Ports
 			const DropEligibleIndicatorBitFlag: u16 = 4096;
 			
 			discardPacketIf!($packet, $tagControlInformation & DropEligibleIndicatorBitFlag == DropEligibleIndicatorBitFlag);
 			
-			let result = VirtualLanId::extractFromTagControlInformation($tagControlInformation);
+			let result = VirtualLanIdentifier::extract_from_tag_control_information($tagControlInformation);
 			discardPacketIf!($packet, result.is_err());
 			result.unwrap()
 		}

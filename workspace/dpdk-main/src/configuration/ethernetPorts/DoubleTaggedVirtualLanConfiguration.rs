@@ -8,7 +8,7 @@
 struct DoubleTaggedVirtualLanConfiguration
 {
 	settings: VirtualLanValue,
-	pub innerVirtualLans: HashMap<VirtualLanId, VirtualLanConfiguration>,
+	pub innerVirtualLans: HashMap<VirtualLanIdentifier, VirtualLanConfiguration>,
 }
 
 impl Default for DoubleTaggedVirtualLanConfiguration
@@ -35,12 +35,12 @@ impl AppendAdditionalEthernetAddresses for DoubleTaggedVirtualLanConfiguration
 
 impl DoubleTaggedVirtualLanConfiguration
 {
-	pub fn asVirtualLanTrafficClassIndicator(&self, virtualLanId: Option<VirtualLanId>) -> VirtualLanTrafficClassIndicator
+	pub fn asVirtualLanTrafficClassIndicator(&self, virtual_lan_id: Option<VirtualLanIdentifier>) -> VirtualLanTrafficClassIndicator
 	{
 		VirtualLanTrafficClassIndicator
 		{
-			virtualLanValue: self.settings,
-			virtualLanId
+			virtual_lan_value: self.settings,
+			virtual_lan_id
 		}
 	}
 }

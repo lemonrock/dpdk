@@ -25,6 +25,6 @@ impl Debug for rte_eth_sctpv4_flow
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_eth_sctpv4_flow {{ ip: {:?} }}", self.ip)
+		write!(f, "rte_eth_sctpv4_flow {{ internet_protocol: {:?} }}", self.ip)
 	}
 }

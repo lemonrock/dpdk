@@ -4,24 +4,24 @@
 
 pub trait LongestPrefixMatchTable : Drop
 {
-	type IpHostAddress: Sized;
+	type InternetProtocolHostAddress: Sized;
 
-	type IpNetworkAddress: IpNetworkAddress<IpHostAddress=Self::IpHostAddress> + Sized;
+	type InternetProtocolNetworkAddress: InternetProtocolNetworkAddress<InternetProtocolHostAddress=Self::InternetProtocolHostAddress> + Sized;
 
 	#[inline(always)]
 	fn new(name: &str, maximumRules: u32, numberOfTable8sToAllocate: u32, numa_socket_id: Option<NumaSocketId>) -> Option<Self> where Self: Sized;
 
 	#[inline(always)]
-	fn lookUp(&self, internet_protocol_address: &Self::IpHostAddress) -> Option<NextHop>;
+	fn lookUp(&self, internet_protocol_address: &Self::InternetProtocolHostAddress) -> Option<NextHop>;
 
 	#[inline(always)]
-	fn addRule(&mut self, networkAddress: &Self::IpNetworkAddress, nextHop: NextHop) -> bool;
+	fn addRule(&mut self, networkAddress: &Self::InternetProtocolNetworkAddress, nextHop: NextHop) -> bool;
 
 	#[inline(always)]
-	fn hasRule(&self, networkAddress: &Self::IpNetworkAddress) -> Option<NextHop>;
+	fn hasRule(&self, networkAddress: &Self::InternetProtocolNetworkAddress) -> Option<NextHop>;
 
 	#[inline(always)]
-	fn deleteRule(&mut self, networkAddress: &Self::IpNetworkAddress) -> bool;
+	fn deleteRule(&mut self, networkAddress: &Self::InternetProtocolNetworkAddress) -> bool;
 
 	#[inline(always)]
 	fn deleteAllRules(&mut self);

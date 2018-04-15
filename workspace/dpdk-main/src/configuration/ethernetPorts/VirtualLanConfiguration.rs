@@ -13,8 +13,8 @@ struct VirtualLanConfiguration
 
 	// The black lists could operate at the level of a locally bound IP address, but they are not intended to be an access control. Rather, it is intended to let us drop traffic that is coming from misconfigured or DoS'ing hosts
 	// This lets us use them to 'defend' the ARP cache (and IPv6 equivalents) from some poisoning attacks
-	sourceIpV4NetworksToBlackList: IpNetworkAddressBlackListConfiguration<IpV4NetworkAddress>,
-	sourceIpV6NetworksToBlackList: IpNetworkAddressBlackListConfiguration<IpV6NetworkAddress>,
+	sourceIpV4NetworksToBlackList: InternetProtocolNetworkAddressBlackListConfiguration<InternetProtocolVersion4NetworkAddress>,
+	sourceIpV6NetworksToBlackList: InternetProtocolNetworkAddressBlackListConfiguration<InternetProtocolVersion6NetworkAddress>,
 
 	// Routing could be different for different local IP addresses but this is a niche use case
 	ipV4RoutingTableConfiguration: IpV4RoutingTableConfiguration,
@@ -59,15 +59,15 @@ impl VirtualLanConfiguration
 {
 	pub fn settingsAreEquivalentToUnspecified(&self) -> bool
 	{
-		self.settings.equivalentToUnspecified()
+		self.settings.equivalent_to_unspecified()
 	}
 
-	pub fn asVirtualLanTrafficClassIndicator(&self, virtualLanId: Option<VirtualLanId>) -> VirtualLanTrafficClassIndicator
+	pub fn asVirtualLanTrafficClassIndicator(&self, virtual_lan_id: Option<VirtualLanIdentifier>) -> VirtualLanTrafficClassIndicator
 	{
 		VirtualLanTrafficClassIndicator
 		{
-			virtualLanValue: self.settings,
-			virtualLanId
+			virtual_lan_value: self.settings,
+			virtual_lan_id
 		}
 	}
 
@@ -81,14 +81,14 @@ impl VirtualLanConfiguration
 		let arpCache =
 		{
 			let mut arpCaches = arpCaches.write().unwrap();
-			arpCaches.entry(virtualLanTagging.virtualLanKey()).or_insert_with(|| self.createArpCache()).clone()
+			arpCaches.entry(virtualLanTagging.virtual_lan_key()).or_insert_with(|| self.createArpCache()).clone()
 		};
 
 		let name = LongestPrefixMatchName
 		{
 			ethernetPortIdentifier: ethernetPort.portIdentifier(),
 			queueIdentifier,
-			virtualLanKey: virtualLanTagging.virtualLanKey(),
+			virtual_lan_key: virtualLanTagging.virtual_lan_key(),
 		};
 
 		IpState

@@ -4,11 +4,11 @@
 
 pub trait IpAddressBlackList
 {
-	type IpHostAddress;
+	type InternetProtocolHostAddress;
 	
-	type IpNetworkAddress: IpNetworkAddress<IpHostAddress=Self::IpHostAddress>;
+	type InternetProtocolNetworkAddress: InternetProtocolNetworkAddress<InternetProtocolHostAddress=Self::InternetProtocolHostAddress>;
 	
-	type LongestPrefixMatchTable: LongestPrefixMatchTable<IpHostAddress=Self::IpHostAddress, IpNetworkAddress=Self::IpNetworkAddress>;
+	type LongestPrefixMatchTable: LongestPrefixMatchTable<InternetProtocolHostAddress=Self::InternetProtocolHostAddress, InternetProtocolNetworkAddress=Self::InternetProtocolNetworkAddress>;
 	
 	const NamePrefix: &'static str;
 	
@@ -24,7 +24,7 @@ pub trait IpAddressBlackList
 	const OurNextHop: u32 = 0xFFFFFFFF;
 	
 	#[inline(always)]
-	fn new(name: &LongestPrefixMatchName, logicalCoreMemorySocket: Option<NumaSocketId>, maximumRules: u32, numberOfTable8sToAllocate: u32, networkAddresses: &[Self::IpNetworkAddress]) -> Self
+	fn new(name: &LongestPrefixMatchName, logicalCoreMemorySocket: Option<NumaSocketId>, maximumRules: u32, numberOfTable8sToAllocate: u32, networkAddresses: &[Self::InternetProtocolNetworkAddress]) -> Self
 	where Self: Sized
 	{
 		let name = name.toName(Self::NamePrefix);
@@ -43,7 +43,7 @@ pub trait IpAddressBlackList
 	}
 	
 	#[inline(always)]
-	fn isIpAddressBlackListed(&self, hostAddress: &Self::IpHostAddress) -> bool
+	fn isIpAddressBlackListed(&self, hostAddress: &Self::InternetProtocolHostAddress) -> bool
 	{
 		if let Some(nextHop) = self._longestPrefixMatchTableConst().lookUp(hostAddress)
 		{
@@ -56,7 +56,7 @@ pub trait IpAddressBlackList
 	}
 	
 	#[inline(always)]
-	fn addNetworkToBlackList(&mut self, networkAddress: &Self::IpNetworkAddress) -> bool
+	fn addNetworkToBlackList(&mut self, networkAddress: &Self::InternetProtocolNetworkAddress) -> bool
 	{
 		self._longestPrefixMatchTableMut().addRule(networkAddress, Self::OurNextHop)
 	}

@@ -10,9 +10,9 @@ pub struct IpV4AddressBlackList
 
 impl IpAddressBlackList for IpV4AddressBlackList
 {
-	type IpHostAddress = InternetProtocolVersion4HostAddress;
+	type InternetProtocolHostAddress = InternetProtocolVersion4HostAddress;
 	
-	type IpNetworkAddress = IpV4NetworkAddress;
+	type InternetProtocolNetworkAddress = InternetProtocolVersion4NetworkAddress;
 	
 	type LongestPrefixMatchTable = IpV4LongestPrefixMatchTable;
 	

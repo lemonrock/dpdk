@@ -30,6 +30,7 @@ use ::libc_extra::*;
 use ::rust_extra::arrays::*;
 use ::libc_extra::ffi::*;
 use ::libc_extra::ffi::arguments::*;
+use ::pointer::*;
 use ::rust_extra::powersOfTwo::*;
 use ::rust_extra::*;
 use ::serde::*;
@@ -44,6 +45,9 @@ use ::serde::ser::Serializer;
 use ::std::cell::RefCell;
 use ::std::cell::UnsafeCell;
 use ::std::cmp::min;
+use ::std::cmp::Ord;
+use ::std::cmp::Ordering;
+use ::std::cmp::PartialOrd;
 use ::std::collections::HashMap;
 use ::std::collections::HashSet;
 use ::std::ffi::CStr;
@@ -86,6 +90,7 @@ use ::std::str::SplitN;
 use ::std::string::FromUtf8Error;
 use ::std::sync::Arc;
 use ::std::sync::Mutex;
+use ::syscall_alt::PosixErrorNumber;
 use ::syscall_alt::constants::NegativeE;
 use ::syscall_alt::constants::E;
 
@@ -96,7 +101,7 @@ pub mod devices;
 pub mod domain;
 
 
-pub mod E_RTE;
+pub(crate) mod E_RTE;
 
 
 pub mod ethernetPorts;

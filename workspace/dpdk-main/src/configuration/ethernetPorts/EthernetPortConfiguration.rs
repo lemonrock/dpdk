@@ -10,8 +10,8 @@ pub struct EthernetPortConfiguration
 	ethernetPortDpdkConfiguration: EthernetPortDpdkConfiguration,
 	sourceEthernetAddressBlackList: SourceEthernetAddressBlackListConfiguration,
 	defaultVirtualLan: VirtualLanConfiguration,
-	singleTaggedVirtualLans: HashMap<VirtualLanId, VirtualLanConfiguration>,
-	doubleTaggedVirtualLans: HashMap<VirtualLanId, DoubleTaggedVirtualLanConfiguration>,
+	singleTaggedVirtualLans: HashMap<VirtualLanIdentifier, VirtualLanConfiguration>,
+	doubleTaggedVirtualLans: HashMap<VirtualLanIdentifier, DoubleTaggedVirtualLanConfiguration>,
 	udpFragmentsAndTcpControlPacketsMemoryConfiguration: UdpFragmentsAndTcpControlPacketsMemoryConfiguration,
 }
 
@@ -110,31 +110,31 @@ impl EthernetPortConfiguration
 			VirtualLanTagging::Single(self.defaultVirtualLan.asVirtualLanTrafficClassIndicator(None))
 		};
 		let ipState = self.defaultVirtualLan.createIpState(ethernetPort, queueIdentifier, logicalCoreMemorySocket, &defaultEthernetAddress, udpFragmentsAndTcpControlPacketBufferPool, &virtualLanTagging, arpCaches.clone());
-		let virtualLanKey = virtualLanTagging.virtualLanKey();
-		ipStates.insert(virtualLanKey, ipState);
+		let virtual_lan_key = virtualLanTagging.virtual_lan_key();
+		ipStates.insert(virtual_lan_key, ipState);
 
-		for (innerVirtualLanId, virtualLanConfiguration) in self.singleTaggedVirtualLans.iter()
+		for (innerVirtualLanIdentifier, virtualLanConfiguration) in self.singleTaggedVirtualLans.iter()
 		{
-			let inner = virtualLanConfiguration.asVirtualLanTrafficClassIndicator(Some(*innerVirtualLanId));
+			let inner = virtualLanConfiguration.asVirtualLanTrafficClassIndicator(Some(*innerVirtualLanIdentifier));
 			let virtualLanTagging = VirtualLanTagging::Single(inner);
 
 			let ipState = virtualLanConfiguration.createIpState(ethernetPort, queueIdentifier, logicalCoreMemorySocket, &defaultEthernetAddress, udpFragmentsAndTcpControlPacketBufferPool, &virtualLanTagging, arpCaches.clone());
-			let virtualLanKey = virtualLanTagging.virtualLanKey();
-			ipStates.insert(virtualLanKey, ipState);
+			let virtual_lan_key = virtualLanTagging.virtual_lan_key();
+			ipStates.insert(virtual_lan_key, ipState);
 		}
 
-		for (outerVirtualLanId, doubleTaggedVirtualLanConfiguration) in self.doubleTaggedVirtualLans.iter()
+		for (outerVirtualLanIdentifier, doubleTaggedVirtualLanConfiguration) in self.doubleTaggedVirtualLans.iter()
 		{
-			let outer = doubleTaggedVirtualLanConfiguration.asVirtualLanTrafficClassIndicator(Some(*outerVirtualLanId));
+			let outer = doubleTaggedVirtualLanConfiguration.asVirtualLanTrafficClassIndicator(Some(*outerVirtualLanIdentifier));
 
-			for (innerVirtualLanId, virtualLanConfiguration) in doubleTaggedVirtualLanConfiguration.innerVirtualLans.iter()
+			for (innerVirtualLanIdentifier, virtualLanConfiguration) in doubleTaggedVirtualLanConfiguration.innerVirtualLans.iter()
 			{
-				let inner = virtualLanConfiguration.asVirtualLanTrafficClassIndicator(Some(*innerVirtualLanId));
+				let inner = virtualLanConfiguration.asVirtualLanTrafficClassIndicator(Some(*innerVirtualLanIdentifier));
 				let virtualLanTagging = VirtualLanTagging::Double(outer, inner);
 
 				let ipState = virtualLanConfiguration.createIpState(ethernetPort, queueIdentifier, logicalCoreMemorySocket, &defaultEthernetAddress, udpFragmentsAndTcpControlPacketBufferPool, &virtualLanTagging, arpCaches.clone());
-				let virtualLanKey = virtualLanTagging.virtualLanKey();
-				ipStates.insert(virtualLanKey, ipState);
+				let virtual_lan_key = virtualLanTagging.virtual_lan_key();
+				ipStates.insert(virtual_lan_key, ipState);
 			}
 		}
 	}

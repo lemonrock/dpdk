@@ -3,8 +3,8 @@
 
 
 use ::dpdk::dpdk_sys::ether_addr;
-use ::dpdk::domain::ipHostAddresses::*;
-use ::dpdk::domain::ipNetworkAddresses::*;
+use ::dpdk::domain::internet_protocol::*::*;
+use ::dpdk::domain::internet_protocol::*;
 use ::dpdk::ethernetPorts::EthernetPort;
 use ::dpdk::ethernetPorts::MediaAccessControlAddress;
 use ::dpdk::ethernetPorts::OrganizationallyUniqueIdentifier;
