@@ -5,6 +5,8 @@
 /// DPDK process type of process.
 ///
 /// Defaults to `Auto`.
+///
+/// Obtain from `DpdkProcess::process_type()`.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ProcessType
 {
@@ -29,22 +31,6 @@ impl ProcessType
 		auto = "auto";
 		primary = "primary";
 		secondary = "secondary";
-	}
-	
-	/// Process type of current process.
-	#[inline(always)]
-	pub fn current() -> Option<ProcessType>
-	{
-		use self::rte_proc_type_t::*;
-		use self::ProcessType::*;
-		
-		match unsafe { rte_eal_process_type() }
-		{
-			RTE_PROC_AUTO => Some(Auto),
-			RTE_PROC_PRIMARY => Some(Primary),
-			RTE_PROC_SECONDARY => Some(Secondary),
-			RTE_PROC_INVALID => None,
-		}
 	}
 	
 	#[inline(always)]

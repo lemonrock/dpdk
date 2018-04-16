@@ -57,7 +57,7 @@ impl LongestPrefixMatchTable for IpV4LongestPrefixMatchTable
 	}
 
 	#[inline(always)]
-	fn lookUp(&self, internet_protocol_address: &Self::InternetProtocolHostAddress) -> Option<NextHop>
+	fn look_up(&self, internet_protocol_address: &Self::InternetProtocolHostAddress) -> Option<NextHop>
 	{
 		let mut nextHop: NextHop = unsafe { uninitialized() };
 

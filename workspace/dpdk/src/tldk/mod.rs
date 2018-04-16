@@ -4,7 +4,7 @@
 
 use self::devices::*;
 use super::*;
-use super::domain::internet_protocol::IpV4AndOrIpV6;
+use super::domain::internet_protocol::InternetProtocolVersion4OrVersion6OrBoth;
 use super::domain::internet_protocol::*::*;
 use super::domain::layer4::Layer4Port;
 use super::domain::layer4::Layer4Protocol;

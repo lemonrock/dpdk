@@ -3,8 +3,8 @@
 
 
 use super::*;
-use super::pci::PciDeviceAddress;
-use super::pci::PciDeviceAddressStringParseError;
+use super::bus::pci::DpdkPciDeviceAddress;
+use super::bus::pci::DpdkPciDeviceAddressStringParseError;
 
 
 /// Virtual devices.

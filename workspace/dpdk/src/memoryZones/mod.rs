@@ -2,17 +2,10 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use ::const_cstr_fork::ConstCStr;
-use ::dpdk_sys::*;
-use ::libc::*;
-use ::libc_extra::stderr;
-use ::rust_extra::unlikely;
-use ::syscall_alt::constants::E;
-use ::syscall_alt::constants::NegativeE;
-use ::E_RTE;
-use ::logicalCores::NumaSocketId;
-use ::logicalCores::AnyNumaSocketId;
-use ::rust_extra::powersOfTwo::PowerOfTwoThirtyTwoBit;
+use super::*;
+use super::E_RTE;
+use super::logicalCores::NumaSocketId;
+use super::logicalCores::AnyNumaSocketId;
 
 
 include!("MemoryZone.rs");

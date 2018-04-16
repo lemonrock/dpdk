@@ -6,7 +6,7 @@
 pub struct DeviceConfiguration
 {
 	pub deviceOffloadingIsActive: bool,
-	pub localSocketAddresses: IpV4AndOrIpV6<AddressWithListOfOpenLocalLayer4Ports<Ipv4Addr>, AddressWithListOfOpenLocalLayer4Ports<Ipv6Addr>>
+	pub localSocketAddresses: InternetProtocolVersion4OrVersion6OrBoth<AddressWithListOfOpenLocalLayer4Ports<Ipv4Addr>, AddressWithListOfOpenLocalLayer4Ports<Ipv6Addr>>
 }
 
 impl DeviceConfiguration
@@ -33,19 +33,19 @@ impl DeviceConfiguration
 	#[inline(always)]
 	pub fn supportsIpV4(&self) -> bool
 	{
-		self.localSocketAddresses.hasIpV4()
+		self.localSocketAddresses.has_internet_protocol_version_4()
 	}
 	
 	#[inline(always)]
 	pub fn supportsIpV6(&self) -> bool
 	{
-		self.localSocketAddresses.hasIpV6()
+		self.localSocketAddresses.has_internet_protocol_version_6()
 	}
 	
 	#[inline(always)]
 	pub fn ipV4BlockedPortsForTldk(&self) -> TldkBlockedPortsList
 	{
-		if let Some(ipV4) = self.localSocketAddresses.ipV4()
+		if let Some(ipV4) = self.localSocketAddresses.internet_protocol_version_4)
 		{
 			ipV4.blockedPortsForTldk()
 		}
@@ -58,7 +58,7 @@ impl DeviceConfiguration
 	#[inline(always)]
 	pub fn ipV6BlockedPortsForTldk(&self) -> TldkBlockedPortsList
 	{
-		if let Some(ipV6) = self.localSocketAddresses.ipV6()
+		if let Some(ipV6) = self.localSocketAddresses.internet_protocol_version_6)
 		{
 			ipV6.blockedPortsForTldk()
 		}
@@ -71,7 +71,7 @@ impl DeviceConfiguration
 	#[inline(always)]
 	pub fn in_addr(&self) -> in_addr
 	{
-		if let Some(ipV4) = self.localSocketAddresses.ipV4()
+		if let Some(ipV4) = self.localSocketAddresses.internet_protocol_version_4)
 		{
 			ipV4.in_addr()
 		}
@@ -85,7 +85,7 @@ impl DeviceConfiguration
 	#[inline(always)]
 	pub fn in6_addr(&self) -> in6_addr
 	{
-		if let Some(ipV6) = self.localSocketAddresses.ipV6()
+		if let Some(ipV6) = self.localSocketAddresses.internet_protocol_version_6)
 		{
 			ipV6.in6_addr()
 		}

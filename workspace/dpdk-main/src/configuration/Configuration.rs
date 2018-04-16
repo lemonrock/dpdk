@@ -104,9 +104,9 @@ impl Configuration
 		self.numa_sockets
 	}
 
-	fn usesPciDriver(&self, pciDriver: PciDriver) -> bool
+	fn use_pci_kernel_driver(&self, pci_kernel_driver: PciKernelDriver) -> bool
 	{
-		self.networkInterfacesConfiguration.usesPciDriver(pciDriver)
+		self.networkInterfacesConfiguration.use_pci_kernel_driver(pci_kernel_driver)
 	}
 
 	#[cfg(any(target_os = "android", target_os = "linux"))]
@@ -118,7 +118,7 @@ impl Configuration
 
 	fn usesVfioPciKernelModule(&self) -> bool
 	{
-		self.usesPciDriver(PciDriver::VfioPci)
+		self.use_pci_kernel_driver(PciKernelDriver::VfioPci)
 	}
 
 	fn loadModulesFromPath(&self) -> &Path
@@ -132,13 +132,13 @@ impl Configuration
 		let mut modules = Vec::with_capacity(6);
 
 		let mut dependsOnUio = false;
-		if self.usesPciDriver(PciDriver::IgbUio)
+		if self.use_pci_kernel_driver(PciKernelDriver::IgbUio)
 		{
 			dependsOnUio = true;
 			modules.push(LinuxKernelModule::IgbUio);
 		}
 
-		if self.usesPciDriver(PciDriver::UioPciGeneric)
+		if self.use_pci_kernel_driver(PciKernelDriver::UioPciGeneric)
 		{
 			dependsOnUio = true;
 			modules.push(LinuxKernelModule::UioPciGeneric);

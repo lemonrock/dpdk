@@ -10,7 +10,7 @@
 pub enum BondingSlave
 {
 	/// By PCI device address.
-	ByPciDeviceAddress(PciDeviceAddress),
+	ByDpdkPciDeviceAddress(DpdkPciDeviceAddress),
 	
 	/// By virtual device name.
 	///
@@ -30,7 +30,7 @@ impl BondingSlave
 		
 		match *self
 		{
-			ByPciDeviceAddress(ref device_address) => device_address.to_string(),
+			ByDpdkPciDeviceAddress(ref device_address) => device_address.to_string(),
 			
 			ByVirtualDeviceName(ref virtual_device_name) =>
 			{

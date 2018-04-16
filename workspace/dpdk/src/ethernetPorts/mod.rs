@@ -11,7 +11,7 @@ use super::logicalCores::discovery::*;
 use super::logicalCores::receiveTransmitQueuePair::*;
 use super::memory::DpdkAllocatedMemory;
 use super::packetBuffers::PacketBufferPool;
-use super::pci::PciDeviceAddress;
+use super::bus::pci::DpdkPciDeviceAddress;
 
 
 /// Burst packet support.

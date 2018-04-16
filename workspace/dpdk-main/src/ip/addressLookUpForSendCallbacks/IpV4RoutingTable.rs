@@ -21,10 +21,10 @@ impl IpV4RoutingTable
 	{
 		const MaximumRules: u32 = MaximumRoutes as u32;
 		const NumberOfTable8sToAllocate: u32 = 16;
-		
+
 		let name = name.toName("IpV4-RT");
 		let table = LongestPrefixMatchTable::new(&name, MaximumRules, NumberOfTable8sToAllocate, logicalCoreMemorySocket).expect("Could not allocate");
-		
+
 		Self
 		{
 			longestPrefixMatchTable: table,
@@ -33,14 +33,14 @@ impl IpV4RoutingTable
 			defaultMaximumTransmissionUnit,
 		}
 	}
-	
+
 	pub fn reconfigureRulesAndRoutes(&mut self, rules: &HashMap<InternetProtocolVersion4NetworkAddress, NextHop>, routes: &[IpV4Route])
 	{
 		assert!(!routes.is_empty(), "routes is empty");
-		
+
 		self.longestPrefixMatchTable.deleteAllRules();
 		self.nextHopsToDeviceAndMtuAndIpAddress.clear();
-		
+
 		for (&ipNetworkAddress, &nextHop) in rules.iter()
 		{
 			if nextHop as usize > MaximumRoutesExcludingDefault
@@ -53,22 +53,22 @@ impl IpV4RoutingTable
 			}
 			self.longestPrefixMatchTable.addRule(&ipNetworkAddress, nextHop);
 		}
-		
+
 		for route in routes
 		{
 			self.nextHopsToDeviceAndMtuAndIpAddress.push(*route);
 		}
 	}
-	
+
 	#[inline(always)]
 	pub fn route(&self, destinationAddress: *const in_addr, outParameterForResult: *mut tle_dest) -> i32
 	{
 		let (ref ethernetAddress, tldkMtu) =
 		{
 			const AlwaysPresentNextHop: NextHop = 0;
-			
+
 			let internet_protocol_address: &InternetProtocolVersion4HostAddress = unsafe { transmute(destinationAddress) };
-			
+
 			match self.arpCache.find(internet_protocol_address)
 			{
 				Some(ethernetAddress) => (ethernetAddress, self.defaultMaximumTransmissionUnit),
@@ -78,7 +78,7 @@ impl IpV4RoutingTable
 					{
 						let nextHop =
 						{
-							match self.longestPrefixMatchTable.lookUp(internet_protocol_address)
+							match self.longestPrefixMatchTable.look_up(internet_protocol_address)
 							{
 								None => AlwaysPresentNextHop,
 								Some(nextHop) => nextHop,
@@ -86,7 +86,7 @@ impl IpV4RoutingTable
 						};
 						self.nextHopsToDeviceAndMtuAndIpAddress.get(nextHop as usize).unwrap()
 					};
-					
+
 					match self.arpCache.find(internet_protocol_address)
 					{
 						None => return NegativeE::EDESTADDRREQ,
@@ -95,7 +95,7 @@ impl IpV4RoutingTable
 				}
 			}
 		};
-		
+
 		// Overwrite destination MAC address
 		#[allow(trivial_casts)]
 		unsafe
@@ -106,10 +106,10 @@ impl IpV4RoutingTable
 			const length: usize = SizeOfEthernetAddress as usize;
 			copy_nonoverlapping(from, to, length);
 		}
-		
+
 		// Overwrite destination MTU
 		(unsafe { *outParameterForResult }).mtu = tldkMtu.as_u16();
-		
+
 		0
 	}
 }

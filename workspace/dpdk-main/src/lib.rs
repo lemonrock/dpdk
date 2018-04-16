@@ -28,7 +28,7 @@ extern crate serde_json;
 #[cfg(unix)] extern crate syscall_alt;
 
 
-use ::dpdk::pci::PciDeviceAddress;
+use ::dpdk::bus::pci::DpdkPciDeviceAddress;
 #[cfg(any(target_os = "android", target_os = "linux"))] use ::dpdk::dpdk_unix::android_linux::linux_kernel_modules::LinuxKernelModulesList;
 #[cfg(any(target_os = "android", target_os = "linux"))] use ::dpdk::dpdk_unix::android_linux::capabilities::*;
 #[cfg(any(target_os = "android", target_os = "linux"))] use ::dpdk::dpdk_unix::android_linux::process_control::*;
@@ -65,7 +65,7 @@ use ::dpdk::process::MemoryChannels;
 use ::dpdk::process::MemoryRanks;
 use ::dpdk::process::MemoryLimits;
 use ::dpdk::process::ProcessType;
-use ::dpdk::process::VfioInterruptMode;
+use ::dpdk::process::VirtualFunctionIoInterruptMode;
 use ::programArguments::ConfigurationAndProgramArguments;
 use ::configuration::*;
 use ::configuration::ethernetPorts::*;

@@ -6,7 +6,7 @@
 #[derive(Serialize, Deserialize)]
 pub struct NetworkInterfacesConfiguration
 {
-	pci_devices: HashMap<IndirectPciDeviceIdentifier, DeviceConfiguration<PciDriver>>,
+	pci_devices: HashMap<IndirectPciDeviceIdentifier, DeviceConfiguration<PciKernelDriver>>,
 	
 	afPacketNetVirtualDevices: Vec<DeviceConfiguration<AfPacketNetVirtualDevice>>,
 	packetCaptureNetVirtualDevices: Vec<DeviceConfiguration<PacketCaptureNetVirtualDevice>>,
@@ -45,11 +45,11 @@ impl Default for NetworkInterfacesConfiguration
 
 impl NetworkInterfacesConfiguration
 {
-	pub fn usesPciDriver(&self, usePciDriver: PciDriver) -> bool
+	pub fn use_pci_kernel_driver(&self, use_pci_kernel_driver: PciKernelDriver) -> bool
 	{
 		for ref deviceConfiguration in self.pci_devices.values()
 		{
-			if &deviceConfiguration.device == &usePciDriver
+			if &deviceConfiguration.device == &use_pci_kernel_driver
 			{
 				return true;
 			}

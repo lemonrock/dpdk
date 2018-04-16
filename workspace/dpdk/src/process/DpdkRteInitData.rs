@@ -5,7 +5,7 @@
 /// DPDK RTE init data.
 pub struct DpdkRteInitData<'a>
 {
-	pci_devices: HashSet<PciDeviceAddress>,
+	pci_devices: HashSet<DpdkPciDeviceAddress>,
 
 	af_packet_net_virtual_devices: VirtualDeviceConfigurations<AfPacketNetVirtualDevice, ()>,
 	bonding_net_virtual_devices: VirtualDeviceConfigurations<BondingNetVirtualDevice, ()>,
@@ -40,7 +40,7 @@ pub struct DpdkRteInitData<'a>
 	
 	#[cfg(any(target_os = "android", target_os = "linux"))]
 	/// Can be changed from default (`None`).
-	pub vfio_interrupt_mode: Option<VfioInterruptMode>,
+	pub virtual_function_io_interrupt_mode: Option<VirtualFunctionIoInterruptMode>,
 	
 	#[cfg(any(target_os = "android", target_os = "linux"))]
 	/// Can be changed from default (`true`).
@@ -74,7 +74,7 @@ impl<'a> Default for DpdkRteInitData<'a>
 			
 			#[cfg(any(target_os = "android", target_os = "linux"))] support_running_on_xen_domain_0_without_hugetlbfs: false,
 			#[cfg(any(target_os = "android", target_os = "linux"))] base_virtual_address: None,
-			#[cfg(any(target_os = "android", target_os = "linux"))] vfio_interrupt_mode: None,
+			#[cfg(any(target_os = "android", target_os = "linux"))] virtual_function_io_interrupt_mode: None,
 			#[cfg(any(target_os = "android", target_os = "linux"))] create_uio_device_on_file_system_in_slash_dev: true,
 		}
 	}
@@ -84,7 +84,7 @@ impl<'a> DpdkRteInitData<'a>
 {
 	/// Add a (physical) PCI device.
 	#[inline(always)]
-	pub fn add_pci_device(&mut self, pci_device_address: PciDeviceAddress)
+	pub fn add_pci_device(&mut self, pci_device_address: DpdkPciDeviceAddress)
 	{
 		assert!(self.pci_devices.insert(pci_device_address), "Non-unique device address");
 	}
@@ -141,8 +141,10 @@ impl<'a> DpdkRteInitData<'a>
 	}
 	
 	/// Initialise DPDK.
+	///
+	/// When the returned result is dropped, resources are released.
 	#[inline(always)]
-	pub fn initialize_dpdk(&self, numa_sockets: &NumaSockets, huge_page_file_path_information: HugePageFilePathInformation)
+	pub fn initialize_dpdk(&self, numa_sockets: &NumaSockets, huge_page_file_path_information: HugePageFilePathInformation) -> Result<DpdkProcess, &'static str>
 	{
 		let huge_page_details = huge_page_file_path_information.huge_page_file_system_mount_path_and_so_on();
 		let use_huge_pages = huge_page_details.is_some();
@@ -160,7 +162,7 @@ impl<'a> DpdkRteInitData<'a>
 		self.initialize_dpdk_log_settings(&mut arguments);
 		self.initialize_dpdk_os_specific_settings(&mut arguments);
 
-		Self::call_rte_eal_init(arguments);
+		Self::call_rte_eal_init(arguments)
 	}
 	
 	#[inline(always)]
@@ -402,9 +404,9 @@ impl<'a> DpdkRteInitData<'a>
 				arguments.keyCStrValue(__base_virtaddr, value);
 			}
 	
-			if let Some(vfio_interrupt_mode) = self.vfio_interrupt_mode
+			if let Some(virtual_function_io_interrupt_mode) = self.virtual_function_io_interrupt_mode
 			{
-				arguments.keyConstantValue(__vfio_intr, vfio_interrupt_mode.as_initialisation_argument());
+				arguments.keyConstantValue(__vfio_intr, virtual_function_io_interrupt_mode.as_initialisation_argument());
 			}
 		}
 		
@@ -414,7 +416,7 @@ impl<'a> DpdkRteInitData<'a>
 	}
 	
 	#[inline(always)]
-	fn call_rte_eal_init(mut arguments: Vec<*const c_char>)
+	fn call_rte_eal_init(mut arguments: Vec<*const c_char>) -> Result<(), &'static str>
 	{
 		let count = arguments.len();
 		arguments.push(null_mut());
@@ -430,9 +432,25 @@ impl<'a> DpdkRteInitData<'a>
 				{
 					panic!("Parsed only number_of_parsed_arguments '{}' but provided count '{}' arguments", number_of_parsed_arguments, count);
 				}
-			},
-
-			error @ _ => panic!("Could not initialise DPDK Environment Abstraction Layer, received error '{}'", error),
+				
+				Ok(DpdkProcess)
+			}
+			
+			-1 => match unsafe { rte_errno() }
+			{
+				E::EACCES => Err("permissions issue"),
+				E::EAGAIN => Err("either a bus or system resource was not available; try again"),
+				E::EALREADY => Err("already initialized"),
+				E::EFAULT => Err("the tailq configuration name was not found in the memory configuration"),
+				E::EINVAL => Err("invalid parameters in argc or argv"),
+				E::ENOMEM => Err("failure likely caused by an out-of-memory condition"),
+				E::ENODEV => Err("memory setup issues"),
+				E::ENOTSUP => Err("the EAL cannot initialize on this system (not supported)"),
+				E::EPROTO => Err("the PCI bus is not present or unreadable"),
+				E::ENOEXEC => Err("service core failed to launch successfully"),
+			}
+			
+			illegal @ _ => panic!("Could not initialise DPDK Environment Abstraction Layer, received illegal result '{}'", illegal),
 		}
 	}
 }

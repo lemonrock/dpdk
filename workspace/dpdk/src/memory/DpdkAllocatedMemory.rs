@@ -14,14 +14,50 @@ impl<T> Drop for DpdkAllocatedMemory<T>
 	}
 }
 
-impl<T> DpdkAllocatedMemory<T>
+impl<T> PrintInformation for DpdkAllocatedMemory<T>
 {
 	#[inline(always)]
-	pub fn physicalAddress(&self) -> phys_addr_t
+	fn print_information_to_stream(stream: *mut FILE)
 	{
-		unsafe { rte_malloc_virt2phy(self.0 as *mut c_void) }
+		unsafe { rte_malloc_dump_stats(stream, null()) };
 	}
+}
 
+impl<T> DpdkAllocatedMemory<T>
+{
+	/// Physical address of mapping.
+	///
+	/// Deprecated in DPDK.
+	///
+	/// Returns an error if not a valid physical address.
+	#[deprecated(note = "please use `virtual_to_io_virtual_address()` instead")]
+	#[inline(always)]
+	pub fn physical_address(&self) -> Result<phys_addr_t, ()>
+	{
+		unsafe { transmute(self.virtual_to_io_va()) }
+	}
+	
+	/// Returns the IO address of a virtual address obtained through `rte_malloc`.
+	///
+	/// Returns an error if not a valid address.
+	///
+	/// When the physical addressing mode (IOVA as a Physical Address) is in use, the translation from an IO Virtual Address (IOVA) to a physical address is a direct mapping, ie the same value. Otherwise, in virtual mode (IOVA as a Virtual Address), an IOMMU may do the translation.
+	///
+	/// Returns an error if not a valid address.
+	#[inline(always)]
+	pub fn virtual_to_io_virtual_address(&self) -> Result<rte_iova_t, ()>
+	{
+		let result = unsafe { rte_malloc_virt2iova(self.0 as *mut c_void) };
+		if (result as i64) == -1
+		{
+			Err(())
+		}
+		else
+		{
+			Ok(result)
+		}
+	}
+	
 	#[inline(always)]
 	pub fn validate(&self) -> Option<usize>
 	{
@@ -41,26 +77,6 @@ impl<T> DpdkAllocatedMemory<T>
 
 				illegal @ _ => panic!("Unexpected result '{}' from rte_malloc_validate()", illegal),
 			}
-		}
-	}
-
-	// Page must be locked
-	#[inline(always)]
-	pub fn physicalAddressForAnyMemory(virtualAddress: *const c_void) -> phys_addr_t
-	{
-		unsafe { rte_mem_virt2phy(virtualAddress) }
-	}
-
-	#[inline(always)]
-	pub fn lockPageToPreventSwapping(virtualAddress: *const c_void) -> bool
-	{
-		match unsafe { rte_mem_lock_page(virtualAddress) }
-		{
-			0 => true,
-
-			negative if negative < 0 => false,
-
-			illegal @ _ => panic!("Unexpected result '{}' from rte_mem_lock_page()", illegal),
 		}
 	}
 }

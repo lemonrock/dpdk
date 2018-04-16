@@ -8,7 +8,7 @@
 ///
 /// Defaults to `Unspecified`.
 ///
-/// For all unicast addresses, except those that start with the binary value 000, Interface IDs are required to be 64 bits long. If derived from an IEEE MAC-layer address, they must be constructed in Modified EUI-64 format (see Appendix A of RFC 4291 replaced by RFC 7136 section 5.
+/// For all unicast addresses, except those that start with the binary value 000, Interface IDs are required to be 64 bits long. If derived from an IEEE MAC-layer address, they must be constructed in Modified EUI-64 format (see Appendix A of RFC4291 updated by RFC 7136 section 5.
 ///
 /// Currently globally routable address assignments are at <https://www.iana.org/assignments/ipv6-unicast-address-assignments/ipv6-unicast-address-assignments.xhtml>.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
@@ -35,19 +35,19 @@ impl InternetProtocolVersion6HostAddress
 	/// Loopback address.
 	pub const Loopback: Self = InternetProtocolVersion6HostAddress([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01]);
 	
-	/// RFC 4291.
+	/// RFC4291.
 	pub const MulticastAllNodesInterfaceLocal: Self = InternetProtocolVersion6HostAddress([0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01]);
 	
-	/// RFC 4291.
+	/// RFC4291.
 	pub const MulticastAllNodesLinkLocal: Self = InternetProtocolVersion6HostAddress([0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01]);
 	
-	/// RFC 4291.
+	/// RFC4291.
 	pub const MulticastAllRoutersInterfaceLocal: Self = InternetProtocolVersion6HostAddress([0xFF, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02]);
 	
-	/// RFC 4291.
+	/// RFC4291.
 	pub const MulticastAllRoutersLinkLocal: Self = InternetProtocolVersion6HostAddress([0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02]);
 	
-	/// RFC 4291.
+	/// RFC4291.
 	pub const MulticastAllRoutersSiteLocal: Self = InternetProtocolVersion6HostAddress([0xFF, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02]);
 	
 	/// RFC7723.
@@ -56,18 +56,21 @@ impl InternetProtocolVersion6HostAddress
 	/// RFC8155.
 	pub const TraversalUsingRelaysAroundNatAnycast: Self = InternetProtocolVersion6HostAddress([0x20, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02]);
 	
+	/// From an `Ipv6Addr` to an `in6_addr`.
 	#[inline(always)]
 	pub fn from_ipv6_addr_to_in6_addr(ipv6_addr: &Ipv6Addr) -> in6_addr
 	{
 		unsafe { transmute_copy(ipv6_addr) }
 	}
 	
+	/// From an `Ipv6Addr`.
 	#[inline(always)]
 	pub fn from_ipv6_addr(ipv6_addr: &Ipv6Addr) -> Self
 	{
 		unsafe { transmute_copy(ipv6_addr) }
 	}
 	
+	/// To an `in6_addr`.
 	#[inline(always)]
 	pub fn to_in6_addr(self) -> in6_addr
 	{
@@ -77,12 +80,14 @@ impl InternetProtocolVersion6HostAddress
 		}
 	}
 	
+	/// An a native endian u128.
 	#[inline(always)]
 	pub fn as_native_endian_u128(&self) -> u128
 	{
 		u128::from_be(self.as_network_endian_u128())
 	}
 	
+	/// An a network (big) endian u128.
 	#[inline(always)]
 	pub fn as_network_endian_u128(&self) -> u128
 	{
@@ -95,14 +100,14 @@ impl InternetProtocolVersion6HostAddress
 		self.is_unspecified() || self.is_loopback() || self.is_multicast() || self.is_documentation()
 	}
 	
-	/// RFC 4291.
+	/// RFC4291.
 	#[inline(always)]
 	pub fn is_unspecified(&self) -> bool
 	{
 		self == Self::Unspecified
 	}
 	
-	/// RFC 4291.
+	/// RFC4291.
 	#[inline(always)]
 	pub fn is_loopback(&self) -> bool
 	{
@@ -113,22 +118,18 @@ impl InternetProtocolVersion6HostAddress
 	///
 	/// Assumes prefix `2000::/3`.
 	///
-	/// Excludes addresses that are `is_documentation()` or `is_link_local_unicast()`.
+	/// Excludes addresses that are `is_documentation()` or `get_unique_local_unicast()`.
 	#[inline(always)]
 	pub fn is_globally_routable_unicast(&self)
 	{
-		USE THE IPV6NetworkAddress here.
-		
-		
-		let value = unsafe { *self.0.get_unchecked(0) };
-		if value & 0b11100000 == 0x20
+		if InternetProtocolVersion6NetworkAddress::GloballyRoutablePrefix.contains(self)
 		{
 			if self.is_documentation()
 			{
 				return false
 			}
 			
-			if self.is_link_local_unicast()
+			if self.get_unique_local_unicast().is_some()
 			{
 				return false
 			}
@@ -139,13 +140,6 @@ impl InternetProtocolVersion6HostAddress
 		{
 			false
 		}
-	}
-	
-	/// RFC 4291.
-	#[inline(always)]
-	pub fn is_internet_protocol_version_4_mapped(&self) -> bool
-	{
-		&self.0[ .. 12] == [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF]
 	}
 	
 	/// RFC 8215: Globally routable IPv4 addresses.
@@ -172,7 +166,7 @@ impl InternetProtocolVersion6HostAddress
 	#[inline(always)]
 	pub fn is_internet_protocol_version_4_embedded_rfc8215(&self) -> bool
 	{
-		&self.0[ .. 12] == [0x00, 0x64, 0xFF, 0x9B, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+		InternetProtocolVersion6NetworkAddress::GloballyRoutableRfc8215InternetProtocolVersion4AddressPrefix.contains(self)
 	}
 	
 	/// RFC 6052: Globally routable IPv4 addresses.
@@ -199,10 +193,17 @@ impl InternetProtocolVersion6HostAddress
 	#[inline(always)]
 	pub fn is_internet_protocol_version_4_embedded_rfc6052(&self) -> bool
 	{
-		&self.0[ .. 12] == [0x00, 0x64, 0xFF, 0x9B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+		InternetProtocolVersion6NetworkAddress::GloballyRoutableRfc6052InternetProtocolVersion4AddressPrefix.contains(self)
 	}
 	
-	/// RFC 4291.
+	/// RFC4291.
+	#[inline(always)]
+	pub fn is_internet_protocol_version_4_mapped(&self) -> bool
+	{
+		InternetProtocolVersion6NetworkAddress::MappedInternetProtocolVersion4AddressPrefix.contains(self)
+	}
+	
+	/// RFC4291.
 	///
 	/// Returns a valid address if this is a mapped address.
 	#[inline(always)]
@@ -218,15 +219,15 @@ impl InternetProtocolVersion6HostAddress
 		}
 	}
 	
-	/// RFC 4291.
+	/// RFC4291.
 	///
 	/// Returns a valid address if this is a deprecated compatible address.
 	///
-	/// Note that there is no corresponding `is_deprecated_internet_protocol_version_4_compatible()` method unlike `get_internet_protocol_version_4_mapped()`, as creation on the result is required to evaluate validity in any event.
+	/// Note that there is no corresponding `is_deprecated_internet_protocol_version_4_compatible()` method unlike `get_internet_protocol_version_4_mapped()`, as creation of the result is required to evaluate validity in any event.
 	#[inline(always)]
 	pub fn get_deprecated_internet_protocol_version_4_compatible(&self) -> Option<InternetProtocolVersion4HostAddress>
 	{
-		if &self.0[ .. 12] == [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+		if InternetProtocolVersion6NetworkAddress::DeprecatedCompatibleInternetProtocolVersion4AddressPrefix.contains(self)
 		{
 			let internet_protocol_version_4_host_address = self.internet_protocol_version_4_host_address();
 			if internet_protocol_version_4_host_address.is_not_globally_unicast_unique()
@@ -244,19 +245,62 @@ impl InternetProtocolVersion6HostAddress
 		}
 	}
 	
-	#[inline(always)]
-	fn could_be_deprecated_internet_protocol_version_4_compatible(&self) -> bool
-	{
-		&self.0[ .. 12] == [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
-	}
-	
 	/// RFC 3056: 6to4.
 	///
 	/// Uses prefix `2002::/16`.
 	#[inline(always)]
 	pub fn is_6to4(&self) -> bool
 	{
-		&self.0[ .. 2] == [0x20, 0x02]
+		InternetProtocolVersion6NetworkAddress::_6to4Prefix.contains(self)
+	}
+	
+	/// RFC 3056: 6to4.
+	///
+	/// Uses prefix `2002::/16`.
+	///
+	/// Returns a tuple of internet protocol version 4 host address, subnet identifier (16-bit) and host address (64-bit).
+	///
+	/// Subnet identifier and host address are in network (big) endian byte order.
+	#[inline(always)]
+	pub fn get_6to4(&self) -> Option<(InternetProtocolVersion4HostAddress, &[u8; 2], &[u8; 8])>
+	{
+		if self.is_6to4()
+		{
+			let mut internet_protocol_version_4_host_address = unsafe { uninitialized() };
+			unsafe { copy_nonoverlapping(self.0.get_unchecked(2), &mut internet_protocol_version_4_host_address.0, InternetProtocolVersion4HostAddress::Size) };
+			
+			Some((internet_protocol_version_4_host_address, &self.0[6 .. 8], &self.0[8 .. 16]))
+		}
+		else
+		{
+			None
+		}
+	}
+	
+	/// RFC 3056: 6to4.
+	///
+	/// Uses prefix `2002::/16`.
+	///
+	/// Returns the 48-bit 6to4 prefix.
+	#[inline(always)]
+	pub fn get_6to4_prefix(&self) -> Option<InternetProtocolVersion6NetworkAddress>
+	{
+		const PrefixMaskBitsAsDepth: usize = 48 / 8;
+		
+		if self.is_6to4()
+		{
+			let mut network: [u8; InternetProtocolVersion6NetworkAddress::Size] = [0x00; InternetProtocolVersion6NetworkAddress::Size];
+			unsafe { copy_nonoverlapping(&self.0 as *const u8, (&mut network) as *mut u8, PrefixMaskBitsAsDepth) };
+			
+			Some
+			(
+				InternetProtocolVersion6NetworkAddress
+				{
+					network: InternetProtocolVersion6HostAddress(network),
+					mask_bits: InternetProtocolVersion6MaskBits::_48,
+				}
+			)
+		}
 	}
 	
 	/// RFC 7532: Direct Delegation AS112 Service.
@@ -265,7 +309,7 @@ impl InternetProtocolVersion6HostAddress
 	#[inline(always)]
 	pub fn is_direct_delegation_as112_service(&self) -> bool
 	{
-		&self.0[ .. 6] == [0x26, 0x20, 0x00, 0x4F, 0x80, 0x00]
+		InternetProtocolVersion6NetworkAddress::DirectDelegationAs112ServicePrefix.contains(self)
 	}
 	
 	/// RFC 6666: Discard only.
@@ -274,39 +318,51 @@ impl InternetProtocolVersion6HostAddress
 	#[inline(always)]
 	pub fn is_discard_only(&self) -> bool
 	{
-		&self.0[ .. 8] == [0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+		InternetProtocolVersion6NetworkAddress::DiscardOnlyPrefix.contains(self)
+	}
+	/// RFC 4193 & RFC 8190.
+	///
+	/// Even though this prefix falls within those that are globally routed, these addresses are not globally routed...
+	///
+	/// Uses prefix` fc00::/7` but bit 8, the `l bit` is (currently) always specified to be 1.
+	/// If matches, then returns `Some((L bit, global identifier, subnet identifier, interface identifier))`.
+	#[inline(always)]
+	pub fn is_unique_local_unicast(&self) -> bool
+	{
+		InternetProtocolVersion6NetworkAddress::UniqueLocalUnicastPrefix.contains(self)
 	}
 	
 	/// RFC 4193 & RFC 8190.
 	///
 	/// Even though this prefix falls within those that are globally routed, these addresses are not globally routed...
 	///
-	/// Uses prefix` fc00::/7` but bit 8 is (currently) always specified to be 1.
+	/// Uses prefix` fc00::/7` although bit 8, the `l bit` is (currently) always specified to be 1.
 	/// If matches, then returns `Some((L bit, global identifier, subnet identifier, interface identifier))`.
 	#[inline(always)]
-	pub fn get_unique_local_unicast(&self) -> Option<(bool, &[u8; 5], &[u8; 2], &[u8; 8])>
+	pub fn get_unique_local_unicast_l_bit_and_global_identifier_and_subnet_identifier_and_interface_identifier(&self) -> Option<(bool, &[u8; 5], &[u8; 2], &[u8; 8])>
 	{
-		let value = unsafe { *self.0.get_unchecked(0) };
-		let l_bit = match value
+		if self.is_unique_local_unicast()
 		{
-			0xFC => false,
-			0xFD => true,
-			_ => None,
-		};
-		
-		Some((l_bit, &self.0[1 .. 6], &self.0[6 .. 8], &self.0[8 .. 16]))
+			let l_bit = self.first_byte() & 0b0000_0001 == 0b0000_0001;
+			
+			Some((l_bit, &self.0[1..6], &self.0[6..8], &self.0[8..16]))
+		}
+		else
+		{
+			None
+		}
 	}
 	
-	/// RFC 4291.
+	/// RFC4291.
 	///
-	/// Uses prefix `fe80::/10` *but* next 54 bits *must* always be zero, so is actually `fe80::/64`.
+	/// Should use prefix `fe80::/10` *but* next 54 bits *must* always be zero, so actually use prefix of `fe80::/64`.
 	#[inline(always)]
 	pub fn is_link_local_unicast(&self) -> bool
 	{
-		&self.0[0 .. 8] == [0xFE, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+		InternetProtocolVersion6NetworkAddress::LinkLocalUnicastPragmaticPrefix.contains(self)
 	}
 	
-	/// RFC 4291.
+	/// RFC4291.
 	#[inline(always)]
 	pub fn get_link_local_unicast_interface_identifier(&self) -> Option<&[u8; 8]>
 	{
@@ -320,13 +376,14 @@ impl InternetProtocolVersion6HostAddress
 		}
 	}
 	
+	//noinspection SpellCheckingInspection
 	/// RFC2928.
 	///
 	/// Uses prefix `2001::/23`.
 	#[inline(always)]
 	pub fn is_assigned_ietf_protocol(&self) -> bool
 	{
-		&self.0[0 .. 2] == [0x20, 0x01] && (unsafe { *self.0.get_unchecked(2) } >> 1 == 0b000_0000)
+		InternetProtocolVersion6NetworkAddress::AssignedIetfProtocolPrefix.contains(self)
 	}
 	
 	/// RFC4380 and RFC8190.
@@ -334,7 +391,7 @@ impl InternetProtocolVersion6HostAddress
 	/// Uses prefix `2001::/32`.
 	pub fn is_teredo(&self) -> bool
 	{
-		&self.0[0 .. 4] == [0x20, 0x01, 0x00, 0x00]
+		InternetProtocolVersion6NetworkAddress::TeredoPrefix.contains(self)
 	}
 	
 	/// RFC5180 and RFC Errata 1752.
@@ -342,7 +399,7 @@ impl InternetProtocolVersion6HostAddress
 	/// Uses prefix `2001:2::/48`.
 	pub fn is_benchmarking(&self) -> bool
 	{
-		&self.0[0 .. 6] == [0x20, 0x01, 0x00, 0x02, 0x00, 0x00]
+		InternetProtocolVersion6NetworkAddress::BenchmarkingPrefix.contains(self)
 	}
 	
 	/// RFC7450.
@@ -350,7 +407,7 @@ impl InternetProtocolVersion6HostAddress
 	/// Uses prefix `2001:3::/32`.
 	pub fn is_amt(&self) -> bool
 	{
-		&self.0[0 .. 4] == [0x20, 0x01, 0x00, 0x03]
+		InternetProtocolVersion6NetworkAddress::AmtPrefix.contains(self)
 	}
 	
 	/// RFC7535.
@@ -358,7 +415,7 @@ impl InternetProtocolVersion6HostAddress
 	/// Uses prefix `2001:4:112::/48`.
 	pub fn is_as112_v6(&self) -> bool
 	{
-		&self.0[0 .. 6] == [0x20, 0x01, 0x00, 0x04, 0x00, 0x00]
+		InternetProtocolVersion6NetworkAddress::As112V6Prefix.contains(self)
 	}
 	
 	/// RFC7954.
@@ -366,7 +423,7 @@ impl InternetProtocolVersion6HostAddress
 	/// Uses prefix `2001:5::/32`.
 	pub fn is_eid_space_for_lisp(&self) -> bool
 	{
-		&self.0[0 .. 4] == [0x20, 0x01, 0x00, 0x05]
+		InternetProtocolVersion6NetworkAddress::EidSpaceForLispPrefix.contains(self)
 	}
 	
 	/// RFC4843.
@@ -374,7 +431,7 @@ impl InternetProtocolVersion6HostAddress
 	/// Uses prefix `2001:10::/28`.
 	pub fn is_deprecated_orchid(&self) -> bool
 	{
-		&self.0[0 .. 3] == [0x20, 0x01, 0x10] && (unsafe { *self.0.get_unchecked(3) } >> 4 == 0b0000)
+		InternetProtocolVersion6NetworkAddress::DeprecatedOrchidPrefix.contains(self)
 	}
 	
 	/// RFC7343.
@@ -382,24 +439,35 @@ impl InternetProtocolVersion6HostAddress
 	/// Uses prefix `2001:20::/28`.
 	pub fn is_orchid_v2(&self) -> bool
 	{
-		&self.0[0 .. 3] == [0x20, 0x01, 0x20] && (unsafe { *self.0.get_unchecked(3) } >> 4 == 0b0000)
+		InternetProtocolVersion6NetworkAddress::OrchidV2Prefix.contains(self)
 	}
 	
-	/// RFC 4291.
+	/// RFC4291 (deprecated in RFC3879, defined originally in RFC3513 which itself obsoletes RFC 2373).
+	///
+	/// Uses prefix `fec0::/10`.
 	#[inline(always)]
 	pub fn is_deprecated_site_local_unicast(&self) -> bool
 	{
-		// 10-bit prefix, 54-bit subnet id and 64-bit interface id
-		(unsafe { *self.0.get_unchecked(0) } == 0b11111110) && ((unsafe { *self.0.get_unchecked(1) }) & 0b11000000 == 0b11000000)
+		InternetProtocolVersion6NetworkAddress::DeprecatedSiteLocalUnicastPrefix.contains(self)
 	}
 	
-	/// RFC 4291.
+	/// RFC4291 (deprecated in RFC3879).
+	///
+	/// Uses prefix `fec0::/10`.
+	/// Returns the 54-bit subnet id (as network (big) endian 64-bits with top 10-bits masked off) and 64-bit interface id (network endian).
 	#[inline(always)]
-	pub fn get_deprecated_site_local_unicast_interface_identifier(&self) -> Option<&[u8; 8]>
+	pub fn get_deprecated_site_local_unicast_interface_identifier(&self) -> Option<(u64, &[u8; 8])>
 	{
 		if self.is_deprecated_site_local_unicast()
 		{
-			Some(&self.0[9..16])
+			let top_64_bits_network_endian: u64 = unsafe { transmute(self.0[0 .. 8]) };
+			#[cfg(target_endian = "big")] Mask54Bits: u64 = !(0xFFC0000000000000);
+			#[cfg(target_endian = "little")] Mask54Bits: u64 = !(0x000000000000C0FF);
+			let subnetIdentifier = top_64_bits_network_endian | Mask54Bits;
+			
+			let interfaceIdentifier = &self.0[9..16];
+			
+			Some((subnetIdentifier, interfaceIdentifier))
 		}
 		else
 		{
@@ -407,23 +475,18 @@ impl InternetProtocolVersion6HostAddress
 		}
 	}
 	
-	/// Originally RFC 4291 and 4007, updated by RFC 7346.
+	/// Originally RFC4291 and RFC4007, updated by RFC7346.
 	#[inline(always)]
 	pub fn is_multicast(&self) -> Option<(InternetProtocolVersion6MulticastAddressLifetime, InternetProtocolVersion6MulticastAddressScope)>
 	{
-		// * The first 8 bits are set to FF.
-		// * The next 4 bits are the lifetime of the address: 0 is permanent and 1 is temporary.
-		// * The next 4 bits indicate the scope of the multicast address (how far the packet can travel):
-		// * 1 is for a node, 2 is for a link, 5 is for the site, 8 is for the organization, and E is global (the Internet).
-		
 		use self::InternetProtocolVersion6MulticastAddressLifetime::*;
 		use self::InternetProtocolVersion6MulticastAddressScope::*;
 		
 		if self.has_multicast_prefix()
 		{
-			let byte1 = unsafe { *self.0.get_unchecked(1) };
+			let flags_and_scope = self.second_byte();
 			
-			let flags = byte1 >> 4;
+			let flags = flags_and_scope >> 4;
 			
 			let reserved_high_order_flag = flags & 0b1000;
 			if reserved_high_order_flag == 0b1000
@@ -445,9 +508,9 @@ impl InternetProtocolVersion6HostAddress
 				_ => return None,
 			};
 			
-			// Originally RFC 4291, updated by RFC 7346.
+			// Originally RFC4291, updated by RFC 7346.
 			// 0x0 is reserved; everything else is unassigned.
-			let scope = match byte1 & 0xF0
+			let scope = match flags_and_scope & 0xF0
 			{
 				0x1 => InterfaceLocal, // Aka Node
 				0x2 => LinkLocal,
@@ -471,39 +534,39 @@ impl InternetProtocolVersion6HostAddress
 	
 	
 	/// Checks for a multicast prefix but does not validate.
+	///
+	/// Uses prefix `ff::/8`.
 	#[inline(always)]
 	pub fn has_multicast_prefix(&self) -> bool
 	{
-		unsafe { *self.0.get_unchecked(0) == 0xFF }
+		self.first_byte() == 0xFF
 	}
 	
-	/// RFC 4291.
+	/// RFC4291.
+	///
+	/// Is this one of the reserved multicast addresses:-
+	///
+	/// * `FF00:0:0:0:0:0:0:0`.
+	/// * `FF01:0:0:0:0:0:0:0`.
+	/// * `FF02:0:0:0:0:0:0:0`.
+	/// * `FF03:0:0:0:0:0:0:0`.
+	/// * `FF04:0:0:0:0:0:0:0`.
+	/// * `FF05:0:0:0:0:0:0:0`.
+	/// * `FF06:0:0:0:0:0:0:0`.
+	/// * `FF07:0:0:0:0:0:0:0`.
+	/// * `FF08:0:0:0:0:0:0:0`.
+	/// * `FF09:0:0:0:0:0:0:0`.
+	/// * `FF0A:0:0:0:0:0:0:0`.
+	/// * `FF0B:0:0:0:0:0:0:0`.
+	/// * `FF0C:0:0:0:0:0:0:0`.
+	/// * `FF0D:0:0:0:0:0:0:0`.
+	/// * `FF0E:0:0:0:0:0:0:0`.
 	#[inline(always)]
 	pub fn is_multicast_reserved(&self) -> bool
 	{
-		/*
-		    Reserved Multicast Addresses:-
-				FF00:0:0:0:0:0:0:0
-				FF01:0:0:0:0:0:0:0
-				FF02:0:0:0:0:0:0:0
-				FF03:0:0:0:0:0:0:0
-				FF04:0:0:0:0:0:0:0
-				FF05:0:0:0:0:0:0:0
-				FF06:0:0:0:0:0:0:0
-				FF07:0:0:0:0:0:0:0
-				FF08:0:0:0:0:0:0:0
-				FF09:0:0:0:0:0:0:0
-				FF0A:0:0:0:0:0:0:0
-				FF0B:0:0:0:0:0:0:0
-				FF0C:0:0:0:0:0:0:0
-				FF0D:0:0:0:0:0:0:0
-				FF0E:0:0:0:0:0:0:0
-				FF0F:0:0:0:0:0:0:0
-		*/
-		
 		if self.has_multicast_prefix()
 		{
-			(unsafe { *self.0.get_unchecked(1) } <= 0x0F) && &self.0[2 .. 16] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+			(self.second_byte() <= 0x0F) && &self.0[2 .. 16] = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
 		}
 		else
 		{
@@ -511,53 +574,55 @@ impl InternetProtocolVersion6HostAddress
 		}
 	}
 	
-	/// RFC 4291.
+	/// RFC4291.
 	#[inline(always)]
 	pub fn is_multicast_all_nodes_interface_local(&self) -> bool
 	{
 		self == Self::MulticastAllNodesInterfaceLocal
 	}
 	
-	/// RFC 4291.
+	/// RFC4291.
 	#[inline(always)]
 	pub fn is_multicast_all_nodes_link_local(&self) -> bool
 	{
 		self == Self::MulticastAllNodesLinkLocal
 	}
 	
-	/// RFC 4291.
+	/// RFC4291.
 	#[inline(always)]
 	pub fn is_multicast_all_routers_interface_local(&self) -> bool
 	{
 		self == Self::MulticastAllRoutersInterfaceLocal
 	}
 	
-	/// RFC 4291.
+	/// RFC4291.
 	#[inline(always)]
 	pub fn is_multicast_all_routers_link_local(&self) -> bool
 	{
 		self == Self::MulticastAllRoutersLinkLocal
 	}
 	
-	/// RFC 4291
+	/// RFC4291.
 	#[inline(always)]
 	pub fn is_multicast_all_routers_site_local(&self) -> bool
 	{
 		self == Self::MulticastAllRoutersSiteLocal
 	}
 	
-	/// RFC 4291
+	/// RFC4291.
 	#[inline(always)]
 	pub fn is_multicast_solicited_node(&self) -> bool
 	{
-		&self.0[0 .. 13] == [0xFF, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xFF]
+		InternetProtocolVersion6NetworkAddress::MulticastSolicitedNodePrefix.contains(self)
 	}
 	
-	/// RFC 3849.
+	/// RFC3849.
+	///
+	/// Uses prefix `2001:db8::/16`.
 	#[inline(always)]
 	pub fn is_documentation(&self) -> bool
 	{
-		&self.0[0 .. 4] == [0x20, 0x01, 0x0D, 0xB8]
+		InternetProtocolVersion6NetworkAddress::DocumentationPrefix.contains(self)
 	}
 	
 	#[inline(always)]
@@ -566,5 +631,35 @@ impl InternetProtocolVersion6HostAddress
 		let mut internet_protocol_version_4_host_address = unsafe { uninitialized() };
 		unsafe { copy_nonoverlapping(self.0.get_unchecked(12), &mut internet_protocol_version_4_host_address.0, InternetProtocolVersion4HostAddress::Size) };
 		internet_protocol_version_4_host_address
+	}
+	
+	#[inline(always)]
+	fn first_byte(&self) -> u8
+	{
+		unsafe { *self.0.get_unchecked(0) }
+	}
+	
+	#[inline(always)]
+	fn second_byte(&self) -> u8
+	{
+		unsafe { *self.0.get_unchecked(1) }
+	}
+	
+	#[inline(always)]
+	fn third_byte(&self) -> u8
+	{
+		unsafe { *self.0.get_unchecked(2) }
+	}
+	
+	#[inline(always)]
+	fn fourth_byte(&self) -> u8
+	{
+		unsafe { *self.0.get_unchecked(3) }
+	}
+	
+	#[inline(always)]
+	fn fifth_byte(&self) -> u8
+	{
+		unsafe { *self.0.get_unchecked(4) }
 	}
 }

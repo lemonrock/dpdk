@@ -160,20 +160,24 @@ final_chance_to_tweak()
 	# Fix non-Optional callbacks in types.
 	local type
 	for type in \
+		rte_bus_cmp_t \
+		rte_bus_find_device_t \
+		rte_bus_probe_t \
+		rte_bus_scan_t \
 		rte_eal_alarm_callback \
 	 	rte_timer_cb_t
 	do
 		sed -i -e 's/Option<//g' -e 's/>;$/;/g' "$outputFolderPath"/types/"$type".rs
 	done
 
-	# Fix non-Optional callbacks in structs.
-	# eg: Option<unsafe extern "C" fn(arg1: *mut c_void, arg2: *mut tle_stream)>,
-	local struct
-	for struct in \
-		tle_stream_cb
-	do
-		sed -i -e 's/: Option<unsafe extern "C" fn(\(.*\))>,$/: unsafe extern "C" fn(\1),/g' "$outputFolderPath"/structs/"$struct".rs
-	done
+#	# Fix non-Optional callbacks in structs.
+#	# eg: Option<unsafe extern "C" fn(arg1: *mut c_void, arg2: *mut tle_stream)>,
+#	local struct
+#	for struct in \
+#		tle_stream_cb
+#	do
+#		sed -i -e 's/: Option<unsafe extern "C" fn(\(.*\))>,$/: unsafe extern "C" fn(\1),/g' "$outputFolderPath"/structs/"$struct".rs
+#	done
 
 	# Use the correct definition
 	sed -i -e 's/0usize/RTE_MAX_ETHPORTS/g' "$outputFolderPath"/statics/rte_eth.rs
@@ -183,6 +187,7 @@ final_chance_to_tweak()
 	for enum in \
 		rte_bbdev_op_type \
 		rte_bus_scan_mode \
+		rte_bus_get_iommu_class_t \
 		rte_cryptodev_scheduler_mode \
 		rte_eth_nb_pools \
 		rte_flow_action_type \

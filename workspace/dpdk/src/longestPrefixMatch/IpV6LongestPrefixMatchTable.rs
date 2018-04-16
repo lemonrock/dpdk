@@ -58,7 +58,7 @@ impl LongestPrefixMatchTable for IpV6LongestPrefixMatchTable
 
 	#[allow(trivial_casts)]
 	#[inline(always)]
-	fn lookUp(&self, internet_protocol_address: &Self::InternetProtocolHostAddress) -> Option<NextHop>
+	fn look_up(&self, internet_protocol_address: &Self::InternetProtocolHostAddress) -> Option<NextHop>
 	{
 		let mut nextHop: NextHop = unsafe { uninitialized() };
 

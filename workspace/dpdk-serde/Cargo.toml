@@ -8,7 +8,6 @@ description = "A utility crate capturing macros and functions for working effect
 keywords = ["serde"]
 license = "AGPL-3.0"
 authors = ["Raphael Cohn <raphael.cohn@stormmq.com>"]
-documentation = "https://github.com/lemonrock/dpdk/blob/master/README.md"
 homepage = "https://github.com/lemonrock/dpdk"
 repository = "https://github.com/lemonrock/dpdk.git"
 exclude = ["*"]

@@ -8,16 +8,15 @@ use super::devices::virtual_devices::cryptoVirtualDevices::*;
 use super::devices::virtual_devices::net_virtual_devices::*;
 use super::logicalCores::MaximumNumaSockets;
 use super::logicalCores::discovery::NumaSockets;
-use super::pci::PciDeviceAddress;
+use super::memory::*;
+use super::bus::pci::DpdkPciDeviceAddress;
 
 
+include!("DpdkProcess.rs");
 include!("DpdkRteInitData.rs");
-include!("has_huge_pages.rs");
-include!("HugePageFilePathInformation.rs");
-include!("is_primary_dpdk_process_alive.rs");
 include!("MemoryChannels.rs");
 include!("MemoryLimits.rs");
 include!("MemoryRanks.rs");
 include!("PciDeviceListColour.rs");
 include!("ProcessType.rs");
-include!("VfioInterruptMode.rs");
+include!("VirtualFunctionIoInterruptMode.rs");

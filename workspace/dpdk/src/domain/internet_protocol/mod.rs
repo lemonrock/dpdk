@@ -23,5 +23,5 @@ include!("InternetProtocolVersion6NetworkAddress.rs");
 include!("InternetProtocolVersion6MulticastAddressLifetime.rs");
 include!("InternetProtocolVersion6MulticastAddressScope.rs");
 include!("InternetProtocolNetworkAddress.rs");
-include!("IpV4AndOrIpV6.rs");
+include!("InternetProtocolVersion4OrVersion6OrBoth.rs");
 include!("TrafficClass.rs");

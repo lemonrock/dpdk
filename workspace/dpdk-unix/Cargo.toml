@@ -6,10 +6,9 @@
 name = "dpdk-unix"
 description = "An internal crate to make it easier to iterate on unix requirements"
 keywords = ["unix"]
-categories = []
+categories = ["external-ffi-bindings"]
 license = "AGPL-3.0"
 authors = ["Raphael Cohn <raphael.cohn@stormmq.com>"]
-documentation = "https://github.com/lemonrock/dpdk/blob/master/README.md"
 homepage = "https://github.com/lemonrock/dpdk"
 repository = "https://github.com/lemonrock/dpdk.git"
 exclude = ["*"]

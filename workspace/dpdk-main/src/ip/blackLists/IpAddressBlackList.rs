@@ -5,47 +5,47 @@
 pub trait IpAddressBlackList
 {
 	type InternetProtocolHostAddress;
-	
+
 	type InternetProtocolNetworkAddress: InternetProtocolNetworkAddress<InternetProtocolHostAddress=Self::InternetProtocolHostAddress>;
-	
+
 	type LongestPrefixMatchTable: LongestPrefixMatchTable<InternetProtocolHostAddress=Self::InternetProtocolHostAddress, InternetProtocolNetworkAddress=Self::InternetProtocolNetworkAddress>;
-	
+
 	const NamePrefix: &'static str;
-	
+
 	#[inline(always)]
 	fn _new(longestPrefixMatchTable: Self::LongestPrefixMatchTable) -> Self;
-	
+
 	#[inline(always)]
 	fn _longestPrefixMatchTableConst(&self) -> RwLockReadGuard<Self::LongestPrefixMatchTable>;
-	
+
 	#[inline(always)]
 	fn _longestPrefixMatchTableMut(&mut self) -> RwLockWriteGuard<Self::LongestPrefixMatchTable>;
-	
+
 	const OurNextHop: u32 = 0xFFFFFFFF;
-	
+
 	#[inline(always)]
 	fn new(name: &LongestPrefixMatchName, logicalCoreMemorySocket: Option<NumaSocketId>, maximumRules: u32, numberOfTable8sToAllocate: u32, networkAddresses: &[Self::InternetProtocolNetworkAddress]) -> Self
 	where Self: Sized
 	{
 		let name = name.toName(Self::NamePrefix);
-		
+
 		let maximumRules = max(maximumRules, networkAddresses.len() as u32);
-		
+
 		let table = LongestPrefixMatchTable::new(&name, maximumRules, numberOfTable8sToAllocate, logicalCoreMemorySocket).expect("Could not allocate");
 		let mut this = Self::_new(table);
-		
+
 		for networkAddress in networkAddresses.iter()
 		{
 			this.addNetworkToBlackList(networkAddress);
 		}
-		
+
 		this
 	}
-	
+
 	#[inline(always)]
 	fn isIpAddressBlackListed(&self, hostAddress: &Self::InternetProtocolHostAddress) -> bool
 	{
-		if let Some(nextHop) = self._longestPrefixMatchTableConst().lookUp(hostAddress)
+		if let Some(nextHop) = self._longestPrefixMatchTableConst().look_up(hostAddress)
 		{
 			nextHop == Self::OurNextHop
 		}
@@ -54,7 +54,7 @@ pub trait IpAddressBlackList
 			false
 		}
 	}
-	
+
 	#[inline(always)]
 	fn addNetworkToBlackList(&mut self, networkAddress: &Self::InternetProtocolNetworkAddress) -> bool
 	{

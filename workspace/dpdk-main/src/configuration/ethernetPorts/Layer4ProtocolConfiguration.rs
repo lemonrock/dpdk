@@ -39,24 +39,24 @@ impl Layer4ProtocolConfiguration
 	fn createTldkContextIpV4<C: Context<IpV4AddressLookUpForSendCallback, NeverRouteAddressLookUpForSendCallback>>(&self, ethernetPort: EthernetPort, logicalCoreMemorySocket: Option<NumaSocketId>, udpFragmentsAndTcpControlPacketBufferPool: *mut rte_mempool, ipV4Address: &Ipv4Addr, virtualLanTagging: &VirtualLanTagging, layer4Protocol: Layer4Protocol, ipV4RoutingTable: Rc<RefCell<IpV4RoutingTable>>) -> (C, C::Device)
 	{
 		let ethernetPortInformation = ethernetPort.information();
-		
+
 		let openPorts: HashSet<Layer4Port> = self.services.keys().map(|port| *port).collect();
-		
+
 		let addressLookUpForSendToIpV4 = Rc::new(RefCell::new(IpV4AddressLookUpForSendCallback::new(ipV4RoutingTable, udpFragmentsAndTcpControlPacketBufferPool, virtualLanTagging, self.differentiatedServiceCodePoint, self.hopLimits, layer4Protocol)));
 		let addressLookUpForSendToIpV6 = Rc::new(RefCell::new(NeverRouteAddressLookUpForSendCallback));
 		let deviceConfiguration = DeviceConfiguration
 		{
 			deviceOffloadingIsActive: ethernetPortInformation.receiveIpV4TcpAndUdpChecksumOffloadSupported(),
-			localSocketAddresses: IpV4AndOrIpV6::onlyIpV4(AddressWithListOfOpenLocalLayer4Ports::new(ipV4Address.clone(), openPorts))
+			localSocketAddresses: InternetProtocolVersion4OrVersion6OrBoth::only_internet_protocol_version_4(AddressWithListOfOpenLocalLayer4Ports::new(ipV4Address.clone(), openPorts))
 		};
 		let deviceConfigurations = vec![deviceConfiguration];
-		
+
 		if let Some((context, mut optionDeviceList)) = C::create(logicalCoreMemorySocket, self.maximumNumberOfStreams, self.maximumNumberOfReceiveBuffers, self.maximumNumberOfSendBuffers, self.sendMaximumBulkNumber, addressLookUpForSendToIpV4.clone(), addressLookUpForSendToIpV6, deviceConfigurations)
 		{
 			let (deviceConfiguration, mut device) = optionDeviceList.pop().unwrap();
 			let handle = device.handle();
 			addressLookUpForSendToIpV4.borrow_mut().assignTleDeviceAfterContextCreated(handle);
-			
+
 			(context, device)
 		}
 		else
@@ -64,7 +64,7 @@ impl Layer4ProtocolConfiguration
 			panic!("Could not create Context and Device");
 		}
 	}
-	
+
 	fn createTldkContextIpV6<C: Context<IpV4AddressLookUpForSendCallback, NeverRouteAddressLookUpForSendCallback>>(&self, ethernetPort: EthernetPort, logicalCoreMemorySocket: Option<NumaSocketId>, udpFragmentsAndTcpControlPacketBufferPool: *mut rte_mempool, ipV6Address: &Ipv6Addr, virtualLanTagging: &VirtualLanTagging, layer4Protocol: Layer4Protocol) -> (C, C::Device)
 	{
 		unimplemented!();

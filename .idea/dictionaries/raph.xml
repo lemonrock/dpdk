@@ -4,6 +4,7 @@
       <w>aarch</w>
       <w>acpi</w>
       <w>addr</w>
+      <w>anycast</w>
       <w>arrayvec</w>
       <w>bitfield</w>
       <w>bitfields</w>
@@ -44,6 +45,8 @@
       <w>ieee</w>
       <w>inaddr</w>
       <w>inplace</w>
+      <w>intr</w>
+      <w>iommu</w>
       <w>ipsec</w>
       <w>iter</w>
       <w>kexec</w>
@@ -59,6 +62,7 @@
       <w>misconfigured</w>
       <w>mlock</w>
       <w>modprobe</w>
+      <w>msix</w>
       <w>mtod</w>
       <w>multicast</w>
       <w>namesize</w>
@@ -84,6 +88,7 @@
       <w>srtcm</w>
       <w>stormmq</w>
       <w>syscall</w>
+      <w>teredo</w>
       <w>thumbv</w>
       <w>timespec</w>
       <w>timestamping</w>

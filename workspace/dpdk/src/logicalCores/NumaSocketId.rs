@@ -36,19 +36,6 @@ impl AnyNumaSocketId for NumaSocketId
 	}
 }
 
-#[inline(always)]
-fn typeOfMemoryX(typeOfMemory: Option<ConstCStr>) -> *const c_char
-{
-	if typeOfMemory.is_none()
-	{
-		null()
-	}
-	else
-	{
-		typeOfMemory.unwrap().as_ptr()
-	}
-}
-
 impl NumaSocketId
 {
 	pub const SocketZeroAlwaysExists: NumaSocketId = NumaSocketId(0);
@@ -298,12 +285,6 @@ impl NumaSocketId
 
 			panic!("rte_malloc_get_socket_stats() returned '{}'", result);
 		}
-	}
-
-	#[inline(always)]
-	pub fn dumpAllocationStatisticsToStandardError(typeOfMemory: Option<ConstCStr>)
-	{
-		unsafe { rte_malloc_dump_stats(stderr as *mut FILE, typeOfMemoryX(typeOfMemory)) }
 	}
 
 	#[inline(always)]

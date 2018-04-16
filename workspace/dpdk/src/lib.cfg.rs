@@ -20,6 +20,7 @@ extern crate serde;
 extern crate syscall_alt;
 
 
+use self::print_information::PrintInformation;
 use ::arrayvec::ArrayVec;
 use ::const_cstr_fork::ConstCStr;
 use ::dpdk_unix::*;
@@ -27,6 +28,7 @@ use ::dpdk_unix::*;
 use ::dpdk_sys::*;
 use ::libc::*;
 use ::libc_extra::*;
+use ::libc_extra::stdio::open_memstream;
 use ::rust_extra::arrays::*;
 use ::libc_extra::ffi::*;
 use ::libc_extra::ffi::arguments::*;
@@ -58,6 +60,7 @@ use ::std::fmt;
 use ::std::fmt::Debug;
 use ::std::fmt::Display;
 use ::std::fmt::Formatter;
+use ::std::fs::File;
 use ::std::marker::PhantomData;
 use ::std::hash::Hash;
 use ::std::io;
@@ -74,6 +77,8 @@ use ::std::net::Ipv4Addr;
 use ::std::net::Ipv6Addr;
 use ::std::num::ParseIntError;
 use ::std::os::unix::ffi::OsStrExt;
+use ::std::os::unix::io::RawFd;
+use ::std::os::unix::io::IntoRawFd;
 use ::std::panic::catch_unwind;
 use ::std::panic::AssertUnwindSafe;
 use ::std::path::Path;
@@ -95,9 +100,11 @@ use ::syscall_alt::constants::NegativeE;
 use ::syscall_alt::constants::E;
 
 
+/// DPDK devices.
 pub mod devices;
 
 
+/// Domain-like structs for ARP, Ethernet, Internet Protocol, Layer 2 and virtual LANs.
 pub mod domain;
 
 
@@ -116,27 +123,37 @@ pub mod logicalCores;
 pub mod longestPrefixMatch;
 
 
+/// DPDK memory management.
 pub mod memory;
 
 
+/// DPDK memory zone creation.
 pub mod memoryZones;
 
 
+/// PCI devices.
 pub mod pci;
 
 
 #[macro_use] pub mod packetBuffers;
 
 
+/// CPU power management.
 pub mod power;
 
 
+/// Process and configuration helpers.
 pub mod process;
+
+
+/// Print information helpers.
+#[cfg(target_os = "linux")] pub mod print_information;
 
 
 /// Alarms and Timers.
 pub mod time;
 
 
+/// Layer 4 (TLDK).
 pub mod tldk;
 

@@ -328,6 +328,12 @@ impl EthernetPort
 	}
 
 	#[inline(always)]
+	pub fn underlying_dpdk_pci_device(&self) -> Option<DpdkPciDevice>
+	{
+		DpdkPciDevice::for_ethernet_port(self.portIdentifier())
+	}
+
+	#[inline(always)]
 	pub fn getForDeviceName<D: DeviceName>(device_name: &D) -> Option<EthernetPort>
 	{
 		let device_name = device_name.to_string();

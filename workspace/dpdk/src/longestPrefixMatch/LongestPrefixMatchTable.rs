@@ -12,7 +12,7 @@ pub trait LongestPrefixMatchTable : Drop
 	fn new(name: &str, maximumRules: u32, numberOfTable8sToAllocate: u32, numa_socket_id: Option<NumaSocketId>) -> Option<Self> where Self: Sized;
 
 	#[inline(always)]
-	fn lookUp(&self, internet_protocol_address: &Self::InternetProtocolHostAddress) -> Option<NextHop>;
+	fn look_up(&self, internet_protocol_address: &Self::InternetProtocolHostAddress) -> Option<NextHop>;
 
 	#[inline(always)]
 	fn addRule(&mut self, networkAddress: &Self::InternetProtocolNetworkAddress, nextHop: NextHop) -> bool;

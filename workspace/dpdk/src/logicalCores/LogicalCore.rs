@@ -216,13 +216,9 @@ impl LogicalCore
 	}
 
 	#[inline(always)]
-	pub fn isUsedInRunTimeEnvironment(&self) -> bool
+	pub fn role(&self) -> rte_lcore_role_t
 	{
-		match unsafe { rte_eal_lcore_role(self.0) }
-		{
-			rte_lcore_role_t::ROLE_RTE => true,
-			rte_lcore_role_t::ROLE_OFF => false,
-		}
+		unsafe { rte_eal_lcore_role(self.0) }
 	}
 
 	#[inline(always)]

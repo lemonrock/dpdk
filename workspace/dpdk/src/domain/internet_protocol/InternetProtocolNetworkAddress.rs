@@ -17,4 +17,10 @@ pub trait InternetProtocolNetworkAddress
 	/// eg `/24` would be `24`.
 	#[inline(always)]
 	fn mask_bits_as_depth(&self) -> u8;
+	
+	/// Does this network address contain the given `internet_protocol_host_address`?
+	///
+	/// In other words, is the given `internet_protocol_host_address` prefixed by this network address?
+	#[inline(always)]
+	fn contains(&self, internet_protocol_host_address: Self::InternetProtocolHostAddress) -> bool;
 }

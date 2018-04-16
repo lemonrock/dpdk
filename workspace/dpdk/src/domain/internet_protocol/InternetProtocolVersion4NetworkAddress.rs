@@ -24,7 +24,21 @@ impl InternetProtocolNetworkAddress for InternetProtocolVersion4NetworkAddress
 	#[inline(always)]
 	fn mask_bits_as_depth(&self) -> u8
 	{
-		self.mask_bits as u8
+		let mask_bits = self.mask_bits as u32;
+		if cfg!(target_endian = "little")
+		{
+			mask_bits.count_ones()
+		}
+		else
+		{
+			(!mask_bits).trailing_zeros()
+		}
+	}
+	
+	#[inline(always)]
+	fn contains(&self, internet_protocol_host_address: Self::InternetProtocolHostAddress) -> bool
+	{
+		internet_protocol_host_address.as_network_endian_u32() & (self.mask_bits as u32) == self.network.as_network_endian_u32()
 	}
 }
 
@@ -108,12 +122,4 @@ impl InternetProtocolVersion4NetworkAddress
 		network: InternetProtocolVersion4HostAddress([169, 254, 0, 0]),
 		mask_bits: InternetProtocolVersion4MaskBits::_16,
 	};
-	
-	#[inline(always)]
-	pub fn contains(&self, internet_protocol_version_4_host_address: Self::InternetProtocolHostAddress) -> bool
-	{
-		let network_byte_order_value: u32 = unsafe { transmute(self.network.0) };
-		
-		network_byte_order_value & (self.mask_bits as u32) != 0
-	}
 }

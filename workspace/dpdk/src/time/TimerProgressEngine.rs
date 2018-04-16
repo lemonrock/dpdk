@@ -14,19 +14,37 @@ pub struct TimerProgressEngine
 	previous_rdtsc_cycles_since_boot: Cycles,
 }
 
+impl PrintInformation for TimerProgressEngine
+{
+	#[inline(always)]
+	fn print_information_to_stream(stream: *mut FILE)
+	{
+		unsafe { rte_timer_dump_stats(stream) };
+	}
+}
+
 impl TimerProgressEngine
 {
 	/// This must be called before using any code that uses HPET or timer functionality.
 	///
 	/// Calling the underlying timer check code in progress() is quite expensive, so use a large value of cycles, eg `Cycles::AroundTenMillisecondsAt2GigaHertzSuitableForATimerProgressEngine`.
 	#[inline(always)]
-	pub fn initialize(period: Cycles) -> Self
+	pub fn initialize(period: Cycles, make_hpet_the_default_timer: bool) -> Self
 	{
 		unsafe
 		{
 			rte_timer_subsystem_init();
 			
-			match rte_eal_hpet_init()
+			let make_hpet_the_default_timer = if make_hpet_the_default_timer
+			{
+				1
+			}
+			else
+			{
+				0
+			};
+			
+			match rte_eal_hpet_init(make_hpet_the_default_timer)
 			{
 				0 => (),
 				
@@ -55,11 +73,5 @@ impl TimerProgressEngine
 			unsafe { rte_timer_manage() };
 			self.previous_rdtsc_cycles_since_boot = current_rdtsc_cycles_since_boot;
 		}
-	}
-
-	#[inline(always)]
-	pub fn dumpStatisticsToStandardError()
-	{
-		unsafe { rte_timer_dump_stats(stderr as *mut FILE) }
 	}
 }
