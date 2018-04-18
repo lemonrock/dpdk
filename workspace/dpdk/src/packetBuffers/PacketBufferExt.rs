@@ -99,6 +99,8 @@ pub trait PacketBufferExt: PrintInformation
 	}
 	
 	/// Layer 3 hardware packet type.
+	///
+	/// See also `self.layer_3_hardware_packet_type_is_internet_protocol_version_4()` and `self.layer_3_hardware_packet_type_is_internet_protocol_version_6()` for a short-cut approach that.
 	#[inline(always)]
 	fn layer_3_hardware_packet_type(self) -> Layer3PacketType
 	{
@@ -123,6 +125,20 @@ pub trait PacketBufferExt: PrintInformation
 	fn layer_3_hardware_packet_type_name(self) -> &'static CStr
 	{
 		unsafe { CStr::from_ptr(rte_get_ptype_l3_name(self.hardware_packet_type())) }
+	}
+	
+	/// Equivalent to `RTE_ETH_IS_IPV4_HDR`.
+	#[inline(always)]
+	fn layer_3_hardware_packet_type_is_internet_protocol_version_4(self) -> bool
+	{
+		self.hardware_packet_type() & RTE_PTYPE_L3_IPV4 != 0
+	}
+	
+	/// Equivalent to `RTE_ETH_IS_IPV6_HDR`.
+	#[inline(always)]
+	fn layer_3_hardware_packet_type_is_internet_protocol_version_6(self) -> bool
+	{
+		self.hardware_packet_type() & RTE_PTYPE_L3_IPV6 != 0
 	}
 	
 	/// Layer 4 hardware packet type.
@@ -430,12 +446,29 @@ pub trait PacketBufferExt: PrintInformation
 		eth_hdr = rte_pktmbuf_mtod(mb, struct ether_hdr *);
 		eth_type = RTE_BE_TO_CPU_16(eth_hdr->ether_type);
 		
+		
+		
+		
+		
+		
+		
+		
+		
+	}
+	
+	/// EtherType.
+	#[inline(always)]
+	fn ether_type(self) -> NetworkByteOrderEndianU16
+	{
+		NetworkByteOrderEndianU16::from_network_byte_order_value(unsafe { self.ethernet_header().as_ref() }.ether_type)
 	}
 	
 	/// Pointer to internet protocol version 4 header (does not validate that it *is* such a header).
 	#[inline(always)]
 	fn internet_protocol_version_4_header(self) -> NonNull<ipv4_hdr>
 	{
+		Seems wrong - compare with self.ethernet_header()
+		
 		self.start_of_data::<ipv4_hdr>()
 	}
 	
@@ -443,6 +476,8 @@ pub trait PacketBufferExt: PrintInformation
 	#[inline(always)]
 	fn internet_protocol_version_6_header<>(self) -> NonNull<ipv6_hdr>
 	{
+		Seems wrong
+		
 		self.start_of_data::<ip6_hdr>()
 	}
 	
