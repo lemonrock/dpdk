@@ -463,6 +463,10 @@ pub trait PacketBufferExt: PrintInformation
 		NetworkByteOrderEndianU16::from_network_byte_order_value(unsafe { self.ethernet_header().as_ref() }.ether_type)
 	}
 	
+	
+	
+	
+	
 	/// Pointer to internet protocol version 4 header (does not validate that it *is* such a header).
 	#[inline(always)]
 	fn internet_protocol_version_4_header(self) -> NonNull<ipv4_hdr>
@@ -481,11 +485,86 @@ pub trait PacketBufferExt: PrintInformation
 		self.start_of_data::<ip6_hdr>()
 	}
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/// Packet data length, ie packet length less header length.
 	#[inline(always)]
 	fn internet_protocol_version_4_packet_data_length(&self) -> usize
 	{
 		(self.length() as usize) - size_of::<ipv4_hdr>()
+	}
+	
+	/// Layer 4 Protocol (TCP, UDP, etc) of Internet Protocol (IP) version 4 packet.
+	#[inline(always)]
+	fn internet_protocol_version_4_packet_layer_4_protocol(self) -> u8
+	{
+		let header = self.internet_protocol_version_4_header();
+		unsafe { header.as_ref() }.next_proto_id
+	}
+	
+	/// Layer 4 Protocol (TCP, UDP, etc) of Internet Protocol (IP) version 6 packet.
+	#[inline(always)]
+	fn internet_protocol_version_6_packet_layer_4_protocol(self) -> u8
+	{
+		let header = self.internet_protocol_version_6_header();
+		unsafe { header.as_ref() }.proto
+	}
+	
+	/// Source address of Internet Protocol (IP) version 4 packet.
+	#[inline(always)]
+	fn internet_protocol_version_4_packet_source_address(self) -> InternetProtocolVersion4HostAddress
+	{
+		let header = self.internet_protocol_version_4_header();
+		InternetProtocolVersion4HostAddress::from_network_endian(unsafe { header.as_ref() }.src_addr)
+	}
+	
+	/// Source address of Internet Protocol (IP) version 6 packet.
+	#[inline(always)]
+	fn internet_protocol_version_6_packet_source_address(self) -> InternetProtocolVersion6HostAddress
+	{
+		let header = self.internet_protocol_version_6_header();
+		InternetProtocolVersion4HostAddress::from_octets(unsafe { header.as_ref() }.src_addr)
+	}
+	
+	/// Destination address of Internet Protocol (IP) version 4 packet.
+	#[inline(always)]
+	fn internet_protocol_version_4_packet_destination_address(self) -> InternetProtocolVersion4HostAddress
+	{
+		let header = self.internet_protocol_version_4_header();
+		InternetProtocolVersion4HostAddress::from_network_endian(unsafe { header.as_ref() }.dst_addr)
+	}
+	
+	/// Destination address of Internet Protocol (IP) version 6 packet.
+	#[inline(always)]
+	fn internet_protocol_version_6_packet_destination_address(self) -> InternetProtocolVersion6HostAddress
+	{
+		let header = self.internet_protocol_version_6_header();
+		InternetProtocolVersion4HostAddress::from_octets(unsafe { header.as_ref() }.dst_addr)
+	}
+	
+	/// Hop limit of Internet Protocol (IP) version 4 packet.
+	#[inline(always)]
+	fn internet_protocol_version_4_packet_hop_limit(self) -> u8
+	{
+		let header = self.internet_protocol_version_4_header();
+		unsafe { header.as_ref() }.time_to_live
+	}
+	
+	/// Hop limit of Internet Protocol (IP) version 6 packet.
+	#[inline(always)]
+	fn internet_protocol_version_6_packet_hop_limit(self) -> u8
+	{
+		let header = self.internet_protocol_version_6_header();
+		unsafe { header.as_ref() }.hop_limits
 	}
 	
 	/// Fragment offset.

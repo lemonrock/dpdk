@@ -56,6 +56,20 @@ impl InternetProtocolVersion6HostAddress
 	/// RFC8155.
 	pub const TraversalUsingRelaysAroundNatAnycast: Self = InternetProtocolVersion6HostAddress([0x20, 0x01, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02]);
 	
+	/// From a network (big) endian u128.
+	#[inline(always)]
+	pub fn from_network_endian(big_endian_value: u128) -> Self
+	{
+		Self::from_octets(unsafe { transmute(big_endian_value) })
+	}
+	
+	/// From octets.
+	#[inline(always)]
+	pub fn from_octets(octets: [u8; Self::Size]) -> Self
+	{
+		InternetProtocolVersion6HostAddress(octets)
+	}
+	
 	/// From an `Ipv6Addr` to an `in6_addr`.
 	#[inline(always)]
 	pub fn from_ipv6_addr_to_in6_addr(ipv6_addr: &Ipv6Addr) -> in6_addr

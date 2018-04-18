@@ -31,6 +31,20 @@ impl InternetProtocolVersion4HostAddress
 	/// Broadcast address.
 	pub const Broadcast: Self = InternetProtocolVersion4HostAddress([255, 255, 255, 255]);
 	
+	/// From a network (big) endian u32.
+	#[inline(always)]
+	pub fn from_network_endian(big_endian_value: u32) -> Self
+	{
+		Self::from_octets(unsafe { transmute(big_endian_value) })
+	}
+	
+	/// From octets.
+	#[inline(always)]
+	pub fn from_octets(octets: [u8; Self::Size]) -> Self
+	{
+		InternetProtocolVersion4HostAddress(octets)
+	}
+	
 	/// From an `Ipv4Addr` to an `in_addr`.
 	#[inline(always)]
 	pub fn from_ipv4_addr_to_in_addr(ipv4_addr: &Ipv4Addr) -> in_addr
