@@ -71,6 +71,7 @@
       <w>ordermap</w>
       <w>pktmbuf</w>
       <w>powerpc</w>
+      <w>pppoe</w>
       <w>priv</w>
       <w>proc</w>
       <w>qinq</w>
@@ -97,6 +98,7 @@
       <w>txconf</w>
       <w>uint</w>
       <w>umask</w>
+      <w>uncategorised</w>
       <w>unevictable</w>
       <w>unicast</w>
       <w>unmount</w>
@@ -106,6 +108,7 @@
       <w>vhost</w>
       <w>virt</w>
       <w>virtio</w>
+      <w>virtualization</w>
       <w>vlan</w>
       <w>vmdq</w>
       <w>vmware</w>

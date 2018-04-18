@@ -16,7 +16,7 @@
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct DpdkBus(NonNull<rte_bus>);
 
-impl PrintInformation for DpdkBus
+impl PrintAllInformation for DpdkBus
 {
 	#[inline(always)]
 	fn print_information_to_stream(stream: *mut FILE)

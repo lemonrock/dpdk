@@ -118,6 +118,7 @@ preprocess_before_headersFolderPath()
 	local file
 	for file in \
 		rte_atomic \
+		rte_bus_vdev \
 		rte_ethdev \
 		rte_ether \
 		rte_event_ring \

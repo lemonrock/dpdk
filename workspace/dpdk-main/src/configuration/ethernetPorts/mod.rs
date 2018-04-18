@@ -12,7 +12,7 @@ use ::dpdk::dpdk_sys::*;
 use ::dpdk::ethernetPorts::*;
 use ::dpdk::ethernetPorts::burst::receive::*;
 use ::dpdk::ethernetPorts::burst::transmit::*;
-use ::dpdk::ipFragmentation::*;
+use ::dpdk::internet_protocol_packet_fragmentation::*;
 use ::dpdk::longestPrefixMatch::*;
 use ::dpdk::logicalCores::*;
 use ::dpdk::logicalCores::receiveTransmitQueuePair::*;

@@ -2,7 +2,7 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Nanoseconds.
+/// Milliseconds.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct Milliseconds(pub u32);
 
@@ -15,7 +15,7 @@ impl From<u32> for Milliseconds
 	}
 }
 
-impl Into<u64> for Milliseconds
+impl Into<u32> for Milliseconds
 {
 	#[inline(always)]
 	fn into(self) -> u32

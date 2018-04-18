@@ -2,9 +2,14 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use super::*;
+struct Adaptor<PAI: PrintAllInformation>(PhantomData<PAI>);
 
+impl<PAI: PrintAllInformation> PrintInformation for Adaptor<PAI>
+{
+	#[inline(always)]
+	fn print_information_to_stream(&self, stream: *mut FILE)
+	{
+		PAI::print_information_to_stream(stream)
+	}
+}
 
-include!("Adaptor.rs");
-include!("PrintInformation.rs");
-include!("PrintAllInformation.rs");

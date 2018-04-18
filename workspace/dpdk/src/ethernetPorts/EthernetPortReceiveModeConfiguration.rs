@@ -35,7 +35,7 @@ impl EthernetPortReceiveModeConfiguration
 		EthernetPortReceiveModeConfiguration
 		{
 			multiQueuePacketDistributionMode: MultiQueuePacketReceiveMode::default(),
-			maximumReceivePacketLengthOnlyUsedIfJumboFramesEnabled: maximumTransmissionUnitSizeInBytes.conservativeJumboFrameLength(),
+			maximumReceivePacketLengthOnlyUsedIfJumboFramesEnabled: maximumTransmissionUnitSizeInBytes.conservative_jumbo_frame_length(),
 			splitHeaderSizeIfHeaderSplitEnabled: None,
 			hardwareIpUdpOrTcpChecksumOffloadEnabled: true,
 			hardwareVlanFilterEnabled: false,

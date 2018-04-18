@@ -96,9 +96,9 @@ impl ReceivedPacketProcessor
 			($packet: ident, $offsetToJustAfterOurEtherTypeOfVlan: ident, $ourOffset: ident, $vlanQinQId: ident) =>
 			{
 				{
-					let tagControlInformation = if likely($packet.wasVlanTagControlInformationStripped())
+					let tagControlInformation = if likely($packet.was_vlan_tag_control_information_stripped())
 					{
-						$packet.strippedVlanTagControlInformation()
+						$packet.stripped_vlan_tag_control_information()
 					}
 					else
 					{
@@ -147,9 +147,9 @@ impl ReceivedPacketProcessor
 		let etherType = etherType!(packet, OffsetToVlanHeaderIfVlanQinQ);
 		discardPacketIf!(packet, etherType != ETHER_TYPE_VLAN);
 
-		let tagControlInformation = if likely(packet.wasVlanQinQTagControlInformationStripped())
+		let tagControlInformation = if likely(packet.was_vlan_qinq_tag_control_information_stripped())
 		{
-			packet.strippedVlanQInQTagControlInformation()
+			packet.stripped_vlan_qinq_tag_control_information()
 		}
 		else
 		{

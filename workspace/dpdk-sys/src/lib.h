@@ -38,6 +38,10 @@ void rust_rte_delay_ms(unsigned ms);
 struct rte_pci_device * rust_RTE_DEV_TO_PCI(struct rte_device * device);
 
 
+#include <rte_bus_vdev.h>
+struct rte_vdev_device * rust_RTE_DEV_TO_VDEV(struct rte_device * device);
+
+
 #include <rte_mbuf.h>
 void * rust_rte_pktmbuf_mtod(struct rte_mbuf * m);
 void * rust_rte_pktmbuf_mtod_offset(struct rte_mbuf * m, uint16_t o);
@@ -48,7 +52,7 @@ void rust_rte_mov16(uint8_t * dst, const uint8_t * src);
 void rust_rte_mov32(uint8_t * dst, const uint8_t * src);
 void rust_rte_mov64(uint8_t * dst, const uint8_t * src);
 void rust_rte_mov128(uint8_t * dst, const uint8_t * src);
-void * rust_rte_memcpy_generic(void * dst, const void * src, size_t n);
+void * rust_rte_memcpy(void * dst, const void * src, size_t n);
 
 
 #include <rte_mbuf.h>

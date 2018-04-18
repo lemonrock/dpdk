@@ -5,6 +5,9 @@
 use super::*;
 
 
-include!("Adaptor.rs");
-include!("PrintInformation.rs");
-include!("PrintAllInformation.rs");
+include!("CategorisedInternetProtocolHeaderOptionsAndExtensionsLayer3PacketType.rs");
+include!("CategorisedLayer2PacketType.rs");
+include!("Layer2PacketType.rs");
+include!("Layer3PacketType.rs");
+include!("Layer4PacketType.rs");
+include!("TunnelPacketType.rs");

@@ -2,13 +2,18 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// UDP fragments and TCP control packets memory configuration.
+///
+/// Defaults `number_of_elements` to TLDK `main.c` `MPOOL_NB_BUF`.
+///
+/// Defaults `per_core_object_cache_size` to TLDK `main.c` `MPOOL_CACHE_SIZE`.
 #[derive(Debug, Clone)]
 #[derive(Serialize, Deserialize)]
 #[serde(default)]
 pub struct UdpFragmentsAndTcpControlPacketsMemoryConfiguration
 {
-	numberOfElements: u32,
-	perCoreObjectCacheSize: u32,
+	number_of_elements: u32,
+	per_core_object_cache_size: u32,
 }
 
 impl Default for UdpFragmentsAndTcpControlPacketsMemoryConfiguration
@@ -18,8 +23,8 @@ impl Default for UdpFragmentsAndTcpControlPacketsMemoryConfiguration
 	{
 		Self
 		{
-			numberOfElements: 0x20000, // TLDK main.c MPOOL_NB_BUF,
-			perCoreObjectCacheSize: 0x100, // TLDK main.c MPOOL_CACHE_SIZE,
+			number_of_elements: 0x20000,
+			per_core_object_cache_size: 0x100,
 		}
 	}
 }
@@ -28,12 +33,13 @@ impl UdpFragmentsAndTcpControlPacketsMemoryConfiguration
 {
 	const ApplicationPrivateSize: u16 = 0;
 	
-	const DataRoomSize: u16 = RTE_PKTMBUF_HEADROOM as u16 + TLE_DST_MAX_HDR as u16; // TLDK main.c FRAG_MBUF_BUF_SIZE
+	/// TLDK `main.c` `FRAG_MBUF_BUF_SIZE`.
+	const DataRoomSize: u16 = NonNull::<rte_mbuf>::HeadRoom + TLE_DST_MAX_HDR as u16;
 	
 	pub fn createPacketBufferPool(&self, ethernetPortIdentifier: EthernetPortIdentifier, queueIdentifier: QueueIdentifier, logicalCoreMemorySocket: Option<NumaSocketId>) -> PacketBufferPool
 	{
 		let memoryZoneName = format!("UdpTcp-{}-{}", ethernetPortIdentifier, queueIdentifier);
 		// MPOOL_NB_BUF, MPOOL_CACHE_SIZE, 0, FRAG_MBUF_BUF_SIZE
-		PacketBufferPool::new(&memoryZoneName, self.numberOfElements, self.perCoreObjectCacheSize, Self::ApplicationPrivateSize, Self::DataRoomSize, logicalCoreMemorySocket).expect("Could not allocate a fragment packet buffer pool")
+		PacketBufferPool::new(&memoryZoneName, self.number_of_elements, self.per_core_object_cache_size, Self::ApplicationPrivateSize, Self::DataRoomSize, logicalCoreMemorySocket).expect("Could not allocate a fragment packet buffer pool")
 	}
 }

@@ -120,7 +120,7 @@ impl EthernetPortDpdkConfiguration
 			receiveModeConfiguration: EthernetPortReceiveModeConfiguration
 			{
 				multiQueuePacketDistributionMode: MultiQueuePacketReceiveMode::ReceiveSideScaling,
-				maximumReceivePacketLengthOnlyUsedIfJumboFramesEnabled: self.maximumTransmissionUnit.conservativeJumboFrameLength(),
+				maximumReceivePacketLengthOnlyUsedIfJumboFramesEnabled: self.maximumTransmissionUnit.conservative_jumbo_frame_length(),
 				splitHeaderSizeIfHeaderSplitEnabled: None,
 				hardwareIpUdpOrTcpChecksumOffloadEnabled: true,
 				hardwareVlanFilterEnabled: false,

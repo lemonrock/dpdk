@@ -2,9 +2,34 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use super::*;
+/// Seconds.
+#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub struct Seconds(pub u64);
 
+impl From<u64> for Seconds
+{
+	#[inline(always)]
+	fn from(seconds: u64) -> Self
+	{
+		Seconds(seconds)
+	}
+}
 
-include!("Adaptor.rs");
-include!("PrintInformation.rs");
-include!("PrintAllInformation.rs");
+impl Into<u64> for Seconds
+{
+	#[inline(always)]
+	fn into(self) -> u64
+	{
+		self.0
+	}
+}
+
+impl Seconds
+{
+	/// Is zero?
+	#[inline(always)]
+	pub fn is_zero(self) -> bool
+	{
+		self.0 == 0
+	}
+}

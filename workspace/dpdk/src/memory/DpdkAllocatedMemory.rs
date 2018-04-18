@@ -14,7 +14,7 @@ impl<T> Drop for DpdkAllocatedMemory<T>
 	}
 }
 
-impl<T> PrintInformation for DpdkAllocatedMemory<T>
+impl<T> PrintAllInformation for DpdkAllocatedMemory<T>
 {
 	#[inline(always)]
 	fn print_information_to_stream(stream: *mut FILE)

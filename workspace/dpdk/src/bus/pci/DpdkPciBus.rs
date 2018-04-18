@@ -6,7 +6,7 @@
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct DpdkPciBus;
 
-impl PrintInformation for DpdkPciBus
+impl PrintAllInformation for DpdkPciBus
 {
 	#[inline(always)]
 	fn print_information_to_stream(stream: *mut FILE)

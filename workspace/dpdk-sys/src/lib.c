@@ -76,6 +76,13 @@ struct rte_pci_device * rust_RTE_DEV_TO_PCI(struct rte_device * device)
 
 
 
+struct rte_vdev_device * rust_RTE_DEV_TO_VDEV(struct rte_device * device)
+{
+	return RTE_DEV_TO_VDEV(device);
+}
+
+
+
 // Wrapper for macro.
 void * rust_rte_pktmbuf_mtod(struct rte_mbuf * m)
 {
@@ -110,9 +117,9 @@ void rust_rte_mov128(uint8_t * dst, const uint8_t * src)
 	rte_mov128(dst, src);
 }
 
-void * rust_rte_memcpy_generic(void * dst, const void * src, size_t n)
+void * rust_rte_memcpy(void * dst, const void * src, size_t n)
 {
-	return rte_memcpy_generic(dst, src, n);
+	return rte_memcpy(dst, src, n);
 }
 
 
@@ -135,7 +142,8 @@ int rust_rte_pktmbuf_write(const struct rte_mbuf * m, uint32_t off, uint32_t len
 	}
 
 	const struct rte_mbuf *seg = m;
-	uint32_t buf_off = 0, copy_len;
+	uint32_t buf_off = 0,
+	uint32_t copy_len;
 	char *dst;
 
 	if (off + len > rte_pktmbuf_pkt_len(m))

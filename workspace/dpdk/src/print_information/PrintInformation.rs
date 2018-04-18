@@ -3,25 +3,27 @@
 
 
 /// A trait to dump information to a file, a string, standard out or standard error.
-pub trait PrintInformation: Debug
+pub trait PrintInformation
 {
+	type Arguments;
+	
 	/// Print information to standard out.
 	#[inline(always)]
-	fn print_information_to_standard_out()
+	fn print_information_to_standard_out(&self)
 	{
-		Self::print_information_to_stream(unsafe { stdout } as *mut _)
+		self.print_information_to_stream(unsafe { stdout } as *mut _)
 	}
 	
 	/// Print information to standard error.
 	#[inline(always)]
 	fn print_information_to_standard_error(&self)
 	{
-		Self::print_information_to_stream(unsafe { stderr } as *mut _)
+		self.print_information_to_stream(unsafe { stderr } as *mut _)
 	}
 	
 	/// Print information to a file opened for writing.
 	#[inline(always)]
-	fn print_information_to_file(file: File) -> Result<(), io::Error>
+	fn print_information_to_file(&self, file: File) -> Result<(), io::Error>
 	{
 		let file_descriptor = file.into_raw_fd();
 		
@@ -32,7 +34,7 @@ pub trait PrintInformation: Debug
 			return Err(io::Error::last_os_error());
 		}
 		
-		Self::print_information_to_stream(stream);
+		self.print_information_to_stream(stream);
 		
 		match unsafe { fflush(stream) }
 		{
@@ -61,7 +63,7 @@ pub trait PrintInformation: Debug
 	
 	/// Print information to a string.
 	#[inline(always)]
-	fn print_information_to_c_string() -> Result<CString, io::Error>
+	fn print_information_to_c_string(&self) -> Result<CString, io::Error>
 	{
 		let mut buffer = unsafe { uninitialized() };
 		let mut size = unsafe { uninitialized() };
@@ -71,7 +73,7 @@ pub trait PrintInformation: Debug
 			return Err(io::Error::last_os_error());
 		}
 		
-		Self::print_information_to_stream(stream);
+		self.print_information_to_stream(stream);
 		
 		match unsafe { fflush(stream) }
 		{
@@ -116,5 +118,5 @@ pub trait PrintInformation: Debug
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn print_information_to_stream(stream: *mut FILE);
+	fn print_information_to_stream(&self, stream: *mut FILE);
 }

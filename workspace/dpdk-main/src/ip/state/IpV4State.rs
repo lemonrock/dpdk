@@ -7,7 +7,7 @@ pub struct IpV4State
 	pub sourceIpV4AddressBlackList: IpV4AddressBlackList,
 	pub arpCache: ArpCache,
 	pub ourIpV4Addresses: HashMap<InternetProtocolVersion4HostAddress, IpAddressInformation>,
-	pub packetReassemblyTable: IpPacketReassemblyTable,
+	pub packetReassemblyTable: InternetProtocolPacketReassemblyTable,
 }
 
 impl IpV4State

@@ -26,12 +26,12 @@ impl Default for IpV4Route
 impl IpV4Route
 {
 	#[inline(always)]
-	pub fn decreaseBy(&self, virtualLanSizeCorrection: u16) -> Self
+	pub fn decrease_by(&self, virtualLanSizeCorrection: u16) -> Self
 	{
 		Self
 		{
 			router: self.router,
-			tldkMtu: self.tldkMtu.decreaseBy(virtualLanSizeCorrection)
+			tldkMtu: self.tldkMtu.decrease_by(virtualLanSizeCorrection)
 		}
 	}
 }

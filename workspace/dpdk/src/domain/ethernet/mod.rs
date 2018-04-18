@@ -7,7 +7,9 @@ use super::arp::SizeOfLayer3ArpPacket;
 
 include!("MaximumSizeOfLayer2.rs");
 include!("MinimumSizeOfEthernetPacketSizeAssumingArp.rs");
+include!("MaximumTransmissionUnitSizeInBytes.rs");
 include!("SizeOfEthernetAddress.rs");
 include!("SizeOfEthernetHeader.rs");
 include!("SizeOfEthernetHeaderLessEtherType.rs");
 include!("SizeOfEtherType.rs");
+include!("SizeOfPPPoEHeader.rs");

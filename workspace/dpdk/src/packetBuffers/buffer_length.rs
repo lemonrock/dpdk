@@ -2,9 +2,9 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("Adaptor.rs");
-include!("PrintInformation.rs");
-include!("PrintAllInformation.rs");
+/// Constant function calculates buffer length.
+#[inline(always)]
+pub const fn buffer_length(data_room_length: u16) -> u16
+{
+	data_room_length + NonNull::<rte_mbuf>::HeadRoom
+}

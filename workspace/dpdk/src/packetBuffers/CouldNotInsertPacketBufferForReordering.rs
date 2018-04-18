@@ -2,9 +2,20 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("Adaptor.rs");
-include!("PrintInformation.rs");
-include!("PrintAllInformation.rs");
+quick_error!
+{
+	/// An error occurred when inserting the packet buffer.
+	#[derive(Debug)]
+	pub enum CouldNotInsertPacketBufferForReordering
+	{
+		/// Call `drain()` and try again.
+		CanNotMoveExistingPacketBuffersToAcccommodateUnlessDrainIsCalled
+		{
+		}
+		
+		///  Too early or late packet buffer which is vastly out of range of the expected window.
+		OutOfWindowRange
+		{
+		}
+	}
+}

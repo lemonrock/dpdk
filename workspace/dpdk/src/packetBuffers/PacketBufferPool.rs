@@ -2,6 +2,14 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+
+pub type PacketBufferPool = NonNull<rte_mempool>;
+
+pub trait PacketBufferPoolExt
+{
+
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PacketBufferPool(pub *mut rte_mempool);
 

@@ -16,9 +16,9 @@ impl Default for ReceiveTransmitQueueMemoryConfiguration
 {
 	fn default() -> Self
 	{
-		assert!(Self::PacketBufferDataSize >= RTE_MBUF_DEFAULT_DATAROOM, "PacketBufferDataSize '{}' is less than the minimum, RTE_MBUF_DEFAULT_DATAROOM '{}'", Self::PacketBufferDataSize, RTE_MBUF_DEFAULT_DATAROOM);
+		assert!(Self::PacketBufferDataSize >= NonNull::<rte_mbuf>::DefaultDataRoom, "PacketBufferDataSize '{}' is less than the minimum, NonNull::<rte_mbuf>::DefaultDataRoom '{}'", Self::PacketBufferDataSize, NonNull::<rte_mbuf>::DefaultDataRoom);
 
-		let dataRoomSize = RTE_PKTMBUF_HEADROOM as u16 + Self::PacketBufferDataSize;
+		let dataRoomSize = buffer_length(Self::PacketBufferDataSize);
 
 		ReceiveTransmitQueueMemoryConfiguration::new(None, None, Self::CacheSize, Self::ApplicationPrivateSize, dataRoomSize)
 	}
@@ -41,14 +41,15 @@ impl QueueMemoryConfiguration for ReceiveTransmitQueueMemoryConfiguration
 
 impl ReceiveTransmitQueueMemoryConfiguration
 {
-	pub const DefaultPacketBufferDataSize: u16 = RTE_MBUF_DEFAULT_DATAROOM;
-	pub const DefaultDataRoomSize: u16 = RTE_MBUF_DEFAULT_BUF_SIZE;
+	pub const DefaultPacketBufferDataSize: u16 = NonNull::<rte_mbuf>::DefaultDataRoom;
+	
+	pub const DefaultDataRoomSize: u16 = NonNull::<rte_mbuf>::DefaultBufferLength;
 
 	#[inline(always)]
 	pub fn new(packetBuffersPerReceiveQueue: Option<u32>, packetBuffersPerTransmitQueue: Option<u32>, perCoreObjectCacheSize: u32, applicationPrivateSize: u16, dataRoomSize: u16) -> Self
 	{
 		assert!(perCoreObjectCacheSize <= RTE_MEMPOOL_CACHE_MAX_SIZE, "perCoreObjectCacheSize '{}' exceeds RTE_MEMPOOL_CACHE_MAX_SIZE '{}'", perCoreObjectCacheSize, RTE_MEMPOOL_CACHE_MAX_SIZE);
-		assert!(dataRoomSize >= RTE_MBUF_DEFAULT_BUF_SIZE, "dataRoomSize '{}' is less than the minimum, RTE_MBUF_DEFAULT_BUF_SIZE '{}'", dataRoomSize, RTE_MBUF_DEFAULT_BUF_SIZE);
+		assert!(dataRoomSize >= NonNull::<rte_mbuf>::DefaultBufferLength, "dataRoomSize '{}' is less than the minimum, NonNull::<rte_mbuf>::DefaultBufferLength '{}'", dataRoomSize, NonNull::<rte_mbuf>::DefaultBufferLength);
 
 		ReceiveTransmitQueueMemoryConfiguration
 		{

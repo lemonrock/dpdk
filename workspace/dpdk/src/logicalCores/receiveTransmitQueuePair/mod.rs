@@ -2,7 +2,6 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use ::arrayvec::ArrayVec;
 use ::dpdk_unix::set_current_thread_name;
 use ::dpdk_sys::*;
 use ::libc_extra::ffi::callbacks::MutableCallback1;

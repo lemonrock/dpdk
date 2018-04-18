@@ -57,7 +57,7 @@ impl<ReceiveCallback: EdgeTriggeredCallback<Self>, SendCallback: EdgeTriggeredCa
 	#[inline(always)]
 	fn maximum_segment_size(&self) -> u16
 	{
-		RTE_MBUF_DEFAULT_DATAROOM - TLE_DST_MAX_HDR as u16
+		NonNull::<rte_mbuf>::DefaultDataRoom - TLE_DST_MAX_HDR as u16
 	}
 }
 

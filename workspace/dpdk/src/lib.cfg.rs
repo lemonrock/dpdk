@@ -20,7 +20,7 @@ extern crate serde;
 extern crate syscall_alt;
 
 
-use self::print_information::PrintInformation;
+use self::print_information::PrintAllInformation;
 use ::arrayvec::ArrayVec;
 use ::const_cstr_fork::ConstCStr;
 use ::dpdk_unix::*;
@@ -114,7 +114,7 @@ pub(crate) mod E_RTE;
 pub mod ethernetPorts;
 
 
-pub mod ipFragmentation;
+pub mod internet_protocol_packet_fragmentation;
 
 
 pub mod logicalCores;

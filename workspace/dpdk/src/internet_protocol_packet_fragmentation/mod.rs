@@ -2,11 +2,11 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use ::dpdk_sys::*;
-use ::logicalCores::AnyNumaSocketId;
-use ::logicalCores::NumaSocketId;
-use ::rust_extra::powersOfTwo::*;
-use ::rust_extra::unlikely;
+use super::*;
+use super::logicalCores::AnyNumaSocketId;
+use super::logicalCores::NumaSocketId;
+use super::print_information::PrintInformation;
+use super::time::Milliseconds;
 
 
-include!("IpPacketReassemblyTable.rs");
+include!("InternetProtocolPacketReassemblyTable.rs");

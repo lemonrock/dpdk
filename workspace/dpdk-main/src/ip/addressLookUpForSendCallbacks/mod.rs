@@ -12,7 +12,7 @@ use ::dpdk::domain::layer4::*;
 use ::dpdk::domain::virtual_lans::*;
 use ::dpdk::ethernetPorts::EthernetPort;
 use ::dpdk::ethernetPorts::EthernetPortIdentifier;
-use ::dpdk::ethernetPorts::MaximumTransmissionUnitSizeInBytes;
+use ::dpdk::domain::ethernet::MaximumTransmissionUnitSizeInBytes;
 use ::dpdk::ethernetPorts::MediaAccessControlAddress;
 use ::dpdk::ethernetPorts::QueueIdentifier;
 use ::dpdk::logicalCores::NumaSocketId;

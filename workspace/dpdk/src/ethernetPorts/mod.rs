@@ -57,7 +57,6 @@ include!("HashFilterFunction.rs");
 include!("LinkSpeed.rs");
 include!("LinkSpeeds.rs");
 include!("LinkStatus.rs");
-include!("MaximumTransmissionUnitSizeInBytes.rs");
 include!("MediaAccessControlAddress.rs");
 include!("MultiQueuePacketReceiveMode.rs");
 include!("MultiQueuePacketTransmitMode.rs");

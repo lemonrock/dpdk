@@ -236,67 +236,67 @@ impl IpV6State
 		discardPacketIf!(packet, MediaAccessControlAddress::ethernetAddressIsInvalid(destinationEthernetAddress));
 		
 		let (layer3Length, layer3HeaderLength, layer4Protocol, layer4HeaderLength) =
+		{
+			let ipV6Header = packetData!(packet, layer2HeaderLength, ipv6_hdr);
+			
+			let ipV6HeaderData = unsafe { *ipV6Header };
+			
+			let sizeOfIpv6Header = size_of::<ipv6_hdr>() as u32;
+			let payloadLength = u16::from_be(ipV6HeaderData.payload_len) as u32;
+			let layer3Length = sizeOfIpv6Header + payloadLength;
+			
+			let nextHeader = ipV6HeaderData.proto;
+			
+			// There are a number of possibilities for next header
+			// We follow the IPv6 header ordering recommendations in RFC 2460 as if they were a requirement
+			const HopByHopOptions: u8 = 0;
+			const TcpNextHeader: u8 = 6;
+			const UdpNextHeader: u8 = 17;
+			const IcmpV6NextHeader: u8 = 58;
+			const RoutingNextHeader: u8 = 43;
+			const FragmentNextHeader: u8 = 44;
+			const DestinationOptionsNextHeader: u8 = 60;
+			
+			let remainingPayloadLength = payloadLength;
+			let extensionHeaderOffset = layer2HeaderLength + sizeOfIpv6Header;
+			let thisHeaderLength = 0;
+			
+			let mut isFragmented = false;
+			
+			let (layer3HeaderLength, layer4Protocol, layer4HeaderLength) = match nextHeader
 			{
-				let ipV6Header = packetData!(packet, layer2HeaderLength, ipv6_hdr);
+				TcpNextHeader => handleTcp!(packet, layer2HeaderLength, layer3Length, remainingPayloadLength, thisHeaderLength),
 				
-				let ipV6HeaderData = unsafe { *ipV6Header };
+				UdpNextHeader => handleUdp!(packet, layer2HeaderLength, layer3Length, remainingPayloadLength, thisHeaderLength),
 				
-				let sizeOfIpv6Header = size_of::<ipv6_hdr>() as u32;
-				let payloadLength = u16::from_be(ipV6HeaderData.payload_len) as u32;
-				let layer3Length = sizeOfIpv6Header + payloadLength;
+				IcmpV6NextHeader => handleIcmpV6!(packet, layer2HeaderLength, layer3Length, remainingPayloadLength, thisHeaderLength),
 				
-				let nextHeader = ipV6HeaderData.proto;
+				HopByHopOptions => hopByHopOptionsExtensionHeader!(packet, remainingPayloadLength, extensionHeaderOffset, thisHeaderLength, layer3Length, isFragmented),
 				
-				// There are a number of possibilities for next header
-				// We follow the IPv6 header ordering recommendations in RFC 2460 as if they were a requirement
-				const HopByHopOptions: u8 = 0;
-				const TcpNextHeader: u8 = 6;
-				const UdpNextHeader: u8 = 17;
-				const IcmpV6NextHeader: u8 = 58;
-				const RoutingNextHeader: u8 = 43;
-				const FragmentNextHeader: u8 = 44;
-				const DestinationOptionsNextHeader: u8 = 60;
+				DestinationOptionsNextHeader => firstDestinationOptionsOrFinalDestinationOptionsExtensionHeader!(packet, remainingPayloadLength, extensionHeaderOffset, thisHeaderLength, layer3Length, isFragmented),
 				
-				let remainingPayloadLength = payloadLength;
-				let extensionHeaderOffset = layer2HeaderLength + sizeOfIpv6Header;
-				let thisHeaderLength = 0;
+				RoutingNextHeader => routingExtensionHeader!(packet, remainingPayloadLength, extensionHeaderOffset, thisHeaderLength, layer3Length, isFragmented),
 				
-				let mut isFragmented = false;
+				FragmentNextHeader => fragmentExtensionHeader!(packet, remainingPayloadLength, extensionHeaderOffset, thisHeaderLength, layer3Length, isFragmented),
 				
-				let (layer3HeaderLength, layer4Protocol, layer4HeaderLength) = match nextHeader
-				{
-					TcpNextHeader => handleTcp!(packet, layer2HeaderLength, layer3Length, remainingPayloadLength, thisHeaderLength),
-					
-					UdpNextHeader => handleUdp!(packet, layer2HeaderLength, layer3Length, remainingPayloadLength, thisHeaderLength),
-					
-					IcmpV6NextHeader => handleIcmpV6!(packet, layer2HeaderLength, layer3Length, remainingPayloadLength, thisHeaderLength),
-					
-					HopByHopOptions => hopByHopOptionsExtensionHeader!(packet, remainingPayloadLength, extensionHeaderOffset, thisHeaderLength, layer3Length, isFragmented),
-					
-					DestinationOptionsNextHeader => firstDestinationOptionsOrFinalDestinationOptionsExtensionHeader!(packet, remainingPayloadLength, extensionHeaderOffset, thisHeaderLength, layer3Length, isFragmented),
-					
-					RoutingNextHeader => routingExtensionHeader!(packet, remainingPayloadLength, extensionHeaderOffset, thisHeaderLength, layer3Length, isFragmented),
-					
-					FragmentNextHeader => fragmentExtensionHeader!(packet, remainingPayloadLength, extensionHeaderOffset, thisHeaderLength, layer3Length, isFragmented),
-					
-					_ => discardPacket!(packet),
-				};
-				
-				let senderIpV6Address = ipV6HeaderData.src_addr;
-				discardPacketIf!(packet, senderIpV6Address.is_not_valid_unicast());
-				discardPacketIf!(packet, self.isBlackListedSourceIpV6Address(&senderIpV6Address));
-				discardPacketIf!(packet, self.isOneOfOurIpV6Addresses(&senderIpV6Address));
-				
-				let destinationIpV6Address = ipV6HeaderData.dst_addr;
-				discardPacketIf!(packet, self.isNotOneOfOurIpV6Addresses(&destinationIpV6Address, destinationEthernetAddress));
-				
-				if isFragmented
-				{
-					// this is a fragment that needs processing
-				}
-				
-				(layer3Length, layer3HeaderLength, layer4Protocol, layer4HeaderLength)
+				_ => discardPacket!(packet),
 			};
+			
+			let senderIpV6Address = ipV6HeaderData.src_addr;
+			discardPacketIf!(packet, senderIpV6Address.is_not_valid_unicast());
+			discardPacketIf!(packet, self.isBlackListedSourceIpV6Address(&senderIpV6Address));
+			discardPacketIf!(packet, self.isOneOfOurIpV6Addresses(&senderIpV6Address));
+			
+			let destinationIpV6Address = ipV6HeaderData.dst_addr;
+			discardPacketIf!(packet, self.isNotOneOfOurIpV6Addresses(&destinationIpV6Address, destinationEthernetAddress));
+			
+			if isFragmented
+			{
+				// this is a fragment that needs processing
+			}
+			
+			(layer3Length, layer3HeaderLength, layer4Protocol, layer4HeaderLength)
+		};
 		
 		IpState::prepareToSendIpPacketToTldk(packet, layer2HeaderLength, layer3Length, layer3HeaderLength, layer4HeaderLength);
 	}

@@ -61,7 +61,7 @@ macro_rules! packetData
 		{
 			use $crate::dpdk_sys::rust_rte_pktmbuf_read;
 		
-			#[cfg(debug_assertions)] $packet.debugAssertSelfIsNotNull();
+			#[cfg(debug_assertions)] $packet.debug_assert_self_is_not_null();
 			
 			let mut buffer: $T = unsafe { ::std::mem::uninitialized() };
 			let pointerInsidePacketOrOurBuffer = unsafe { rust_rte_pktmbuf_read($packet, $offset, ::std::mem::size_of::<$T>() as u32, &mut buffer as *mut _ as *mut ::libc::c_void) as *const $T };
@@ -82,7 +82,7 @@ macro_rules! mutatePacketData
 			use $crate::dpdk_sys::rust_rte_pktmbuf_read;
 			use $crate::dpdk_sys::rust_rte_pktmbuf_write;
 		
-			#[cfg(debug_assertions)] $packet.debugAssertSelfIsNotNull();
+			#[cfg(debug_assertions)] $packet.debug_assert_self_is_not_null();
 			
 			let mut buffer: $T = unsafe { ::std::mem::uninitialized() };
 			let bufferPointer = &mut buffer as *mut $T;

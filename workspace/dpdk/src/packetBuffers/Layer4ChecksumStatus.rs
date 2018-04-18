@@ -2,34 +2,19 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Nanoseconds.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct Microseconds(pub u32);
-
-impl From<u32> for Microseconds
+/// Layer 4 (TCP, UDP, SCTP) checksum status.
+#[deny(Debug, Copy, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
+pub enum Layer4ChecksumStatus
 {
-	#[inline(always)]
-	fn from(microseconds: u32) -> Self
-	{
-		Microseconds(microseconds)
-	}
-}
-
-impl Into<u32> for Microseconds
-{
-	#[inline(always)]
-	fn into(self) -> u32
-	{
-		self.0
-	}
-}
-
-impl Microseconds
-{
-	/// Wait at lest this number of microseconds.
-	#[inline(always)]
-	pub fn wait_at_least(self)
-	{
-		unsafe { rte_delay_us_block(self.0) }
-	}
+	/// No information available about the layer 4 (TCP, UDP, SCTP) checksum.
+	NoInformationKnown,
+	
+	/// The layer 4 (TCP, UDP, SCTP) checksum in the packet is wrong.
+	Bad,
+	
+	/// The layer 4 (TCP, UDP, SCTP) checksum in the packet is valid.
+	Good,
+	
+	/// The layer 4 (TCP, UDP, SCTP) checksum is not correct in the packet data, but the integrity of the layer 4 data was verified.
+	IncorrectButLayer4DataIntegrityVerified,
 }

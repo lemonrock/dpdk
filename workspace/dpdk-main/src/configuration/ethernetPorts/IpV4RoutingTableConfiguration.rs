@@ -40,20 +40,20 @@ impl IpV4RoutingTableConfiguration
 			Ok(result)
 		}
 	}
-	
+
 	pub fn defaultMaximumTransmissionUnitAfterVirtualLanAdjustments(&self, virtualLanSizeCorrection: u16) -> MaximumTransmissionUnitSizeInBytes
 	{
-		self.defaultMaximumTransmissionUnitBeforeVirtualLanAdjustments.decreaseBy(virtualLanSizeCorrection)
+		self.defaultMaximumTransmissionUnitBeforeVirtualLanAdjustments.decrease_by(virtualLanSizeCorrection)
 	}
-	
+
 	pub fn reconfigure(&self, ipV4RoutingTable: &mut IpV4RoutingTable, virtualLanSizeCorrection: u16)
 	{
 		let mut routes = Vec::with_capacity(self.routes.len());
 		for route in self.routes.iter()
 		{
-			routes.push(route.decreaseBy(virtualLanSizeCorrection));
+			routes.push(route.decrease_by(virtualLanSizeCorrection));
 		}
-		
+
 		ipV4RoutingTable.reconfigureRulesAndRoutes(&self.rules, &routes.as_slice())
 	}
 }

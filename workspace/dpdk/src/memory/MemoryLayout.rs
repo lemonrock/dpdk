@@ -34,7 +34,7 @@ impl Iterator for MemoryLayout
 	}
 }
 
-impl PrintInformation for MemoryLayout
+impl PrintAllInformation for MemoryLayout
 {
 	#[inline(always)]
 	fn print_information_to_stream(stream: *mut FILE)

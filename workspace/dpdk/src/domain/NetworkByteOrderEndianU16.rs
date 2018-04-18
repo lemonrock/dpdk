@@ -28,6 +28,13 @@ impl NetworkByteOrderEndianU16
 		NetworkByteOrderEndianU16(native_endian_value.to_be())
 	}
 	
+	/// To network byte order.
+	#[inline(always)]
+	pub fn to_network_byte_order_value(self) -> u16
+	{
+		self.0
+	}
+	
 	/// To native byte order.
 	///
 	/// On a Little Endian platform, will swap bytes.

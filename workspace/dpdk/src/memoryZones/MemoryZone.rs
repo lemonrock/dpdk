@@ -33,7 +33,7 @@ impl Drop for Memory
 	}
 }
 
-impl PrintInformation for MemoryZone
+impl PrintAllInformation for MemoryZone
 {
 	#[inline(always)]
 	fn print_information_to_stream(stream: *mut FILE)

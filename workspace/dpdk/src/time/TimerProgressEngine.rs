@@ -14,7 +14,7 @@ pub struct TimerProgressEngine
 	previous_rdtsc_cycles_since_boot: Cycles,
 }
 
-impl PrintInformation for TimerProgressEngine
+impl PrintAllInformation for TimerProgressEngine
 {
 	#[inline(always)]
 	fn print_information_to_stream(stream: *mut FILE)
