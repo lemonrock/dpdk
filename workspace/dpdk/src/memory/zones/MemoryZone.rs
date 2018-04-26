@@ -134,7 +134,7 @@ impl MemoryZone
 	{
 		if unlikely(result.is_null())
 		{
-			match unsafe { rust_rte_errno() }
+			match LogicalCore::current_logical_core_error_number()
 			{
 				E::ENOSPC => None,
 				E::ENOMEM => None,

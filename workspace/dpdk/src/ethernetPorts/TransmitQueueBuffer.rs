@@ -92,7 +92,7 @@ impl<E: TransmitQueueBufferErrorCallback> TransmitQueueBuffer<E>
 		{
 			match result
 			{
-				-1 => panic!("rte_eth_tx_buffer_set_err_callback() failed with error number '{}'", unsafe { rust_rte_errno() }),
+				-1 => panic!("rte_eth_tx_buffer_set_err_callback() failed with error number '{}'", LogicalCore::current_logical_core_error_number()),
 
 				_ => panic!("rte_eth_tx_buffer_set_err_callback() returned an invalid result '{}'", result),
 			}

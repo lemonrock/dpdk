@@ -33,15 +33,47 @@ impl Into<u32> for LogicalCoreChoice
 impl LogicalCoreChoice
 {
 	/// For current CPU.
+	///
+	/// Returns `Any` if this is not a DPDK EAL thread.
+	///
+	/// From a DPDK thread-local static.
 	#[inline(always)]
-	pub fn for_current_cpu() -> Self
+	pub fn current_logical_core() -> Self
 	{
+		Self::from_u32(unsafe { per_lcore__lcore_id })
+	}
+	
+	#[inline(always)]
+	pub fn unwrap(self) -> LogicalCore
+	{
+		self.expect("This is not a logical core")
+	}
+	
+	#[inline(always)]
+	pub fn expect(self, message: &str) -> LogicalCore
+	{
+		use self::LogicalCoreChoice::*;
+		
+		// This is a separate function similar to that used by ::std::option::Option.
+		#[inline(never)]
+		#[cold]
+		fn expect_failed(message: &str) -> !
+		{
+			panic!("{}", message)
+		}
+		
+		match self
+		{
+			Any => expect_failed(message),
+			
+			Specific(logical_core) => logical_core,
+		}
 	}
 	
 	//noinspection SpellCheckingInspection
 	/// Constructs from an `u32` value.
 	///
-	/// Panics if the value is out-of-range (greater than or equal to `RTE_MAX_LCORE`).
+	/// Panics if the value is out-of-range.
 	#[inline(always)]
 	pub fn from_u32(value: u32) -> Self
 	{
@@ -53,14 +85,9 @@ impl LogicalCoreChoice
 		}
 		else
 		{
-			debug_assert!((RTE_MAX_LCORE as u64) <= (::std::u16::MAX as u16), "RTE_MAX_LCORE '{}' exceeds ::std::u16::MAX '{}'", RTE_MAX_LCORE, ::std::u16::MAX);
-			
-			if unlikely(value >= RTE_MAX_LCORE as u32)
-			{
-				panic!("value '{}' exceeds RTE_MAX_LCORE '{}'", value, RTE_MAX_LCORE)
-			}
-			
-			Specific(LogicalCore(value as u16))
+			debug_assert!((value as u32) < (::std::u16::MAX as u32), "value '{}' exceeds ::std::u16::MAX '{}'", value, ::std::u16::MAX);
+			Specific(LogicalCore::from_u16(value as u16))
 		}
 	}
+	
 }

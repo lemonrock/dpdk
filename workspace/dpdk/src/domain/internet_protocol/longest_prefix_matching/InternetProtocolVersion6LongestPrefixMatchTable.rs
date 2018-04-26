@@ -42,7 +42,7 @@ impl LongestPrefixMatchTable for InternetProtocolVersion6LongestPrefixMatchTable
 		let result = unsafe { rte_lpm6_create(c_name.as_ptr(), numa_node_choice.into(), &configuration) };
 		if unlikely(result.is_null())
 		{
-			match unsafe { rust_rte_errno() }
+			match LogicalCore::current_logical_core_error_number()
 			{
 				E_RTE::NO_CONFIG => panic!("rte_lpm6_create() could not get pointer to rte_config structure"),
 				E_RTE::SECONDARY => panic!("rte_lpm6_create() was called from a secondary process instance"),

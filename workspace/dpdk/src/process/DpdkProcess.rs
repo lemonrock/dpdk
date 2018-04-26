@@ -28,6 +28,15 @@ impl Drop for DpdkProcess
 
 impl DpdkProcess
 {
+	/// Global configuration.
+	///
+	/// Only valid after `rte_eal_init()` called.
+	#[inline(always)]
+	pub(crate) fn global_configuration() -> &'static rte_config
+	{
+		unsafe { & * rte_eal_get_configuration() }
+	}
+	
 	/// Is the primary process alive?
 	#[inline(always)]
 	pub fn is_primary_dpdk_process_alive() -> bool

@@ -10,6 +10,7 @@ pub extern crate pointer;
 pub extern crate dpdk_sys;
 #[cfg(unix)] pub extern crate dpdk_unix;
 extern crate hyper_thread_random;
+#[macro_use] extern crate lazy_static;
 extern crate libc;
 extern crate libc_extra;
 #[macro_use] extern crate log;
@@ -82,6 +83,7 @@ use ::serde::de::Error as DeserializerError;
 use ::serde::ser;
 use ::serde::ser::Serialize;
 use ::serde::ser::Serializer;
+use ::std::any::Any;
 use ::std::cell::RefCell;
 use ::std::cell::UnsafeCell;
 use ::std::cmp::min;
@@ -191,8 +193,15 @@ pub mod tldk;
 
 
 include!("finish.rs");
+
+
+include!("AllLogicalCoreIterator.rs");
 include!("LogicalCore.rs");
 include!("LogicalCoreChoice.rs");
 include!("NumaNode.rs");
 include!("NumaNodeChoice.rs");
 include!("PointerExt.rs");
+include!("Service.rs");
+include!("ServiceFunction.rs");
+include!("SlaveLogicalCoreFunction.rs");
+include!("SlaveLogicalCoreIterator.rs");

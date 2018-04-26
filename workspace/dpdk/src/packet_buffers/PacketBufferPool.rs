@@ -65,7 +65,7 @@ impl PacketBufferPool
 		let result = unsafe { rte_pktmbuf_pool_create(memoryZoneName.as_ptr(), numberOfElements, perCoreObjectCacheSize, applicationPrivateSize, dataRoomSize, numa_node_choice.into()) };
 		if unlikely(result.is_null())
 		{
-			match unsafe { rust_rte_errno() }
+			match LogicalCore::current_logical_core_error_number()
 			{
 				E::ENOSPC => None,
 				E::ENOMEM => None,

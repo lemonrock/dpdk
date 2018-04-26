@@ -82,7 +82,7 @@ impl<ReceiveCallback: EdgeTriggeredCallback<Self>, SendCallback: EdgeTriggeredCa
 			}
 			else
 			{
-				match unsafe { rust_rte_errno() }
+				match LogicalCore::current_logical_core_error_number()
 				{
 					E::EAGAIN => return drop_udp_callbacks!(parameters, BecauseThereIsOutstandingDataToSendOrReceiveOnTheStreamBeforeIsCanBeUsed),
 

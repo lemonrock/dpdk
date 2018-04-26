@@ -72,72 +72,14 @@ pub trait AnyNumaSocketId
 	}
 }
 
-impl AnyNumaSocketId for Option<NumaSocketId>
-{
-	#[inline(always)]
-	fn isAny(&self) -> bool
-	{
-		true
-	}
-	
-	#[inline(always)]
-	fn as_c_int(&self) -> c_int
-	{
-		SOCKET_ID_ANY as c_int
-	}
-	
-	// Weird
-	#[inline(always)]
-	fn as_c_uint(&self) -> c_uint
-	{
-		0xFFFF_FFFF
-	}
-	
-	#[inline(always)]
-	fn as_int32_t(&self) -> int32_t
-	{
-		SOCKET_ID_ANY as int32_t
-	}
-}
-
 
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Serialize, Deserialize)]
 pub struct NumaSocketId(u8);
 
-impl AnyNumaSocketId for NumaSocketId
-{
-	#[inline(always)]
-	fn isAny(&self) -> bool
-	{
-		false
-	}
-
-	#[inline(always)]
-	fn as_c_int(&self) -> c_int
-	{
-		self.0 as c_int
-	}
-
-	#[inline(always)]
-	fn as_c_uint(&self) -> c_uint
-	{
-		self.0 as u32
-	}
-
-	#[inline(always)]
-	fn as_int32_t(&self) -> int32_t
-	{
-		self.0 as int32_t
-	}
-}
-
 impl NumaSocketId
 {
-	pub const SocketZeroAlwaysExists: NumaSocketId = NumaSocketId(0);
-	pub const Any: Option<NumaSocketId> = None;
-
 	#[inline(always)]
 	pub fn numaNodesData(sys_path: &Path) -> Result<Option<NumaNodesData>, ListParseError>
 	{
@@ -382,43 +324,5 @@ impl NumaSocketId
 
 			panic!("rte_malloc_get_socket_stats() returned '{}'", result);
 		}
-	}
-
-	#[inline(always)]
-	pub fn forCurrentLogicalCore() -> Option<NumaSocketId>
-	{
-		Self::fromU32(unsafe { rte_socket_id() })
-	}
-
-	#[inline(always)]
-	pub fn from_i32(value: i32) -> Option<NumaSocketId>
-	{
-		if unlikely(value == SOCKET_ID_ANY)
-		{
-			None
-		}
-		else
-		{
-			Self::fromU32(value as u32)
-		}
-	}
-
-	#[inline(always)]
-	pub fn fromU32(value: u32) -> Option<NumaSocketId>
-	{
-		debug_assert!(value <= NumaNode::MaximumNumaSockets as u32, "value '{}' is equal to or exceeds NumaNode::MaximumNumaSockets, '{}'", value, NumaNode::MaximumNumaSockets);
-		Some(NumaSocketId(value as u8))
-	}
-
-	#[inline(always)]
-	pub fn as_u8(&self) -> u8
-	{
-		self.0
-	}
-
-	#[inline(always)]
-	pub fn as_usize(&self) -> usize
-	{
-		self.0 as usize
 	}
 }

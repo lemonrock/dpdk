@@ -163,12 +163,14 @@ final_chance_to_tweak()
 	for type in \
 		eth_rx_burst_t \
 		eth_tx_burst_t \
+		lcore_function_t \
 		rte_bus_cmp_t \
 		rte_bus_find_device_t \
 		rte_bus_get_iommu_class_t \
 		rte_bus_probe_t \
 		rte_bus_scan_t \
 		rte_eal_alarm_callback \
+		rte_service_func \
 	 	rte_timer_cb_t
 	do
 		sed -i -e 's/Option<//g' -e 's/>;$/;/g' "$outputFolderPath"/types/"$type".rs
@@ -185,6 +187,9 @@ final_chance_to_tweak()
 
 	# Use the correct definition
 	sed -i -e 's/0usize/RTE_MAX_ETHPORTS/g' "$outputFolderPath"/statics/rte_eth.rs
+
+	# Use the correct definition
+	sed -i -e 's/: cpu_set_t/: rte_cpuset_t/g' "$outputFolderPath"/statics/lcore.rs
 
 	#  Fix bindgen cussedness (1): enum with missing Ord and PartialOrd
 	local enum

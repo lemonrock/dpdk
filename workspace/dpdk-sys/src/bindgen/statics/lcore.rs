@@ -5,4 +5,7 @@
 extern "C"
 {
 	#[link_name = "\u{1}lcore_config"] pub static mut lcore_config: [lcore_config; 128usize];
+	#[link_name = "\u{1}per_lcore__cpuset"] pub static mut per_lcore__cpuset: cpu_set_t;
+	#[link_name = "\u{1}per_lcore__lcore_id"] pub static mut per_lcore__lcore_id: c_uint;
+	#[link_name = "\u{1}per_lcore__rte_errno"] pub static mut per_lcore__rte_errno: c_int;
 }

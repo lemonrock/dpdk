@@ -69,7 +69,7 @@ pub trait Context<IpV4: AddressLookUpForSendCallback<in_addr>, IpV6: AddressLook
 		let result = unsafe { tle_ctx_create(&parameters) };
 		if unlikely(result.is_null())
 		{
-			match unsafe { rust_rte_errno() }
+			match LogicalCore::current_logical_core_error_number()
 			{
 				E::ENOMEM => None,
 
@@ -155,7 +155,7 @@ pub trait Context<IpV4: AddressLookUpForSendCallback<in_addr>, IpV6: AddressLook
 			let result = unsafe { tle_add_dev(self.handle(), &dev_prm) };
 			if unlikely(result.is_null())
 			{
-				match unsafe { rust_rte_errno() }
+				match LogicalCore::current_logical_core_error_number()
 				{
 					E::ENOMEM => None,
 

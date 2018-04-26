@@ -52,16 +52,39 @@ impl Into<u32> for NumaNodeChoice
 impl NumaNodeChoice
 {
 	/// For current CPU.
+	///
+	/// Slightly slow as must go via a C function call.
 	#[inline(always)]
 	pub fn for_current_cpu() -> Self
 	{
+		Self::from_i32(unsafe { rte_socket_id() })
+	}
+	
+	#[inline(always)]
+	pub fn unwrap(self) -> NumaNode
+	{
+		self.expect("This is not a logical core")
+	}
+	
+	#[inline(always)]
+	pub fn expect(self, message: &str) -> NumaNode
+	{
+		use self::NumaNodeChoice::*;
 		
-		unsigned rte_socket_id(void)
+		// This is a separate function similar to that used by ::std::option::Option.
+		#[inline(never)]
+		#[cold]
+		fn expect_failed(message: &str) -> !
 		{
-			return RTE_PER_LCORE(_socket_id);
+			panic!("{}", message)
 		}
 		
-		Self::from_i32(unsafe { rte_socket_id() })
+		match self
+		{
+			Any => expect_failed(message),
+			
+			Specific(numa_node) => numa_node,
+		}
 	}
 	
 	/// Constructs from an `i32` value.

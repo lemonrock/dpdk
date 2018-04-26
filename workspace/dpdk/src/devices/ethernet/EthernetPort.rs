@@ -73,16 +73,36 @@ pub trait EthernetPort
 	/// After calling this function, it can not be re-called until the device is stopped.
 	fn configure_and_start(self, ethernet_frame_length: EthernetFrameLength, receive_side_scaling_toeplitz_hash_function_key_data_strategy: &ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy, available_cores: u16)
 	{
-		debug_assert_ne!(available_cores, 0, "available_cores is zero");
-		
-		
-		
-		
 		use self::rte_eth_rx_mq_mode::*;
 		use self::rte_eth_tx_mq_mode::*;
 		use self::rte_fdir_mode::*;
 		use self::rte_fdir_pballoc_type::*;
 		use self::rte_fdir_status_mode::*;
+		
+		debug_assert_ne!(available_cores, 0, "available_cores is zero");
+		
+		/*
+			A given NUMA node will have:-
+				- one or more ethernet ports
+				- zero or more cores 'out-of-bounds'
+					- master core
+					- dedicated service cores
+				
+				- we can opt to use a distributor to help with dynamic load balancing
+					
+					- multiple receiver cores, one per RSS queue
+					- one distributor core
+					- one or more 'connection' (application) cores
+						- whether this includes packet classification & initial processing (eg arp, ipv4, etc) is uncertain
+							 - can occur on receiver cores
+							 - can occur on application cores
+					- one or more transmitter cores; one per TX queue; a transmitter core can be the same as a receiver core.
+		
+		
+		
+		*/
+		
+		
 		
 		let ethernet_port_identifier = self.ethernet_port_identifier().into();
 		

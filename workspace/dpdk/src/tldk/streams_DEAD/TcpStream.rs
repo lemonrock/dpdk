@@ -92,7 +92,7 @@ impl<ReceiveCallback: EdgeTriggeredEventCallback, SendCallback: EdgeTriggeredEve
 			}
 			else
 			{
-				match unsafe { rust_rte_errno() }
+				match LogicalCore::current_logical_core_error_number()
 				{
 					E::EAGAIN => return drop_tcp_callbacks!(parameters, TryCreationAgain(BecauseThereIsOutstandingDataToSendOrReceiveOnTheStreamBeforeIsCanBeUsed)),
 

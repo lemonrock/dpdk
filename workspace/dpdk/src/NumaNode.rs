@@ -2,7 +2,6 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-
 /// NUMA node numbers start at zero.
 ///
 /// It is assumed by DPDK code that there is always at least one NUMA node, and, if there is one NUMA node, it is number zero.

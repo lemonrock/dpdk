@@ -92,7 +92,7 @@ impl ReorderBuffer
 		
 		use self::CouldNotInsertPacketBufferForReordering::*;
 		
-		match unsafe { rust_rte_errno() }
+		match LogicalCore::current_logical_core_error_number()
 		{
 			E::ENOSPC => Err(CanNotMoveExistingPacketBuffersToAcccommodateUnlessDrainIsCalled),
 			E::ERANGE => Err(OutOfWindowRange),
