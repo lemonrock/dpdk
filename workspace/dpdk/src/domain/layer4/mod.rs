@@ -5,5 +5,9 @@
 use super::*;
 
 
+/// Internet Control Message Protocol (ICMP).
+pub mod internet_control_message_protocol;
+
+
 include!("Layer4Port.rs");
 include!("Layer4Protocol.rs");

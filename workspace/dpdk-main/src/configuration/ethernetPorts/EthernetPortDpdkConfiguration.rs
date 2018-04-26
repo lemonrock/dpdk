@@ -9,7 +9,7 @@ pub struct EthernetPortDpdkConfiguration
 {
 	defaultEthernetAddress: Option<UnicastEthernetAddress>,
 	isPromiscuous: bool,
-	maximumTransmissionUnit: MaximumTransmissionUnitSizeInBytes,
+	maximumTransmissionUnit: MaximumTransmissionUnitSize,
 	numberOfReceiveDescriptors: u16,
 	numberOfTransmitDescriptors: u16,
 	queueMemorySettings: EthernetPortQueueMemoryConfiguration,
@@ -24,7 +24,7 @@ impl Default for EthernetPortDpdkConfiguration
 		{
 			defaultEthernetAddress: None,
 			isPromiscuous: false,
-			maximumTransmissionUnit: MaximumTransmissionUnitSizeInBytes::TldkValue,
+			maximumTransmissionUnit: MaximumTransmissionUnitSize::TldkValue,
 			numberOfReceiveDescriptors: ReceiveQueueConfiguration::TldkNumberOfReceiveDescriptorsForTheReceiveRingAlsoKnownAsRingSize,
 			numberOfTransmitDescriptors: TransmitQueueConfiguration::TldkNumberOfTransmitDescriptorsForTheTransmitRingAlsoKnownAsRingSize,
 			queueMemorySettings: Default::default(),

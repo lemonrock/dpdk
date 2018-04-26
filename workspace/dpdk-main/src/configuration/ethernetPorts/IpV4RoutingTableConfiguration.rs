@@ -7,9 +7,9 @@
 #[serde(default)]
 pub struct IpV4RoutingTableConfiguration
 {
-	rules: HashMap<InternetProtocolVersion4NetworkAddress, NextHop>,
+	rules: HashMap<InternetProtocolVersion4NetworkAddress, RoutingTableKey>,
 	#[serde(deserialize_with = "IpV4RoutingTableConfiguration::serde_deserialize_routes")] routes: Vec<IpV4Route>,
-	defaultMaximumTransmissionUnitBeforeVirtualLanAdjustments: MaximumTransmissionUnitSizeInBytes,
+	defaultMaximumTransmissionUnitBeforeVirtualLanAdjustments: MaximumTransmissionUnitSize,
 }
 
 impl Default for IpV4RoutingTableConfiguration
@@ -21,7 +21,7 @@ impl Default for IpV4RoutingTableConfiguration
 		{
 			rules: Default::default(),
 			routes: Default::default(),
-			defaultMaximumTransmissionUnitBeforeVirtualLanAdjustments: MaximumTransmissionUnitSizeInBytes::EthernetV2,
+			defaultMaximumTransmissionUnitBeforeVirtualLanAdjustments: MaximumTransmissionUnitSize::EthernetV2,
 		}
 	}
 }
@@ -41,7 +41,7 @@ impl IpV4RoutingTableConfiguration
 		}
 	}
 
-	pub fn defaultMaximumTransmissionUnitAfterVirtualLanAdjustments(&self, virtualLanSizeCorrection: u16) -> MaximumTransmissionUnitSizeInBytes
+	pub fn defaultMaximumTransmissionUnitAfterVirtualLanAdjustments(&self, virtualLanSizeCorrection: u16) -> MaximumTransmissionUnitSize
 	{
 		self.defaultMaximumTransmissionUnitBeforeVirtualLanAdjustments.decrease_by(virtualLanSizeCorrection)
 	}

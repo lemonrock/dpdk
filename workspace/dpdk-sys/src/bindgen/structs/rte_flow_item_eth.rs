@@ -3,6 +3,7 @@
 
 
 #[repr(C)]
+#[derive(Hash)]
 pub struct rte_flow_item_eth
 {
 	pub dst: ether_addr,

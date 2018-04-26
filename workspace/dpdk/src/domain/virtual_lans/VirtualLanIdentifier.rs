@@ -1,161 +1,32 @@
-// This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
-// Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.impl Default for VirtualLanIdentifier
+// This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of predicator, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+// Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Virtual LAN identifier.
-///
-/// Defaults to one (1).
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct VirtualLanIdentifier(u16);
+/// A virtual Lan identifier 1 - 4094 inclusive.
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub struct VirtualLanIdentifier2(u16);
 
-impl Serialize for VirtualLanIdentifier
+impl VirtualLanIdentifier2
 {
+	/// Parse.
+	///
+	/// Returns an error if zero or > 4094.
 	#[inline(always)]
-	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	pub fn new(value: u16) -> Result<VirtualLanIdentifier, ()>
 	{
-		serializer.serialize_u16(self.0)
-	}
-}
-
-impl Deserialize for VirtualLanIdentifier
-{
-	#[inline(always)]
-	fn deserialize<D: Deserializer>(deserializer: D) -> Result<Self, D::Error>
-	{
-		struct U16Visitor;
-		
-		impl Visitor for U16Visitor
+		if value >= 1 && value <= 4094
 		{
-			type Value = u16;
-			
-			#[inline(always)]
-			fn expecting(&self, formatter: &mut Formatter) -> fmt::Result
-			{
-				formatter.write_str("A Virtual LAN identifier between 1 and 4094 inclusive")
-			}
-			
-			#[inline(always)]
-			fn visit_u8<E: de::Error>(self, value: u8) -> Result<Self::Value, E>
-			{
-				if unlikely(value == 0)
-				{
-					return Err(E::custom("A Virtual LAN identifier can not be zero".to_string()))
-				}
-				Ok(value as Self::Value)
-			}
-			
-			#[inline(always)]
-			fn visit_u16<E: de::Error>(self, value: u16) -> Result<Self::Value, E>
-			{
-				if unlikely(value == 0)
-				{
-					return Err(E::custom("A Virtual LAN identifier can not be zero".to_string()))
-				}
-				Ok(value)
-			}
-			
-			#[inline(always)]
-			fn visit_u32<E: de::Error>(self, value: u32) -> Result<Self::Value, E>
-			{
-				if unlikely(value == 0 || value > 4094)
-				{
-					return Err(E::custom("A Virtual LAN identifier can not be zero or greater than 4094".to_string()))
-				}
-				Ok(value as Self::Value)
-			}
-			
-			#[inline(always)]
-			fn visit_u64<E: de::Error>(self, value: u64) -> Result<Self::Value, E>
-			{
-				if unlikely(value == 0 || value > 4094)
-				{
-					return Err(E::custom("A Virtual LAN identifier can not be zero or greater than 4094".to_string()))
-				}
-				Ok(value as Self::Value)
-			}
-			
-			#[inline(always)]
-			fn visit_i8<E: de::Error>(self, value: i8) -> Result<Self::Value, E>
-			{
-				if unlikely(value <= 0)
-				{
-					return Err(E::custom("A Virtual LAN identifier can not be zero or negative".to_string()))
-				}
-				Ok(value as Self::Value)
-			}
-			
-			#[inline(always)]
-			fn visit_i16<E: de::Error>(self, value: i16) -> Result<Self::Value, E>
-			{
-				if unlikely(value <= 0)
-				{
-					return Err(E::custom("A Virtual LAN identifier can not be zero or negative".to_string()))
-				}
-				Ok(value as Self::Value)
-			}
-			
-			#[inline(always)]
-			fn visit_i32<E: de::Error>(self, value: i32) -> Result<Self::Value, E>
-			{
-				if unlikely(value <= 0 || value > 4094)
-				{
-					return Err(E::custom("A Virtual LAN identifier can not be zero, negative or greater than 4094".to_string()))
-				}
-				Ok(value as Self::Value)
-			}
-			
-			#[inline(always)]
-			fn visit_i64<E: de::Error>(self, value: i64) -> Result<Self::Value, E>
-			{
-				if unlikely(value <= 0 || value > 4094)
-				{
-					return Err(E::custom("A Virtual LAN identifier can not be zero, negative or greater than 4094".to_string()))
-				}
-				Ok(value as Self::Value)
-			}
-		}
-		
-		let inner_value = deserializer.deserialize_u16(U16Visitor)?;
-		Ok(VirtualLanIdentifier(inner_value))
-	}
-}
-
-impl Default for VirtualLanIdentifier
-{
-	#[inline(always)]
-	fn default() -> Self
-	{
-		Self::One
-	}
-}
-
-impl VirtualLanIdentifier
-{
-	/// One (1).
-	pub const One: Self = VirtualLanIdentifier(1);
-	
-	/// Extracts a Virtual LAN identifier from tag control information (TCI) if possible.
-	#[inline(always)]
-	pub fn extract_from_tag_control_information(native_endian_value: u16) -> Result<Option<Self>, ()>
-	{
-		let identifier = native_endian_value & 0xFFF;
-		if unlikely(identifier == 0xFFF)
-		{
-			return Err(());
-		}
-		else if unlikely(identifier == 0x000)
-		{
-			return Ok(None);
+			Ok(VirtualLanIdentifier(value))
 		}
 		else
 		{
-			return Ok(Some(VirtualLanIdentifier(identifier)))
+			Err(())
 		}
 	}
 	
-	/// Value.
+	/// To u16.
 	#[inline(always)]
-	pub fn value(self) -> u16
+	pub fn to_u16(self) -> u16
 	{
 		self.0
 	}

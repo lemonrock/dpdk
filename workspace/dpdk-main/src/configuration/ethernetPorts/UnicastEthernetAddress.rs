@@ -18,7 +18,7 @@ impl Deserialize for UnicastEthernetAddress
 	fn deserialize<D: Deserializer>(deserializer: D) -> Result<Self, D::Error>
 	{
 		let inner = MediaAccessControlAddress::deserialize(deserializer)?;
-		if inner.isInvalidAssigned()
+		if inner.is_not_valid_unicast()
 		{
 			Err(D::Error::custom("Is not a valid unicast address"))
 		}

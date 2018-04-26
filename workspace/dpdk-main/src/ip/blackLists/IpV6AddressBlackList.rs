@@ -5,7 +5,7 @@
 #[derive(Debug, Clone)]
 pub struct IpV6AddressBlackList
 {
-	longestPrefixMatchTable: Arc<RwLock<IpV6LongestPrefixMatchTable>>,
+	longestPrefixMatchTable: Arc<RwLock<InternetProtocolVersion6LongestPrefixMatchTable>>,
 }
 
 impl IpAddressBlackList for IpV6AddressBlackList
@@ -14,7 +14,7 @@ impl IpAddressBlackList for IpV6AddressBlackList
 	
 	type InternetProtocolNetworkAddress = InternetProtocolVersion6NetworkAddress;
 	
-	type LongestPrefixMatchTable = IpV6LongestPrefixMatchTable;
+	type LongestPrefixMatchTable = InternetProtocolVersion6LongestPrefixMatchTable;
 	
 	const NamePrefix: &'static str = "IPv6-BL";
 	

@@ -5,6 +5,6 @@
 pub const RTE_MBUF_DEFAULT_BUF_SIZE: uint16_t = 2176;
 pub const RTE_MBUF_DEFAULT_DATAROOM: uint16_t = 2048;
 pub const RTE_MBUF_DEFAULT_MEMPOOL_OPS: &'static [u8; 11usize] = b"ring_mp_mc\0";
-pub const RTE_MBUF_MAX_NB_SEGS: u32 = 65535;
+pub const RTE_MBUF_MAX_NB_SEGS: uint16_t = 65535;
 pub const RTE_MBUF_PRIV_ALIGN: u32 = 8;
 pub const RTE_MBUF_REFCNT_ATOMIC: u32 = 1;

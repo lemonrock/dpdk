@@ -13,6 +13,7 @@
 /// Currently globally routable address assignments are at <https://www.iana.org/assignments/ipv6-unicast-address-assignments/ipv6-unicast-address-assignments.xhtml>.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Serialize, Deserialize)]
+#[repr(packed)]
 pub struct InternetProtocolVersion6HostAddress(pub [u8; Self::Size]);
 
 impl Default

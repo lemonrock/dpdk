@@ -5,8 +5,8 @@
 use super::*;
 
 
-/// ARP.
-pub mod arp;
+/// Address Resolution Protocol (ARP).
+pub mod address_resolution_protocol;
 
 /// Ethernet.
 pub mod ethernet;
@@ -23,3 +23,5 @@ pub mod virtual_lans;
 
 include!("NetworkByteOrderEndianU16.rs");
 include!("NetworkInterfaceName.rs");
+include!("PacketProcessingConfiguration.rs");
+include!("UnifiedArrayVecAndVec.rs");

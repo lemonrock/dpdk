@@ -147,8 +147,8 @@ impl DpdkBus
 		{
 			use self::Ordering::*;
 			
-			debug_assert!(!bus.is_null(), "bus is null");
-			debug_assert!(!data.is_null(), "data is null");
+			debug_assert!(bus.is_not_null(), "bus is null");
+			debug_assert!(data.is_not_null(), "data is null");
 			
 			let comparator = unsafe { & * (data as *const DpdkBusComparator) };
 			match comparator.partial_cmp(unsafe { NonNull::new_unchecked(bus) })

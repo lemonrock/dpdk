@@ -47,7 +47,7 @@ impl DpdkPciDevice
 		let mut devices = Vec::with_capacity(capacity);
 
 		let mut element = first_element;
-		while !element.is_null()
+		while element.is_not_null()
 		{
 			devices.push(DpdkPciDevice(unsafe { NonNull::new_unchecked(element) }));
 			let element_value = unsafe { (*element) };
@@ -131,7 +131,7 @@ impl DpdkPciDevice
 		DpdkDeviceMemoryResources(&self.deref().mem_resource, PhantomData, 0)
 	}
 	
-	/// Memory resources.
+	/// Interrupt handle.
 	#[inline(always)]
 	pub fn interrupt_handle<'a>(&'a self) -> &'a rte_intr_handle
 	{

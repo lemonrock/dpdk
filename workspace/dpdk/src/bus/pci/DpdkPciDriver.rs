@@ -36,7 +36,7 @@ impl DpdkPciDriver
 		let mut drivers = Vec::with_capacity(capacity);
 
 		let mut element = first_element;
-		while !element.is_null()
+		while element.is_not_null()
 		{
 			drivers.push(DpdkPciDriver(unsafe { NonNull::new_unchecked(element) }));
 			let element_value = unsafe { (*element) };

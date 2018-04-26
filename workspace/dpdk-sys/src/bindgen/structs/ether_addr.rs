@@ -3,6 +3,7 @@
 
 
 #[repr(C, packed)]
+#[derive(Hash)]
 pub struct ether_addr
 {
 	pub addr_bytes: [u8; 6usize],
@@ -22,6 +23,6 @@ impl Debug for ether_addr
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "ether_addr {{  }}")
+		write!(f, "ether_addr {{ addr_bytes: {:?} }}", self.addr_bytes)
 	}
 }

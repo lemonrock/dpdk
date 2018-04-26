@@ -2,16 +2,7 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use self::devices::*;
 use super::*;
-use super::domain::internet_protocol::InternetProtocolVersion4OrVersion6OrBoth;
-use super::domain::internet_protocol::*::*;
-use super::domain::layer4::Layer4Port;
-use super::domain::layer4::Layer4Protocol;
-use super::ethernetPorts::DeviceReceiveOffloadCapabilities;
-use super::ethernetPorts::DeviceTransmitOffloadCapabilities;
-use super::logicalCores::AnyNumaSocketId;
-use super::logicalCores::NumaSocketId;
 
 
 /// Devices.

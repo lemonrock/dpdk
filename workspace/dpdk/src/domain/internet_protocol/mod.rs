@@ -3,17 +3,21 @@
 
 
 use super::*;
-use super::internet_protocol::*;
-use super::layer4::Layer4Protocol;
-use self::mask_bits::*;
 
+
+/// Longest prefix matching, typically used to turn a destination internet protocol (IP) address into an index in a routing table.
+pub mod longest_prefix_matching;
 
 /// Masks.
 pub mod mask_bits;
 
+/// Packet reassembly from fragments.
+pub mod packet_reassembly;
+
 
 include!("DifferentiatedServiceCodePoint.rs");
 include!("ExplicitCongestionNotification.rs");
+include!("InternetHeaderLength.rs");
 include!("InternetProtocolNetworkAddress.rs");
 include!("InternetProtocolVersion.rs");
 include!("InternetProtocolVersion4HostAddress.rs");

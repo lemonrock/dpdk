@@ -21,7 +21,7 @@ pub trait IpAddressBlackList
 	#[inline(always)]
 	fn _longestPrefixMatchTableMut(&mut self) -> RwLockWriteGuard<Self::LongestPrefixMatchTable>;
 
-	const OurNextHop: u32 = 0xFFFFFFFF;
+	const OurRoutingTableKey: u32 = 0xFFFFFFFF;
 
 	#[inline(always)]
 	fn new(name: &LongestPrefixMatchName, logicalCoreMemorySocket: Option<NumaSocketId>, maximumRules: u32, numberOfTable8sToAllocate: u32, networkAddresses: &[Self::InternetProtocolNetworkAddress]) -> Self
@@ -47,7 +47,7 @@ pub trait IpAddressBlackList
 	{
 		if let Some(nextHop) = self._longestPrefixMatchTableConst().look_up(hostAddress)
 		{
-			nextHop == Self::OurNextHop
+			nextHop == Self::OurRoutingTableKey
 		}
 		else
 		{
@@ -58,6 +58,6 @@ pub trait IpAddressBlackList
 	#[inline(always)]
 	fn addNetworkToBlackList(&mut self, networkAddress: &Self::InternetProtocolNetworkAddress) -> bool
 	{
-		self._longestPrefixMatchTableMut().addRule(networkAddress, Self::OurNextHop)
+		self._longestPrefixMatchTableMut().addRule(networkAddress, Self::OurRoutingTableKey)
 	}
 }

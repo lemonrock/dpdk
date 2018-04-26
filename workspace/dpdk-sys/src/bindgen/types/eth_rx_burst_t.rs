@@ -2,4 +2,4 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-pub type eth_rx_burst_t = Option<unsafe extern "C" fn(rxq: *mut c_void, rx_pkts: *mut *mut rte_mbuf, nb_pkts: u16) -> u16>;
+pub type eth_rx_burst_t = unsafe extern "C" fn(rxq: *mut c_void, rx_pkts: *mut *mut rte_mbuf, nb_pkts: u16) -> u16;

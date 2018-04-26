@@ -1,4 +1,5 @@
 #include "bindgen/c/rte_atomic.static-inline.h"
+#include "bindgen/c/rte_bus_vdev.static-inline.h"
 #include "bindgen/c/rte_ethdev.static-inline.h"
 #include "bindgen/c/rte_ether.static-inline.h"
 #include "bindgen/c/rte_event_ring.static-inline.h"

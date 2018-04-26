@@ -16,9 +16,9 @@ pub trait AddressLookUpForSendCallback<IpAddress: Sized> : Sized
 		
 		let result = catch_unwind(AssertUnwindSafe(||
 		{
-			debug_assert!(!opaque.is_null(), "opaque was null");
-			debug_assert!(!addr.is_null(), "addr was null");
-			debug_assert!(!res.is_null(), "tle_dest was null");
+			debug_assert!(opaque.is_not_null(), "opaque was null");
+			debug_assert!(addr.is_not_null(), "addr was null");
+			debug_assert!(res.is_not_null(), "tle_dest was null");
 			
 			let resultCode = us.call(addr, res);
 			debug_assert!(resultCode <= 0, "Result was a positive value, '{}'", resultCode);

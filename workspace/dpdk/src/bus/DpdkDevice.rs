@@ -8,6 +8,14 @@ pub struct DpdkDevice<'a>(NonNull<rte_device>, PhantomData<&'a rte_device>);
 
 impl<'a> DpdkDevice<'a>
 {
+	#[inline(always)]
+	pub(crate) fn new(device: *mut rte_device) -> Self
+	{
+		debug_assert!(device.is_not_null(), "device is null");
+		
+		DpdkDevice(unsafe { NonNull::new_unchecked(device) }, PhantomData)
+	}
+	
 	/// Next.
 	#[inline(always)]
 	pub fn next(&self) -> Option<Self>
@@ -19,15 +27,15 @@ impl<'a> DpdkDevice<'a>
 		}
 		else
 		{
-			Some(DpdkDevice(unsafe { NonNull::new_unchecked(next) }, PhantomData))
+			Some(DpdkDevice::new(next))
 		}
 	}
 	
-	/// NUMA socket id, if any.
+	/// NUMA node.
 	#[inline(always)]
-	pub fn numa_socket_id(&self) -> Option<NumaSocketId>
+	pub fn numa_socket_id(&self) -> NumaNodeChoice
 	{
-		NumaSocketId::from_i32(self.deref().numa_node)
+		NumaNodeChoice::from_i32(self.deref().numa_node)
 	}
 	
 	/// Name (does not exceed 64 bytes).

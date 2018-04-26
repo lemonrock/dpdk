@@ -145,7 +145,7 @@ impl IpV4State
 
 					discardPacketIf!($packet, HardwareType::is_not_ethernet_2($arpHeader.arp_hrd));
 					discardPacketIf!($packet, $arpHeader.arp_pro != ETHER_TYPE_IPv4.to_be());
-					discardPacketIf!($packet, $arpHeader.arp_hln != SizeOfEthernetAddress);
+					discardPacketIf!($packet, $arpHeader.arp_hln != MediaAccessControlAddress::SizeU8);
 					discardPacketIf!($packet, $arpHeader.arp_pln != SizeOfIpV4Address);
 
 					let senderHardwareAddress = $arpIpV4Data.arp_sha;
@@ -167,7 +167,7 @@ impl IpV4State
 			}
 		}
 
-		discardPacketIf!(packet, layer2HeaderLength > MaximumSizeOfLayer2);
+		discardPacketIf!(packet, layer2HeaderLength > EthernetPacketHeader::MaximumSizeU32);
 		let correctPacketLength = layer2HeaderLength + size_of::<arp_hdr>() as u32;
 		discardPacketIf!(packet, packet.length() < correctPacketLength);
 
@@ -184,7 +184,7 @@ impl IpV4State
 				{
 					let (senderHardwareAddress, senderIpV4Address, targetHardwareAddress, targetIpV4Address) = extractAddresses!(self, packet, arpHeader, arpIpV4Data, ipState);
 
-					discardPacketIf!(packet, MediaAccessControlAddress::destinationEthernetAddressIsInvalidForAnArpRequest(destinationEthernetAddress!(packet)));
+					discardPacketIf!(packet, MediaAccessControlAddress::is_the_destination_ethernet_address_invalid_for_an_address_resolution_protocol_request(destinationEthernetAddress!(packet)));
 					discardPacketIf!(packet, MediaAccessControlAddress::isTargetHardwareAddressNotZero(&targetHardwareAddress));
 
 					self.addOrFreshenArpCacheWith(senderIpV4Address, senderHardwareAddress);

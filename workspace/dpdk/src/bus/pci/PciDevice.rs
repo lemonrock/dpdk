@@ -142,10 +142,10 @@ impl PciDevice
 	}
 	
 	#[inline(always)]
-	pub(crate) fn associated_numa_node(&self, sys_path: &Path) -> Option<NumaSocketId>
+	pub(crate) fn associated_numa_node(&self, sys_path: &Path) -> NumaNodeChoice
 	{
 		let file_path = self.file_or_folder_path(sys_path, "numa_node");
-		NumaSocketId::from_i32(file_path.read_value().expect("Could not parse numa_node"))
+		NumaNodeChoice::from_i32(file_path.read_value().expect("Could not parse numa_node"))
 	}
 	
 	#[inline(always)]

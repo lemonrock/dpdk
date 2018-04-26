@@ -3,7 +3,6 @@
 
 
 use super::*;
-use super::super::ethernetPorts::EthernetPortConfiguration;
 
 
 /// Net(work) virtual devices.

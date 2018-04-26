@@ -2,4 +2,4 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-pub type rte_bus_get_iommu_class_t = Option<unsafe extern "C" fn() -> rte_iova_mode>;
+pub type rte_bus_get_iommu_class_t = unsafe extern "C" fn() -> rte_iova_mode;

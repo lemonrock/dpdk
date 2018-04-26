@@ -2,14 +2,17 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use super::arp::SizeOfLayer3ArpPacket;
+use super::*;
 
 
-include!("MaximumSizeOfLayer2.rs");
-include!("MinimumSizeOfEthernetPacketSizeAssumingArp.rs");
-include!("MaximumTransmissionUnitSizeInBytes.rs");
-include!("SizeOfEthernetAddress.rs");
-include!("SizeOfEthernetHeader.rs");
-include!("SizeOfEthernetHeaderLessEtherType.rs");
-include!("SizeOfEtherType.rs");
-include!("SizeOfPPPoEHeader.rs");
+include!("EthernetFrameLength.rs");
+include!("EthernetPacket.rs");
+include!("EthernetPacketHeader.rs");
+include!("EthernetPacketPayload.rs");
+include!("EtherType.rs");
+include!("EtherTypeOrLegacyEthernetFrameSize.rs");
+include!("LegacyEthernetFrameSize.rs");
+include!("MaximumTransmissionUnitSize.rs");
+include!("MediaAccessControlAddress.rs");
+include!("MediaAccessControlAddressList.rs");
+include!("SizeU16OfEthernetCyclicRedundancyCheck.rs");

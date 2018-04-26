@@ -18,7 +18,7 @@ publish = false
 version = "0.0.0"
 
 [dependencies]
-arrayvec = "0.3"
+arrayvec = { version = "0.3", features = ["std", "use_union", "serde-1"] }
 const-cstr-fork = "^0.2"
 docopt = "0.6"
 libc = "0.2.21"

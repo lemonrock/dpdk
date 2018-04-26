@@ -161,8 +161,11 @@ final_chance_to_tweak()
 	# Fix non-Optional callbacks in types.
 	local type
 	for type in \
+		eth_rx_burst_t \
+		eth_tx_burst_t \
 		rte_bus_cmp_t \
 		rte_bus_find_device_t \
+		rte_bus_get_iommu_class_t \
 		rte_bus_probe_t \
 		rte_bus_scan_t \
 		rte_eal_alarm_callback \
@@ -188,7 +191,6 @@ final_chance_to_tweak()
 	for enum in \
 		rte_bbdev_op_type \
 		rte_bus_scan_mode \
-		rte_bus_get_iommu_class_t \
 		rte_cryptodev_scheduler_mode \
 		rte_eth_nb_pools \
 		rte_flow_action_type \

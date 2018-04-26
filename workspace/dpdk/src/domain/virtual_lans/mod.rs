@@ -3,25 +3,15 @@
 
 
 use super::*;
-use super::ethernet::MinimumSizeOfEthernetPacketSizeAssumingArp;
-use super::ethernet::SizeOfEthernetHeader;
-use super::ethernet::SizeOfEthernetHeaderLessEtherType;
-use super::ethernet::SizeOfEtherType;
-use super::internet_protocol::DifferentiatedServiceCodePoint;
 
 
 include!("ClassOfService.rs");
-include!("MinimumSizeOfQinQPacketAssumingArp.rs");
-include!("MinimumSizeOfVlanPacketAssumingArp.rs");
-include!("NoVirtualLanKey.rs");
-include!("OffsetToJustAfterVlanHeaderEtherTypeIfVlanQinQ.rs");
-include!("OffsetToVlanHeaderIfVlanQinQ.rs");
-include!("OffsetToVlanQinQTciValue.rs");
-include!("SizeOfQinQHeader.rs");
-include!("SizeOfTagControlInformation.rs");
-include!("SizeOfVlanHeader.rs");
+include!("DropEligibleIndicator.rs");
+include!("QinQVirtualLanPacket.rs");
+include!("PacketProcessingConfigurationByVirtualLan.rs");
+include!("PacketProcessingConfigurationForQinQVirtualLan.rs");
+include!("PermittedClassesOfService.rs");
 include!("VirtualLanIdentifier.rs");
-include!("VirtualLanKey.rs");
-include!("VirtualLanTagging.rs");
-include!("VirtualLanTrafficClassIndicator.rs");
-include!("VirtualLanValue.rs");
+include!("VirtualLanPacket.rs");
+include!("VirtualLanPacketHeader.rs");
+include!("VirtualLanPacketTagControlInformation.rs");

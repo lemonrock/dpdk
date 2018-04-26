@@ -31,7 +31,7 @@ pub struct EthernetPortConfiguration
 
 	pub isPromiscuous: bool,
 	pub enableAllMulticastReceive: bool,
-	pub maximumTransmissionUnitSizeInBytes: MaximumTransmissionUnitSizeInBytes,
+	pub maximumTransmissionUnitSizeInBytes: MaximumTransmissionUnitSize,
 	pub multicastMediaAccessControlAddressesToFilter: HashSet<MediaAccessControlAddress>,
 	pub udpTunnelsToOffload: HashSet<UdpTunnelConfiguration>,
 	pub enableTimestamping: bool,

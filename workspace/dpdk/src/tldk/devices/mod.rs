@@ -3,10 +3,9 @@
 
 
 use super::*;
-use super::super::domain::layer4::Layer4Protocol;
 
 
-include!("Device.rs");
+include!("TldkDevice.rs");
 include!("PacketProcessor.rs");
-include!("TcpDevice.rs");
-include!("UdpDevice.rs");
+include!("TcpTldkDevice.rs");
+include!("UdpTldkDevice.rs");

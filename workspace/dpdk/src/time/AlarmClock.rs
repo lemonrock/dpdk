@@ -40,7 +40,7 @@ impl<T: AlarmClockCallback> AlarmClock<T>
 	
 	unsafe extern "C" fn callback(arg: *mut c_void)
 	{
-		debug_assert!(!arg.is_null(), "arg is null");
+		debug_assert!(arg.is_not_null(), "arg is null");
 		
 		let alarm_clock_callback = unsafe { Box::from_raw(arg as *mut T) };
 		

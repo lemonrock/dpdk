@@ -14,7 +14,7 @@ impl NetworkByteOrderEndianU16
 	///
 	/// Assumes the value is already stored as a big endian bit pattern.
 	#[inline(always)]
-	pub fn from_network_byte_order_value(big_endian_value: u16) -> Self
+	pub const fn from_network_byte_order_value(big_endian_value: u16) -> Self
 	{
 		NetworkByteOrderEndianU16(big_endian_value)
 	}
@@ -42,5 +42,60 @@ impl NetworkByteOrderEndianU16
 	pub fn to_native_byte_order_value(self) -> u16
 	{
 		u16::from_be(self.0)
+	}
+	
+	/// Zeros out data.
+	#[inline(always)]
+	pub fn zero(&mut self)
+	{
+		self.0 = 0;
+	}
+	
+	/// High order bits
+	///
+	/// Returns the top 8-bits.
+	#[inline(always)]
+	pub fn high_order_bits(self) -> u8
+	{
+		if cfg!(target_endian = "big")
+		{
+			(self.0 >> 8) as u8
+		}
+		else
+		{
+			(self.0 | 0x00FF) as u8
+		}
+	}
+	
+	/// Low order bits
+	///
+	/// Returns the bottom 8-bits.
+	#[inline(always)]
+	pub fn low_order_bits(self) -> u8
+	{
+		if cfg!(target_endian = "big")
+		{
+			(self.0 | 0x00FF) as u8
+		}
+		else
+		{
+			(self.0 >> 8) as u8
+		}
+	}
+	
+	/// To native byte order.
+	///
+	/// On a Little Endian platform, will swap bytes.
+	#[inline(always)]
+	pub fn mask_lower_12_bits(self) -> Self
+	{
+		if cfg!(target_endian = "big")
+		{
+			NetworkByteOrderEndianU16(self.0 & 0x0FFF)
+		}
+		else
+		{
+			NetworkByteOrderEndianU16(self.0 & 0xFF0F)
+		}
 	}
 }

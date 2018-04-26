@@ -5,7 +5,7 @@
 #[derive(Debug, Clone)]
 pub struct IpV4AddressBlackList
 {
-	longestPrefixMatchTable: Arc<RwLock<IpV4LongestPrefixMatchTable>>,
+	longestPrefixMatchTable: Arc<RwLock<InternetProtocolVersion4LongestPrefixMatchTable>>,
 }
 
 impl IpAddressBlackList for IpV4AddressBlackList
@@ -14,7 +14,7 @@ impl IpAddressBlackList for IpV4AddressBlackList
 	
 	type InternetProtocolNetworkAddress = InternetProtocolVersion4NetworkAddress;
 	
-	type LongestPrefixMatchTable = IpV4LongestPrefixMatchTable;
+	type LongestPrefixMatchTable = InternetProtocolVersion4LongestPrefixMatchTable;
 	
 	const NamePrefix: &'static str = "IPv4-BL";
 	

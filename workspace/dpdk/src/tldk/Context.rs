@@ -26,7 +26,7 @@ pub trait Context<IpV4: AddressLookUpForSendCallback<in_addr>, IpV6: AddressLook
 	#[inline(always)]
 	fn create
 	(
-		numa_socket_idToAllocateMemoryFrom: Option<NumaSocketId>,
+		numa_node_choice: NumaNodeChoice,
 		maximumNumberOfStreams: u32,
 		maximumNumberOfReceiveBuffers: u32,
 		maximumNumberOfSendBuffers: u32,
@@ -38,7 +38,7 @@ pub trait Context<IpV4: AddressLookUpForSendCallback<in_addr>, IpV6: AddressLook
 	{
 		let parameters = tle_ctx_param
 		{
-			socket_id: numa_socket_idToAllocateMemoryFrom.as_int32_t(),
+			socket_id: numa_node_choice.into(),
 			proto: Self::Protocol.tldk_value(),
 			max_streams: maximumNumberOfStreams,
 			max_stream_rbufs: maximumNumberOfReceiveBuffers,

@@ -28,6 +28,8 @@ include!("constants/IPV4_HDR.rs");
 include!("constants/IPV6.rs");
 include!("constants/IPV6_2292.rs");
 include!("constants/MARKER_TLV_TYPE.rs");
+include!("constants/PKT_RX.rs");
+include!("constants/PKT_TX.rs");
 include!("constants/RTE_ACL.rs");
 include!("constants/RTE_ARCH.rs");
 include!("constants/RTE_AVP.rs");

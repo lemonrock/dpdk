@@ -7,4 +7,5 @@ extern "C"
 	pub fn rte_exit(exit_code: c_int, format: *const c_char, ...);
 	pub fn rte_set_application_usage_hook(usage_func: rte_usage_hook_t) -> rte_usage_hook_t;
 	pub fn rte_socket_id() -> c_uint;
+	pub fn rust_RTE_DEV_TO_VDEV(device: *mut rte_device) -> *mut rte_vdev_device;
 }

@@ -2,14 +2,7 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use self::subclasses::*;
 use super::*;
-use super::super::devices::DeviceName;
-use super::super::domain::NetworkInterfaceName;
-use super::super::ethernetPorts::EthernetPort;
-use super::super::logicalCores::NumaSocketId;
-use super::super::logicalCores::active::Active;
-use super::super::logicalCores::active::LogicalCoresActive;
 
 
 /// PCI device subclasses.

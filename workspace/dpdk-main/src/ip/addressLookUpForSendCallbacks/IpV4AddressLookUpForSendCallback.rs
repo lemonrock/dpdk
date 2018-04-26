@@ -35,7 +35,7 @@ impl IpV4AddressLookUpForSendCallback
 	{
 		const TldkMaximumLengthFor_hdr: usize = 96;
 
-		const VlanTaggingOffset: isize = (SizeOfEthernetHeaderLessEtherType as isize);
+		const VlanTaggingOffset: isize = (EthernetPacketHeader::SizeLessEtherTypeU32 as isize);
 
 		let mut tleDestinationTemplate = tle_dest
 		{
@@ -50,7 +50,7 @@ impl IpV4AddressLookUpForSendCallback
 		let buffer = &mut tleDestinationTemplate.hdr as *mut _ as *mut u8;
 
 		let layer2Length = virtualLanTagging.write_layer_2_header_data(unsafe { buffer.offset(VlanTaggingOffset) }, internet_protocol_version.to_ether_type());
-		debug_assert!(layer2Length <= MaximumSizeOfLayer2 as usize, "Layer 2 header is too big");
+		debug_assert!(layer2Length <= EthernetPacketHeader::MaximumSizeU32 as usize, "Layer 2 header is too big");
 		tleDestinationTemplate.l2_len = layer2Length as u8;
 
 		let offsetToLayer3 = VlanTaggingOffset + layer2Length as isize;

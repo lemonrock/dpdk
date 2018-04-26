@@ -12,7 +12,7 @@ pub struct BondingNetVirtualDevice
 	index: u5,
 	slaves: HashSet<BondingSlave>,
 	mode: UsefulBondingMode,
-	numa_socket_id: NumaSocketId,
+	numa_node: NumaNode,
 	media_access_control_address: MediaAccessControlAddress,
 	lsc_poll_period_milliseconds: u31,
 	up_delay_milliseconds: u31,
@@ -86,7 +86,7 @@ impl BondingNetVirtualDevice
 	pub const MaximumSlaves: usize = 31;
 	
 	/// Creates a new instance.
-	pub fn new(index: u5, slaves: HashSet<BondingSlave>, mode: UsefulBondingMode, numa_socket_id: NumaSocketId, media_access_control_address: MediaAccessControlAddress, lsc_poll_period_milliseconds: u31, up_delay_milliseconds: u31, down_delay_milliseconds: u31) -> Self
+	pub fn new(index: u5, slaves: HashSet<BondingSlave>, mode: UsefulBondingMode, numa_node: NumaNode, media_access_control_address: MediaAccessControlAddress, lsc_poll_period_milliseconds: u31, up_delay_milliseconds: u31, down_delay_milliseconds: u31) -> Self
 	{
 		assert!(index < VirtualDeviceName::<NetVirtualDeviceDriverName>::MaximumIndex, "index '{}' can not equal or exceed MaximumIndex '{}'", index, VirtualDeviceName::<NetVirtualDeviceDriverName>::MaximumIndex);
 		assert_ne!(slaves.len(), 0, "slaves can not be empty");
@@ -101,7 +101,7 @@ impl BondingNetVirtualDevice
 			index,
 			slaves,
 			mode,
-			numa_socket_id,
+			numa_node,
 			media_access_control_address,
 			lsc_poll_period_milliseconds,
 			up_delay_milliseconds,

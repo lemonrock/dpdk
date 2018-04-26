@@ -73,8 +73,8 @@ impl<T: TimerCallback> Timer<T>
 	
 	unsafe extern "C" fn callback(arg1: *mut rte_timer, arg2: *mut c_void)
 	{
-		debug_assert!(!arg1.is_null(), "arg1 is null");
-		debug_assert!(!arg2.is_null(), "arg2 is null");
+		debug_assert!(arg1.is_not_null(), "arg1 is null");
+		debug_assert!(arg2.is_not_null(), "arg2 is null");
 		debug_assert_eq!(arg2, unsafe { & * arg1 }.arg, "arg2 and arg1.arg are not the same");
 		
 		let timer_callback = unsafe { & * (arg2 as *mut T) };

@@ -8,16 +8,16 @@ const MaximumRoutes: usize = 1 + MaximumRoutesExcludingDefault;
 #[allow(missing_debug_implementations)]
 pub struct IpV4RoutingTable
 {
-	longestPrefixMatchTable: IpV4LongestPrefixMatchTable,
+	longestPrefixMatchTable: InternetProtocolVersion4LongestPrefixMatchTable,
 	nextHopsToDeviceAndMtuAndIpAddress: ArrayVec<[IpV4Route; MaximumRoutes]>,
 	arpCache: ArpCache,
-	defaultMaximumTransmissionUnit: MaximumTransmissionUnitSizeInBytes,
+	defaultMaximumTransmissionUnit: MaximumTransmissionUnitSize,
 }
 
 impl IpV4RoutingTable
 {
 	#[inline(always)]
-	pub fn new(name: &LongestPrefixMatchName, logicalCoreMemorySocket: Option<NumaSocketId>, arpCache: ArpCache, defaultMaximumTransmissionUnit: MaximumTransmissionUnitSizeInBytes) -> Self
+	pub fn new(name: &LongestPrefixMatchName, logicalCoreMemorySocket: Option<NumaSocketId>, arpCache: ArpCache, defaultMaximumTransmissionUnit: MaximumTransmissionUnitSize) -> Self
 	{
 		const MaximumRules: u32 = MaximumRoutes as u32;
 		const NumberOfTable8sToAllocate: u32 = 16;
@@ -34,7 +34,7 @@ impl IpV4RoutingTable
 		}
 	}
 
-	pub fn reconfigureRulesAndRoutes(&mut self, rules: &HashMap<InternetProtocolVersion4NetworkAddress, NextHop>, routes: &[IpV4Route])
+	pub fn reconfigureRulesAndRoutes(&mut self, rules: &HashMap<InternetProtocolVersion4NetworkAddress, RoutingTableKey>, routes: &[IpV4Route])
 	{
 		assert!(!routes.is_empty(), "routes is empty");
 
@@ -65,7 +65,7 @@ impl IpV4RoutingTable
 	{
 		let (ref ethernetAddress, tldkMtu) =
 		{
-			const AlwaysPresentNextHop: NextHop = 0;
+			const AlwaysPresentRoutingTableKey: RoutingTableKey = 0;
 
 			let internet_protocol_address: &InternetProtocolVersion4HostAddress = unsafe { transmute(destinationAddress) };
 
@@ -80,7 +80,7 @@ impl IpV4RoutingTable
 						{
 							match self.longestPrefixMatchTable.look_up(internet_protocol_address)
 							{
-								None => AlwaysPresentNextHop,
+								None => AlwaysPresentRoutingTableKey,
 								Some(nextHop) => nextHop,
 							}
 						};
@@ -103,7 +103,7 @@ impl IpV4RoutingTable
 			let from = ethernetAddress as *const _ as *const u8;
 			let hdrOffsetWhichStartsWithDestinationEthernetAddress = offsetOf!(tle_dest, hdr);
 			let to = (outParameterForResult as *mut u8).offset(hdrOffsetWhichStartsWithDestinationEthernetAddress);
-			const length: usize = SizeOfEthernetAddress as usize;
+			const length: usize = MediaAccessControlAddress::Size;
 			copy_nonoverlapping(from, to, length);
 		}
 

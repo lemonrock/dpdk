@@ -9,6 +9,7 @@ pub extern crate pointer;
 #[macro_use] pub extern crate dpdk_serde;
 pub extern crate dpdk_sys;
 #[cfg(unix)] pub extern crate dpdk_unix;
+extern crate hyper_thread_random;
 extern crate libc;
 extern crate libc_extra;
 #[macro_use] extern crate log;
@@ -20,12 +21,49 @@ extern crate serde;
 extern crate syscall_alt;
 
 
-use self::print_information::PrintAllInformation;
+use self::*;
+use self::bus::*;
+use self::bus::pci::*;
+use self::bus::pci::subclasses::*;
+use self::devices::*;
+use self::devices::ethernet::*;
+use self::devices::ethernet::receive::*;
+use self::devices::ethernet::transmit::*;
+use self::devices::virtual_devices::*;
+use self::devices::virtual_devices::net_virtual_devices::*;
+use self::domain::*;
+use self::domain::address_resolution_protocol::*;
+use self::domain::ethernet::*;
+use self::domain::internet_protocol::*;
+use self::domain::internet_protocol::longest_prefix_matching::*;
+use self::domain::internet_protocol::mask_bits::*;
+use self::domain::internet_protocol::packet_fragmentation::*;
+use self::domain::layer4::*;
+use self::domain::layer4::internet_control_message_protocol::*;
+use self::domain::virtual_lans::*;
+use self::E_RTE::*;
+use self::ethernetPorts::*;
+use self::internet_protocol_packet_reassembly::*;
+use self::logicalCores::*;
+use self::logicalCores::active::*;
+use self::logicalCores::discovery::*;
+use self::logicalCores::receiveTransmitQueuePair::*;
+use self::memory::*;
+use self::memory::zones::*;
+use self::packet_buffers::*;
+use self::packet_buffers::packet_types::*;
+use self::power::*;
+use self::print_information::*;
+use self::process::*;
+use self::time::*;
+use self::tldk::*;
+use self::tldk::devices::*;
 use ::arrayvec::ArrayVec;
 use ::const_cstr_fork::ConstCStr;
 use ::dpdk_unix::*;
 #[cfg(any(target_os = "android", target_os = "linux"))] use ::dpdk_unix::android_linux::pci::PciBusInformation;
 use ::dpdk_sys::*;
+use ::hyper_thread_random::generate_hyper_thread_safe_random_u64;
 use ::libc::*;
 use ::libc_extra::*;
 use ::libc_extra::stdio::open_memstream;
@@ -90,6 +128,7 @@ use ::std::ptr::null;
 use ::std::ptr::null_mut;
 use ::std::ptr::write;
 use ::std::rc::Rc;
+use ::std::slice::from_raw_parts;
 use ::std::slice::from_raw_parts_mut;
 use ::std::str::SplitN;
 use ::std::string::FromUtf8Error;
@@ -111,31 +150,24 @@ pub mod domain;
 pub(crate) mod E_RTE;
 
 
+/// Ethernet ports.
 pub mod ethernetPorts;
 
 
-pub mod internet_protocol_packet_fragmentation;
-
-
+/// Logical cores and NUMA nodes.
 pub mod logicalCores;
-
-
-pub mod longestPrefixMatch;
 
 
 /// DPDK memory management.
 pub mod memory;
 
 
-/// DPDK memory zone creation.
-pub mod memoryZones;
-
-
 /// PCI devices.
 pub mod pci;
 
 
-#[macro_use] pub mod packetBuffers;
+/// Packet buffers.
+#[macro_use] pub mod packet_buffers;
 
 
 /// CPU power management.
@@ -157,3 +189,10 @@ pub mod time;
 /// Layer 4 (TLDK).
 pub mod tldk;
 
+
+include!("finish.rs");
+include!("LogicalCore.rs");
+include!("LogicalCoreChoice.rs");
+include!("NumaNode.rs");
+include!("NumaNodeChoice.rs");
+include!("PointerExt.rs");

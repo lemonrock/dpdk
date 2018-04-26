@@ -3,19 +3,6 @@
 
 
 use super::*;
-use super::devices::DeviceName;
-use super::devices::virtual_devices::net_virtual_devices::NetVirtualDeviceDriverName;
-use super::devices::virtual_devices::net_virtual_devices::NetVirtualDeviceName;
-use super::logicalCores::*;
-use super::logicalCores::discovery::*;
-use super::logicalCores::receiveTransmitQueuePair::*;
-use super::memory::DpdkAllocatedMemory;
-use super::packetBuffers::PacketBufferPool;
-use super::bus::pci::DpdkPciDeviceAddress;
-
-
-/// Burst packet support.
-pub mod burst;
 
 
 include!("BalanceBondingModeTransmitPolicy.rs");
@@ -57,7 +44,6 @@ include!("HashFilterFunction.rs");
 include!("LinkSpeed.rs");
 include!("LinkSpeeds.rs");
 include!("LinkStatus.rs");
-include!("MediaAccessControlAddress.rs");
 include!("MultiQueuePacketReceiveMode.rs");
 include!("MultiQueuePacketTransmitMode.rs");
 include!("NoTransmitQueueBufferErrorCallback.rs");

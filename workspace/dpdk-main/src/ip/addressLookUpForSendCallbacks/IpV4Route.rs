@@ -7,7 +7,7 @@
 pub struct IpV4Route
 {
 	router: InternetProtocolVersion4HostAddress,
-	tldkMtu: MaximumTransmissionUnitSizeInBytes,
+	tldkMtu: MaximumTransmissionUnitSize,
 }
 
 impl Default for IpV4Route
@@ -18,7 +18,7 @@ impl Default for IpV4Route
 		Self
 		{
 			router: 0, // So wrong it's untrue...
-			tldkMtu: MaximumTransmissionUnitSizeInBytes::TldkValue,
+			tldkMtu: MaximumTransmissionUnitSize::TldkValue,
 		}
 	}
 }

@@ -3,13 +3,22 @@
 
 
 use super::*;
-use super::logicalCores::*;
 
 
+/// Memory layout.
+pub mod layout;
+
+
+/// Memory zones.
+pub mod zones;
+
+
+include!("AlignmentBitMask.rs");
 include!("DpdkAllocatedMemory.rs");
+include!("FastMemoryCopy.rs");
+include!("FastMemoryCopyDestination.rs");
 include!("HugePageFilePathInformation.rs");
+include!("Memory.rs");
 include!("MemoryChannels.rs");
-include!("MemoryLayout.rs");
-include!("MemoryLayoutSegment.rs");
 include!("MemoryLimits.rs");
 include!("MemoryRanks.rs");

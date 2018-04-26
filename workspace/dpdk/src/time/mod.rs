@@ -3,7 +3,6 @@
 
 
 use super::*;
-use super::logicalCores::LogicalCore;
 
 
 include!("AlarmClock.rs");

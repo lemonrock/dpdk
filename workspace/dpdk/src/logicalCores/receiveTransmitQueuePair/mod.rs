@@ -2,24 +2,7 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use ::dpdk_unix::set_current_thread_name;
-use ::dpdk_sys::*;
-use ::libc_extra::ffi::callbacks::MutableCallback1;
-use ::rust_extra::likely;
-use ::rust_extra::unlikely;
-use ::rust_extra::arrays::Array;
-use ::std::sync::atomic::AtomicU64;
-use ::std::mem::zeroed;
-use ::std::panic::catch_unwind;
-use ::std::panic::AssertUnwindSafe;
-use ::std::sync::Arc;
-use ::std::sync::Mutex;
-use ::std::sync::atomic::AtomicBool;
-use ::std::sync::atomic::Ordering;
-use ::std::thread;
-use ::ethernetPorts::*;
-use ::logicalCores::*;
-use ::packetBuffers::PacketBufferPool;
+use super::*;
 
 
 include!("CanContinue.rs");

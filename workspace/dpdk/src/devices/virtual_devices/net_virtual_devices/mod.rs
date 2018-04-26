@@ -3,11 +3,6 @@
 
 
 use super::*;
-use super::super::super::ethernetPorts::BalanceBondingModeTransmitPolicy;
-use super::super::super::ethernetPorts::BondingSlave;
-use super::super::super::ethernetPorts::MediaAccessControlAddress;
-use super::super::super::ethernetPorts::UsefulBondingMode;
-use super::super::super::logicalCores::NumaSocketId;
 
 
 include!("AfPacketNetVirtualDevice.rs");

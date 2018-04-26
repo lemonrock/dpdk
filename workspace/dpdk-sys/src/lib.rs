@@ -31,6 +31,8 @@
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::uint32_t;
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::uint64_t;
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::timespec;
+#[cfg(target_arch = "x86")] use ::std::arch::x86::__m128i;
+#[cfg(target_arch = "x86_64")] use ::std::arch::x86_64::__m128i;
 
 
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] include!("bindgen/lib.rs");
@@ -39,15 +41,6 @@
 pub type MARKER8 = uint8_t;
 
 pub type MARKER64 = uint64_t;
-
-
-#[repr(C, align(16))]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Ord, PartialOrd, Hash)]
-pub struct __m128i
-{
-	a: u64,
-	b: u64,
-}
 
 pub const IPV4_HDR_DF_MASK: u16 = 1 << IPV4_HDR_DF_SHIFT;
 
@@ -59,6 +52,7 @@ pub const IPV4_HDR_FO_ALIGN: u16 = 1 << IPV4_HDR_FO_SHIFT;
 #[inline(always)]
 pub fn RTE_ALIGN_FLOOR_u16(raw_value_to_align: u16, power_of_two_alignment: u16) -> u16
 {
-	debug_assert!(power_of_two_alignment.is_power_of_two())
+	debug_assert!(power_of_two_alignment.is_power_of_two(), "power_of_two_alignment '{}' is not", power_of_two_alignment);
+	
 	(raw_value_to_align) & (!power_of_two_alignment - 1)
 }

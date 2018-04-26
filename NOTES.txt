@@ -1,0 +1,444 @@
+// Process / configuration
+// rte_eal_get_configuration -> gives access to memory config, rte_mem_config.memzone[RTE_MAX_MEMZONE] could be interesting and so could malloc_heaps[RTE_MAX_NUMA_NODES]
+
+
+/*
+	Whilst the TLDK model works, it has some problems
+		- difficult to manage the freeing of callback hanbdlers, particularly for
+
+		- optimized for multi-core, not steered packets
+
+		- need to update config on accept - the accept model really isn't nice. Instead it would be better to just handle the packets
+
+		- queues TCP accepts, etc internally
+
+		- we can probably rip out UDP handling in a week, and then use QUIC
+
+		- leaves the need for a TCP+TLS => QUIC proxy
+
+		See https://github.com/saminiir/level-ip
+			and associated projects listed there
+*/
+
+
+Multiple MACs assigned to an ethernet port.
+
+	- Gets interesting, as we need to distinguish which one receives
+	- With broadcast / multicast ethernet, do we get a packet per MAC or just one?
+	- Check but seems likely just one.
+	
+	- This means things can get very, very confusing quickly.
+		- Linux calls this a macvlan.
+		- The default behavior of a L2 switch is to not send a packet back down the port it egressed from to prevent loops forming.
+			- thus if a network card has multiple MACs, it is to be expected that they CAN NOT talk to each over the network and would need a local loopback bridge in software.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DPDK Membership Library
+Sub-Figure (c) presents another usage of the Membership Library to load-balance flows to worker threads with in-order guarantee where a set-summary is used to query if a packet belongs to an existing flow or a new flow. Packets belonging to a new flow are forwarded to the current least loaded worker thread, while those belonging to an existing flow are forwarded to the pre-assigned thread to guarantee in-order processing.
+
+So could we use this to process incoming packets rather than a RSS hash?
+
+DPDK Elastic Flow Distributor Library
+
+DPDK Packet Distributor Library (Single master, multiple workers)
+
+DPDK flow rte_flow & classification (incomplete) - http://dpdk.org/doc/guides/prog_guide/flow_classify_lib.html
+    - Wraps rte_flow and rte_table
+	- Use longest prefix match (rte_lpm)
+	- Uses ACLs (rte_acl)
+	- Uses Hash table librry
+
+	- Is a bit like linux ip_tables
+
+	- Part of librte_ether; see rte_flow.h   struct rte_flow_attr
+		- Creates flow classification rules
+
+		- can set the RSS hash in the packet mbuf  rte_mbuf.hash.rss  and assign to a particular RX (receive) queue
+			- can overlap with flow director (FD)   rte_mbuf.hash.fdir.hi  if the MARK action is used
+		- can duplicate a packet to another receive queu
+		- can assign to a particular queue
+		- can MARK a packet and set the 'rte_flow_action_mark   rte_mbuf.hash.fdir.hi   to a 32-bit value
+		- can apply traffic metering and policing (sort of shaping)
+
+	- validate a rule using `rte_flow_validate`, then `rte_flow_create`
+
+	- use `rte_flow_isolate` to restrict ALL incoming traffic to flow classication rules before the first call to rte_eth_dev_configure()
+		The following will probably then not work:-
+	    * - Toggling promiscuous mode.
+	    * - Toggling allmulticast mode.
+	    * - Configuring MAC addresses.
+	    * - Configuring multicast addresses.
+	    * - Configuring VLAN filters.
+	    * - Configuring Rx filters through the legacy API (e.g. FDIR).
+	    * - Configuring global RSS settings.
+
+	Ideas
+		- should allow us to direct all ARP / ICMP traffic to a specific queue separate to all others
+		- should allow us to drop quite a bit of 'duff' traffic without having to do any further processing
+
+	Support
+		- Tun/Tap driver			RTE_ETH_FILTER_GENERIC
+		- Mlx4 / Mlx5 Mellanox
+		- SFC Solarflare
+		- bnxt (Broadcom newer)
+		- cisco enic
+		- i40e Intel
+		- ixgbe Intel
+		- igb Intel
+		- 'failsafe'
+
+		Note only the Mellanox drivers currently support isolate().
+
+
+DPDK Packet Classification and Access Control - rte_acl
+	- Specify rules that match packet headers, eg IPv4 source + dest port + TCP
+	- evaluate matches
+	- Uses AVX2 to process 16 flows in parallel
+
+	- Quite complex to use, in essence:-
+		- One defines an array of `rte_acl_field_def`
+		- This array is a template to match (mask over) a struct, such as ipv6_hdr, ipv4_hdr or perhaps etherHdr
+			- not all fields in the struct to be masker need to be present
+				- we have to give field offsets
+		- The classified has a table of these arrays
+		- It applies all templates it knows to return a set of matching results - these are an array of userdata (u32) values
+		- big CAVEAT: The template is defined using HOST endian byte order, but the template comparison is done using NETWORK endian byte order
+		- big CAVEAT: Userdata values should never be zero in the template, as this value is ALSO used as a sentinel in template match results!
+		- CAVEAT: IPv6 matching actually requires '4 fields'
+
+	- Can match flows in parallel, upto RTE_ACL_MAX_CATEGORIES (16)
+		- however, flows must be in steps of RTE_ACL_RESULTS_MULTIPLIER => XMM_SIZE / 4 => (sizeof(xmm_t)) => size of __m128i => 16 bytes
+
+	- Advantage for burst packet processing
+		- allows analysis of packets 16 at a time, rather than one at a time.
+
+
+With membership & Flow Rules, RSS can still matter but it no longer needs a special hash key or re-balancing of the RETA table
+	- Instead, each worker thread services a RX queue
+		- 5 kinds of RX queue:-
+			- IPv4 / TCP
+				- Filter junk
+					- eg bad ethernet stuff
+					- eg URG bit set
+					- potentially use rte_acl (http://dpdk.org/doc/guides/prog_guide/packet_classif_access_ctrl.html)
+				- Defragment
+				- Apply Generic Receive Offload (GRO) if appropriate (ie not if FIN, SYN, RST, URG, PSH, ECE or CWR bit is set) [coalesces packets into large pieces]
+				- Pass to TCP layer, perhaps pass to a paired worker core on the same NUMA socket via a SP-SC queue
+					- Use the new Membership library to consistency send to the same processor.
+
+			- IPv4 / UDP
+				- Filter junk
+				- Defragment
+				- Pass to UDP layer, perhaps pass to a paired worker core on the same NUMA socket via a SP-SC queue
+					- Pass to QUIC
+
+			- IPv4 / UDP / VxLAN
+				- As for IPv4, but GRO is available
+
+			- IPv6 / TCP
+				- As for IPv4, but:-
+					- uses a different fragment table
+					- GRO is not yet available
+
+			- IPv6 / UDP
+
+			- Other: ARP, ICMP, etc
+
+		- Some workers are for non-load balanced stuff: ARP, ICMP, etc
+		- Most are for IP packets being received, with a receive queue for TCP/IP
+		- Split into
+			- IPv4 Packets, then
+				- de-fragment
+				- split into TCP
+			- IPv6 Packets
+				- de-fragment
+
+	- Only a few drivers support flow rules & RSS (`RTE_ETH_FILTER_GENERIC`)
+		- Only one virtual driver, TUN / TAP
+		- Only recent Intel, Mellanox, Broadcom and Solarflare
+		- NOT CLEAR HOW BONDING WOULD WORK
+		- Only one driver, Mellanox 4 / 5, supports flow isolation
+
+		- Needs a new ethernet configuration framework
+		- Needs a complete replacement for rte_eal_init, which is horrible in any event
+
+		- One advantage would be to indentify the extent of hardware support of `rte_mbuf.packet_type`
+			- I suspect each driver has its own ideas about what fields it sets and why
+
+		- Not all drivers support all `RTE_FLOW_ACTION_TYPE_*` types
+			- QUEUE and RSS seem widely supported
+			- MARK less so.
+
+			- What about RTE_FLOW_ACTION_TYPE_DROP?
+
+		- Not all drivers support `RTE_FLOW_ITEM_TYPE_*` types
+
+		- Totally unsupported flow actions
+			- RTE_FLOW_ACTION_TYPE_DUP
+			- RTE_FLOW_ACTION_TYPE_METER
+
+		- Totally unsupported flow items
+			- RTE_FLOW_ITEM_TYPE_ICMP
+			- RTE_FLOW_ITEM_TYPE_PORT
+			- RTE_FLOW_ITEM_TYPE_GTP
+			- RTE_FLOW_ITEM_TYPE_GENEVE
+			- RTE_FLOW_ITEM_TYPE_PF
+			- RTE_FLOW_ITEM_TYPE_ANY
+			- RTE_FLOW_ITEM_TYPE_INVERT
+
+		- TAP
+			Offloads
+				? DEV_RX_OFFLOAD_CRC_STRIP
+				? DEV_RX_OFFLOAD_VLAN_STRIP,DEV_RX_OFFLOAD_VLAN_FILTER,DEV_RX_OFFLOAD_VLAN_EXTEND
+
+			Flow Action
+				- RTE_FLOW_ACTION_TYPE_DROP
+				- RTE_FLOW_ACTION_TYPE_PASSTHRU
+				- RTE_FLOW_ACTION_TYPE_VOID
+				- RTE_FLOW_ACTION_TYPE_QUEUE
+				- RTE_FLOW_ACTION_TYPE_RSS
+				- RTE_FLOW_ACTION_TYPE_END
+			Flow Item
+				- RTE_FLOW_ITEM_TYPE_END
+				- RTE_FLOW_ITEM_TYPE_ETH
+				- RTE_FLOW_ITEM_TYPE_VLAN
+				- RTE_FLOW_ITEM_TYPE_IPV4
+				- RTE_FLOW_ITEM_TYPE_IPV6
+				- RTE_FLOW_ITEM_TYPE_UDP
+				- RTE_FLOW_ITEM_TYPE_TCP
+
+		- Solarflare SFC
+			Offloads
+				caps |= DEV_RX_OFFLOAD_JUMBO_FRAME;
+				caps |= DEV_RX_OFFLOAD_CRC_STRIP;
+				caps |= DEV_RX_OFFLOAD_IPV4_CKSUM;
+				caps |= DEV_RX_OFFLOAD_UDP_CKSUM;
+				caps |= DEV_RX_OFFLOAD_TCP_CKSUM;
+
+			Flow Action
+				- RTE_FLOW_ACTION_TYPE_RSS
+				- RTE_FLOW_ACTION_TYPE_QUEUE
+				- RTE_FLOW_ACTION_TYPE_VOID
+				- RTE_FLOW_ACTION_TYPE_END
+			Flow Item
+				- RTE_FLOW_ITEM_TYPE_END
+				- RTE_FLOW_ITEM_TYPE_VOID
+				- RTE_FLOW_ITEM_TYPE_ETH
+				- RTE_FLOW_ITEM_TYPE_VLAN
+				- RTE_FLOW_ITEM_TYPE_IPV4
+				- RTE_FLOW_ITEM_TYPE_IPV6
+				- RTE_FLOW_ITEM_TYPE_UDP
+				- RTE_FLOW_ITEM_TYPE_TCP
+
+		- Mellanox mlx4
+			Flow Action
+				- RTE_FLOW_ACTION_TYPE_RSS
+				- RTE_FLOW_ACTION_TYPE_DROP
+				- RTE_FLOW_ACTION_TYPE_QUEUE
+				- RTE_FLOW_ACTION_TYPE_VOID
+				- RTE_FLOW_ACTION_TYPE_END
+			Flow Item
+				- RTE_FLOW_ITEM_TYPE_END
+				- RTE_FLOW_ITEM_TYPE_ETH   (only desination MAC)
+				- RTE_FLOW_ITEM_TYPE_VLAN  (only TCI is valid or not)
+				- RTE_FLOW_ITEM_TYPE_IPV4
+				- ? no IPV6 ?
+				- RTE_FLOW_ITEM_TYPE_UDP
+				- RTE_FLOW_ITEM_TYPE_TCP
+
+		- Mellanox mlx5
+			Flow Action
+				- RTE_FLOW_ACTION_TYPE_DROP
+				- RTE_FLOW_ACTION_TYPE_QUEUE
+				- RTE_FLOW_ACTION_TYPE_VOID
+				- RTE_FLOW_ACTION_TYPE_MARK
+				- RTE_FLOW_ACTION_TYPE_FLAG
+				- RTE_FLOW_ACTION_TYPE_COUNT
+				- RTE_FLOW_ACTION_TYPE_RSS
+				- RTE_FLOW_ACTION_TYPE_END
+			Flow Item
+				- RTE_FLOW_ITEM_TYPE_END
+				- RTE_FLOW_ITEM_TYPE_ETH
+				- RTE_FLOW_ITEM_TYPE_VLAN
+				- RTE_FLOW_ITEM_TYPE_IPV4
+				- RTE_FLOW_ITEM_TYPE_IPV6
+				- RTE_FLOW_ITEM_TYPE_UDP
+				- RTE_FLOW_ITEM_TYPE_TCP
+				- RTE_FLOW_ITEM_TYPE_VXLAN
+
+		- Broadcom bnxt
+			!! RSS is not supported in combination with Flows !!
+			Flow Action
+				- RTE_FLOW_ACTION_TYPE_END
+				- RTE_FLOW_ACTION_TYPE_VOID
+				- RTE_FLOW_ACTION_TYPE_QUEUE
+				- RTE_FLOW_ACTION_TYPE_DROP
+				- RTE_FLOW_ACTION_TYPE_COUNT
+				- RTE_FLOW_ACTION_TYPE_VF
+			Flow Item
+				- RTE_FLOW_ITEM_TYPE_VOID
+				- RTE_FLOW_ITEM_TYPE_END
+				- RTE_FLOW_ITEM_TYPE_ETH
+				- RTE_FLOW_ITEM_TYPE_VLAN
+				- RTE_FLOW_ITEM_TYPE_IPV4
+				- RTE_FLOW_ITEM_TYPE_IPV6
+				- RTE_FLOW_ITEM_TYPE_UDP
+				- RTE_FLOW_ITEM_TYPE_TCP
+				- RTE_FLOW_ITEM_TYPE_NVGRE
+				- RTE_FLOW_ITEM_TYPE_VF
+				- RTE_FLOW_ITEM_TYPE_VXLAN
+
+		- Intel i40e
+			See i40e_dev_info_get()
+
+			Receive Offloads
+				DEV_RX_OFFLOAD_VLAN_STRIP |
+				DEV_RX_OFFLOAD_QINQ_STRIP |
+				DEV_RX_OFFLOAD_IPV4_CKSUM |
+				DEV_RX_OFFLOAD_UDP_CKSUM |
+				DEV_RX_OFFLOAD_TCP_CKSUM |
+				DEV_RX_OFFLOAD_OUTER_IPV4_CKSUM |
+				DEV_RX_OFFLOAD_CRC_STRIP
+
+			Transmit Offloads
+				DEV_TX_OFFLOAD_VLAN_INSERT |
+				DEV_TX_OFFLOAD_QINQ_INSERT |
+				DEV_TX_OFFLOAD_IPV4_CKSUM |
+				DEV_TX_OFFLOAD_UDP_CKSUM |
+				DEV_TX_OFFLOAD_TCP_CKSUM |
+				DEV_TX_OFFLOAD_SCTP_CKSUM |
+				DEV_TX_OFFLOAD_OUTER_IPV4_CKSUM |
+				DEV_TX_OFFLOAD_TCP_TSO |
+				DEV_TX_OFFLOAD_VXLAN_TNL_TSO |
+				DEV_TX_OFFLOAD_GRE_TNL_TSO |
+				DEV_TX_OFFLOAD_IPIP_TNL_TSO |
+				DEV_TX_OFFLOAD_GENEVE_TNL_TSO;
+
+			Mac addresses: 64
+			RSS Hash key size: 52
+			RETA size: ETH_RSS_RETA_SIZE_128 / ETH_RSS_RETA_SIZE_512
+			I40E_DEFAULT_RX_FREE_THRESH  32
+			I40E_DEFAULT_RX_PTHRESH      8
+			I40E_DEFAULT_RX_HTHRESH      8
+			I40E_DEFAULT_RX_WTHRESH      0
+
+			I40E_DEFAULT_TX_FREE_THRESH  32
+			I40E_DEFAULT_TX_PTHRESH      32
+			I40E_DEFAULT_TX_HTHRESH      0
+			I40E_DEFAULT_TX_WTHRESH      0
+			I40E_DEFAULT_TX_RSBIT_THRESH 32
+
+			I40E_FRAME_SIZE_MAX (defines maximum rte_mbuf.pkt_len) 9728  (MTU = 9728 - I40E_ETH_OVERHEAD, ie CRC, QinQ, EtherHdr)
+
+			Flow Action
+				- RTE_FLOW_ACTION_TYPE_RSS
+				- RTE_FLOW_ACTION_TYPE_QUEUE
+				- RTE_FLOW_ACTION_TYPE_VF
+				- RTE_FLOW_ACTION_TYPE_MARK
+				- RTE_FLOW_ACTION_TYPE_VOID
+				- RTE_FLOW_ACTION_TYPE_PASSTHRU
+				- RTE_FLOW_ACTION_TYPE_DROP
+				- RTE_FLOW_ACTION_TYPE_FLAG
+				- RTE_FLOW_ACTION_TYPE_PF
+			Flow Item
+				- RTE_FLOW_ITEM_TYPE_VOID
+				- RTE_FLOW_ITEM_TYPE_END
+				- RTE_FLOW_ITEM_TYPE_ETH
+				- RTE_FLOW_ITEM_TYPE_VLAN
+				- RTE_FLOW_ITEM_TYPE_IPV4
+				- RTE_FLOW_ITEM_TYPE_IPV6
+				- RTE_FLOW_ITEM_TYPE_TCP
+				- RTE_FLOW_ITEM_TYPE_UDP
+				- RTE_FLOW_ITEM_TYPE_SCTP
+				- RTE_FLOW_ITEM_TYPE_GTPC
+				- RTE_FLOW_ITEM_TYPE_GTPU
+				- RTE_FLOW_ITEM_TYPE_RAW
+				- RTE_FLOW_ITEM_TYPE_VF
+				- RTE_FLOW_ITEM_TYPE_VXLAN
+				- RTE_FLOW_ITEM_TYPE_NVGRE
+				- RTE_FLOW_ITEM_TYPE_MPLS
+				- RTE_FLOW_ITEM_TYPE_GRE
+
+		- Intel ixgbe
+			Flow Action
+				- RTE_FLOW_ACTION_TYPE_RSS
+				- RTE_FLOW_ACTION_TYPE_QUEUE
+				- RTE_FLOW_ACTION_TYPE_VF
+				- RTE_FLOW_ACTION_TYPE_MARK
+				- RTE_FLOW_ACTION_TYPE_VOID
+				- RTE_FLOW_ACTION_TYPE_DROP
+				- RTE_FLOW_ACTION_TYPE_SECURITY
+			Flow Item
+				 - RTE_FLOW_ITEM_TYPE_E_TAG (rare)
+				 - RTE_FLOW_ITEM_TYPE_NVGRE
+				 - RTE_FLOW_ITEM_TYPE_FUZZY
+				 - ...
+
+		- Intel igb
+			Flow Action
+				- RTE_FLOW_ACTION_TYPE_RSS
+				- RTE_FLOW_ACTION_TYPE_QUEUE
+				- RTE_FLOW_ACTION_TYPE_VOID
+				- RTE_FLOW_ACTION_TYPE_DROP
+			Flow Item
+				- RTE_FLOW_ITEM_TYPE_VOID
+				- RTE_FLOW_ITEM_TYPE_END
+				- RTE_FLOW_ITEM_TYPE_ETH
+				- RTE_FLOW_ITEM_TYPE_IPV4
+				- RTE_FLOW_ITEM_TYPE_UDP
+				- RTE_FLOW_ITEM_TYPE_SCTP (rare)
+				- RTE_FLOW_ITEM_TYPE_RAW (rare)
+
+		- Cisco ENIC
+			Flow Action - no RSS!?!
+				- RTE_FLOW_ACTION_TYPE_QUEUE
+				- RTE_FLOW_ACTION_TYPE_END
+				- RTE_FLOW_ACTION_TYPE_FLAG (newer only)
+				- RTE_FLOW_ACTION_TYPE_MARK (newer only)
+				- RTE_FLOW_ACTION_TYPE_DROP (newer only)
+			Flow Item
+				- RTE_FLOW_ITEM_TYPE_ETH
+				- RTE_FLOW_ITEM_TYPE_VLAN
+				- RTE_FLOW_ITEM_TYPE_IPV4
+				- RTE_FLOW_ITEM_TYPE_IPV6
+				- RTE_FLOW_ITEM_TYPE_UDP
+				- RTE_FLOW_ITEM_TYPE_TCP
+				- RTE_FLOW_ITEM_TYPE_SCTP
+				- RTE_FLOW_ITEM_TYPE_VXLAN
+
+		- Bonding
+			Flow Action
+				- RTE_FLOW_ACTION_TYPE_QUEUE
+				- RTE_FLOW_ACTION_TYPE_END
+
+		- IPSEC
+			Flow Action
+				- RTE_FLOW_ACTION_TYPE_PASSTHRU
+				- RTE_FLOW_ACTION_TYPE_RSS
+				- RTE_FLOW_ACTION_TYPE_SECURITY
+			Flow Item
+				- RTE_FLOW_ITEM_TYPE_ESP
+
+	- There is an unclear path for working with MACsec and IPsec and crypto devices.
+
+
+
+
+
+
+

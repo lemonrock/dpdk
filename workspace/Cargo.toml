@@ -7,6 +7,5 @@ members = [
     "dpdk",
     "dpdk-serde",
     "dpdk-sys",
-    "dpdk-main",
     "dpdk-unix",
 ]

@@ -9,6 +9,7 @@
 /// Defaults to `Unspecified` (which is the same as `Any`).
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Serialize, Deserialize)]
+#[repr(packed)]
 pub struct InternetProtocolVersion4HostAddress(pub [u8; Self::Size]);
 
 impl Default
@@ -24,6 +25,9 @@ impl InternetProtocolVersion4HostAddress
 {
 	/// Size of an Internet Protocol (IP) Version 4 host address.
 	pub const Size: usize = 4;
+	
+	/// Size of an Internet Protocol (IP) Version 4 host address (as an u8).
+	pub const SizeU8: usize = Self::Size as u8;
 	
 	/// Unspecified (Any) address.
 	pub const Unspecified: Self = InternetProtocolVersion4HostAddress([0, 0, 0, 0]);
@@ -111,7 +115,14 @@ impl InternetProtocolVersion4HostAddress
 		InternetProtocolVersion6HostAddress([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, self.get_first_byte(), self.get_second_byte(), self.get_third_byte(), self.get_fourth_byte()])
 	}
 	
-	/// Is this not an unicast address?
+	/// Is this a valid unicast address?
+	#[inline(always)]
+	pub fn is_valid_unicast(self) -> bool
+	{
+		!self.is_not_valid_unicast()
+	}
+	
+	/// Is this not a valid unicast address?
 	#[inline(always)]
 	pub fn is_not_valid_unicast(self) -> bool
 	{

@@ -23,6 +23,6 @@ impl Debug for rte_table_lpm_ipv6_key
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_table_lpm_ipv6_key {{ internet_protocol: {:?} }}", self.ip)
+		write!(f, "rte_table_lpm_ipv6_key {{ ip: {:?} }}", self.ip)
 	}
 }

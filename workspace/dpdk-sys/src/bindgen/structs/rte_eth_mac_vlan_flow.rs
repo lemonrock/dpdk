@@ -3,6 +3,7 @@
 
 
 #[repr(C)]
+#[derive(Hash)]
 pub struct rte_eth_mac_vlan_flow
 {
 	pub mac_addr: ether_addr,

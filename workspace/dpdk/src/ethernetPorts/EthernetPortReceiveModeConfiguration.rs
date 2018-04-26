@@ -23,14 +23,14 @@ impl Default for EthernetPortReceiveModeConfiguration
 	#[inline(always)]
 	fn default() -> Self
 	{
-		Self::defaultish(MaximumTransmissionUnitSizeInBytes::EthernetV2)
+		Self::defaultish(MaximumTransmissionUnitSize::EthernetV2)
 	}
 }
 
 impl EthernetPortReceiveModeConfiguration
 {
 	#[inline(always)]
-	pub fn defaultish(maximumTransmissionUnitSizeInBytes: MaximumTransmissionUnitSizeInBytes) -> EthernetPortReceiveModeConfiguration
+	pub fn defaultish(maximumTransmissionUnitSizeInBytes: MaximumTransmissionUnitSize) -> EthernetPortReceiveModeConfiguration
 	{
 		EthernetPortReceiveModeConfiguration
 		{

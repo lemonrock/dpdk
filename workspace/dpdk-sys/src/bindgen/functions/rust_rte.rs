@@ -69,7 +69,7 @@ extern "C"
 	pub fn rust_rte_mbuf_refcnt_set(m: *mut rte_mbuf, new_value: u16);
 	pub fn rust_rte_mbuf_refcnt_update(m: *mut rte_mbuf, value: i16) -> u16;
 	pub fn rust_rte_mbuf_to_baddr(md: *mut rte_mbuf) -> *mut c_char;
-	pub fn rust_rte_memcpy_generic(dst: *mut c_void, src: *const c_void, n: usize) -> *mut c_void;
+	pub fn rust_rte_memcpy(dst: *mut c_void, src: *const c_void, n: usize) -> *mut c_void;
 	pub fn rust_rte_mempool_cache_flush(cache: *mut rte_mempool_cache, mp: *mut rte_mempool);
 	pub fn rust_rte_mempool_default_cache(mp: *mut rte_mempool, lcore_id: c_uint) -> *mut rte_mempool_cache;
 	pub fn rust_rte_mempool_empty(mp: *const rte_mempool) -> c_int;
@@ -152,6 +152,8 @@ extern "C"
 	pub fn rust_rte_smp_mb();
 	pub fn rust_rte_timespec_to_ns(ts: *const timespec) -> u64;
 	pub fn rust_rte_validate_tx_offload(m: *const rte_mbuf) -> c_int;
+	pub fn rust_rte_vdev_device_args(dev: *const rte_vdev_device) -> *const c_char;
+	pub fn rust_rte_vdev_device_name(dev: *const rte_vdev_device) -> *const c_char;
 	pub fn rust_rte_vhost_gpa_to_vva(mem: *mut rte_vhost_memory, gpa: u64) -> u64;
 	pub fn rust_rte_vlan_insert(m: *mut *mut rte_mbuf) -> c_int;
 	pub fn rust_rte_vlan_strip(m: *mut rte_mbuf) -> c_int;

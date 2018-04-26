@@ -3,8 +3,10 @@
 
 
 use super::*;
-use super::bus::pci::DpdkPciDeviceAddress;
-use super::bus::pci::DpdkPciDeviceAddressStringParseError;
+
+
+/// Ethernet devices.
+pub mod ethernet;
 
 
 /// Virtual devices.

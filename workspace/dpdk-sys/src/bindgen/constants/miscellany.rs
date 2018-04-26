@@ -2,6 +2,8 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+pub const CTRL_MBUF_FLAG: i64 = -9223372036854775808;
+pub const IND_ATTACHED_MBUF: u64 = 4611686018427387904;
 pub const RTE_APP_EVENTDEV: u32 = 1;
 pub const RTE_ARCH: &'static [u8; 7usize] = b"x86_64\0";
 pub const RTE_CLASS_ANY_ID: u32 = 16777215;
