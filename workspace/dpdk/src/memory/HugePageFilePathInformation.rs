@@ -12,6 +12,13 @@ pub struct HugePageFilePathInformation
 
 impl HugePageFilePathInformation
 {
+	/// Does the process have access to huge pages?
+	#[inline(always)]
+	pub fn has_huge_pages() -> bool
+	{
+		unsafe { rte_eal_has_hugepages() != 0 }
+	}
+	
 	/// Create a new instance.
 	#[cfg(any(target_os = "android", target_os = "linux"))]
 	#[inline(always)]

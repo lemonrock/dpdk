@@ -60,6 +60,6 @@ impl AddressWithListOfOpenLocalLayer4Ports<Ipv6Addr>
 	#[inline(always)]
 	pub fn in6_addr(&self) -> in6_addr
 	{
-		InternetProtocolVersion6HostAddress::from_ipv6_addr_to_in6_addr(&self.internet_protocol_address)
+		InternetProtocolVersion6HostAddress::from_rust_address_to_libc_address(&self.internet_protocol_address)
 	}
 }

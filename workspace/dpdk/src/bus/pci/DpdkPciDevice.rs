@@ -18,65 +18,6 @@ impl DpdkPciDevice
 		path.push(os_str);
 		path
 	}
-
-	/// Scan.
-	#[inline(always)]
-	pub fn scan() -> Vec<Self>
-	{
-		match unsafe { rte_eal_pci_scan() }
-		{
-			0 => (),
-			negative if negative < 0 => panic!("Could not scan PCI bus, error code was '{}'", negative),
-
-			illegal @ _ => panic!("Invalid result code '{}' from rte_eal_pci_scan()", illegal),
-		};
-
-		let pci_device_list = unsafe { pci_device_list };
-
-		let first_element = pci_device_list.tqh_first;
-		let is_empty = first_element.is_null();
-		let capacity = if is_empty
-		{
-			0
-		}
-		else
-		{
-			256
-		};
-
-		let mut devices = Vec::with_capacity(capacity);
-
-		let mut element = first_element;
-		while element.is_not_null()
-		{
-			devices.push(DpdkPciDevice(unsafe { NonNull::new_unchecked(element) }));
-			let element_value = unsafe { (*element) };
-			element = element_value.next.tqe_next;
-		}
-		devices.shrink_to_fit();
-
-		devices
-	}
-	
-	/// Returns the DpdkPciDevice for an ethernet port identifier, if the port identifier is for a valid ethernet port which is based on a PCI device.
-	#[inline(always)]
-	pub fn for_ethernet_port(port_identifier: u5) -> Option<Self>
-	{
-		match EthernetPort::new(port_identifier)
-		{
-			None => None,
-			Some(ethernet_port) =>
-			{
-				let underlying_rte_eth_dev = ethernet_port.underlying_ethernet_device();
-				if underlying_rte_eth_dev.device.is_null()
-				{
-					None
-				}
-				
-				Ok(DpdkPciDevice(unsafe { NonNull::new_unchecked(rust_RTE_DEV_TO_PCI(underlying_rte_eth_dev.device)) }))
-			}
-		}
-	}
 	
 	/// Next known DpdkPciDevice.
 	#[inline(always)]
@@ -248,7 +189,7 @@ impl DpdkPciDevice
 	#[inline(always)]
 	pub fn map(&mut self) -> Option<bool>
 	{
-		match unsafe { rte_eal_pci_map_device(self.handle()) }
+		match unsafe { rte_pci_map_device(self.handle()) }
 		{
 			0 => Some(true),
 			negative if negative < 0 => Some(false),
@@ -260,14 +201,14 @@ impl DpdkPciDevice
 	#[inline(always)]
 	pub fn unmap(&mut self)
 	{
-		unsafe { rte_eal_pci_unmap_device(self.handle()) }
+		unsafe { rte_pci_unmap_device(self.handle()) }
 	}
 	
 	/// Read configuration space.
 	#[inline(always)]
 	pub fn read_configuration_space(&self, read_into: &mut [u8], offset_into_configuration_space: isize) -> Result<(), i32>
 	{
-		let result = unsafe { rte_eal_pci_read_config(self.handle(), read_into.as_mut_ptr() as *mut c_void, read_into.len(), offset_into_configuration_space as off_t) };
+		let result = unsafe { rte_pci_read_config(self.handle(), read_into.as_mut_ptr() as *mut c_void, read_into.len(), offset_into_configuration_space as off_t) };
 		if likely(result == 0)
 		{
 			Ok(())
@@ -282,7 +223,7 @@ impl DpdkPciDevice
 	#[inline(always)]
 	pub fn write_configuration_space(&self, write_from: &[u8], offset_into_configuration_space: isize) -> Result<(), i32>
 	{
-		let result = unsafe { rte_eal_pci_write_config(self.handle(), write_from.as_ptr() as *mut c_void, write_from.len(), offset_into_configuration_space as off_t) };
+		let result = unsafe { rte_pci_write_config(self.handle(), write_from.as_ptr() as *mut c_void, write_from.len(), offset_into_configuration_space as off_t) };
 		if likely(result == 0)
 		{
 			Ok(())

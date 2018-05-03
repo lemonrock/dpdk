@@ -23,32 +23,11 @@ impl<'a> DpdkDeviceArguments<'a>
 		}
 	}
 	
-	/// Either a PCI blacklisted device, a PCI whitelisted device or a virtual device (eg an ethernet bonding device).
-	#[inline(always)]
-	pub fn device_type(&self) -> rte_devtype
-	{
-		self.deref().type_
-	}
-	
 	/// Either whitelisted or blacklisted.
 	#[inline(always)]
 	pub fn policy(&self) -> rte_dev_policy
 	{
 		self.deref().policy
-	}
-	
-	/// Name (does not exceed 64 bytes).
-	#[inline(always)]
-	pub fn name(&self) -> &'a CStr
-	{
-		unsafe { CStr::from_ptr(self.deref().name) }
-	}
-	
-	/// Arguments given by user at configuration time; can be empty.
-	#[inline(always)]
-	pub fn arguments_given_by_user_at_configuration_time(&self) -> &'a CStr
-	{
-		unsafe { CStr::from_ptr(self.deref().args) }
 	}
 	
 	/// Bus, eg PCI bus, that the device resides on.

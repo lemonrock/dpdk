@@ -18,12 +18,12 @@ impl MaximumTransmissionUnitSize
 	
 	/// Minimum value for internet protocol (IP) version 4 packets.
 	///
-	/// Refer to RFC791.
+	/// Refer to RFC 791.
 	pub const MinimumValueForInternetProtocolVersion4: Self = MaximumTransmissionUnitSize(68);
 	
 	/// Minimum value for internet protocol (IP) version 6 packets.
 	///
-	/// Refer to RFC2460.
+	/// Refer to RFC 2460.
 	pub const MinimumValueForInternetProtocolVersion6: Self = MaximumTransmissionUnitSize(1280);
 	
 	/// When using DS-Lite over PPPoE over Ethernet version 2.
@@ -120,9 +120,9 @@ impl MaximumTransmissionUnitSize
 	
 	/// Decrease by provided size.
 	#[inline(always)]
-	pub fn decrease_by(&self, virtual_lan_headers_size: u16) -> Self
+	pub fn decrease_by(&self, virtual_lan_or_mac_sec_headers_size: u16) -> Self
 	{
-		MaximumTransmissionUnitSize(self.0 - virtual_lan_headers_size)
+		MaximumTransmissionUnitSize(self.0 - virtual_lan_or_mac_sec_headers_size)
 	}
 	
 	/// As u16 value.
@@ -145,7 +145,7 @@ impl MaximumTransmissionUnitSize
 	{
 		if self.requires_jumbo_frames()
 		{
-			Some(self.0 + ETHER_CRC_LEN)
+			Some(self.0 + SizeU16OfEthernetCyclicRedundancyCheck)
 		}
 		else
 		{
@@ -162,7 +162,7 @@ impl MaximumTransmissionUnitSize
 	
 	/// Packet fragment size for Internet Protocol version 6 packets.
 	///
-	/// Ensures the IP payload length of all fragments is aligned to a multiple of 8 bytes as per RFC791 section 2.3.
+	/// Ensures the IP payload length of all fragments is aligned to a multiple of 8 bytes as per RFC 791 section 2.3.
 	#[inline(always)]
 	pub fn internet_protocol_version_4_fragment_size(&self) -> u16
 	{

@@ -170,6 +170,7 @@ final_chance_to_tweak()
 		rte_bus_probe_t \
 		rte_bus_scan_t \
 		rte_eal_alarm_callback \
+		rte_eth_dev_cb_fn \
 		rte_service_func \
 	 	rte_timer_cb_t
 	do

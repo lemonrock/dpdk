@@ -8,6 +8,7 @@ use super::*;
 include!("EthernetDeviceInformation.rs");
 include!("EthernetPort.rs");
 include!("EthernetPortIdentifier.rs");
+include!("EthernetPortLinkStatusEventHandler.rs");
 include!("ReceiveBurst.rs");
 include!("ReceiveQueueIdentifier.rs");
 include!("ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes.rs");

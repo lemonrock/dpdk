@@ -9,7 +9,7 @@ impl Default for LogicalCoresActive
 {
 	fn default() -> Self
 	{
-		let mut value = [false; MaximumLogicalCores];
+		let mut value = [false; Maximum];
 		value[0] = true;
 		LogicalCoresActive(LogicalCoresActiveArray(value), 1)
 	}
@@ -57,7 +57,7 @@ impl Active for LogicalCoresActive
 {
 	type T = LogicalCore;
 	
-	const Maximum: usize = MaximumLogicalCores;
+	const Maximum: usize = Maximum;
 	
 	#[inline(always)]
 	fn constructor(index: usize) -> Self::T
@@ -74,13 +74,13 @@ impl Active for LogicalCoresActive
 	#[inline(always)]
 	fn none() -> Self
 	{
-		LogicalCoresActive(LogicalCoresActiveArray([false; MaximumLogicalCores]), 0)
+		LogicalCoresActive(LogicalCoresActiveArray([false; Maximum]), 0)
 	}
 	
 	#[inline(always)]
 	fn all() -> Self
 	{
-		LogicalCoresActive(LogicalCoresActiveArray([true; MaximumLogicalCores]), MaximumLogicalCores as u8)
+		LogicalCoresActive(LogicalCoresActiveArray([true; Maximum]), Maximum as u8)
 	}
 	
 	#[inline(always)]
@@ -114,7 +114,7 @@ impl LogicalCoresActive
 	pub fn as_hexadecimal_core_mask_c_string(&self) -> CString
 	{
 		let mut setBits = 0;
-		for index in 0..MaximumLogicalCores
+		for index in 0..Maximum
 		{
 			if self.isEnabled(index)
 			{

@@ -5,6 +5,6 @@
 use super::*;
 
 
+include!("InternetProtocolMaskBits.rs");
 include!("InternetProtocolVersion4MaskBits.rs");
 include!("InternetProtocolVersion6MaskBits.rs");
-include!("MaskBits.rs");

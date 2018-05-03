@@ -13,10 +13,10 @@ pub struct InternetProtocolVersion6NetworkAddress
 
 impl InternetProtocolNetworkAddress for InternetProtocolVersion6NetworkAddress
 {
-	type InternetProtocolHostAddress = InternetProtocolVersion6HostAddress;
+	type HostAddress = InternetProtocolVersion6HostAddress;
 	
 	#[inline(always)]
-	fn network(&self) -> &Self::InternetProtocolHostAddress
+	fn network(&self) -> &Self::HostAddress
 	{
 		&self.network
 	}
@@ -36,9 +36,19 @@ impl InternetProtocolNetworkAddress for InternetProtocolVersion6NetworkAddress
 	}
 	
 	#[inline(always)]
-	fn contains(&self, internet_protocol_host_address: Self::InternetProtocolHostAddress) -> bool
+	fn contains(&self, internet_protocol_host_address: Self::HostAddress) -> bool
 	{
-		internet_protocol_host_address.as_network_endian_u128() & (self.mask_bits as u128) == self.network.as_network_endian_u128()
+		internet_protocol_host_address.as_network_endian() & (self.mask_bits as u128) == self.network.as_network_endian()
+	}
+	
+	#[inline(always)]
+	fn new(network: Self::HostAddress, mask_bits: Self::HostAddress::MaskBits) -> Self
+	{
+		Self
+		{
+			network,
+			mask_bits,
+		}
 	}
 }
 
@@ -150,7 +160,7 @@ impl InternetProtocolVersion6NetworkAddress
 	};
 	
 	//noinspection SpellCheckingInspection
-	/// RFC2928.
+	/// RFC 2928.
 	///
 	/// Uses prefix `2001::/23`.
 	pub const AssignedIetfProtocolPrefix: Self = Self
@@ -159,7 +169,7 @@ impl InternetProtocolVersion6NetworkAddress
 		mask_bits: InternetProtocolVersion6MaskBits::_23,
 	};
 	
-	/// RFC4380 and RFC8190.
+	/// RFC 4380 and RFC 8190.
 	///
 	/// Uses prefix `2001::/32`.
 	pub const TeredoPrefix: Self = Self
@@ -168,7 +178,7 @@ impl InternetProtocolVersion6NetworkAddress
 		mask_bits: InternetProtocolVersion6MaskBits::_32,
 	};
 	
-	/// RFC5180 and RFC Errata 1752.
+	/// RFC 5180 and RFC Errata 1752.
 	///
 	/// Uses prefix `2001:2::/48`.
 	pub const BenchmarkingPrefix: Self = Self
@@ -177,7 +187,7 @@ impl InternetProtocolVersion6NetworkAddress
 		mask_bits: InternetProtocolVersion6MaskBits::_48,
 	};
 	
-	/// RFC7450.
+	/// RFC 7450.
 	///
 	/// Uses prefix `2001:3::/32`.
 	pub const AmtPrefix: Self = Self
@@ -186,7 +196,7 @@ impl InternetProtocolVersion6NetworkAddress
 		mask_bits: InternetProtocolVersion6MaskBits::_32,
 	};
 	
-	/// RFC7535.
+	/// RFC 7535.
 	///
 	/// Uses prefix `2001:4:112::/48`.
 	pub const As112V6Prefix: Self = Self
@@ -195,7 +205,7 @@ impl InternetProtocolVersion6NetworkAddress
 		mask_bits: InternetProtocolVersion6MaskBits::_48,
 	};
 	
-	/// RFC7954.
+	/// RFC 7954.
 	///
 	/// Uses prefix `2001:5::/32`.
 	pub const EidSpaceForLispPrefix: Self = Self
@@ -204,7 +214,7 @@ impl InternetProtocolVersion6NetworkAddress
 		mask_bits: InternetProtocolVersion6MaskBits::_32,
 	};
 	
-	/// RFC4843.
+	/// RFC 4843.
 	///
 	/// Uses prefix `2001:10::/28`.
 	pub const DeprecatedOrchidPrefix: Self = Self
@@ -213,7 +223,7 @@ impl InternetProtocolVersion6NetworkAddress
 		mask_bits: InternetProtocolVersion6MaskBits::_28,
 	};
 	
-	/// RFC7343.
+	/// RFC 7343.
 	///
 	/// Uses prefix `2001:20::/28`.
 	pub const OrchidV2Prefix: Self = Self
@@ -222,7 +232,7 @@ impl InternetProtocolVersion6NetworkAddress
 		mask_bits: InternetProtocolVersion6MaskBits::_28,
 	};
 	
-	/// RFC4291 (deprecated in RFC3879, defined originally in RFC3513 which itself obsoletes RFC 2373).
+	/// RFC 4291 (deprecated in RFC 3879, defined originally in RFC 3513 which itself obsoletes RFC 2373).
 	///
 	/// Uses prefix `fec0::/10`.
 	pub const DeprecatedSiteLocalUnicastPrefix: Self = Self
@@ -231,7 +241,7 @@ impl InternetProtocolVersion6NetworkAddress
 		mask_bits: InternetProtocolVersion6MaskBits::_10,
 	};
 	
-	/// Originally RFC4291 and RFC4007, updated by RFC7346.
+	/// Originally RFC 4291 and RFC 4007, updated by RFC 7346.
 	///
 	/// Uses prefix `ff::/8`.
 	pub const MulticastPrefix: Self = Self
@@ -240,7 +250,7 @@ impl InternetProtocolVersion6NetworkAddress
 		mask_bits: InternetProtocolVersion6MaskBits::_8,
 	};
 	
-	/// RFC4291.
+	/// RFC 4291.
 	///
 	/// Uses prefix `ff02:0:0:0:0:1:ff00::/104`.
 	pub const MulticastSolicitedNodePrefix: Self = Self
@@ -249,7 +259,7 @@ impl InternetProtocolVersion6NetworkAddress
 		mask_bits: InternetProtocolVersion6MaskBits::_104,
 	};
 	
-	/// RFC3849.
+	/// RFC 3849.
 	///
 	/// Uses prefix `2001:db8::/16`.
 	pub const DocumentationPrefix: Self = Self

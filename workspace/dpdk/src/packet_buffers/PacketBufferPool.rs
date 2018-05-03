@@ -29,7 +29,7 @@ pub trait PacketBufferPoolExt
 	#[inline(always)]
 	fn default_cache(self, logical_core: LogicalCore) -> *mut rte_mempool_cache
 	{
-		if self.reference().cache_size == 0 || logical_core.as_u32() >= LogicalCore::MaximumLogicalCores
+		if self.reference().cache_size == 0 || logical_core.as_u32() >= LogicalCore::Maximum
 		{
 			null_mut()
 		}

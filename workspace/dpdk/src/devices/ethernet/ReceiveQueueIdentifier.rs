@@ -15,14 +15,65 @@ impl Into<u16> for ReceiveQueueIdentifier
 	}
 }
 
+impl Into<usize> for ReceiveQueueIdentifier
+{
+	#[inline(always)]
+	fn into(self) -> usize
+	{
+		self.0 as usize
+	}
+}
+
+impl Step for ReceiveQueueIdentifier
+{
+	#[inline(always)]
+	fn steps_between(start: &Self, end: &Self) -> Option<usize>
+	{
+		u16::steps_between(&start.0, &end.0)
+	}
+	
+	#[inline(always)]
+	fn replace_one(&mut self) -> Self
+	{
+		replace(self, ReceiveQueueIdentifier(1))
+	}
+	
+	#[inline(always)]
+	fn replace_zero(&mut self) -> Self
+	{
+		replace(self, ReceiveQueueIdentifier(0))
+	}
+	
+	#[inline(always)]
+	fn add_one(&self) -> Self
+	{
+		ReceiveQueueIdentifier(self.0.add_one())
+	}
+	
+	#[inline(always)]
+	fn sub_one(&self) -> Self
+	{
+		ReceiveQueueIdentifier(self.0.sub_one())
+	}
+	
+	#[inline(always)]
+	fn add_usize(&self, n: usize) -> Option<Self>
+	{
+		self.0.add_usize(n).map(|value| ReceiveQueueIdentifier(value))
+	}
+}
+
 impl ReceiveQueueIdentifier
 {
+	/// Maximum.
+	pub const Maximum: u16 = RTE_MAX_QUEUES_PER_PORT;
+	
 	//noinspection SpellCheckingInspection
 	/// Returns an `Err(())` if the `receive_queue_identifier` is greater than or equal to `RTE_MAX_QUEUES_PER_PORT`, currently `1024`.
 	#[inline(always)]
 	pub fn new(receive_queue_identifier: u16) -> Result<Self, ()>
 	{
-		if (receive_queue_identifier as usize) >= RTE_MAX_QUEUES_PER_PORT
+		if (receive_queue_identifier as usize) >= Self::Maximum
 		{
 			Err(())
 		}
@@ -30,5 +81,19 @@ impl ReceiveQueueIdentifier
 		{
 			Ok(ReceiveQueueIdentifier(receive_queue_identifier))
 		}
+	}
+	
+	/// All possible receive queue identifiers.
+	#[inline(always)]
+	pub fn all(exclusive_maximum: u16) -> Range<Self>
+	{
+		ReceiveQueueIdentifier(0).upto(exclusive_maximum)
+	}
+	
+	/// All possible receive queue identifiers.
+	#[inline(always)]
+	pub fn upto(self, count: u16) -> Range<Self>
+	{
+		self .. ReceiveQueueIdentifier::new(self.0 + count).unwrap()
 	}
 }

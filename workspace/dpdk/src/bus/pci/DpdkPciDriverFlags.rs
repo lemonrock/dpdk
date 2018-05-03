@@ -8,10 +8,19 @@ bitflags!
 	pub struct DpdkPciDriverFlags: u32
 	{
 		/// Needs base address register mapping.
-		const NeedsBaseAddressRegisterMapping = ::dpdk_sys::RTE_PCI_DRV_NEED_MAPPING;
+		const NeedsBaseAddressRegisterMapping = RTE_PCI_DRV_NEED_MAPPING;
 		
 		/// Supports link status interrupt.
-		const SupportsLinkStatusInterrupt = ::dpdk_sys::RTE_PCI_DRV_INTR_LSC;
+		const SupportsLinkStatusInterrupt = RTE_PCI_DRV_INTR_LSC;
+		
+		/// Supports device removal interrupt.
+		const SupportsDeviceRemovalInterrupt = RTE_PCI_DRV_INTR_RMV;
+		
+		/// ?
+		const DeviceDriverNeedsToKeepMappedResourcesIfUnsupportedDeviceDetected = RTE_PCI_DRV_KEEP_MAPPED_RES;
+		
+		/// IOVA as VA.
+		const SupportsIOVirtualAddressAsVirtualAddress = RTE_PCI_DRV_IOVA_AS_VA;
 	}
 }
 

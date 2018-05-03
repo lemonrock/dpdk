@@ -30,7 +30,7 @@ impl Iterator for AllLogicalCoreIterator
 	#[inline(always)]
 	fn next(&mut self) -> Option<Self::Item>
 	{
-		while self.index < LogicalCore::MaximumLogicalCores
+		while self.index < LogicalCore::Maximum
 		{
 			if LogicalCore::is_invalid(self.index)
 			{

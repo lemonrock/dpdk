@@ -10,6 +10,7 @@
 ///
 /// Note that the ethernet frame length does not include the 8-byte ethernet preamble or the inter-packet gap (IPG 12 bytes on 100Mbit, 1 byte on 100Gbit) as these are Layer 1 overheads and an ethernet frame is logically at layer 2.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
 pub struct EthernetFrameLength(u16);
 
 impl Default for EthernetFrameLength
@@ -78,5 +79,12 @@ impl EthernetFrameLength
 	pub fn to_u16(self) -> u16
 	{
 		self.0
+	}
+	
+	/// Does this frame size imply jumbo frames?
+	#[inline(always)]
+	pub fn implies_jumbo_frames(self) -> bool
+	{
+		self > MaximumIncludingCyclicRedundancyCheckWithoutJumboFrames.0
 	}
 }

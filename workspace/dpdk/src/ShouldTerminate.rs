@@ -2,8 +2,31 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use super::*;
+/// Should the function running on the current logical core terminate?
+pub struct ShouldFunctionTerminate(AtomicBool);
 
+unsafe impl Send for ShouldFunctionTerminate
+{
+}
 
-include!("MemoryLayout.rs");
-include!("MemoryLayoutSegment.rs");
+unsafe impl Sync for ShouldFunctionTerminate
+{
+}
+
+impl ShouldFunctionTerminate
+{
+	const Sleepiness: Duration = Duration::from_millis(10);
+	
+	#[inline(always)]
+	pub fn should_terminate(&self) -> bool
+	{
+		self.0.load(Ordering::Relaxed)
+	}
+	
+	#[inline(always)]
+	pub fn sleep_and_check_should_terminate(&self) -> bool
+	{
+		sleep(Self::Sleepiness);
+		self.should_terminate()
+	}
+}

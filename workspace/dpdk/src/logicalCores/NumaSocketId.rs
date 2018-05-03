@@ -289,7 +289,7 @@ impl NumaSocketId
 	pub fn findInstalledNumberOfNumaSockets() -> usize
 	{
 		let mut currentMaximum = NumaSocketId::SocketZeroAlwaysExists;
-		for logicalCoreIdentifier in 0..(MaximumLogicalCores as u32)
+		for logicalCoreIdentifier in 0..(Maximum as u32)
 		{
 			if let Some(numa_socket_id) = LogicalCore(logicalCoreIdentifier).optionalNumaSocketId()
 			{
@@ -304,7 +304,7 @@ impl NumaSocketId
 	}
 
 	#[inline(always)]
-	pub fn choose<'a, V>(&'a self, from: &'a [V; NumaNode::MaximumNumaSockets]) -> &V
+	pub fn choose<'a, V>(&'a self, from: &'a [V; NumaNode::Maximum]) -> &V
 	{
 		&from[self.0 as usize]
 	}

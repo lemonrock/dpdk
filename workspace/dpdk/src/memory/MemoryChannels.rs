@@ -20,3 +20,24 @@ pub enum MemoryChannels
 	#[allow(missing_docs)]
 	Four = 4,
 }
+
+impl MemoryChannels
+{
+	/// Configured number of memory channels.
+	///
+	/// Returns None if differs across memory segments or devices.
+	#[inline(always)]
+	pub fn configured_number_of_memory_channels() -> Option<MemoryChannels>
+	{
+		let channels = unsafe { rte_memory_get_nchannel() };
+		if channels == 0
+		{
+			return None
+		}
+		if channels > 4
+		{
+			panic!("Invalid number of memory channels '{}'", channels)
+		}
+		Some(unsafe { transmute(channels) })
+	}
+}

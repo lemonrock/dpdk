@@ -8,45 +8,6 @@ pub struct DpdkPciDriver(NonNull<rte_pci_driver>);
 
 impl DpdkPciDriver
 {
-	/// Probe.
-	#[inline(always)]
-	pub fn probe() -> Vec<Self>
-	{
-		match unsafe { rte_eal_pci_probe() }
-		{
-			0 => (),
-			negative if negative < 0 => panic!("Could not probe PCI bus, error code was '{}'", negative),
-
-			illegal @ _ => panic!("Invalid result code '{}' from rte_eal_pci_probe()", illegal),
-		};
-
-		let pci_driver_list = unsafe { pci_driver_list };
-
-		let first_element = pci_driver_list.tqh_first;
-		let is_empty = first_element.is_null();
-		let capacity = if is_empty
-		{
-			0
-		}
-		else
-		{
-			256
-		};
-
-		let mut drivers = Vec::with_capacity(capacity);
-
-		let mut element = first_element;
-		while element.is_not_null()
-		{
-			drivers.push(DpdkPciDriver(unsafe { NonNull::new_unchecked(element) }));
-			let element_value = unsafe { (*element) };
-			element = element_value.next.tqe_next;
-		}
-		drivers.shrink_to_fit();
-
-		drivers
-	}
-	
 	/// Name.
 	#[inline(always)]
 	pub fn name(&self) -> &'static str
@@ -69,14 +30,14 @@ impl DpdkPciDriver
 	#[inline(always)]
 	pub fn register(&self)
 	{
-		unsafe { rte_eal_pci_register(self.handle()) }
+		unsafe { rte_pci_register(self.handle()) }
 	}
 	
 	/// Unregister.
 	#[inline(always)]
 	pub fn unregister(&self)
 	{
-		unsafe { rte_eal_pci_unregister(self.handle()) }
+		unsafe { rte_pci_unregister(self.handle()) }
 	}
 	
 	#[inline(always)]

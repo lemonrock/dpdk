@@ -323,7 +323,6 @@ impl EthernetPacket
 	fn process_internet_protocol_version_4(&mut self, packet: PacketBuffer, packet_processing_configuration_by_virtual_lan: &PacketProcessingConfigurationByVirtualLan)
 	{
 		let (packet_processing_configuration, layer_3_length, source_ethernet_address, destination_ethernet_address) = guard_ethernet_addresses_and_compute_packet_length!(packet, packet_processing_configuration_by_virtual_lan);
-		
 		self.layer_3_packet().process_internet_protocol_version_4(packet, packet_processing_configuration, layer_3_length, source_ethernet_address, destination_ethernet_address)
 	}
 	
@@ -331,16 +330,19 @@ impl EthernetPacket
 	fn process_internet_protocol_version_6(&mut self, packet: PacketBuffer, packet_processing_configuration_by_virtual_lan: &PacketProcessingConfigurationByVirtualLan)
 	{
 		let (packet_processing_configuration, layer_3_length, source_ethernet_address, destination_ethernet_address) = guard_ethernet_addresses_and_compute_packet_length!(packet, packet_processing_configuration_by_virtual_lan);
-		
 		self.layer_3_packet().process_internet_protocol_version_6(packet, packet_processing_configuration, layer_3_length, source_ethernet_address, destination_ethernet_address)
 	}
 	
 	#[inline(always)]
-	fn process_address_resolution_protocol(&mut self, packet: PacketBuffer, packet_processing_configuration_by_virtual_lan: &PacketProcessingConfigurationByVirtualLan)
+	fn process_address_resolution_protocol(&mut self, packet: PacketBuffer, _packet_processing_configuration_by_virtual_lan: &PacketProcessingConfigurationByVirtualLan)
 	{
-		let (packet_processing_configuration, layer_3_length, source_ethernet_address, destination_ethernet_address) = guard_ethernet_addresses_and_compute_packet_length!(packet, packet_processing_configuration_by_virtual_lan);
+//		let (packet_processing_configuration, layer_3_length, source_ethernet_address, destination_ethernet_address) = guard_ethernet_addresses_and_compute_packet_length!(packet, packet_processing_configuration_by_virtual_lan);
+//		self.layer_3_packet().process_address_resolution_protocol(packet, packet_processing_configuration, layer_3_length, source_ethernet_address, destination_ethernet_address)
 		
-		self.layer_3_packet().process_address_resolution_protocol(packet, packet_processing_configuration, layer_3_length, source_ethernet_address, destination_ethernet_address)
+		// At this point in time, we do not support ARP as (a) it is insecure and (b) can not communicate the maximum ethernet frame length supported by the destination.
+		// If DPDK develops support for MACsec, then we may make use of it.
+		
+		finish!(packet);
 	}
 	
 	#[inline(always)]

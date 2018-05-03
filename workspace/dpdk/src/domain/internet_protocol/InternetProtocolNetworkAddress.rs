@@ -3,14 +3,23 @@
 
 
 /// An internet protocol (IP) network address, either version 4 or version 6.
-pub trait InternetProtocolNetworkAddress
+pub trait InternetProtocolNetworkAddress: Sized
 {
 	/// Associated Internet Protocol (IP) host address, either version 4 or 6.
-	type InternetProtocolHostAddress: Sized;
+	type HostAddress: InternetProtocolHostAddress;
 	
 	/// Network information.
 	#[inline(always)]
-	fn network(&self) -> &Self::InternetProtocolHostAddress;
+	fn network(&self) -> &Self::HostAddress;
+	
+	/// Number of mask bits, one based.
+	///
+	/// eg `/24` would be `24`.
+	#[inline(always)]
+	fn mask_bits_as_depth_u32(&self) -> u32
+	{
+		self.mask_bits_as_depth() as u32
+	}
 	
 	/// Number of mask bits, one based.
 	///
@@ -22,5 +31,9 @@ pub trait InternetProtocolNetworkAddress
 	///
 	/// In other words, is the given `internet_protocol_host_address` prefixed by this network address?
 	#[inline(always)]
-	fn contains(&self, internet_protocol_host_address: Self::InternetProtocolHostAddress) -> bool;
+	fn contains(&self, internet_protocol_host_address: Self::HostAddress) -> bool;
+	
+	/// Creates new instance.
+	#[inline(always)]
+	fn new(network: Self::InternetProtocolHostAddress, mask_bits: Self::HostAddress::MaskBits) -> Self;
 }

@@ -12,8 +12,8 @@ pub union Layer3Packet
 	/// An internet protocol (IP) version 6 packet.
 	pub internet_protocol_version_6_packet: InternetProtocolVersion6Packet,
 	
-	/// An address resolution protocol (ARP) packet.
-	pub address_resolution_protocol_packet: AddressResolutionProtocolPacket,
+//	/// An address resolution protocol (ARP) packet.
+//	pub address_resolution_protocol_packet: AddressResolutionProtocolPacket,
 	
 	/// Other kinds of layer 3 packets, not differentiated.
 	pub other: PhantomData<u8>,
@@ -80,21 +80,21 @@ impl Layer3Packet
 		}
 	}
 	
-	#[inline(always)]
-	pub(crate) fn process_address_resolution_protocol(&mut self, packet: PacketBuffer, packet_processing_configuration: &PacketProcessingConfiguration, layer_3_length: u16, source_ethernet_address: &MediaAccessControlAddress, destination_ethernet_address: &MediaAccessControlAddress)
-	{
-		if unlikely(layer_3_length < (size_of::<AddressResolutionProtocolPacketHeader>() as u16))
-		{
-			finish!(packet)
-		}
-		
-		let address_resolution_protocol_packet = unsafe { &mut self.address_resolution_protocol_packet };
-		
-		if unlikely(address_resolution_protocol_packet.is_header_invalid_for_internet_protocol_version_4(layer_3_length))
-		{
-			finish!(packet)
-		}
-		
-		address_resolution_protocol_packet.process(packet, packet_processing_configuration, source_ethernet_address: &MediaAccessControlAddress, destination_ethernet_address: &MediaAccessControlAddress)
-	}
+//	#[inline(always)]
+//	pub(crate) fn process_address_resolution_protocol(&mut self, packet: PacketBuffer, packet_processing_configuration: &PacketProcessingConfiguration, layer_3_length: u16, source_ethernet_address: &MediaAccessControlAddress, destination_ethernet_address: &MediaAccessControlAddress)
+//	{
+//		if unlikely(layer_3_length < (size_of::<AddressResolutionProtocolPacketHeader>() as u16))
+//		{
+//			finish!(packet)
+//		}
+//
+//		let address_resolution_protocol_packet = unsafe { &mut self.address_resolution_protocol_packet };
+//
+//		if unlikely(address_resolution_protocol_packet.is_header_invalid_for_internet_protocol_version_4(layer_3_length))
+//		{
+//			finish!(packet)
+//		}
+//
+//		address_resolution_protocol_packet.process(packet, packet_processing_configuration, source_ethernet_address: &MediaAccessControlAddress, destination_ethernet_address: &MediaAccessControlAddress)
+//	}
 }

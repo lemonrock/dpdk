@@ -63,7 +63,7 @@ impl InternetControlMessageProtocolPacket
 		provided_checksum != calculated_checksum
 	}
 	
-	/// RFC1071.
+	/// RFC 1071.
 	#[inline(always)]
 	fn calculate_internet_checksum_native_endian(network_byte_order_bytes: &[u8], initial_sum: u32) -> u16
 	{
@@ -105,7 +105,7 @@ impl InternetControlMessageProtocolPacket
 
 /// This is a specialized structure designed to represent a buffer of packet data.
 ///
-/// See RFC792.
+/// See RFC 792.
 #[repr(C, packed)]
 pub union InternetControlMessageProtocolPacketPayload
 {

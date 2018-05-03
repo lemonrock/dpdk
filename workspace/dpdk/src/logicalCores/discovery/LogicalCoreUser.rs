@@ -23,7 +23,7 @@ impl LogicalCoreUser
 	{
 		assert_ne!(wouldLikeToMakeUseOf, 0, "wouldLikeToMakeUseOf can not be zero");
 
-		let canMakeUseOf = min(wouldLikeToMakeUseOf, MaximumLogicalCores);
+		let canMakeUseOf = min(wouldLikeToMakeUseOf, Maximum);
 
 		LogicalCoreUser
 		{

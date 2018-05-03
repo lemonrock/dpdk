@@ -6,7 +6,7 @@
 #[derive(Serialize, Deserialize)]
 pub struct NumaSocketMap<V: Sized>
 {
-	map: [Option<V>; NumaNode::MaximumNumaSockets],
+	map: [Option<V>; NumaNode::Maximum],
 	defaultKey: Option<NumaSocketId>,
 }
 
@@ -38,7 +38,7 @@ impl<V: Sized> NumaSocketMap<V>
 	pub fn iterate<F>(&self, mut callback: F)
 	where F: FnMut(NumaSocketId, &V) -> ()
 	{
-		for index in 0..NumaNode::MaximumNumaSockets
+		for index in 0..NumaNode::Maximum
 		{
 			if let Some(ref value) = self.map[index]
 			{
@@ -70,7 +70,7 @@ impl<V: Sized> NumaSocketMap<V>
 	#[inline(always)]
 	pub fn lowestKey(&self) -> Option<NumaSocketId>
 	{
-		for index in 0..NumaNode::MaximumNumaSockets
+		for index in 0..NumaNode::Maximum
 		{
 			let value = &self.map[index];
 			if value.is_some()

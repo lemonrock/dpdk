@@ -147,7 +147,7 @@ impl VirtualLanConfiguration
 			let (tcpContext, tcpDevice) = ipV6AddressConfiguration.createTcpContextAndDevice(ethernetPort, logicalCoreMemorySocket, udpFragmentsAndTcpControlPacketBufferPool, ipV6Address, virtualLanTagging);
 			let (udpContext, udpDevice) = ipV6AddressConfiguration.createUdpContextAndDevice(ethernetPort, logicalCoreMemorySocket, udpFragmentsAndTcpControlPacketBufferPool, ipV6Address, virtualLanTagging);
 
-			ourIpV6Addresses.insert(InternetProtocolVersion6HostAddress::from_ipv6_addr(ipV6Address), IpAddressInformation
+			ourIpV6Addresses.insert(InternetProtocolVersion6HostAddress::from_rust_address(ipV6Address), IpAddressInformation
 			{
 				ourEthernetAddress: ethernetAddress,
 				tcpContext,

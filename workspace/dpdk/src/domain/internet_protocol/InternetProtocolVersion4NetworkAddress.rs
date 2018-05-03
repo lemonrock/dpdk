@@ -7,16 +7,16 @@
 #[derive(Serialize, Deserialize)]
 pub struct InternetProtocolVersion4NetworkAddress
 {
-	pub network: InternetProtocolVersion4HostAddress,
-	pub mask_bits: InternetProtocolVersion4MaskBits,
+	network: InternetProtocolVersion4HostAddress,
+	mask_bits: InternetProtocolVersion4MaskBits,
 }
 
 impl InternetProtocolNetworkAddress for InternetProtocolVersion4NetworkAddress
 {
-	type InternetProtocolHostAddress = InternetProtocolVersion4HostAddress;
+	type HostAddress = InternetProtocolVersion4HostAddress;
 	
 	#[inline(always)]
-	fn network(&self) -> &Self::InternetProtocolHostAddress
+	fn network(&self) -> &Self::HostAddress
 	{
 		&self.network
 	}
@@ -36,9 +36,19 @@ impl InternetProtocolNetworkAddress for InternetProtocolVersion4NetworkAddress
 	}
 	
 	#[inline(always)]
-	fn contains(&self, internet_protocol_host_address: Self::InternetProtocolHostAddress) -> bool
+	fn contains(&self, internet_protocol_host_address: Self::HostAddress) -> bool
 	{
-		internet_protocol_host_address.as_network_endian_u32() & (self.mask_bits as u32) == self.network.as_network_endian_u32()
+		internet_protocol_host_address.as_network_endian() & (self.mask_bits as u32) == self.network.as_network_endian()
+	}
+	
+	#[inline(always)]
+	fn new(network: Self::HostAddress, mask_bits: Self::HostAddress::MaskBits) -> Self
+	{
+		Self
+		{
+			network,
+			mask_bits,
+		}
 	}
 }
 
@@ -122,4 +132,31 @@ impl InternetProtocolVersion4NetworkAddress
 		network: InternetProtocolVersion4HostAddress([169, 254, 0, 0]),
 		mask_bits: InternetProtocolVersion4MaskBits::_16,
 	};
+	
+	/// Is this address invalid for this network because it ends in a zero or is the reserved network broadcast address?
+	#[inline(always)]
+	pub fn is_invalid_unicast_for_network(&self, internet_protocol_host_address: Self::HostAddress) -> bool
+	{
+		if self.contains(internet_protocol_host_address)
+		{
+			self.is_first_address(internet_protocol_host_address) || self.is_broadcast_address(internet_protocol_host_address)
+		}
+		else
+		{
+			false
+		}
+	}
+	
+	#[inline(always)]
+	fn is_first_address(&self, internet_protocol_host_address: Self::HostAddress) -> bool
+	{
+		self.network.as_network_endian() == internet_protocol_host_address.as_network_endian()
+	}
+	
+	#[inline(always)]
+	fn is_broadcast_address(&self, internet_protocol_host_address: Self::HostAddress) -> bool
+	{
+		let inverse_mask_bits = !(self.mask_bits as u32);
+		internet_protocol_host_address.as_network_endian() & inverse_mask_bits == inverse_mask_bits
+	}
 }

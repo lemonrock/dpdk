@@ -40,6 +40,8 @@
       <w>giga</w>
       <w>hpet</w>
       <w>hugetlbs</w>
+      <w>hyperthread</w>
+      <w>hyperthreads</w>
       <w>hypervisor</w>
       <w>icmp</w>
       <w>ieee</w>
@@ -67,6 +69,7 @@
       <w>multicast</w>
       <w>namesize</w>
       <w>netronome</w>
+      <w>nics</w>
       <w>numa</w>
       <w>ordermap</w>
       <w>pktmbuf</w>
@@ -95,6 +98,7 @@
       <w>timestamping</w>
       <w>tldk</w>
       <w>toeplitz</w>
+      <w>treebitmap</w>
       <w>trtcm</w>
       <w>txconf</w>
       <w>uint</w>

@@ -5,10 +5,6 @@
 use super::*;
 
 
-/// Memory layout.
-pub mod layout;
-
-
 /// Memory zones.
 pub mod zones;
 
@@ -22,3 +18,4 @@ include!("Memory.rs");
 include!("MemoryChannels.rs");
 include!("MemoryLimits.rs");
 include!("MemoryRanks.rs");
+include!("VirtualAddress.rs");

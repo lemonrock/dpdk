@@ -15,14 +15,65 @@ impl Into<u16> for TransmitQueueIdentifier
 	}
 }
 
+impl Into<usize> for TransmitQueueIdentifier
+{
+	#[inline(always)]
+	fn into(self) -> usize
+	{
+		self.0 as usize
+	}
+}
+
+impl Step for TransmitQueueIdentifier
+{
+	#[inline(always)]
+	fn steps_between(start: &Self, end: &Self) -> Option<usize>
+	{
+		u16::steps_between(&start.0, &end.0)
+	}
+	
+	#[inline(always)]
+	fn replace_one(&mut self) -> Self
+	{
+		replace(self, ReceiveQueueIdentifier(1))
+	}
+	
+	#[inline(always)]
+	fn replace_zero(&mut self) -> Self
+	{
+		replace(self, ReceiveQueueIdentifier(0))
+	}
+	
+	#[inline(always)]
+	fn add_one(&self) -> Self
+	{
+		ReceiveQueueIdentifier(self.0.add_one())
+	}
+	
+	#[inline(always)]
+	fn sub_one(&self) -> Self
+	{
+		ReceiveQueueIdentifier(self.0.sub_one())
+	}
+	
+	#[inline(always)]
+	fn add_usize(&self, n: usize) -> Option<Self>
+	{
+		self.0.add_usize(n).map(|value| ReceiveQueueIdentifier(value))
+	}
+}
+
 impl TransmitQueueIdentifier
 {
+	/// Maximum.
+	pub const Maximum: u16 = RTE_MAX_QUEUES_PER_PORT;
+	
 	//noinspection SpellCheckingInspection
 	/// Returns an `Err(())` if the `transmit_queue_identifier` is greater than or equal to `RTE_MAX_QUEUES_PER_PORT`, currently `1024`.
 	#[inline(always)]
 	pub fn new(transmit_queue_identifier: u16) -> Result<Self, ()>
 	{
-		if (transmit_queue_identifier as usize) >= RTE_MAX_QUEUES_PER_PORT
+		if (transmit_queue_identifier as usize) >= Self::Maximum
 		{
 			Err(())
 		}
@@ -30,5 +81,12 @@ impl TransmitQueueIdentifier
 		{
 			Ok(TransmitQueueIdentifier(transmit_queue_identifier))
 		}
+	}
+	
+	/// All possible transmit queue identifiers.
+	#[inline(always)]
+	pub fn all(exclusive_maximum: u16) -> Range<Self>
+	{
+		TransmitQueueIdentifier(0) .. TransmitQueueIdentifier::new(exclusive_maximum).unwrap()
 	}
 }

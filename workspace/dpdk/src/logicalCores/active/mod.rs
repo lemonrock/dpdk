@@ -5,7 +5,7 @@
 use super::*;
 
 
-// Relies on MaximumLogicalCores == 256
+// Relies on Maximum == 256
 pub use ::rust_extra::arrays::Array256 as LogicalCoresActiveArray;
 
 

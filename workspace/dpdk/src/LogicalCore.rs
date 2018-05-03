@@ -71,8 +71,8 @@ impl Into<usize> for LogicalCore
 
 impl LogicalCore
 {
-	/// Maximum number of Logical cores.
-	pub const MaximumLogicalCores: usize = RTE_MAX_LCORE;
+	/// Maximum number of `LogicalCore`s.
+	pub const Maximum: usize = RTE_MAX_LCORE;
 	
 	/// Creates a new instance.
 	///
@@ -80,7 +80,7 @@ impl LogicalCore
 	///
 	/// Returns an error if this logical core is not for use by DPDK EAL.
 	///
-	/// Panics if this logical core equals or exceeds `MaximumLogicalCores`.
+	/// Panics if this logical core equals or exceeds `Maximum`.
 	#[inline(always)]
 	pub fn from_u16(value: u16) -> Result<Self, ()>
 	{
@@ -97,7 +97,7 @@ impl LogicalCore
 	#[inline(always)]
 	pub(crate) fn is_invalid(value: u16) -> bool
 	{
-		debug_assert!((value as usize) < Self::MaximumLogicalCores, "value '{}' exceeds Self::MaximumLogicalCores '{}'", value, Self::MaximumLogicalCores);
+		debug_assert!((value as usize) < Self::Maximum, "value '{}' exceeds Self::Maximum '{}'", value, Self::Maximum);
 		
 		Self::logical_core_global_configuration()[value as usize].core_index < 0
 	}
@@ -143,6 +143,22 @@ impl LogicalCore
 		}
 	}
 	
+	/// Gets the number of logical cores.
+	#[inline(always)]
+	pub fn number_of_logical_cores() -> usize
+	{
+		DpdkProcess::global_configuration().lcore_count
+	}
+	
+	/// Gets the number of logical cores.
+	///
+	/// Should be equal to or (usually) smaller than `Self::number_of_logical_cores()`.
+	#[inline(always)]
+	pub fn number_of_service_cores() -> usize
+	{
+		DpdkProcess::global_configuration().service_lcore_count
+	}
+	
 	/// Gets the master logical core.
 	#[inline(always)]
 	pub fn master() -> Self
@@ -150,6 +166,51 @@ impl LogicalCore
 		let master = DpdkProcess::global_configuration().master_lcore;
 		debug_assert!(master <= (::std::u16::MAX as u32), "master '{}' is larger than ::std::u16::MAX", master, ::std::u16::MAX);
 		LogicalCore::from_u16(master)
+	}
+	
+	/// The number of service cores.
+	#[inline(always)]
+	pub fn number_of_logical_cores_used_as_service_cores() -> usize
+	{
+		let result = unsafe { rte_service_lcore_count() };
+		if likely(result >= 0)
+		{
+			result as usize
+		}
+		else
+		{
+			panic!("rte_service_lcore_count failed")
+		}
+	}
+	
+	/// List of all current logical cores used as service cores.
+	///
+	/// Result is out-of-date if `add_to_logical_cores_used_as_service_cores()` or `remove_from_logical_cores_used_as_service_cores()` is called.
+	///
+	/// Size of result is the same as `self.number_of_logical_core_used_as_service_cores()`.
+	#[inline(always)]
+	pub fn list_service_logical_cores() -> Vec<LogicalCore>
+	{
+		let mut array: [u32; LogicalCore::Maximum] = unsafe { uninitialized() };
+		
+		let result = unsafe { rte_service_lcore_list(array.as_mut_ptr(), array.len() as u32) };
+		if likely(result >= 0)
+		{
+			let count = result as usize;
+			let populated = array[0 .. (count)];
+			let mut list = Vec::with_capacity(count);
+			let mut index = 0;
+			while index < count
+			{
+				list.push(LogicalCore::from_u16(array[index] as u16));
+				index += 1;
+			}
+			list
+		}
+		else
+		{
+			panic!("rte_service_lcore_list failed");
+		}
 	}
 	
 	/// Gets if the logical core role is normal.
@@ -187,51 +248,6 @@ impl LogicalCore
 		else
 		{
 			None
-		}
-	}
-	
-	/// The number of service cores.
-	#[inline(always)]
-	pub fn number_of_logical_core_used_as_service_cores() -> usize
-	{
-		let result = unsafe { rte_service_lcore_count() };
-		if likely(result >= 0)
-		{
-			result as usize
-		}
-		else
-		{
-			panic!("rte_service_lcore_count failed")
-		}
-	}
-	
-	/// List of all current logical cores used as service cores.
-	///
-	/// Result is out-of-date if `add_to_logical_cores_used_as_service_cores()` or `remove_from_logical_cores_used_as_service_cores()` is called.
-	///
-	/// Size of result is the same as `self.number_of_logical_core_used_as_service_cores()`.
-	#[inline(always)]
-	pub fn list_service_logical_cores() -> Vec<LogicalCore>
-	{
-		let mut array: [u32; LogicalCore::MaximumLogicalCores] = unsafe { uninitialized() };
-		
-		let result = unsafe { rte_service_lcore_list(array.as_mut_ptr(), array.len() as u32) };
-		if likely(result >= 0)
-		{
-			let count = result as usize;
-			let populated = array[0 .. (count)];
-			let mut list = Vec::with_capacity(count);
-			let mut index = 0;
-			while index < count
-			{
-				list.push(LogicalCore::from_u16(array[index] as u16));
-				index += 1;
-			}
-			list
-		}
-		else
-		{
-			panic!("rte_service_lcore_list failed");
 		}
 	}
 	
@@ -325,22 +341,6 @@ impl LogicalCore
 				unexpected @ _ => panic!("Unexpected '{}' from rte_service_lcore_stop()", unexpected),
 			}
 		}
-	}
-	
-	/// Gets the number of logical cores.
-	#[inline(always)]
-	pub fn number_of_logical_cores() -> usize
-	{
-		DpdkProcess::global_configuration().lcore_count
-	}
-	
-	/// Gets the number of logical cores.
-	///
-	/// Should be equal to or (usually) smaller than `Self::number_of_logical_cores()`.
-	#[inline(always)]
-	pub fn number_of_service_cores() -> usize
-	{
-		DpdkProcess::global_configuration().service_lcore_count
 	}
 	
 	/// Contiguous index.
@@ -519,7 +519,7 @@ impl LogicalCore
 	///
 	/// From a DPDK global static.
 	#[inline(always)]
-	fn logical_core_global_configuration() -> &'static mut [lcore_config; Self::MaximumLogicalCores]
+	fn logical_core_global_configuration() -> &'static mut [lcore_config; Self::Maximum]
 	{
 		unsafe { &mut lcore_config }
 	}

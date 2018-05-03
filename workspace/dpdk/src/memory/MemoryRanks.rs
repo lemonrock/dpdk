@@ -56,3 +56,24 @@ pub enum MemoryRanks
 	#[allow(missing_docs)]
 	Sixteen = 16,
 }
+
+impl MemoryRanks
+{
+	/// Configured number of memory ranks.
+	///
+	/// Returns None if differs across memory segments or devices.
+	#[inline(always)]
+	pub fn configured_number_of_memory_ranks() -> Option<MemoryRanks>
+	{
+		let ranks = unsafe { rte_memory_get_nrank() };
+		if ranks == 0
+		{
+			return None
+		}
+		if ranks > 16
+		{
+			panic!("Invalid number of memory ranks '{}'", ranks)
+		}
+		Some(unsafe { transmute(ranks) })
+	}
+}

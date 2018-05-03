@@ -2,18 +2,14 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// This is a specialized structure designed to represent a buffer of packet data.
-#[repr(C, packed)]
-pub struct InternetControlMessageProtocolPacketHeader
+/// Contains the essential properties needed for an outgoing ethernet destination.
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
+pub struct EthernetDestination
 {
-	/// Type.
-	pub type_: InternetControlMessageProtocolType,
+	/// The destination's media access control address.
+	pub media_access_control_address: MediaAccessControlAddress,
 	
-	/// The meaning of code depends on type.
-	pub code: u8,
-	
-	/// The checksum includes the payload.
-	///
-	/// This is a RFC 1071 internet checksum.
-	pub checksum: NetworkByteOrderEndianU16,
+	/// The destination's ethernet frame length.
+	#[serde(default)] pub ethernet_frame_length: EthernetFrameLength,
 }

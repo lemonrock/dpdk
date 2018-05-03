@@ -354,13 +354,6 @@ pub trait PacketBufferExt: PrintInformation
 		self.has_offload_flag(IND_ATTACHED_MBUF)
 	}
 	
-	/// Is this a control buffer (`CTRL_MBUF`)?
-	#[inline(always)]
-	fn is_this_a_control_buffer(self) -> bool
-	{
-		self.has_offload_flag(CTRL_MBUF_FLAG)
-	}
-	
 	/// Packet length.
 	///
 	/// Is the sum of the `data_length()` of all segments.

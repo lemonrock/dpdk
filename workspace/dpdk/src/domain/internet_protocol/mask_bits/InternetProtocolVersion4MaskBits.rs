@@ -164,7 +164,7 @@ pub enum InternetProtocolVersion4MaskBits
 	#[cfg(target_endian = "little")] _32 = 0xFFFFFFFF,
 }
 
-impl MaskBits for InternetProtocolVersion4MaskBits
+impl InternetProtocolMaskBits for InternetProtocolVersion4MaskBits
 {
 	type InternetProtocolHostAddress = InternetProtocolVersion4HostAddress;
 }

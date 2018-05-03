@@ -8,11 +8,18 @@
 pub struct MemoryLimits
 {
 	/// Adjust as desired.
-	pub per_numa_node_memory_in_megabytes: [Option<u31>; NumaNode::MaximumNumaSockets],
+	pub per_numa_node_memory_in_megabytes: [Option<u31>; NumaNode::Maximum],
 }
 
 impl MemoryLimits
 {
+	/// Configured physical memory size in bytes.
+	#[inline(always)]
+	pub fn configured_physical_memory_size_in_bytes() -> usize
+	{
+		unsafe { rte_eal_get_physmem_size() }
+	}
+	
 	// If not a NUMA machine, total memory is memory assigned to first valid Numa Socket (usually zero).
 	// If there are no valid sockets, or the memory total is zero, then None is returned.
 	// If total exceeds 512Gb, capped at 512Gb.
@@ -23,7 +30,7 @@ impl MemoryLimits
 		let memory_total = if numa_sockets.isANumaMachine
 		{
 			let mut memory_total = 0;
-			for numaMemoryIndex in 0..NumaNode::MaximumNumaSockets
+			for numaMemoryIndex in 0..NumaNode::Maximum
 			{
 				if let Some(megabytes) = self.per_numa_node_memory_in_megabytes[numaMemoryIndex]
 				{
@@ -38,7 +45,7 @@ impl MemoryLimits
 		else
 		{
 			let mut memory_total = 0;
-			for index in 0..NumaNode::MaximumNumaSockets
+			for index in 0..NumaNode::Maximum
 			{
 				if let Some(megabytes) = self.per_numa_node_memory_in_megabytes[index]
 				{
@@ -60,7 +67,7 @@ impl MemoryLimits
 	// Need to pass in valid numa nodes to do this.
 	pub(crate) fn as_initialisation_string_if_is_a_numa_machine(&self, use_huge_pages: bool, numa_sockets: &NumaSockets) -> (Option<CString>, Option<u31>)
 	{
-		const SOCKET_MEM_STRLEN: usize = NumaNode::MaximumNumaSockets * 10;
+		const SOCKET_MEM_STRLEN: usize = NumaNode::Maximum * 10;
 		
 		if use_huge_pages && numa_sockets.isANumaMachine
 		{
@@ -68,7 +75,7 @@ impl MemoryLimits
 			
 			let mut numaMemoryString = String::with_capacity(SOCKET_MEM_STRLEN);
 			let mut hasValidEntries = false;
-			for numaMemoryIndex in 0..NumaNode::MaximumNumaSockets
+			for numaMemoryIndex in 0..NumaNode::Maximum
 			{
 				if likely(numaMemoryIndex != 0)
 				{

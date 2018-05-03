@@ -9,6 +9,11 @@
 
 //! #dpdk
 //! Mid-level wrappers around some DPDK features.
+//!
+//! Only compiles for:-
+//!
+//! * Android / Linux, on AArch64, arm v7, PowerPC 64-bit (recent), x86-64 and x86, although only x86-64 is tested for.
+//! * FreeBSD, x86-64.
 
 
 #[cfg(any(all(any(target_os = "android", target_os = "linux"), any(target_arch = "aarch64", target_arch = "arm", target_arch = "powerpc64", target_arch = "x86", target_arch = "x86_64")), all(target_os = "freebsd", target_arch = "x86_64")))] include!("lib.cfg.rs");

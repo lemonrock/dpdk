@@ -5,8 +5,8 @@
 use super::*;
 
 
-/// Address Resolution Protocol (ARP).
-pub mod address_resolution_protocol;
+///// Address Resolution Protocol (ARP).
+//pub mod address_resolution_protocol;
 
 /// Ethernet.
 pub mod ethernet;

@@ -21,51 +21,47 @@ impl Default
 	}
 }
 
-impl InternetProtocolVersion4HostAddress
+/// A trait abstracting the similarities between internet protocol (IP) version 4 and version 6 host addresses.
+impl InternetProtocolHostAddress for InternetProtocolVersion4HostAddress
 {
-	/// Size of an Internet Protocol (IP) Version 4 host address.
-	pub const Size: usize = 4;
+	type BigEndianValue = u32;
 	
-	/// Size of an Internet Protocol (IP) Version 4 host address (as an u8).
-	pub const SizeU8: usize = Self::Size as u8;
+	type RustAddress = Ipv4Addr;
 	
-	/// Unspecified (Any) address.
-	pub const Unspecified: Self = InternetProtocolVersion4HostAddress([0, 0, 0, 0]);
+	type LibCAddress = in_addr;
 	
-	/// Broadcast address.
-	pub const Broadcast: Self = InternetProtocolVersion4HostAddress([255, 255, 255, 255]);
+	type MaskBits = InternetProtocolVersion4MaskBits;
 	
-	/// From a network (big) endian u32.
+	const Size: usize = 4;
+	
+	const SizeU8: usize = 4;
+	
 	#[inline(always)]
-	pub fn from_network_endian(big_endian_value: u32) -> Self
+	fn from_octets(octets: [u8; Self::Size]) -> Self
 	{
-		Self::from_octets(unsafe { transmute(big_endian_value) })
+		InternetProtocolVersion6HostAddress(octets)
 	}
 	
-	/// From octets.
 	#[inline(always)]
-	pub fn from_octets(octets: [u8; Self::Size]) -> Self
+	fn from_rust_address_to_libc_address(rust_address: &Self::RustAddress) -> Self::LibCAddress
 	{
-		InternetProtocolVersion4HostAddress(octets)
+		unsafe { transmute_copy(rust_address) }
 	}
 	
-	/// From an `Ipv4Addr` to an `in_addr`.
 	#[inline(always)]
-	pub fn from_ipv4_addr_to_in_addr(ipv4_addr: &Ipv4Addr) -> in_addr
+	fn from_rust_address(rust_address: &Self::RustAddress) -> Self
 	{
-		unsafe { transmute_copy(ipv4_addr) }
+		unsafe { transmute_copy(rust_address) }
 	}
 	
-	/// From an `Ipv4Addr`.
 	#[inline(always)]
-	pub fn from_ipv4_addr(ipv4_addr: &Ipv4Addr) -> Self
+	fn to_rust_address(&self) -> Self::RustAddress
 	{
-		unsafe { transmute_copy(ipv4_addr) }
+		unsafe { transmute_copy(self) }
 	}
 	
-	/// To an `in_addr`.
 	#[inline(always)]
-	pub fn to_in_addr(self) -> in_addr
+	fn to_libc_address(self) -> Self::LibCAddress
 	{
 		in_addr
 		{
@@ -73,42 +69,55 @@ impl InternetProtocolVersion4HostAddress
 		}
 	}
 	
-	/// An a native endian u32.
 	#[inline(always)]
-	pub fn as_native_endian_u32(&self) -> u32
+	fn as_native_endian(&self) -> Self::BigEndianValue
 	{
-		u32::from_be(self.as_network_endian_u32())
+		u32::from_be(self.as_network_endian())
 	}
 	
-	/// An a network (big) endian u32.
 	#[inline(always)]
-	pub fn as_network_endian_u32(&self) -> u32
+	fn as_network_endian(&self) -> Self::BigEndianValue
 	{
 		unsafe { transmute(self.0) }
 	}
 	
-	/// To an embedded RFC8215 globally routable (RFC8215) `InternetProtocolVersion6HostAddress`.
+	#[inline(always)]
+	fn to_media_access_control_address(&self) -> Result<MediaAccessControlAddress, ()>
+	{
+		MediaAccessControlAddress::from_private_internet_protocol_version_4_host_address(self)
+	}
+}
+
+impl InternetProtocolVersion4HostAddress
+{
+	/// Unspecified (Any) address.
+	pub const Unspecified: Self = InternetProtocolVersion4HostAddress([0, 0, 0, 0]);
+	
+	/// Broadcast address.
+	pub const Broadcast: Self = InternetProtocolVersion4HostAddress([255, 255, 255, 255]);
+	
+	/// To an embedded RFC 8215 globally routable (RFC 8215) `InternetProtocolVersion6HostAddress`.
 	#[inline(always)]
 	pub fn to_embedded_rfc8215_internet_protocol_version_6_host_address(self) -> InternetProtocolVersion6HostAddress
 	{
 		InternetProtocolVersion6HostAddress([0x00, 0x64, 0xFF, 0x9B, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, self.get_first_byte(), self.get_second_byte(), self.get_third_byte(), self.get_fourth_byte()])
 	}
 	
-	/// To an embedded RFC6052 globally routable (RFC6052) `InternetProtocolVersion6HostAddress`.
+	/// To an embedded RFC 6052 globally routable (RFC 6052) `InternetProtocolVersion6HostAddress`.
 	#[inline(always)]
 	pub fn to_embedded_rfc6052_internet_protocol_version_6_host_address(self) -> InternetProtocolVersion6HostAddress
 	{
 		InternetProtocolVersion6HostAddress([0x00, 0x64, 0xFF, 0x9B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, self.get_first_byte(), self.get_second_byte(), self.get_third_byte(), self.get_fourth_byte()])
 	}
 	
-	/// To a mapped (RFC4291) `InternetProtocolVersion6HostAddress`.
+	/// To a mapped (RFC 4291) `InternetProtocolVersion6HostAddress`.
 	#[inline(always)]
 	pub fn to_mapped_internet_protocol_version_6_host_address(self) -> InternetProtocolVersion6HostAddress
 	{
 		InternetProtocolVersion6HostAddress([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, self.get_first_byte(), self.get_second_byte(), self.get_third_byte(), self.get_fourth_byte()])
 	}
 	
-	/// To a deprecated compatible (RFC4291) `InternetProtocolVersion6HostAddress`.
+	/// To a deprecated compatible (RFC 4291) `InternetProtocolVersion6HostAddress`.
 	#[inline(always)]
 	pub fn to_deprecated_compatible_internet_protocol_version_6_host_address(self) -> InternetProtocolVersion6HostAddress
 	{

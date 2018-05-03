@@ -3,13 +3,13 @@
 
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct NumaSocketsActive([bool; NumaNode::MaximumNumaSockets], u8);
+pub struct NumaSocketsActive([bool; NumaNode::Maximum], u8);
 
 impl Default for NumaSocketsActive
 {
 	fn default() -> Self
 	{
-		let mut value = [false; NumaNode::MaximumNumaSockets];
+		let mut value = [false; NumaNode::Maximum];
 		value[0] = true;
 		return NumaSocketsActive(value, 1);
 	}
@@ -19,7 +19,7 @@ impl Active for NumaSocketsActive
 {
 	type T = NumaSocketId;
 	
-	const Maximum: usize = NumaNode::MaximumNumaSockets;
+	const Maximum: usize = NumaNode::Maximum;
 	
 	#[inline(always)]
 	fn constructor(index: usize) -> Self::T
@@ -36,13 +36,13 @@ impl Active for NumaSocketsActive
 	#[inline(always)]
 	fn none() -> Self
 	{
-		NumaSocketsActive([false; NumaNode::MaximumNumaSockets], 0)
+		NumaSocketsActive([false; NumaNode::Maximum], 0)
 	}
 	
 	#[inline(always)]
 	fn all() -> Self
 	{
-		NumaSocketsActive([true; NumaNode::MaximumNumaSockets], NumaNode::MaximumNumaSockets as u8)
+		NumaSocketsActive([true; NumaNode::Maximum], NumaNode::Maximum as u8)
 	}
 	
 	#[inline(always)]
@@ -77,7 +77,7 @@ impl NumaSocketsActive
 	pub fn as_hexadecimal_core_mask_c_string(&self) -> CString
 	{
 		let mut setBits = 0;
-		for index in 0..NumaNode::MaximumNumaSockets
+		for index in 0..NumaNode::Maximum
 		{
 			if self.isEnabled(index)
 			{

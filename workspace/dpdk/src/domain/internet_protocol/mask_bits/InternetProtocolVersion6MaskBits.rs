@@ -29,8 +29,9 @@ fn main()
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(u128)]
 pub enum InternetProtocolVersion6MaskBits
-{	/// `/0`
-#[cfg(target_endian = "big")] _0 = 0x00000000000000000000000000000000,
+{
+	/// `/0`
+	#[cfg(target_endian = "big")] _0 = 0x00000000000000000000000000000000,
 	#[cfg(target_endian = "little")] _0 = 0x00000000000000000000000000000000,
 	
 	/// `/1`
@@ -546,7 +547,7 @@ pub enum InternetProtocolVersion6MaskBits
 	#[cfg(target_endian = "little")] _128 = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF,
 }
 
-impl MaskBits for InternetProtocolVersion6MaskBits
+impl InternetProtocolMaskBits for InternetProtocolVersion6MaskBits
 {
 	type InternetProtocolHostAddress = InternetProtocolVersion6HostAddress;
 }

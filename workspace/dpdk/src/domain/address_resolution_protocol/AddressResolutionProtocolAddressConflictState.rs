@@ -2,7 +2,7 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// RFC5227: Before beginning to use an internet protocol (IP) version 4 host address (even one from DHCP) a host must test to see if the address is already in use, by broadcasting ARP probe (request) packets.
+/// RFC 5227: Before beginning to use an internet protocol (IP) version 4 host address (even one from DHCP) a host must test to see if the address is already in use, by broadcasting ARP probe (request) packets.
 ///
 /// Beginning to use means:-
 ///
@@ -38,7 +38,7 @@ pub enum AddressResolutionProtocolAddressConflictState
 		subsequent_announcements_left_to_send: u8,
 	},
 	
-	/// There are 3 defensive strategies in RFC5227; we use the third.
+	/// There are 3 defensive strategies in RFC 5227; we use the third.
 	///
 	/// If a host receives an ARP request or reply where the `sender_protocol_address` is one of its own but `sender_hardware_address` is not then there is an address conflict.
 	///
