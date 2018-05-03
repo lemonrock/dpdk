@@ -4,12 +4,13 @@
 
 extern "C"
 {
-	pub fn rte_eth_add_first_rx_callback(port_id: u16, queue_id: u16, fn_: rte_rx_callback_fn, user_param: *mut c_void) -> *mut c_void;
-	pub fn rte_eth_add_rx_callback(port_id: u16, queue_id: u16, fn_: rte_rx_callback_fn, user_param: *mut c_void) -> *mut c_void;
-	pub fn rte_eth_add_tx_callback(port_id: u16, queue_id: u16, fn_: rte_tx_callback_fn, user_param: *mut c_void) -> *mut c_void;
+	pub fn rte_eth_add_first_rx_callback(port_id: u16, queue_id: u16, fn_: rte_rx_callback_fn, user_param: *mut c_void) -> *const rte_eth_rxtx_callback;
+	pub fn rte_eth_add_rx_callback(port_id: u16, queue_id: u16, fn_: rte_rx_callback_fn, user_param: *mut c_void) -> *const rte_eth_rxtx_callback;
+	pub fn rte_eth_add_tx_callback(port_id: u16, queue_id: u16, fn_: rte_tx_callback_fn, user_param: *mut c_void) -> *const rte_eth_rxtx_callback;
 	pub fn rte_eth_allmulticast_disable(port_id: u16);
 	pub fn rte_eth_allmulticast_enable(port_id: u16);
 	pub fn rte_eth_allmulticast_get(port_id: u16) -> c_int;
+	pub fn rte_eth_devargs_parse(devargs: *const c_char, eth_devargs: *mut rte_eth_devargs) -> c_int;
 	pub fn rte_eth_dma_zone_reserve(eth_dev: *const rte_eth_dev, name: *const c_char, queue_id: u16, size: usize, align: c_uint, socket_id: c_int) -> *const rte_memzone;
 	pub fn rte_eth_find_next(port_id: u16) -> u16;
 	pub fn rte_eth_find_next_owned_by(port_id: u16, owner_id: u64) -> u64;
@@ -25,14 +26,16 @@ extern "C"
 	pub fn rte_eth_promiscuous_disable(port_id: u16);
 	pub fn rte_eth_promiscuous_enable(port_id: u16);
 	pub fn rte_eth_promiscuous_get(port_id: u16) -> c_int;
-	pub fn rte_eth_remove_rx_callback(port_id: u16, queue_id: u16, user_cb: *mut rte_eth_rxtx_callback) -> c_int;
-	pub fn rte_eth_remove_tx_callback(port_id: u16, queue_id: u16, user_cb: *mut rte_eth_rxtx_callback) -> c_int;
+	pub fn rte_eth_remove_rx_callback(port_id: u16, queue_id: u16, user_cb: *const rte_eth_rxtx_callback) -> c_int;
+	pub fn rte_eth_remove_tx_callback(port_id: u16, queue_id: u16, user_cb: *const rte_eth_rxtx_callback) -> c_int;
 	pub fn rte_eth_rx_queue_info_get(port_id: u16, queue_id: u16, qinfo: *mut rte_eth_rxq_info) -> c_int;
 	pub fn rte_eth_rx_queue_setup(port_id: u16, rx_queue_id: u16, nb_rx_desc: u16, socket_id: c_uint, rx_conf: *const rte_eth_rxconf, mb_pool: *mut rte_mempool) -> c_int;
 	pub fn rte_eth_set_queue_rate_limit(port_id: u16, queue_idx: u16, tx_rate: u16) -> c_int;
 	pub fn rte_eth_speed_bitflag(speed: u32, duplex: c_int) -> u32;
 	pub fn rte_eth_stats_get(port_id: u16, stats: *mut rte_eth_stats) -> c_int;
 	pub fn rte_eth_stats_reset(port_id: u16) -> c_int;
+	pub fn rte_eth_switch_domain_alloc(domain_id: *mut u16) -> c_int;
+	pub fn rte_eth_switch_domain_free(domain_id: u16) -> c_int;
 	pub fn rte_eth_timesync_adjust_time(port_id: u16, delta: i64) -> c_int;
 	pub fn rte_eth_timesync_disable(port_id: u16) -> c_int;
 	pub fn rte_eth_timesync_enable(port_id: u16) -> c_int;

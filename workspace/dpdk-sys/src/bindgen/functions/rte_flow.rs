@@ -18,6 +18,6 @@ extern "C"
 	pub fn rte_flow_flush(port_id: u16, error: *mut rte_flow_error) -> c_int;
 	pub fn rte_flow_isolate(port_id: u16, set: c_int, error: *mut rte_flow_error) -> c_int;
 	pub fn rte_flow_ops_get(port_id: u16, error: *mut rte_flow_error) -> *const rte_flow_ops;
-	pub fn rte_flow_query(port_id: u16, flow: *mut rte_flow, action: rte_flow_action_type, data: *mut c_void, error: *mut rte_flow_error) -> c_int;
+	pub fn rte_flow_query(port_id: u16, flow: *mut rte_flow, action: *const rte_flow_action, data: *mut c_void, error: *mut rte_flow_error) -> c_int;
 	pub fn rte_flow_validate(port_id: u16, attr: *const rte_flow_attr, pattern: *const rte_flow_item, actions: *const rte_flow_action, error: *mut rte_flow_error) -> c_int;
 }

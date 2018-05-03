@@ -4,6 +4,7 @@
 
 pub const ETHER_TYPE_1588: uint16_t = 35063;
 pub const ETHER_TYPE_ARP: uint16_t = 2054;
+pub const ETHER_TYPE_ETAG: u32 = 35135;
 pub const ETHER_TYPE_IPv4: uint16_t = 2048;
 pub const ETHER_TYPE_IPv6: uint16_t = 34525;
 pub const ETHER_TYPE_LEN: usize = 2;

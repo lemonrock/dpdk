@@ -123,7 +123,6 @@ pub trait EthernetPort
 							20
 							24
 							28
-							30
 							32
 							36
 							40
@@ -131,6 +130,8 @@ pub trait EthernetPort
 							48
 							52
 							56
+							(60)
+							64
 							
 						- scaling down could happen by assigning multiple logical DPDK cores to one hyper-threaded core.
 					

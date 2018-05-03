@@ -7,7 +7,7 @@ pub struct rte_security_session_conf_1
 {
 	pub ipsec: BindgenUnionField<rte_security_ipsec_xform>,
 	pub macsec: BindgenUnionField<rte_security_macsec_xform>,
-	pub bindgen_union_field: [u32; 18usize],
+	pub bindgen_union_field: [u64; 10usize],
 }
 
 impl Default for rte_security_session_conf_1

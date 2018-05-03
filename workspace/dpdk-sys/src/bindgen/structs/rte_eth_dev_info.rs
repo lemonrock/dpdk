@@ -5,9 +5,10 @@
 #[repr(C)]
 pub struct rte_eth_dev_info
 {
-	pub pci_dev: *mut rte_pci_device,
+	pub device: *mut rte_device,
 	pub driver_name: *const c_char,
 	pub if_index: c_uint,
+	pub dev_flags: *const u32,
 	pub min_rx_bufsize: u32,
 	pub max_rx_pktlen: u32,
 	pub max_rx_queues: u16,
@@ -33,6 +34,10 @@ pub struct rte_eth_dev_info
 	pub speed_capa: u32,
 	pub nb_rx_queues: u16,
 	pub nb_tx_queues: u16,
+	pub default_rxportconf: rte_eth_dev_portconf,
+	pub default_txportconf: rte_eth_dev_portconf,
+	pub dev_capa: u64,
+	pub switch_info: rte_eth_switch_info,
 }
 
 impl Default for rte_eth_dev_info
@@ -49,6 +54,6 @@ impl Debug for rte_eth_dev_info
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_eth_dev_info {{ pci_dev: {:?}, driver_name: {:?}, default_rxconf: {:?}, default_txconf: {:?}, rx_desc_lim: {:?}, tx_desc_lim: {:?} }}", self.pci_dev, self.driver_name, self.default_rxconf, self.default_txconf, self.rx_desc_lim, self.tx_desc_lim)
+		write!(f, "rte_eth_dev_info {{ device: {:?}, driver_name: {:?}, dev_flags: {:?}, default_rxconf: {:?}, default_txconf: {:?}, rx_desc_lim: {:?}, tx_desc_lim: {:?}, default_rxportconf: {:?}, default_txportconf: {:?}, switch_info: {:?} }}", self.device, self.driver_name, self.dev_flags, self.default_rxconf, self.default_txconf, self.rx_desc_lim, self.tx_desc_lim, self.default_rxportconf, self.default_txportconf, self.switch_info)
 	}
 }

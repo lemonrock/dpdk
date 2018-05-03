@@ -2,4 +2,4 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-pub type rte_mempool_get_capabilities_t = Option<unsafe extern "C" fn(mp: *const rte_mempool, flags: *mut c_uint) -> c_int>;
+pub type rte_memseg_contig_walk_t = Option<unsafe extern "C" fn(msl: *const rte_memseg_list, ms: *const rte_memseg, len: usize, arg: *mut c_void) -> c_int>;

@@ -7,6 +7,8 @@ pub struct rte_config
 {
 	pub master_lcore: u32,
 	pub lcore_count: u32,
+	pub numa_node_count: u32,
+	pub numa_nodes: [u32; 8usize],
 	pub service_lcore_count: u32,
 	pub lcore_role: [rte_lcore_role_t; 128usize],
 	pub process_type: rte_proc_type_t,

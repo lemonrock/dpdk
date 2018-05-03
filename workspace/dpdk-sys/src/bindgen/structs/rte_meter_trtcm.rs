@@ -9,12 +9,6 @@ pub struct rte_meter_trtcm
 	pub time_tp: u64,
 	pub tc: u64,
 	pub tp: u64,
-	pub cbs: u64,
-	pub pbs: u64,
-	pub cir_period: u64,
-	pub cir_bytes_per_period: u64,
-	pub pir_period: u64,
-	pub pir_bytes_per_period: u64,
 }
 
 impl Default for rte_meter_trtcm

@@ -3,8 +3,29 @@
 
 
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
-pub struct rte_eventdev_driver
+pub struct rte_flow_item_icmp6_nd_ns
 {
-	_unused: [u8; 0],
+	pub type_: u8,
+	pub code: u8,
+	pub checksum: rte_be16_t,
+	pub reserved: rte_be32_t,
+	pub target_addr: [u8; 16usize],
+}
+
+impl Default for rte_flow_item_icmp6_nd_ns
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		unsafe { zeroed() }
+	}
+}
+
+impl Debug for rte_flow_item_icmp6_nd_ns
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> Result
+	{
+		write!(f, "rte_flow_item_icmp6_nd_ns {{ target_addr: {:?} }}", self.target_addr)
+	}
 }

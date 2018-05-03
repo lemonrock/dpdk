@@ -12,6 +12,7 @@ pub struct rte_security_ipsec_xform
 	pub proto: rte_security_ipsec_sa_protocol,
 	pub mode: rte_security_ipsec_sa_mode,
 	pub tunnel: rte_security_ipsec_tunnel_param,
+	pub esn_soft_limit: u64,
 }
 
 impl Default for rte_security_ipsec_xform

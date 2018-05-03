@@ -38,6 +38,7 @@ extern "C"
 	pub fn rte_pmd_i40e_ptype_mapping_reset(port: u16) -> c_int;
 	pub fn rte_pmd_i40e_ptype_mapping_update(port: u16, mapping_items: *mut rte_pmd_i40e_ptype_mapping, count: u16, exclusive: u8) -> c_int;
 	pub fn rte_pmd_i40e_query_vfid_by_mac(port: u16, vf_mac: *const ether_addr) -> c_int;
+	pub fn rte_pmd_i40e_remove_vf_mac_addr(port: u16, vf_id: u16, mac_addr: *mut ether_addr) -> c_int;
 	pub fn rte_pmd_i40e_reset_vf_stats(port: u16, vf_id: u16) -> c_int;
 	pub fn rte_pmd_i40e_rss_queue_region_conf(port_id: u16, op_type: rte_pmd_i40e_queue_region_op, arg: *mut c_void) -> c_int;
 	pub fn rte_pmd_i40e_set_tc_strict_prio(port: u16, tc_map: u8) -> c_int;
@@ -70,6 +71,10 @@ extern "C"
 	pub fn rte_pmd_ixgbe_macsec_enable(port: u16, en: u8, rp: u8) -> c_int;
 	pub fn rte_pmd_ixgbe_macsec_select_rxsa(port: u16, idx: u8, an: u8, pn: u32, key: *mut u8) -> c_int;
 	pub fn rte_pmd_ixgbe_macsec_select_txsa(port: u16, idx: u8, an: u8, pn: u32, key: *mut u8) -> c_int;
+	pub fn rte_pmd_ixgbe_mdio_lock(port: u16) -> c_int;
+	pub fn rte_pmd_ixgbe_mdio_unlock(port: u16) -> c_int;
+	pub fn rte_pmd_ixgbe_mdio_unlocked_read(port: u16, reg_addr: u32, dev_type: u32, phy_data: *mut u16) -> c_int;
+	pub fn rte_pmd_ixgbe_mdio_unlocked_write(port: u16, reg_addr: u32, dev_type: u32, phy_data: u16) -> c_int;
 	pub fn rte_pmd_ixgbe_ping_vf(port: u16, vf: u16) -> c_int;
 	pub fn rte_pmd_ixgbe_set_all_queues_drop_en(port: u16, on: u8) -> c_int;
 	pub fn rte_pmd_ixgbe_set_tc_bw_alloc(port: u16, tc_num: u8, bw_weight: *mut u8) -> c_int;

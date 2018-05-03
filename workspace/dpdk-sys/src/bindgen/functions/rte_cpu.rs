@@ -7,5 +7,7 @@ extern "C"
 	pub fn rte_cpu_check_supported();
 	pub fn rte_cpu_get_flag_enabled(feature: rte_cpu_flag_t) -> c_int;
 	pub fn rte_cpu_get_flag_name(feature: rte_cpu_flag_t) -> *const c_char;
+	pub fn rte_cpu_getauxval(type_: c_ulong) -> c_ulong;
 	pub fn rte_cpu_is_supported() -> c_int;
+	pub fn rte_cpu_strcmp_auxval(type_: c_ulong, str: *const c_char) -> c_int;
 }

@@ -2,4 +2,5 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+pub const RTE_VIRTIO_CRYPTO_PMD_MAX_NB_SESSIONS: u32 = 1024;
 pub const RTE_VIRTIO_USER: u32 = 1;

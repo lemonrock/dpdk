@@ -6,8 +6,8 @@
 #[derive(Hash)]
 pub struct rte_flow_item_vlan
 {
-	pub tpid: rte_be16_t,
 	pub tci: rte_be16_t,
+	pub inner_type: rte_be16_t,
 }
 
 impl Default for rte_flow_item_vlan

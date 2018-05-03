@@ -32,7 +32,8 @@ pub struct rte_mbuf
 	pub priv_size: u16,
 	pub timesync: u16,
 	pub seqn: u32,
-	pub __bindgen_padding_0: [u64; 3usize],
+	pub shinfo: *mut rte_mbuf_ext_shared_info,
+	pub __bindgen_padding_0: [u64; 2usize],
 	pub __bindgen_align: [u8; 0usize],
 }
 
@@ -50,6 +51,6 @@ impl Debug for rte_mbuf
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_mbuf {{ buf_addr: {:?}, _1: {:?}, _2: {:?}, _3: {:?}, hash: {:?}, _4: {:?}, pool: {:?}, next: {:?}, _5: {:?} }}", self.buf_addr, self._1, self._2, self._3, self.hash, self._4, self.pool, self.next, self._5)
+		write!(f, "rte_mbuf {{ buf_addr: {:?}, _1: {:?}, _2: {:?}, _3: {:?}, hash: {:?}, _4: {:?}, pool: {:?}, next: {:?}, _5: {:?}, shinfo: {:?} }}", self.buf_addr, self._1, self._2, self._3, self.hash, self._4, self.pool, self.next, self._5, self.shinfo)
 	}
 }

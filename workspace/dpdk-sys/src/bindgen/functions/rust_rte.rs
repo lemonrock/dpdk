@@ -7,12 +7,14 @@ extern "C"
 	pub fn rust_rte_atomic16_cmpset(dst: *mut u16, exp: u16, src: u16) -> c_int;
 	pub fn rust_rte_atomic16_dec(v: *mut rte_atomic16_t);
 	pub fn rust_rte_atomic16_dec_and_test(v: *mut rte_atomic16_t) -> c_int;
+	pub fn rust_rte_atomic16_exchange(dst: *mut u16, val: u16) -> u16;
 	pub fn rust_rte_atomic16_inc(v: *mut rte_atomic16_t);
 	pub fn rust_rte_atomic16_inc_and_test(v: *mut rte_atomic16_t) -> c_int;
 	pub fn rust_rte_atomic16_test_and_set(v: *mut rte_atomic16_t) -> c_int;
 	pub fn rust_rte_atomic32_cmpset(dst: *mut u32, exp: u32, src: u32) -> c_int;
 	pub fn rust_rte_atomic32_dec(v: *mut rte_atomic32_t);
 	pub fn rust_rte_atomic32_dec_and_test(v: *mut rte_atomic32_t) -> c_int;
+	pub fn rust_rte_atomic32_exchange(dst: *mut u32, val: u32) -> u32;
 	pub fn rust_rte_atomic32_inc(v: *mut rte_atomic32_t);
 	pub fn rust_rte_atomic32_inc_and_test(v: *mut rte_atomic32_t) -> c_int;
 	pub fn rust_rte_atomic32_test_and_set(v: *mut rte_atomic32_t) -> c_int;
@@ -49,7 +51,6 @@ extern "C"
 	pub fn rust_rte_ipv6_frag_get_ipv6_fragment_header(hdr: *mut ipv6_hdr) -> *mut ipv6_extension_fragment;
 	pub fn rust_rte_ipv6_phdr_cksum(ipv6_hdr: *const ipv6_hdr, ol_flags: u64) -> u16;
 	pub fn rust_rte_ipv6_udptcp_cksum(ipv6_hdr: *const ipv6_hdr, l4_hdr: *const c_void) -> u16;
-	pub fn rust_rte_is_ctrlmbuf(m: *mut rte_mbuf) -> c_int;
 	pub fn rust_rte_lcore_count() -> c_uint;
 	pub fn rust_rte_lcore_id() -> c_uint;
 	pub fn rust_rte_lcore_index(lcore_id: c_int) -> c_int;
@@ -60,6 +61,9 @@ extern "C"
 	pub fn rust_rte_lpm_lookupx4(lpm: *const rte_lpm, ip: *mut c_longlong, hop: *mut u32, defv: u32);
 	pub fn rust_rte_mbuf_data_iova(mb: *const rte_mbuf) -> rte_iova_t;
 	pub fn rust_rte_mbuf_data_iova_default(mb: *const rte_mbuf) -> rte_iova_t;
+	pub fn rust_rte_mbuf_ext_refcnt_read(shinfo: *const rte_mbuf_ext_shared_info) -> u16;
+	pub fn rust_rte_mbuf_ext_refcnt_set(shinfo: *mut rte_mbuf_ext_shared_info, new_value: u16);
+	pub fn rust_rte_mbuf_ext_refcnt_update(shinfo: *mut rte_mbuf_ext_shared_info, value: i16) -> u16;
 	pub fn rust_rte_mbuf_from_indirect(mi: *mut rte_mbuf) -> *mut rte_mbuf;
 	pub fn rust_rte_mbuf_prefetch_part1(m: *mut rte_mbuf);
 	pub fn rust_rte_mbuf_prefetch_part2(m: *mut rte_mbuf);
@@ -79,9 +83,11 @@ extern "C"
 	pub fn rust_rte_mempool_generic_put(mp: *mut rte_mempool, obj_table: *const *const c_void, n: c_uint, cache: *mut rte_mempool_cache);
 	pub fn rust_rte_mempool_get(mp: *mut rte_mempool, obj_p: *mut *mut c_void) -> c_int;
 	pub fn rust_rte_mempool_get_bulk(mp: *mut rte_mempool, obj_table: *mut *mut c_void, n: c_uint) -> c_int;
+	pub fn rust_rte_mempool_get_contig_blocks(mp: *mut rte_mempool, first_obj_table: *mut *mut c_void, n: c_uint) -> c_int;
 	pub fn rust_rte_mempool_get_ops(ops_index: c_int) -> *mut rte_mempool_ops;
 	pub fn rust_rte_mempool_get_priv(mp: *mut rte_mempool) -> *mut c_void;
 	pub fn rust_rte_mempool_ops_dequeue_bulk(mp: *mut rte_mempool, obj_table: *mut *mut c_void, n: c_uint) -> c_int;
+	pub fn rust_rte_mempool_ops_dequeue_contig_blocks(mp: *mut rte_mempool, first_obj_table: *mut *mut c_void, n: c_uint) -> c_int;
 	pub fn rust_rte_mempool_ops_enqueue_bulk(mp: *mut rte_mempool, obj_table: *const *const c_void, n: c_uint) -> c_int;
 	pub fn rust_rte_mempool_put(mp: *mut rte_mempool, obj: *mut c_void);
 	pub fn rust_rte_mempool_put_bulk(mp: *mut rte_mempool, obj_table: *const *const c_void, n: c_uint);
@@ -98,10 +104,12 @@ extern "C"
 	pub fn rust_rte_pktmbuf_alloc_bulk(pool: *mut rte_mempool, mbufs: *mut *mut rte_mbuf, count: c_uint) -> c_int;
 	pub fn rust_rte_pktmbuf_append(m: *mut rte_mbuf, len: u16) -> *mut c_char;
 	pub fn rust_rte_pktmbuf_attach(mi: *mut rte_mbuf, m: *mut rte_mbuf);
+	pub fn rust_rte_pktmbuf_attach_extbuf(m: *mut rte_mbuf, buf_addr: *mut c_void, buf_iova: rte_iova_t, buf_len: u16, shinfo: *mut rte_mbuf_ext_shared_info);
 	pub fn rust_rte_pktmbuf_chain(head: *mut rte_mbuf, tail: *mut rte_mbuf) -> c_int;
 	pub fn rust_rte_pktmbuf_clone(md: *mut rte_mbuf, mp: *mut rte_mempool) -> *mut rte_mbuf;
 	pub fn rust_rte_pktmbuf_data_room_size(mp: *mut rte_mempool) -> u16;
 	pub fn rust_rte_pktmbuf_detach(m: *mut rte_mbuf);
+	pub fn rust_rte_pktmbuf_ext_shinfo_init_helper(buf_addr: *mut c_void, buf_len: *mut u16, free_cb: rte_mbuf_extbuf_free_callback_t, fcb_opaque: *mut c_void) -> *mut rte_mbuf_ext_shared_info;
 	pub fn rust_rte_pktmbuf_free(m: *mut rte_mbuf);
 	pub fn rust_rte_pktmbuf_free_seg(m: *mut rte_mbuf);
 	pub fn rust_rte_pktmbuf_headroom(m: *const rte_mbuf) -> u16;
@@ -154,7 +162,7 @@ extern "C"
 	pub fn rust_rte_validate_tx_offload(m: *const rte_mbuf) -> c_int;
 	pub fn rust_rte_vdev_device_args(dev: *const rte_vdev_device) -> *const c_char;
 	pub fn rust_rte_vdev_device_name(dev: *const rte_vdev_device) -> *const c_char;
-	pub fn rust_rte_vhost_gpa_to_vva(mem: *mut rte_vhost_memory, gpa: u64) -> u64;
+	pub fn rust_rte_vhost_va_from_guest_pa(mem: *mut rte_vhost_memory, gpa: u64, len: *mut u64) -> u64;
 	pub fn rust_rte_vlan_insert(m: *mut *mut rte_mbuf) -> c_int;
 	pub fn rust_rte_vlan_strip(m: *mut rte_mbuf) -> c_int;
 }

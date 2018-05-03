@@ -19,9 +19,10 @@ pub struct rte_eventdev_data
 	pub dev_conf: rte_event_dev_config,
 	pub service_inited: u8,
 	pub service_id: u32,
+	pub dev_stop_flush_arg: *mut c_void,
 	pub bitfield_1: BindgenBitfieldUnit<[u8; 1usize], u8>,
 	pub name: [c_char; 64usize],
-	pub __bindgen_padding_0: [u8; 39usize],
+	pub __bindgen_padding_0: [u8; 31usize],
 	pub __bindgen_align: [u8; 0usize],
 }
 
@@ -41,13 +42,14 @@ impl Debug for rte_eventdev_data
 	{
 		write!(
 			f,
-			"rte_eventdev_data {{ ports: {:?}, ports_cfg: {:?}, queues_cfg: {:?}, links_map: {:?}, dev_private: {:?}, dev_conf: {:?}, dev_started : {:?}, name: [{}] }}",
+			"rte_eventdev_data {{ ports: {:?}, ports_cfg: {:?}, queues_cfg: {:?}, links_map: {:?}, dev_private: {:?}, dev_conf: {:?}, dev_stop_flush_arg: {:?}, dev_started : {:?}, name: [{}] }}",
 			self.ports,
 			self.ports_cfg,
 			self.queues_cfg,
 			self.links_map,
 			self.dev_private,
 			self.dev_conf,
+			self.dev_stop_flush_arg,
 			self.dev_started(),
 			self.name
 				.iter()

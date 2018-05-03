@@ -2,4 +2,4 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-pub type rte_mempool_ops_register_memory_area_t = Option<unsafe extern "C" fn(mp: *const rte_mempool, vaddr: *mut c_char, iova: rte_iova_t, len: usize) -> c_int>;
+pub type rte_mempool_get_info_t = Option<unsafe extern "C" fn(mp: *const rte_mempool, info: *mut rte_mempool_info) -> c_int>;

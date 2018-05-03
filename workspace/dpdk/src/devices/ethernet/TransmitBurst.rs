@@ -42,7 +42,7 @@ impl TransmitBurst
 	#[inline(always)]
 	pub fn transmit_packets_in_a_burst<A: UnifiedArrayVecAndVec<NonNull<rte_mbuf>>>(&self, transmit_packets_from: &mut A, start_from_index: usize) -> usize
 	{
-		let (pointer, number_of_potential_packets_u16) = self.to_ffi_data(transmit_packets_from, start_from_index);
+		let (pointer, number_of_potential_packets) = transmit_packets_from.to_ffi_data_u16(start_from_index);
 		
 		let number_transmitted_u16 = (self.transmit_burst_function_pointer)(self.transmit_queue.as_ptr(), pointer, number_of_potential_packets_u16);
 		debug_assert!(number_transmitted_u16 <= number_of_potential_packets_u16, "number_transmitted_u16 '{}' exceeds number_of_potential_packets_u16 '{}'", number_transmitted_u16, number_of_potential_packets_u16);
@@ -64,7 +64,7 @@ impl TransmitBurst
 	{
 		debug_assert!(start_from_index <= transmit_packets_from.length(), "start_from_index '{}' is greater than transmit_packets_from.length() '{}'", start_from_index, transmit_packets_from.length());
 		
-		self.prepare(transmit_packets_from, start_from_index)
+		self.prepare(transmit_packets_from, start_from_index);
 		
 		while start_from_index < transmit_packets_from.length()
 		{
@@ -78,25 +78,11 @@ impl TransmitBurst
 	#[inline(always)]
 	fn prepare<A: UnifiedArrayVecAndVec<NonNull<rte_mbuf>>>(&self, transmit_packets_from: &mut A, start_from_index: usize)
 	{
-		let (pointer, number_of_potential_packets_u16) = self.to_ffi_data(transmit_packets_from, start_from_index);
+		let (pointer, number_of_potential_packets) = transmit_packets_from.to_ffi_data_u16(start_from_index);
 		
 		let number_acceptable_u16 = (self.transmit_prepare_function_pointer)(self.transmit_queue, pointer, number_of_potential_packets_u16);
 		
 		debug_assert_eq!(number_acceptable_u16, number_acceptable_u16, "A packet was not acceptable")
-	}
-	
-	#[inline(always)]
-	fn to_ffi_data<A: UnifiedArrayVecAndVec<NonNull<rte_mbuf>>>(&self, transmit_packets_from: &mut A, start_from_index: usize) -> (*mut *mut rte_mbuf, u16)
-	{
-		let length = transmit_packets_from.length();
-		debug_assert!(length >= start_from_index, "length '{}' is less than start_from_index '{}'", length, start_from_index);
-		
-		let number_of_potential_packets = length - start_from_index;
-		debug_assert_ne!(number_of_potential_packets, 0, "number_of_potential_packets is zero");
-		
-		let pointer: *mut *mut rte_mbuf = unsafe { transmute(transmit_packets_from.mutable_pointer_at_length(start_from_index) as *mut NonNull<rte_mbuf>) };
-		
-		(pointer, number_of_potential_packets as u16)
 	}
 	
 	unsafe extern "C" fn prepare_is_unsupported(_txq: *mut c_void, _tx_pkts: *mut *mut rte_mbuf, nb_pkts: u16) -> u16

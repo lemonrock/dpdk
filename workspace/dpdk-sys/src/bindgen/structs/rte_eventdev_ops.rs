@@ -32,7 +32,9 @@ pub struct rte_eventdev_ops
 	pub eth_rx_adapter_stop: eventdev_eth_rx_adapter_stop_t,
 	pub eth_rx_adapter_stats_get: eventdev_eth_rx_adapter_stats_get,
 	pub eth_rx_adapter_stats_reset: eventdev_eth_rx_adapter_stats_reset,
+	pub timer_adapter_caps_get: eventdev_timer_adapter_caps_get_t,
 	pub dev_selftest: eventdev_selftest,
+	pub dev_stop_flush: eventdev_stop_flush_t,
 }
 
 impl Default for rte_eventdev_ops

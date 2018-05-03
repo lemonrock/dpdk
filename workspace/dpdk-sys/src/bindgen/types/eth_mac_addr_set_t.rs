@@ -2,4 +2,4 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-pub type eth_mac_addr_set_t = Option<unsafe extern "C" fn(dev: *mut rte_eth_dev, mac_addr: *mut ether_addr)>;
+pub type eth_mac_addr_set_t = Option<unsafe extern "C" fn(dev: *mut rte_eth_dev, mac_addr: *mut ether_addr) -> c_int>;

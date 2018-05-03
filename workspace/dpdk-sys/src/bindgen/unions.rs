@@ -12,6 +12,7 @@ include!("unions/rte_lpm_tbl_entry_v20_1.rs");
 include!("unions/rte_mbuf_5.rs");
 include!("unions/rte_mempool_1.rs");
 include!("unions/rte_memseg_2.rs");
+include!("unions/rte_memseg_list_1.rs");
 include!("unions/rte_memzone_2.rs");
 include!("unions/rte_pipeline_table_entry_1.rs");
 include!("unions/rte_security_capability_idx_1.rs");

@@ -6,8 +6,6 @@
 #ifndef _VNIC_DEVCMD_H_
 #define _VNIC_DEVCMD_H_
 
-#include <stdint.h>
-
 #define _CMD_NBITS      14
 #define _CMD_VTYPEBITS	10
 #define _CMD_FLAGSBITS  6
@@ -602,6 +600,7 @@ enum filter_cap_mode {
 
 /* flags for CMD_OPEN */
 #define CMD_OPENF_OPROM		0x1	/* open coming from option rom */
+#define CMD_OPENF_IG_DESCCACHE	0x2	/* Do not flush IG DESC cache */
 
 /* flags for CMD_INIT */
 #define CMD_INITF_DEFAULT_MAC	0x1	/* init with default mac addr */
@@ -842,7 +841,9 @@ struct filter_action {
 
 #define FILTER_ACTION_RQ_STEERING_FLAG	(1 << 0)
 #define FILTER_ACTION_FILTER_ID_FLAG	(1 << 1)
+#define FILTER_ACTION_DROP_FLAG		(1 << 2)
 #define FILTER_ACTION_V2_ALL		(FILTER_ACTION_RQ_STEERING_FLAG \
+					 | FILTER_ACTION_DROP_FLAG \
 					 | FILTER_ACTION_FILTER_ID_FLAG)
 
 /* Version 2 of filter action must be a strict extension of struct filter_action
@@ -1078,6 +1079,18 @@ typedef enum {
 	VIC_FEATURE_RDMA,
 	VIC_FEATURE_MAX,
 } vic_feature_t;
+
+/*
+ * These flags are used in args[1] of devcmd CMD_GET_SUPP_FEATURE_VER
+ * to indicate the host driver about the VxLAN and Multi WQ features
+ * supported
+ */
+#define FEATURE_VXLAN_IPV6_INNER	(1 << 0)
+#define FEATURE_VXLAN_IPV6_OUTER	(1 << 1)
+#define FEATURE_VXLAN_MULTI_WQ		(1 << 2)
+
+#define FEATURE_VXLAN_IPV6		(FEATURE_VXLAN_IPV6_INNER | \
+					 FEATURE_VXLAN_IPV6_OUTER)
 
 /*
  * CMD_CONFIG_GRPINTR subcommands

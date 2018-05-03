@@ -38,17 +38,7 @@ impl ReceiveBurst
 	#[inline(always)]
 	pub fn receive_packets_in_a_burst<A: UnifiedArrayVecAndVec<NonNull<rte_mbuf>>>(&self, receive_packets_into: &mut A) -> usize
 	{
-		let length = receive_packets_into.length();
-		let maximum_capacity = receive_packets_into.maximum_capacity();
-		debug_assert!(maximum_capacity >= length, "maximum_capacity '{}' is less than length '{}'", maximum_capacity, length);
-		
-		let number_of_potential_packets = maximum_capacity - length;
-		debug_assert!(number_of_potential_packets <= ::std::u16::MAX as usize, "number_of_potential_packets '{}' is greater than :std::u16::MAX '{}'", number_of_potential_packets, ::std::u16::MAX);
-		debug_assert_ne!(number_of_potential_packets, 0, "number_of_potential_packets is zero");
-		
-		let pointer = unsafe { transmute(receive_packets_into.mutable_pointer_at_length(length) as *mut NonNull<rte_mbuf>) };
-		
-		let number_of_potential_packets_u16 = number_of_potential_packets as u16;
+		let (pointer, number_of_potential_packets) = receive_packets_into.from_ffi_data_u16();
 		
 		let number_received_u16 = (self.receive_burst_function_pointer)(self.receive_queue.as_ptr(), pointer, number_of_potential_packets_u16);
 		debug_assert!(number_received_u16 <= number_of_potential_packets_u16, "number_received_u16 '{}' exceeds number_of_potential_packets_u16 '{}'", number_received_u16, number_of_potential_packets_u16);

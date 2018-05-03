@@ -13,7 +13,7 @@ pub struct rte_eventdev
 	pub dequeue: event_dequeue_t,
 	pub dequeue_burst: event_dequeue_burst_t,
 	pub data: *mut rte_eventdev_data,
-	pub dev_ops: *const rte_eventdev_ops,
+	pub dev_ops: *mut rte_eventdev_ops,
 	pub dev: *mut rte_device,
 	pub bitfield_1: BindgenBitfieldUnit<[u8; 1usize], u8>,
 	pub __bindgen_padding_0: [u8; 55usize],

@@ -7,4 +7,4 @@ pub const RTE_EVENT_TYPE_CRYPTODEV: u32 = 1;
 pub const RTE_EVENT_TYPE_ETHDEV: u32 = 0;
 pub const RTE_EVENT_TYPE_ETH_RX_ADAPTER: u32 = 4;
 pub const RTE_EVENT_TYPE_MAX: u32 = 16;
-pub const RTE_EVENT_TYPE_TIMERDEV: u32 = 2;
+pub const RTE_EVENT_TYPE_TIMER: u32 = 2;

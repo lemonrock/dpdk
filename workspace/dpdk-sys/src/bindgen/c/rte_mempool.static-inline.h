@@ -26,6 +26,8 @@ rte_iova_t rust_rte_mempool_virt2iova(const void * elt);
 
 int rust_rte_mempool_ops_enqueue_bulk(struct rte_mempool * mp, void * const * obj_table, unsigned n);
 
+int rust_rte_mempool_ops_dequeue_contig_blocks(struct rte_mempool * mp, void * * first_obj_table, unsigned int n);
+
 int rust_rte_mempool_ops_dequeue_bulk(struct rte_mempool * mp, void * * obj_table, unsigned n);
 
 int rust_rte_mempool_get_bulk(struct rte_mempool * mp, void * * obj_table, unsigned int n);
@@ -37,5 +39,7 @@ int rust_rte_mempool_generic_get(struct rte_mempool * mp, void * * obj_table, un
 int rust_rte_mempool_full(const struct rte_mempool * mp);
 
 int rust_rte_mempool_empty(const struct rte_mempool * mp);
+
+int __rte_experimental rust_rte_mempool_get_contig_blocks(struct rte_mempool * mp, void * * first_obj_table, unsigned int n);
 
 int rust___mempool_generic_get(struct rte_mempool * mp, void * * obj_table, unsigned int n, struct rte_mempool_cache * cache);

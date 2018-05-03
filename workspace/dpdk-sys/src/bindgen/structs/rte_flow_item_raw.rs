@@ -9,7 +9,7 @@ pub struct rte_flow_item_raw
 	pub offset: i32,
 	pub limit: u16,
 	pub length: u16,
-	pub pattern: IncompleteArrayField<u8>,
+	pub pattern: *const u8,
 }
 
 impl Default for rte_flow_item_raw

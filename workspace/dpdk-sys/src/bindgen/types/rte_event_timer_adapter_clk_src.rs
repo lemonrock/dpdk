@@ -2,19 +2,4 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-#[repr(C)]
-#[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
-pub struct rte_devargs_list
-{
-	pub tqh_first: *mut rte_devargs,
-	pub tqh_last: *mut *mut rte_devargs,
-}
-
-impl Default for rte_devargs_list
-{
-	#[inline(always)]
-	fn default() -> Self
-	{
-		unsafe { zeroed() }
-	}
-}
+pub type rte_event_timer_adapter_clk_src = u32;

@@ -10,7 +10,7 @@ pub struct rte_flow_ops
 	pub create: Option<unsafe extern "C" fn(arg1: *mut rte_eth_dev, arg2: *const rte_flow_attr, arg3: *const rte_flow_item, arg4: *const rte_flow_action, arg5: *mut rte_flow_error) -> *mut rte_flow>,
 	pub destroy: Option<unsafe extern "C" fn(arg1: *mut rte_eth_dev, arg2: *mut rte_flow, arg3: *mut rte_flow_error) -> c_int>,
 	pub flush: Option<unsafe extern "C" fn(arg1: *mut rte_eth_dev, arg2: *mut rte_flow_error) -> c_int>,
-	pub query: Option<unsafe extern "C" fn(arg1: *mut rte_eth_dev, arg2: *mut rte_flow, arg3: rte_flow_action_type, arg4: *mut c_void, arg5: *mut rte_flow_error) -> c_int>,
+	pub query: Option<unsafe extern "C" fn(arg1: *mut rte_eth_dev, arg2: *mut rte_flow, arg3: *const rte_flow_action, arg4: *mut c_void, arg5: *mut rte_flow_error) -> c_int>,
 	pub isolate: Option<unsafe extern "C" fn(arg1: *mut rte_eth_dev, arg2: c_int, arg3: *mut rte_flow_error) -> c_int>,
 }
 

@@ -3,8 +3,8 @@
 
 
 #[repr(C)]
-#[derive(Debug, Default, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone)]
 pub struct malloc_elem
 {
-	pub _address: u8,
+	_unused: [u8; 0],
 }

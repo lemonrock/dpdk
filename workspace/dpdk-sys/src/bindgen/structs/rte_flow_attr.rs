@@ -24,7 +24,7 @@ impl Debug for rte_flow_attr
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_flow_attr {{ ingress : {:?}, egress : {:?}, reserved : {:?} }}", self.ingress(), self.egress(), self.reserved())
+		write!(f, "rte_flow_attr {{ ingress : {:?}, egress : {:?}, transfer : {:?}, reserved : {:?} }}", self.ingress(), self.egress(), self.transfer(), self.reserved())
 	}
 }
 
@@ -62,9 +62,24 @@ impl rte_flow_attr
 	}
 	
 	#[inline(always)]
+	pub fn transfer(&self) -> u32
+	{
+		unsafe { transmute(self.bitfield_1.get(2usize, 1u8) as u32) }
+	}
+	
+	#[inline(always)]
+	pub fn set_transfer(&mut self, val: u32)
+	{
+		unsafe {
+			let val: u32 = transmute(val);
+			self.bitfield_1.set(2usize, 1u8, val as u64)
+		}
+	}
+	
+	#[inline(always)]
 	pub fn reserved(&self) -> u32
 	{
-		unsafe { transmute(self.bitfield_1.get(2usize, 30u8) as u32) }
+		unsafe { transmute(self.bitfield_1.get(3usize, 29u8) as u32) }
 	}
 	
 	#[inline(always)]
@@ -72,12 +87,12 @@ impl rte_flow_attr
 	{
 		unsafe {
 			let val: u32 = transmute(val);
-			self.bitfield_1.set(2usize, 30u8, val as u64)
+			self.bitfield_1.set(3usize, 29u8, val as u64)
 		}
 	}
 	
 	#[inline(always)]
-	pub fn newbitfield_1(ingress: u32, egress: u32, reserved: u32) -> BindgenBitfieldUnit<[u8; 4usize], u32>
+	pub fn newbitfield_1(ingress: u32, egress: u32, transfer: u32, reserved: u32) -> BindgenBitfieldUnit<[u8; 4usize], u32>
 	{
 		let mut __bindgen_bitfield_unit: BindgenBitfieldUnit<[u8; 4usize], u32> = Default::default();
 		__bindgen_bitfield_unit.set(0usize, 1u8, {
@@ -88,7 +103,11 @@ impl rte_flow_attr
 			let egress: u32 = unsafe { transmute(egress) };
 			egress as u64
 		});
-		__bindgen_bitfield_unit.set(2usize, 30u8, {
+		__bindgen_bitfield_unit.set(2usize, 1u8, {
+			let transfer: u32 = unsafe { transmute(transfer) };
+			transfer as u64
+		});
+		__bindgen_bitfield_unit.set(3usize, 29u8, {
 			let reserved: u32 = unsafe { transmute(reserved) };
 			reserved as u64
 		});

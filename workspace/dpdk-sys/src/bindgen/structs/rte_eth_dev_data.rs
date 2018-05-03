@@ -30,7 +30,7 @@ pub struct rte_eth_dev_data
 	pub numa_node: c_int,
 	pub vlan_filter_conf: rte_vlan_filter_conf,
 	pub owner: rte_eth_dev_owner,
-	pub __bindgen_padding_0: [u64; 6usize],
+	pub __bindgen_padding_0: [u64; 3usize],
 	pub __bindgen_align: [u8; 0usize],
 }
 

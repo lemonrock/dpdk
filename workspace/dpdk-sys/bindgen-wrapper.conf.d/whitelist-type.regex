@@ -6,6 +6,7 @@ dequeue_pkt_burst_t
 efd_.*
 enqueue_pkt_burst_t
 esp_hdr
+ethdev_.*
 ether_.*
 eth_.*
 eventdev_.*
@@ -35,7 +36,7 @@ power_management_env
 priority_flow_ctrl_.*
 rawdev_.*
 reta_.*
-rss_hash_.*
+rss_.*
 rte_.*
 sctp_hdr
 security_.*

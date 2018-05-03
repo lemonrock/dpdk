@@ -3,25 +3,17 @@
 
 
 #[repr(C)]
-pub struct rte_flow_action_dup
+#[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+pub struct rte_flow_action_vxlan_encap
 {
-	pub index: u16,
+	pub definition: *mut rte_flow_item,
 }
 
-impl Default for rte_flow_action_dup
+impl Default for rte_flow_action_vxlan_encap
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
 		unsafe { zeroed() }
-	}
-}
-
-impl Debug for rte_flow_action_dup
-{
-	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> Result
-	{
-		write!(f, "rte_flow_action_dup {{  }}")
 	}
 }

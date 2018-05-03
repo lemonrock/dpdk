@@ -26,6 +26,16 @@ void rust_rte_atomic16_dec(rte_atomic16_t * v)
 	rte_atomic16_dec(v);
 }
 
+uint32_t rust_rte_atomic32_exchange(volatile uint32_t * dst, uint32_t val)
+{
+	return rte_atomic32_exchange(dst, val);
+}
+
+uint16_t rust_rte_atomic16_exchange(volatile uint16_t * dst, uint16_t val)
+{
+	return rte_atomic16_exchange(dst, val);
+}
+
 int rust_rte_atomic32_test_and_set(rte_atomic32_t * v)
 {
 	return rte_atomic32_test_and_set(v);

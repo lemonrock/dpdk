@@ -62,5 +62,7 @@ extern "C"
 	pub fn rte_cryptodev_sym_session_clear(dev_id: u8, sess: *mut rte_cryptodev_sym_session) -> c_int;
 	pub fn rte_cryptodev_sym_session_create(mempool: *mut rte_mempool) -> *mut rte_cryptodev_sym_session;
 	pub fn rte_cryptodev_sym_session_free(sess: *mut rte_cryptodev_sym_session) -> c_int;
+	pub fn rte_cryptodev_sym_session_get_private_data(sess: *mut rte_cryptodev_sym_session) -> *mut c_void;
 	pub fn rte_cryptodev_sym_session_init(dev_id: u8, sess: *mut rte_cryptodev_sym_session, xforms: *mut rte_crypto_sym_xform, mempool: *mut rte_mempool) -> c_int;
+	pub fn rte_cryptodev_sym_session_set_private_data(sess: *mut rte_cryptodev_sym_session, data: *mut c_void, size: u16) -> c_int;
 }

@@ -23,6 +23,7 @@
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::iovec;
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::off_t;
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::pthread_t;
+#[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::pthread_attr_t;
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::sockaddr_storage;
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::sockaddr;
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::size_t;

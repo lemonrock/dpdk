@@ -30,6 +30,7 @@ use ::libc::c_char;
 use ::libc::c_int;
 use ::libc::c_longlong;
 use ::libc::c_uint;
+use ::libc::c_ulong;
 use ::libc::c_ushort;
 use ::libc::c_void;
 
@@ -40,6 +41,7 @@ use ::libc::c_void;
 #[link(name = "rte_bus_vdev", kind = "static-nobundle")]
 #[link(name = "rte_cfgfile", kind = "static-nobundle")]
 #[link(name = "rte_cmdline", kind = "static-nobundle")]
+#[link(name = "rte_common_octeontx", kind = "static-nobundle")]
 #[link(name = "rte_cryptodev", kind = "static-nobundle")]
 #[link(name = "rte_distributor", kind = "static-nobundle")]
 #[link(name = "rte_eal", kind = "static-nobundle")]
@@ -50,6 +52,7 @@ use ::libc::c_void;
 #[link(name = "rte_gro", kind = "static-nobundle")]
 #[link(name = "rte_gso", kind = "static-nobundle")]
 #[link(name = "rte_hash", kind = "static-nobundle")]
+#[link(name = "rte_ifcvf_vdpa", kind = "static-nobundle")]
 #[link(name = "rte_ip_frag", kind = "static-nobundle")]
 #[link(name = "rte_jobstats", kind = "static-nobundle")]
 #[link(name = "rte_kni", kind = "static-nobundle")]
@@ -59,6 +62,7 @@ use ::libc::c_void;
 #[link(name = "rte_mbuf", kind = "static-nobundle")]
 #[link(name = "rte_member", kind = "static-nobundle")]
 #[link(name = "rte_mempool", kind = "static-nobundle")]
+#[link(name = "rte_mempool_bucket", kind = "static-nobundle")]
 #[link(name = "rte_mempool_octeontx", kind = "static-nobundle")]
 #[link(name = "rte_mempool_ring", kind = "static-nobundle")]
 #[link(name = "rte_mempool_stack", kind = "static-nobundle")]
@@ -72,6 +76,7 @@ use ::libc::c_void;
 #[link(name = "rte_pmd_ark", kind = "static-nobundle")]
 #[link(name = "rte_pmd_avf", kind = "static-nobundle")]
 #[link(name = "rte_pmd_avp", kind = "static-nobundle")]
+#[link(name = "rte_pmd_axgbe", kind = "static-nobundle")]
 #[link(name = "rte_pmd_bbdev_null", kind = "static-nobundle")]
 #[link(name = "rte_pmd_bnxt", kind = "static-nobundle")]
 #[link(name = "rte_pmd_bond", kind = "static-nobundle")]
@@ -88,7 +93,6 @@ use ::libc::c_void;
 #[link(name = "rte_pmd_lio", kind = "static-nobundle")]
 #[link(name = "rte_pmd_mlx4", kind = "static-nobundle")]
 #[link(name = "rte_pmd_mlx5", kind = "static-nobundle")]
-#[link(name = "rte_pmd_nfp", kind = "static-nobundle")]
 #[link(name = "rte_pmd_null", kind = "static-nobundle")]
 #[link(name = "rte_pmd_null_crypto", kind = "static-nobundle")]
 #[link(name = "rte_pmd_octeontx", kind = "static-nobundle")]
@@ -106,6 +110,7 @@ use ::libc::c_void;
 #[link(name = "rte_pmd_vdev_netvsc", kind = "static-nobundle")]
 #[link(name = "rte_pmd_vhost", kind = "static-nobundle")]
 #[link(name = "rte_pmd_virtio", kind = "static-nobundle")]
+#[link(name = "rte_pmd_virtio_crypto", kind = "static-nobundle")]
 #[link(name = "rte_pmd_vmxnet3_uio", kind = "static-nobundle")]
 #[link(name = "rte_port", kind = "static-nobundle")]
 #[link(name = "rte_power", kind = "static-nobundle")]

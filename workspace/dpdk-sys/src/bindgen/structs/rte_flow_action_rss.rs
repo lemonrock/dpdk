@@ -5,9 +5,13 @@
 #[repr(C)]
 pub struct rte_flow_action_rss
 {
-	pub rss_conf: *const rte_eth_rss_conf,
-	pub num: u16,
-	pub queue: IncompleteArrayField<u16>,
+	pub func: rte_eth_hash_function,
+	pub level: u32,
+	pub types: u64,
+	pub key_len: u32,
+	pub queue_num: u32,
+	pub key: *const u8,
+	pub queue: *const u16,
 }
 
 impl Default for rte_flow_action_rss
@@ -24,6 +28,6 @@ impl Debug for rte_flow_action_rss
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> Result
 	{
-		write!(f, "rte_flow_action_rss {{ rss_conf: {:?}, queue: {:?} }}", self.rss_conf, self.queue)
+		write!(f, "rte_flow_action_rss {{ func: {:?}, key: {:?}, queue: {:?} }}", self.func, self.key, self.queue)
 	}
 }

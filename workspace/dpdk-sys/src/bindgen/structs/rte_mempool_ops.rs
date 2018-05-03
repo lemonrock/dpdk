@@ -12,9 +12,11 @@ pub struct rte_mempool_ops
 	pub enqueue: rte_mempool_enqueue_t,
 	pub dequeue: rte_mempool_dequeue_t,
 	pub get_count: rte_mempool_get_count,
-	pub get_capabilities: rte_mempool_get_capabilities_t,
-	pub register_memory_area: rte_mempool_ops_register_memory_area_t,
-	pub __bindgen_padding_0: [u64; 5usize],
+	pub calc_mem_size: rte_mempool_calc_mem_size_t,
+	pub populate: rte_mempool_populate_t,
+	pub get_info: rte_mempool_get_info_t,
+	pub dequeue_contig_blocks: rte_mempool_dequeue_contig_blocks_t,
+	pub __bindgen_padding_0: [u64; 3usize],
 	pub __bindgen_align: [u8; 0usize],
 }
 

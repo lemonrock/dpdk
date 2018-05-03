@@ -77,6 +77,8 @@ pub struct eth_dev_ops
 	pub get_eeprom_length: eth_get_eeprom_length_t,
 	pub get_eeprom: eth_get_eeprom_t,
 	pub set_eeprom: eth_set_eeprom_t,
+	pub get_module_info: eth_get_module_info_t,
+	pub get_module_eeprom: eth_get_module_eeprom_t,
 	pub filter_ctrl: eth_filter_ctrl_t,
 	pub get_dcb_info: eth_get_dcb_info,
 	pub timesync_enable: eth_timesync_enable_t,

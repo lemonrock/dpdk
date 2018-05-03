@@ -11,8 +11,10 @@ extern "C"
 	pub fn rte_log_get_global_level() -> u32;
 	pub fn rte_log_get_level(logtype: u32) -> c_int;
 	pub fn rte_log_register(name: *const c_char) -> c_int;
+	pub fn rte_log_register_type_and_pick_level(name: *const c_char, level_def: u32) -> c_int;
 	pub fn rte_log_set_global_level(level: u32);
 	pub fn rte_log_set_level(logtype: u32, level: u32) -> c_int;
-	pub fn rte_log_set_level_regexp(pattern: *const c_char, level: u32) -> c_int;
+	pub fn rte_log_set_level_pattern(pattern: *const c_char, level: u32) -> c_int;
+	pub fn rte_log_set_level_regexp(regex: *const c_char, level: u32) -> c_int;
 	pub fn rte_openlog_stream(f: *mut FILE) -> c_int;
 }

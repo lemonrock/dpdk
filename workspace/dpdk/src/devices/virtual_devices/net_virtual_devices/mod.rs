@@ -15,4 +15,3 @@ include!("PacketCaptureFileOrInterface.rs");
 include!("PacketCaptureNetVirtualDevice.rs");
 include!("VirtIoNetVirtualDevice.rs");
 include!("VirtualHostNetVirtualDevice.rs");
-include!("XenNetVirtualDevice.rs");

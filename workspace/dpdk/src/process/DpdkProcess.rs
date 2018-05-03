@@ -32,9 +32,9 @@ impl DpdkProcess
 	///
 	/// Only valid after `rte_eal_init()` called.
 	#[inline(always)]
-	pub(crate) fn global_configuration() -> &'static rte_config
+	pub(crate) fn global_configuration() -> &'static mut rte_config
 	{
-		unsafe { & * rte_eal_get_configuration() }
+		unsafe { &mut * rte_eal_get_configuration() }
 	}
 	
 	/// Is the primary process alive?

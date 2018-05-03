@@ -12,6 +12,7 @@ pub struct rte_memseg
 	pub socket_id: i32,
 	pub nchannel: u32,
 	pub nrank: u32,
+	pub flags: u32,
 }
 
 impl Default for rte_memseg

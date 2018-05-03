@@ -2,26 +2,4 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-#[repr(C)]
-pub struct rte_flow_item_port
-{
-	pub index: u32,
-}
-
-impl Default for rte_flow_item_port
-{
-	#[inline(always)]
-	fn default() -> Self
-	{
-		unsafe { zeroed() }
-	}
-}
-
-impl Debug for rte_flow_item_port
-{
-	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> Result
-	{
-		write!(f, "rte_flow_item_port {{  }}")
-	}
-}
+pub type rte_event_timer_adapter_port_conf_cb_t = Option<unsafe extern "C" fn(id: u16, event_dev_id: u8, event_port_id: *mut u8, conf_arg: *mut c_void) -> c_int>;

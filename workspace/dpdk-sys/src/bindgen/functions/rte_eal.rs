@@ -11,7 +11,6 @@ extern "C"
 	pub fn rte_eal_dev_detach(dev: *mut rte_device) -> c_int;
 	pub fn rte_eal_get_configuration() -> *mut rte_config;
 	pub fn rte_eal_get_lcore_state(slave_id: c_uint) -> rte_lcore_state_t;
-	pub fn rte_eal_get_physmem_layout() -> *const rte_memseg;
 	pub fn rte_eal_get_physmem_size() -> u64;
 	pub fn rte_eal_has_hugepages() -> c_int;
 	pub fn rte_eal_has_pci() -> c_int;

@@ -8,10 +8,6 @@ pub struct rte_meter_srtcm
 	pub time: u64,
 	pub tc: u64,
 	pub te: u64,
-	pub cbs: u64,
-	pub ebs: u64,
-	pub cir_period: u64,
-	pub cir_bytes_per_period: u64,
 }
 
 impl Default for rte_meter_srtcm

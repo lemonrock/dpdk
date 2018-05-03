@@ -8,7 +8,7 @@ pub struct rte_eth_fdir_flex_conf
 	pub nb_payloads: u16,
 	pub nb_flexmasks: u16,
 	pub flex_set: [rte_eth_flex_payload_cfg; 8usize],
-	pub flex_mask: [rte_eth_fdir_flex_mask; 22usize],
+	pub flex_mask: [rte_eth_fdir_flex_mask; 23usize],
 }
 
 impl Default for rte_eth_fdir_flex_conf

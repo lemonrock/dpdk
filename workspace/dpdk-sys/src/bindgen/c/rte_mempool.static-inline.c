@@ -66,6 +66,11 @@ int rust_rte_mempool_ops_enqueue_bulk(struct rte_mempool * mp, void * const * ob
 	return rte_mempool_ops_enqueue_bulk(mp, obj_table, n);
 }
 
+int rust_rte_mempool_ops_dequeue_contig_blocks(struct rte_mempool * mp, void * * first_obj_table, unsigned int n)
+{
+	return rte_mempool_ops_dequeue_contig_blocks(mp, first_obj_table, n);
+}
+
 int rust_rte_mempool_ops_dequeue_bulk(struct rte_mempool * mp, void * * obj_table, unsigned n)
 {
 	return rte_mempool_ops_dequeue_bulk(mp, obj_table, n);
@@ -94,6 +99,11 @@ int rust_rte_mempool_full(const struct rte_mempool * mp)
 int rust_rte_mempool_empty(const struct rte_mempool * mp)
 {
 	return rte_mempool_empty(mp);
+}
+
+int __rte_experimental rust_rte_mempool_get_contig_blocks(struct rte_mempool * mp, void * * first_obj_table, unsigned int n)
+{
+	return rte_mempool_get_contig_blocks(mp, first_obj_table, n);
 }
 
 int rust___mempool_generic_get(struct rte_mempool * mp, void * * obj_table, unsigned int n, struct rte_mempool_cache * cache)

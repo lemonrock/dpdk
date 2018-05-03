@@ -10,5 +10,6 @@ pub const RTE_MEMZONE_256MB: c_uint = 131072;
 pub const RTE_MEMZONE_2MB: c_uint = 1;
 pub const RTE_MEMZONE_4GB: c_uint = 524288;
 pub const RTE_MEMZONE_512MB: c_uint = 262144;
+pub const RTE_MEMZONE_IOVA_CONTIG: u32 = 1048576;
 pub const RTE_MEMZONE_NAMESIZE: size_t = 32;
 pub const RTE_MEMZONE_SIZE_HINT_ONLY: c_uint = 4;

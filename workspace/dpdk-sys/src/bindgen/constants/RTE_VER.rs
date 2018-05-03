@@ -3,8 +3,8 @@
 
 
 pub const RTE_VER_MINOR: u32 = 0;
-pub const RTE_VER_MONTH: u32 = 2;
+pub const RTE_VER_MONTH: u32 = 5;
 pub const RTE_VER_PREFIX: &'static [u8; 5usize] = b"DPDK\0";
-pub const RTE_VER_RELEASE: u32 = 16;
-pub const RTE_VER_SUFFIX: &'static [u8; 1usize] = b"\0";
+pub const RTE_VER_RELEASE: u32 = 2;
+pub const RTE_VER_SUFFIX: &'static [u8; 4usize] = b"-rc\0";
 pub const RTE_VER_YEAR: u32 = 18;

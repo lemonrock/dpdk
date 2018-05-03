@@ -8,8 +8,11 @@ pub struct malloc_heap
 {
 	pub lock: rte_spinlock_t,
 	pub free_head: [malloc_heap_1; 13usize],
+	pub first: *mut malloc_elem,
+	pub last: *mut malloc_elem,
 	pub alloc_count: c_uint,
 	pub total_size: usize,
+	pub __bindgen_padding_0: [u64; 6usize],
 	pub __bindgen_align: [u8; 0usize],
 }
 

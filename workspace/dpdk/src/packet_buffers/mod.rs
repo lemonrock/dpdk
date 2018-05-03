@@ -18,5 +18,6 @@ include!("PacketBuffer.rs");
 include!("PacketBufferExt.rs");
 include!("PacketBufferReceiveOffloadFeaturesFlags.rs");
 include!("PacketBufferPool.rs");
+include!("PacketDistributorController.rs");
+include!("PacketDistributorWorker.rs");
 include!("ReorderBuffer.rs");
-include!("rte_mbuf.macros.rs");

@@ -5,11 +5,11 @@
 #[repr(C)]
 pub struct rte_flow_item_e_tag
 {
-	pub tpid: rte_be16_t,
 	pub epcp_edei_in_ecid_b: rte_be16_t,
 	pub rsvd_grp_ecid_b: rte_be16_t,
 	pub in_ecid_e: u8,
 	pub ecid_e: u8,
+	pub inner_type: rte_be16_t,
 }
 
 impl Default for rte_flow_item_e_tag

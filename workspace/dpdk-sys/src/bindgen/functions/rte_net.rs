@@ -8,4 +8,5 @@ extern "C"
 	pub fn rte_net_crc_set_alg(alg: rte_net_crc_alg);
 	pub fn rte_net_get_ptype(m: *const rte_mbuf, hdr_lens: *mut rte_net_hdr_lens, layers: u32) -> u32;
 	pub fn rte_net_make_rarp_packet(mpool: *mut rte_mempool, mac: *const ether_addr) -> *mut rte_mbuf;
+	pub fn rte_net_skip_ip6_ext(proto: u16, m: *const rte_mbuf, off: *mut u32, frag: *mut c_int) -> c_int;
 }

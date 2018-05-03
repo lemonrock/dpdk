@@ -35,7 +35,6 @@ fn compile_embedded_c_code(cargo_manifest_folder_path: &str, cargo_build_folder_
 	Build::new()
 	.file(format!("{}/lib.c", files_path))
 	.warnings(true)
-	.warnings_into_errors(true)
 	.opt_level(3)
 	.flag("-mssse3")
 	.flag("-msse4.1")

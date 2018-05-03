@@ -12,7 +12,6 @@ pub struct rte_memzone
 	pub hugepage_sz: u64,
 	pub socket_id: i32,
 	pub flags: u32,
-	pub memseg_id: u32,
 }
 
 impl Default for rte_memzone

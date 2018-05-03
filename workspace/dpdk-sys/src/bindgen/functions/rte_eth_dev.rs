@@ -14,7 +14,11 @@ extern "C"
 	pub fn rte_eth_dev_close(port_id: u16);
 	pub fn rte_eth_dev_configure(port_id: u16, nb_rx_queue: u16, nb_tx_queue: u16, eth_conf: *const rte_eth_conf) -> c_int;
 	pub fn rte_eth_dev_count() -> u16;
+	pub fn rte_eth_dev_count_avail() -> u16;
+	pub fn rte_eth_dev_count_total() -> u16;
+	pub fn rte_eth_dev_create(device: *mut rte_device, name: *const c_char, priv_data_size: usize, bus_specific_init: ethdev_bus_specific_init, bus_init_params: *mut c_void, ethdev_init: ethdev_init_t, init_params: *mut c_void) -> c_int;
 	pub fn rte_eth_dev_default_mac_addr_set(port_id: u16, mac_addr: *mut ether_addr) -> c_int;
+	pub fn rte_eth_dev_destroy(ethdev: *mut rte_eth_dev, ethdev_uninit: ethdev_uninit_t) -> c_int;
 	pub fn rte_eth_dev_detach(port_id: u16, devname: *mut c_char) -> c_int;
 	pub fn rte_eth_dev_filter_ctrl(port_id: u16, filter_type: rte_filter_type, filter_op: rte_filter_op, arg: *mut c_void) -> c_int;
 	pub fn rte_eth_dev_filter_supported(port_id: u16, filter_type: rte_filter_type) -> c_int;
@@ -24,11 +28,13 @@ extern "C"
 	pub fn rte_eth_dev_get_dcb_info(port_id: u16, dcb_info: *mut rte_eth_dcb_info) -> c_int;
 	pub fn rte_eth_dev_get_eeprom(port_id: u16, info: *mut rte_dev_eeprom_info) -> c_int;
 	pub fn rte_eth_dev_get_eeprom_length(port_id: u16) -> c_int;
+	pub fn rte_eth_dev_get_module_eeprom(port_id: u16, info: *mut rte_dev_eeprom_info) -> c_int;
+	pub fn rte_eth_dev_get_module_info(port_id: u16, modinfo: *mut rte_eth_dev_module_info) -> c_int;
 	pub fn rte_eth_dev_get_mtu(port_id: u16, mtu: *mut u16) -> c_int;
 	pub fn rte_eth_dev_get_name_by_port(port_id: u16, name: *mut c_char) -> c_int;
 	pub fn rte_eth_dev_get_port_by_name(name: *const c_char, port_id: *mut u16) -> c_int;
 	pub fn rte_eth_dev_get_reg_info(port_id: u16, info: *mut rte_dev_reg_info) -> c_int;
-	pub fn rte_eth_dev_get_sec_ctx(port_id: u8) -> *mut c_void;
+	pub fn rte_eth_dev_get_sec_ctx(port_id: u16) -> *mut c_void;
 	pub fn rte_eth_dev_get_supported_ptypes(port_id: u16, ptype_mask: u32, ptypes: *mut u32, num: c_int) -> c_int;
 	pub fn rte_eth_dev_get_vlan_offload(port_id: u16) -> c_int;
 	pub fn rte_eth_dev_info_get(port_id: u16, dev_info: *mut rte_eth_dev_info);

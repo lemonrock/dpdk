@@ -3,7 +3,7 @@
 
 
 #[repr(C)]
-#[repr(align(128))]
+#[repr(align(64))]
 pub struct rte_ring
 {
 	pub name: [c_char; 32usize],
@@ -12,11 +12,17 @@ pub struct rte_ring
 	pub size: u32,
 	pub mask: u32,
 	pub capacity: u32,
-	pub __bindgen_padding_0: [u32; 17usize],
+	pub __bindgen_padding_0: [u8; 4usize],
+	pub pad0: c_char,
+	pub __bindgen_padding_1: [u32; 15usize],
 	pub prod: rte_ring_headtail,
-	pub __bindgen_padding_1: [u32; 29usize],
+	pub __bindgen_padding_2: [u8; 52usize],
+	pub pad1: c_char,
+	pub __bindgen_padding_3: [u32; 15usize],
 	pub cons: rte_ring_headtail,
-	pub __bindgen_padding_2: [u32; 29usize],
+	pub __bindgen_padding_4: [u8; 52usize],
+	pub pad2: c_char,
+	pub __bindgen_padding_5: [u8; 63usize],
 	pub __bindgen_align: [u8; 0usize],
 }
 
