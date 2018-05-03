@@ -2,4 +2,4 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-pub type lcore_function_t = Option<unsafe extern "C" fn(arg1: *mut c_void) -> c_int>;
+pub type lcore_function_t = unsafe extern "C" fn(arg1: *mut c_void) -> c_int;
