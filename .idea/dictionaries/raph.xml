@@ -88,6 +88,7 @@
       <w>sbit</w>
       <w>sctp</w>
       <w>serde</w>
+      <w>setpgid</w>
       <w>setsid</w>
       <w>srtcm</w>
       <w>stormmq</w>

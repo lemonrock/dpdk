@@ -2,7 +2,6 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-// Solaris & BSDs
 /// Gets the program name using the best available technique for the Operating System.
 #[cfg(any(target_os = "solaris", target_os = "macos", target_os = "ios", target_os = "freebsd", target_os = "dragonfly", target_os = "openbsd", target_os = "netbsd", target_os = "bitrig"))]
 #[inline(always)]
@@ -16,7 +15,7 @@ pub fn get_program_name() -> String
 #[inline(always)]
 pub fn get_program_name() -> String
 {
-	unsafe { CStr::from_ptr(::libc_extra::errno::program_invocation_short_name).to_string_lossy().into_owned() }
+	unsafe { CStr::from_ptr(program_invocation_short_name).to_string_lossy().into_owned() }
 }
 
 /// Gets the program name using the best available technique for the Operating System.
@@ -40,14 +39,14 @@ pub fn get_program_name() -> String
 	match env::current_exe()
 	{
 		Err(_) => "(unknown)".to_string(),
-		Ok(pathBuffer) =>
+		Ok(path_buffer) =>
 		{
-			match pathBuffer.file_name()
+			match path_buffer.file_name()
 			{
 				None => "(unspecified)".to_string(),
-				Some(ref osFileNameString) =>
+				Some(ref os_file_name_string) =>
 				{
-					let lossy = osFileNameString.to_string_lossy().to_string();
+					let lossy = os_file_name_string.to_string_lossy().to_string();
 				}
 			}
 		}

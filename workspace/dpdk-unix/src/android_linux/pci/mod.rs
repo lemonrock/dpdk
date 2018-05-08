@@ -11,8 +11,8 @@
 #[cfg(unix)] use ::libc::SOCK_DGRAM;
 #[cfg(unix)] use ::libc::socket;
 #[cfg(any(target_os = "android", target_os = "linux"))] use ::libc_extra::android_linux::net::if_::*;
-#[cfg(any(target_os = "android", target_os = "linux"))] use ::libc_extra::linux::ethtool::*;
-#[cfg(any(target_os = "android", target_os = "linux"))] use ::libc_extra::linux::sockios::SIOCETHTOOL;
+#[cfg(any(target_os = "android", target_os = "linux"))] use ::libc_extra::android_linux::linux::ethtool::*;
+#[cfg(any(target_os = "android", target_os = "linux"))] use ::libc_extra::android_linux::linux::sockios::SIOCETHTOOL;
 #[cfg(any(target_os = "android", target_os = "linux"))] use ::std::ffi::CStr;
 #[cfg(any(target_os = "android", target_os = "linux"))] use ::std::mem::transmute;
 #[cfg(unix)] use ::std::os::unix::io::RawFd;

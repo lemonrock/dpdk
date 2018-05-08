@@ -7,9 +7,11 @@ use super::*;
 
 include!("DpdkProcess.rs");
 include!("DpdkRteInitData.rs");
+include!("MasterLoop.rs");
 include!("MemoryChannels.rs");
 include!("MemoryLimits.rs");
 include!("MemoryRanks.rs");
 include!("PciDeviceListColour.rs");
 include!("ProcessType.rs");
+include!("VecArguments.rs");
 include!("VirtualFunctionIoInterruptMode.rs");

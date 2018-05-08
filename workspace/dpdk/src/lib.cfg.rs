@@ -5,7 +5,6 @@
 extern crate arrayvec;
 #[macro_use] extern crate bitflags;
 #[macro_use] extern crate const_cstr_fork;
-pub extern crate pointer;
 #[macro_use] pub extern crate dpdk_serde;
 pub extern crate dpdk_sys;
 #[cfg(unix)] pub extern crate dpdk_unix;
@@ -14,6 +13,7 @@ extern crate hyper_thread_random;
 extern crate libc;
 extern crate libc_extra;
 extern crate libnuma_sys;
+extern crate lock_free_multi_producer_single_consumer_ring_buffer;
 #[macro_use] extern crate log;
 #[macro_use] extern crate quick_error;
 extern crate rust_extra;
@@ -63,7 +63,10 @@ use self::tldk::devices::*;
 use ::arrayvec::ArrayVec;
 use ::const_cstr_fork::ConstCStr;
 use ::dpdk_unix::*;
+use ::dpdk_unix::signals::*;
+#[cfg(any(target_os = "android", target_os = "linux"))] use ::dpdk_unix::android_linux::capabilities::*;
 #[cfg(any(target_os = "android", target_os = "linux"))] use ::dpdk_unix::android_linux::pci::PciBusInformation;
+#[cfg(any(target_os = "android", target_os = "linux"))] use ::dpdk_unix::android_linux::process_control::*;
 use ::dpdk_sys::*;
 use ::hyper_thread_random::generate_hyper_thread_safe_random_u64;
 use ::indexmap::set::IndexSet;
@@ -73,6 +76,7 @@ use ::libc_extra::ffi::*;
 use ::libc_extra::ffi::arguments::*;
 use ::libc_extra::stdio::open_memstream;
 use ::libnuma_sys::*;
+use ::lock_free_multi_producer_single_consumer_ring_buffer::*;
 use ::rust_extra::*;
 use ::rust_extra::arrays::*;
 use ::rust_extra::powersOfTwo::*;
@@ -129,6 +133,7 @@ use ::std::panic::catch_unwind;
 use ::std::panic::AssertUnwindSafe;
 use ::std::path::Path;
 use ::std::path::PathBuf;
+use ::std::process::exit;
 use ::std::ptr::copy;
 use ::std::ptr::copy_nonoverlapping;
 use ::std::ptr::NonNull;
@@ -176,10 +181,6 @@ pub mod logicalCores;
 
 /// DPDK memory management.
 pub mod memory;
-
-
-/// PCI devices.
-pub mod pci;
 
 
 /// Packet buffers.

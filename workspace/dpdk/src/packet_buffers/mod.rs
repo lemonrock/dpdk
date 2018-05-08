@@ -20,4 +20,5 @@ include!("PacketBufferReceiveOffloadFeaturesFlags.rs");
 include!("PacketBufferPool.rs");
 include!("PacketDistributorController.rs");
 include!("PacketDistributorWorker.rs");
+include!("PacketDistributorWorkerIterator.rs");
 include!("ReorderBuffer.rs");

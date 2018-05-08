@@ -82,7 +82,7 @@ impl Mounts
 		while
 		{
 			mount_entry_pointer = unsafe { getmntent(self.0) };
-			mount_entry_pointer.is_not_null()
+			!mount_entry_pointer.is_null()
 		}
 		{
 			let result = called_for_each_mount_point(Mount::from_mntent(mount_entry_pointer));

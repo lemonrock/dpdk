@@ -25,26 +25,42 @@ extern crate rust_extra;
 #[cfg(unix)] extern crate syscall_alt;
 
 
-use ::libc::geteuid;
-use ::std::fmt::Display;
+#[cfg(target_os = "linux")] use ::const_cstr_fork::ConstCStr;
+use ::libc::*;
+use ::std::env::set_var;
+use ::std::env::var_os;
 use ::std::error::Error;
 use ::std::ffi::CStr;
 use ::std::ffi::CString;
 use ::std::ffi::NulError;
 use ::std::ffi::OsStr;
+use ::std::fmt::Display;
 use ::std::fs::File;
 use ::std::fs::metadata;
 use ::std::fs::OpenOptions;
 use ::std::fs::Permissions;
+use ::std::fs::remove_file;
 use ::std::fs::set_permissions;
 use ::std::io;
 use ::std::io::ErrorKind;
 use ::std::io::Read;
 use ::std::io::Write;
 use ::std::num::ParseIntError;
-#[cfg(unix)] use ::std::os::unix::fs::PermissionsExt;
+#[cfg(unix)] use ::std::os::unix::io::AsRawFd;
 #[cfg(unix)] use ::std::os::unix::ffi::OsStrExt;
+#[cfg(unix)] use ::std::os::unix::fs::PermissionsExt;
+#[cfg(unix)] use ::std::process;
+#[cfg(target_os = "linux")] use ::libc_extra::android_linux::stdio::cookie_io_functions_t;
+#[cfg(target_os = "linux")] use ::libc_extra::android_linux::stdio::cookie_write_function_t;
+#[cfg(target_os = "linux")] use ::libc_extra::android_linux::stdio::fopencookie;
+#[cfg(target_os = "linux")] use ::libc_extra::linux::errno::program_invocation_short_name;
+#[cfg(target_os = "linux")] use ::libc_extra::unix::stdio::stderr;
+#[cfg(target_os = "linux")] use ::libc_extra::unix::stdio::stdout;
+#[cfg(unix)] use ::libc_extra::unix::unistd::setegid;
 use ::std::path::Path;
+use ::std::path::PathBuf;
+use ::std::ptr::NonNull;
+#[cfg(target_os = "linux")] use ::std::ptr::null_mut;
 use ::std::str::FromStr;
 
 
@@ -59,8 +75,9 @@ pub mod android_linux;
 
 pub(crate) mod strings;
 
-
 include!("assert_effective_user_id_is_root.rs");
+include!("Daemonize.rs");
+include!("DaemonizeCleanUpOnExit.rs");
 include!("get_program_name.rs");
 include!("HugePageSize.rs");
 include!("OsStrExtMore.rs");

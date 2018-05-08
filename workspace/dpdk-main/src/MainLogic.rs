@@ -34,11 +34,6 @@ impl MainLogic
 
 fn initialise<P: ConfigurationAndProgramArguments>(mut finishers: &mut Finishers) -> (PathBuf, NumaSockets, EthernetPortConfigurations)
 {
-	initialUmask();
-	removeNearlyAllCapabilitiesOnLinux();
-	additionalEarlyProcessSecurityTighteningOnLinux();
-	set_current_thread_nameTo("Master");
-	block_all_signals_on_current_thread_bar_hang_up_and_terminate_and_child();
 	let programArguments = P::parseThenDisplayHelpOrVersionAndExitIfSoRequestedThenConfigureLogging();
 	checkWeAreRoot();
 	startANewProcessGroup();
@@ -67,51 +62,7 @@ fn initialise<P: ConfigurationAndProgramArguments>(mut finishers: &mut Finishers
 	(sys_pathBuf, numa_sockets, configurations)
 }
 
-fn checkWeAreRoot()
-{
-	assert_effective_user_id_is_root("Initialisation");
-}
 
-fn initialUmask()
-{
-	unsafe { umask(0o0000) };
-}
-
-fn restrictUmaskToCurrentUser()
-{
-	unsafe { umask(0o0077) };
-}
-
-#[cfg(any(target_os = "android", target_os = "linux"))]
-fn additionalEarlyProcessSecurityTighteningOnLinux()
-{
-	disable_dumpable();
-	no_new_privileges();
-}
-
-#[cfg(not(any(target_os = "android", target_os = "linux")))]
-fn additionalEarlyProcessSecurityTighteningOnLinux()
-{
-}
-
-fn startANewProcessGroup()
-{
-	let result = unsafe { setpgid(0, 0) };
-	if likely(result == 0)
-	{
-		return;
-	}
-	match result
-	{
-		-1 => panic!("Could not setpgid"),
-		_ => panic!("Positive value from setpgid"),
-	}
-}
-
-fn forkAndStartANewSession()
-{
-	warn!("Implement forkAndStartANewSession via fork() and setsid()");
-}
 
 #[cfg(any(target_os = "android", target_os = "linux"))]
 fn removeNearlyAllCapabilitiesOnLinux()

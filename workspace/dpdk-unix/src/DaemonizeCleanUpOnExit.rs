@@ -2,31 +2,24 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Should the function running on the current logical core terminate?
-pub struct ShouldFunctionTerminate(AtomicBool);
-
-unsafe impl Send for ShouldFunctionTerminate
+/// This object encapsulates a piece of behaviour to run on exit to ensure clean-up.
+///
+/// Currently it justs ensures that PID files are deleted.
+#[derive(Debug)]
+pub struct DaemonizeCleanUpOnExit
 {
+	pid_file_path: PathBuf
 }
 
-unsafe impl Sync for ShouldFunctionTerminate
+impl DaemonizeCleanUpOnExit
 {
-}
-
-impl ShouldFunctionTerminate
-{
-	const Sleepiness: Duration = Duration::from_millis(10);
-	
+	/// Cleans up.
 	#[inline(always)]
-	pub fn should_terminate(&self) -> bool
+	pub fn clean_up(self)
 	{
-		self.0.load(Ordering::Relaxed)
-	}
-	
-	#[inline(always)]
-	pub fn sleep_and_check_should_terminate(&self) -> bool
-	{
-		sleep(Self::Sleepiness);
-		self.should_terminate()
+		if let Err(_) = remove_file(&self.pid_file_path)
+		{
+			eprintln!("Could not remove PID file '{:?}'", self.pid_file_path)
+		}
 	}
 }

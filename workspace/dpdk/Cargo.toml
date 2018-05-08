@@ -12,7 +12,7 @@ authors = ["Raphael Cohn <raphael.cohn@stormmq.com>"]
 homepage = "https://github.com/lemonrock/dpdk"
 repository = "https://github.com/lemonrock/dpdk.git"
 exclude = ["*"]
-include = ["README.md", "LICENSE", "COPYRIGHT", "src/**/*.rs", "benches/**/*.rs", "examples/**/*.rs", "tests/**/*.rs", "Cargo.toml", "rustfmt.toml", "clippy.toml"]
+include = ["README.md", "LICENSE", "COPYRIGHT", "src/**/*.rs", "Cargo.toml", "rustfmt.toml", "clippy.toml"]
 # Relative to Cargo.toml
 readme = "README.md"
 publish = true
@@ -29,8 +29,9 @@ hyper-thread-random = "0.4"
 indexmap = "1.0"
 lazy_static = { version = "1.0", features = ["nightly"] }
 libc = "^0.2"
-libc-extra = "0.0.16"
+libc-extra = "0.2.1"
 libnuma-sys = "0.0.9"
+lock-free-multi-producer-single-consumer-ring-buffer = "0.1"
 log = "0.3"
 quick-error = "1.1"
 rust-extra = "0.0.13"

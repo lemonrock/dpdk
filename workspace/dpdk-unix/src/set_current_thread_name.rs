@@ -16,12 +16,10 @@ pub fn set_current_thread_name(name: &str) -> Result<(), SetCurrentThreadNameErr
 			let c_string = CString::new(name.to_owned())?;
 			let pointer = c_string.as_ptr();
 			
-			#[cfg(any(target_os = "android", target_os = "linux"))] unsafe { ::libc::prctl(::libc::PR_SET_NAME, pointer) }; // `pthread_getname_np` in glibc and modern musl but not Android.
+			#[cfg(any(target_os = "android", target_os = "linux"))] unsafe { ::libc::prctl(::libc::PR_SET_NAME, pointer) }; // Used in preference to `pthread_setname_np` as this method is only present in glibc and modern musl but not Android.
 			#[cfg(target_os = "netbsd")] unsafe { ::libc::pthread_setname_np(::libc::pthread_self(), pointer) };
 			#[cfg(any(target_os = "ios", target_os = "macos"))] unsafe { ::libc::pthread_setname_np(pointer) };
-			
-			// pthread_set_name_np for FreeBSD / OpenBSD, but not implemented by Rust libc yet.
-			// See https://stackoverflow.com/questions/2369738/can-i-set-the-name-of-a-thread-in-pthreads-linux.
+			#[cfg(any(target_os = "bitrig", target_os = "dragonfly", target_os = "freebsd", target_os = "openbsd"))] unsafe { ::libc::pthread_set_name_np(::libc::pthread_self(), pointer) };
 			
 			Ok(())
 		}

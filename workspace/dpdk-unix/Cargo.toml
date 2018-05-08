@@ -27,7 +27,7 @@ serde = "1.0"
 serde_derive = "1.0"
 
 [target.'cfg(unix)'.dependencies]
-libc-extra = "0.0.14"
+libc-extra = "0.2.1"
 maplit = "1.0"
 syscall-alt = "0.0.14"
 
