@@ -99,6 +99,6 @@ use ::std::sync::Mutex;
 
 
 include!("DpdkRteInitData.rs");
-include!("LinuxKernelModule.rs");
+include!("EssentialLinuxKernelModule.rs");
 include!("Networking.rs");
 include!("MainLogic.rs");

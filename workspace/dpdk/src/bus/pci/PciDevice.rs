@@ -8,143 +8,20 @@ pub struct PciDevice(DpdkPciDeviceAddress);
 
 impl PciDevice
 {
-	/// Bind all PCI devices.
-	///
-	/// `sys_path` is a path like `/sys`.
-	pub fn bind_all_devices(sys_path: &Path, indirect_pci_device_identifiers: HashMap<IndirectPciDeviceIdentifier, PciKernelDriver>) -> Vec<Unbind>
-	{
-		let all_known_pci_drivers = PciKernelDriver::all_known_pci_drivers(sys_path);
-		let mut converted = Self::indirect_pci_device_identifiers_to_pci_devices(sys_path, indirect_pci_device_identifiers);
-		let mut unbind_list = Vec::with_capacity(converted.len());
-
-		for (indirect_pci_device_identifier, (pci_device, dpdk_pci_driver_to_bind_to)) in converted.drain()
-		{
-			let bind_back_to_original = pci_device.ensure_bound_to_dpdk_driver(sys_path, &all_known_pci_drivers, &dpdk_pci_driver_to_bind_to);
-			let unbind = Unbind
-			{
-				indirect_pci_device_identifier,
-				pci_device,
-				dpdk_pci_driver_to_unbind_from: dpdk_pci_driver_to_bind_to,
-				bind_back_to_original,
-			};
-
-			unbind_list.push(unbind);
-		}
-
-		unbind_list
-	}
-
-	/// All PCI devices.
-	///
-	/// `sys_path` is a path like `/sys`.
-	pub(crate) fn all_pci_devices(sys_path: &Path) -> HashSet<PciDevice>
-	{
-		let mut results = HashSet::with_capacity(64);
-
-		let devices_path = Self::devices_path(sys_path);
-
-		if let Ok(iterator) = devices_path.read_dir()
-		{
-			for entry in iterator
-			{
-				if let Ok(entry) = entry
-				{
-					if let Ok(fileName) = entry.file_name().into_string()
-					{
-						if let Ok(device_address) = DeviceAddress::from_str(&fileName)
-						{
-							let value = PciDevice(device_address);
-							assert!(results.insert(value), "Duplicate in a read_dir() ? how ?");
-						}
-					}
-				}
-			}
-		}
-
-		results.shrink_to_fit();
-		results
-	}
-	
-	fn indirect_pci_device_identifiers_to_pci_devices(sys_path: &Path, mut indirect_pci_device_identifiers: HashMap<IndirectPciDeviceIdentifier, PciKernelDriver>) -> HashMap<IndirectPciDeviceIdentifier, (PciDevice, PciKernelDriver)>
-	{
-		let length = indirect_pci_device_identifiers.len();
-		let mut result = HashMap::with_capacity(length);
-		let mut aliases = HashMap::with_capacity(length);
-		for (indirect_pci_device_identifier, dpdk_pci_driver_to_bind_to) in indirect_pci_device_identifiers.drain()
-		{
-			assert!(dpdk_pci_driver_to_bind_to.is_dpdk_driver(), "dpdk_pci_driver_to_bind_to {:?} isn't a DPDK driver", dpdk_pci_driver_to_bind_to);
-
-			let pci_device = indirect_pci_device_identifier.to_pci_device(sys_path).unwrap();
-			assert!(pci_device.is_class_network_ethernet(sys_path), "PCI device '{:?}' for indirect_pci_device_identifier '{:?}' is for not an Ethernet class PCI device (or does not exist at all)", pci_device, indirect_pci_device_identifier);
-			
-			if let Some(original) = aliases.get(&pci_device)
-			{
-				panic!("IndirectPciDeviceIdentifier '{:?}' is an alias of '{:?}' with the same PCI device ('{:?}') ", indirect_pci_device_identifier, original, pci_device);
-			}
-			aliases.insert(pci_device.clone(), indirect_pci_device_identifier.clone());
-			result.insert(indirect_pci_device_identifier, (pci_device, dpdk_pci_driver_to_bind_to));
-		}
-
-		result
-	}
-
-	// returns driver to bind back to at termination.
-	fn ensure_bound_to_dpdk_driver(&self, sys_path: &Path, pci_drivers: &HashSet<PciKernelDriver>, dpdk_pci_driver_to_bind_to: &PciKernelDriver) -> Option<PciKernelDriver>
-	{
-		assert!(dpdk_pci_driver_to_bind_to.is_dpdk_driver(), "dpdk_pci_driver_to_bind_to {:?} isn't a DPDK driver", dpdk_pci_driver_to_bind_to);
-		assert!(self.is_class_network_ethernet(sys_path), "We are not an ethernet network device");
-
-		let pci_vendor_identifier = self.pci_vendor_identifier(sys_path);
-		let pci_device_identifier = self.pci_device_identifier(sys_path);
-
-		let bind_back_to_at_termination = if let Some(existing_pci_driver) = self.pci_driver(sys_path, pci_drivers)
-		{
-			if existing_pci_driver == dpdk_pci_driver_to_bind_to
-			{
-				// Just in case it's bound but the id not added. Rare edge case.
-				existing_pci_driver.assign_id(sys_path, &pci_vendor_identifier, &pci_device_identifier).expect("Could not assign device to PCI driver");
-				return None;
-			}
-			existing_pci_driver.unbind_pci_device(sys_path, &self.0).expect("Could not unbind");
-			Some(existing_pci_driver.clone())
-		}
-		else
-		{
-			None
-		};
-		
-		dpdk_pci_driver_to_bind_to.assign_id(sys_path, &pci_vendor_identifier, &pci_device_identifier).expect("Could not assign device to PCI driver");
-		dpdk_pci_driver_to_bind_to.bind_pci_device(sys_path, &self.0).expect("Could not assign device to PCI driver");
-
-		bind_back_to_at_termination
-	}
-
 	#[inline(always)]
-	fn pci_driver<'a>(&self, sys_path: &Path, pci_drivers: &'a HashSet<PciKernelDriver>) -> Option<&'a PciKernelDriver>
+	pub(crate) fn to_address_c_string(&self) -> CString
 	{
-		// Could use /sys/bus/pci/devices/0000\:00\:05.0/pci_driver, but this is a symlink and readlink() then path to pathbuf and get filename seems messy and likely to break
-		for pci_driver in pci_drivers.iter()
-		{
-			if pci_driver.is_pci_device_bound(sys_path, &self.0)
-			{
-				return Some(pci_driver);
-			}
-		}
-		None
-	}
-
-	/// Useful if associated_numa_node() returns None.
-	#[inline(always)]
-	pub(crate) fn active_on_cpus(&self, sys_path: &Path) -> LogicalCoresActive
-	{
-		let file_path = self.file_or_folder_path(sys_path, "local_cpulist");
-		LogicalCoresActive::parse_from_file_path(&file_path).expect("Should exist for PCI device")
+		CString::from(self.0.to_string()).unwrap()
 	}
 	
 	#[inline(always)]
 	pub(crate) fn associated_numa_node(&self, sys_path: &Path) -> NumaNodeChoice
 	{
-		let file_path = self.file_or_folder_path(sys_path, "numa_node");
+		let file_path = self.device_file_or_folder_path(sys_path, "numa_node");
+		if !file_path.exists()
+		{
+			return NumaNodeChoice::Any
+		}
 		NumaNodeChoice::from_i32(file_path.read_value().expect("Could not parse numa_node"))
 	}
 	
@@ -165,27 +42,109 @@ impl PciDevice
 	#[inline(always)]
 	pub(crate) fn pci_vendor_identifier(&self, sys_path: &Path) -> PciVendorIdentifier
 	{
-		let file_path = self.file_or_folder_path(sys_path, "vendor");
+		let file_path = self.device_file_or_folder_path(sys_path, "vendor");
 		PciVendorIdentifier::new(file_path.read_hexadecimal_value_with_prefix_u16().expect("Seems PCI device's vendor id does not properly exist")).expect("PCI vendor Id should not be 'Any'")
 	}
 	
 	#[inline(always)]
 	pub(crate) fn pci_device_identifier(&self, sys_path: &Path) -> PciDeviceIdentifier
 	{
-		let file_path = self.file_or_folder_path(sys_path, "device");
+		let file_path = self.device_file_or_folder_path(sys_path, "device");
 		PciDeviceIdentifier::new(file_path.read_hexadecimal_value_with_prefix_u16().expect("Seems PCI device's device id does not properly exist")).expect("PCI device Id should not be 'Any'")
 	}
 	
 	#[inline(always)]
 	pub(crate) fn pci_class_identifier(&self, sys_path: &Path) -> (u8, u8, u8)
 	{
-		let file_path = self.file_or_folder_path(sys_path, "class");
+		let file_path = self.device_file_or_folder_path(sys_path, "class");
 		let value = file_path.read_hexadecimal_value_with_prefix(6, |raw_string| u32::from_str_radix(raw_string, 16)).expect("Could not parse class");
 		(((value & 0xFF0000) >> 16) as u8, ((value & 0x00FF00) >> 8) as u8, (value & 0x0000FF) as u8)
 	}
 	
 	#[inline(always)]
-	fn file_or_folder_path(&self, sys_path: &Path, file_or_folder_name: &str) -> PathBuf
+	pub(crate) fn take_for_use_with_dpdk(&self, sys_path: &Path, pci_kernel_driver: PciKernelDriver) -> Option<String>
+	{
+		assert_effective_user_id_is_root(&format!("Changing override of PCI driver for PCI device '{}'", self.to_string()));
+		
+		let original_driver_name = self.unbind_from_driver_if_necessary(sys_path);
+		self.add_override_of_pci_kernel_driver(sys_path, pci_kernel_driver);
+		self.bind_to_new_driver(sys_path);
+		original_driver_name
+	}
+	
+	#[inline(always)]
+	pub(crate) fn release_from_use_with_dpdk(&self, sys_path: &Path, original_driver_name: Option<String>)
+	{
+		assert_effective_user_id_is_root(&format!("Changing override of PCI driver for PCI device '{}'", self.to_string()));
+		
+		self.remove_override_of_pci_kernel_driver(sys_path);
+		self.unbind_from_driver_if_necessary(sys_path);
+		self.bind_to_original_driver_if_necessary(sys_path, original_driver_name)
+	}
+	
+	#[inline(always)]
+	fn unbind_from_driver_if_necessary(&self, sys_path: &Path) -> Option<String>
+	{
+		let unbind_file_path = self.driver_file_or_folder_path(sys_path, "unbind");
+		let is_not_bound = !unbind_file_path.exists();
+		if is_not_bound
+		{
+			return None
+		}
+		
+		let original_driver_name = unbind_file_path.canonicalize().unwrap().parent().unwrap().file_name().unwrap().to_str().unwrap().to_owned();
+		
+		unbind_file_path.write_value(self.to_string()).unwrap();
+		
+		Some(original_driver_name)
+	}
+	
+	#[inline(always)]
+	fn add_override_of_pci_kernel_driver(&self, sys_path: &Path, pci_kernel_driver: PciKernelDriver)
+	{
+		self.write_to_driver_override_file(sys_path, pci_kernel_driver.driver_name.to_string())
+	}
+	
+	#[inline(always)]
+	fn bind_to_new_driver(&self, sys_path: &Path)
+	{
+		let file_path = self.driver_file_or_folder_path(sys_path, "bind");
+		file_path.write_value(pci_device_address.to_string()).unwrap()
+	}
+	
+	#[inline(always)]
+	fn remove_override_of_pci_kernel_driver(&self, sys_path: &Path)
+	{
+		self.write_to_driver_override_file(sys_path, "\0".to_string())
+	}
+	
+	#[inline(always)]
+	fn bind_to_original_driver_if_necessary(&self, sys_path: &Path, original_driver_name: Option<String>)
+	{
+		if let Some(original_driver_name) = original_driver_name
+		{
+			let bind_file_path = self.driver_file_or_folder_path(sys_path, "bind");
+			bind_file_path.write_value(self.to_string()).unwrap();
+		}
+	}
+	
+	#[inline(always)]
+	fn write_to_driver_override_file(&self, sys_path: &Path, value: String)
+	{
+		let file_path = self.device_file_or_folder_path(sys_path, "driver_override");
+		file_path.write_value(value).unwrap()
+	}
+	
+	#[inline(always)]
+	fn driver_file_or_folder_path(&self, sys_path: &Path, file_or_folder_name: &str) -> PathBuf
+	{
+		let mut path = self.device_file_or_folder_path(sys_path, "driver");
+		path.push(file_or_folder_name);
+		path
+	}
+	
+	#[inline(always)]
+	fn device_file_or_folder_path(&self, sys_path: &Path, file_or_folder_name: &str) -> PathBuf
 	{
 		let mut path = Self::devices_path(sys_path);
 		path.push(self.0.to_string());

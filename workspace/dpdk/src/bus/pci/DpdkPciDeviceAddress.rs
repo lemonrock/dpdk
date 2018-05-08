@@ -7,6 +7,24 @@
 #[derive(Serialize, Deserialize)]
 pub struct DpdkPciDeviceAddress(rte_pci_addr);
 
+impl Clone for DpdkPciDeviceAddress
+{
+	#[inline(always)]
+	fn clone(&self) -> Self
+	{
+		DpdkPciDeviceAddress
+		(
+			rte_pci_addr
+			{
+				domain: self.0.domain,
+				bus: self.0.bus,
+				devid: self.0.devid,
+				function: self.0.function,
+			}
+		)
+	}
+}
+
 impl PartialOrd for DpdkPciDevice
 {
 	#[inline(always)]

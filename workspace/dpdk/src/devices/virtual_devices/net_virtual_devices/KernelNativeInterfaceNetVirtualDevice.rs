@@ -2,42 +2,48 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// Linux Kernel Native Interface (KNI) net(work) virtual device.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Serialize, Deserialize)]
-pub struct VirtualHostNetVirtualDevice
+pub struct KernelNativeInterfaceNetVirtualDevice
 {
-	interface: String,
-	queues: u8,
+	no_request_thread: bool,
 }
 
-impl VirtualDevice for VirtualHostNetVirtualDevice
+impl VirtualDevice for KernelNativeInterfaceNetVirtualDevice
 {
 	type V = NetVirtualDeviceDriverName;
-
-	const DriverName: NetVirtualDeviceDriverName = NetVirtualDeviceDriverName::VirtIoUser;
-
+	
+	const DriverName: NetVirtualDeviceDriverName = NetVirtualDeviceDriverName::KernelNativeInterface;
+	
+	//noinspection SpellCheckingInspection
 	#[inline(always)]
 	fn formatted_virtual_device_arguments_with_leading_comma(&self) -> String
 	{
-		format!(",iface={},queues={}", self.interface, self.queues)
+		if self.no_request_thread
+		{
+			format!(",no_request_thread={}", 1)
+		}
+		else
+		{
+			String::new()
+		}
 	}
 }
 
-impl NetVirtualDevice for VirtualHostNetVirtualDevice
+impl NetVirtualDevice for KernelNativeInterfaceNetVirtualDevice
 {
 }
 
-impl VirtualHostNetVirtualDevice
+impl KernelNativeInterfaceNetVirtualDevice
 {
-	pub fn new(interface: &Path, queues: u8) -> Self
+	/// New instance.
+	#[inline(always)]
+	pub fn new(no_request_thread: bool) -> Self
 	{
-		assert!(interface.exists(), "interface '{:?}' does not exist", interface);
-		assert_ne!(queues, 0, "queues can not be zero");
-
-		VirtualHostNetVirtualDevice
+		Self
 		{
-			interface: interface.to_str().expect("interface is not a valid UTF-8 string").to_owned(),
-			queues,
+			no_request_thread,
 		}
 	}
 }

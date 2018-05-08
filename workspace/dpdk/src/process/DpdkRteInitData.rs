@@ -3,19 +3,37 @@
 
 
 /// DPDK RTE init data.
-pub struct DpdkRteInitData<'a>
+#[derive(Debug)]
+#[derive(Deserialize)]
+#[serde(default)]
+pub struct DpdkRteInitData
 {
-	pci_devices: HashSet<DpdkPciDeviceAddress>,
-
-	af_packet_net_virtual_devices: VirtualDeviceConfigurations<AfPacketNetVirtualDevice, ()>,
-	bonding_net_virtual_devices: VirtualDeviceConfigurations<BondingNetVirtualDevice, ()>,
-	packet_capture_net_virtual_devices: VirtualDeviceConfigurations<PacketCaptureNetVirtualDevice, ()>,
-	virt_io_net_virtual_devices: VirtualDeviceConfigurations<VirtIoNetVirtualDevice, ()>,
-	virtual_host_net_virtual_devices: VirtualDeviceConfigurations<VirtualHostNetVirtualDevice, ()>,
-	xen_net_virtual_devices: VirtualDeviceConfigurations<XenNetVirtualDevice, ()>,
-
-	override_number_of_memory_channels: Option<MemoryChannels>,
-	override_number_of_memory_ranks: Option<MemoryRanks>,
+	/// Linux `AFPACKET` virtual network devices by index.
+	pub af_packet_net_virtual_devices: BTreeMap<u5, AfPacketNetVirtualDevice>,
+	
+	/// Bonded virtual network devices by index.
+	pub bonding_net_virtual_devices: BTreeMap<u5, BondingNetVirtualDevice>,
+	
+	/// Linux Kernel Native Interface (KNI) virtual network devices by index.
+	pub kernel_native_interface_net_virtual_devices: BTreeMap<u5, KniNetVirtualDevice>,
+	
+	/// Packet capture (`pcap`) virtual network devices by index.
+	pub packet_capture_net_virtual_devices: BTreeMap<u5, PacketCaptureNetVirtualDevice>,
+	
+	/// `VirtIO` virtual network devices by index.
+	pub virt_io_net_virtual_devices: BTreeMap<u5, VirtIoNetVirtualDevice>,
+	
+	/// `vhost` host virtual network devices by index.
+	pub virtual_host_net_virtual_devices: BTreeMap<u5, VirtualHostNetVirtualDevice>,
+	
+	/// Can be changed from default (`None`).
+	pub memory_channels: Option<MemoryChannels>,
+	
+	/// Can be changed from default (`None`).
+	pub memory_ranks: Option<MemoryRanks>,
+	
+	// TODO: Revise this code as memory handling has changed.
+	/// Can be changed from default (`None`).
 	memory_limits: Option<MemoryLimits>,
 	
 	/// Can be changed from default (`None`).
@@ -31,10 +49,6 @@ pub struct DpdkRteInitData<'a>
 	pub use_vmware_tsc_map_instead_of_native_rdtsc: bool,
 
 	#[cfg(any(target_os = "android", target_os = "linux"))]
-	/// Can be changed from default (`false`).
-	pub support_running_on_xen_domain_0_without_hugetlbfs: bool,
-	
-	#[cfg(any(target_os = "android", target_os = "linux"))]
 	/// Can be changed from default (`None`).
 	pub base_virtual_address: Option<usize>,
 	
@@ -47,32 +61,30 @@ pub struct DpdkRteInitData<'a>
 	pub create_uio_device_on_file_system_in_slash_dev: bool,
 }
 
-impl<'a> Default for DpdkRteInitData<'a>
+impl Default for DpdkRteInitData
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
 		Self
 		{
-			pci_devices: HashSet::new(),
+			pci_net_devices: HashMap::new(),
 
 			af_packet_net_virtual_devices: Default::default(),
 			bonding_net_virtual_devices: Default::default(),
 			packet_capture_net_virtual_devices: Default::default(),
 			virt_io_net_virtual_devices: Default::default(),
 			virtual_host_net_virtual_devices: Default::default(),
-			xen_net_virtual_devices: Default::default(),
 
 			memory_limits: None,
-			override_number_of_memory_channels: None,
-			override_number_of_memory_ranks: None,
+			memory_channels: None,
+			memory_ranks: None,
 
 			process_type: None,
 			use_hpet_timer: true,
 			use_shared_configuration_memory_map: false,
 			use_vmware_tsc_map_instead_of_native_rdtsc: false,
 			
-			#[cfg(any(target_os = "android", target_os = "linux"))] support_running_on_xen_domain_0_without_hugetlbfs: false,
 			#[cfg(any(target_os = "android", target_os = "linux"))] base_virtual_address: None,
 			#[cfg(any(target_os = "android", target_os = "linux"))] virtual_function_io_interrupt_mode: None,
 			#[cfg(any(target_os = "android", target_os = "linux"))] create_uio_device_on_file_system_in_slash_dev: true,
@@ -80,78 +92,26 @@ impl<'a> Default for DpdkRteInitData<'a>
 	}
 }
 
-impl<'a> DpdkRteInitData<'a>
+impl DpdkRteInitData
 {
-	/// Add a (physical) PCI device.
 	#[inline(always)]
-	pub fn add_pci_device(&mut self, pci_device_address: DpdkPciDeviceAddress)
+	pub fn has_kni_virtual_devices(&self) -> bool
 	{
-		assert!(self.pci_devices.insert(pci_device_address), "Non-unique device address");
-	}
-
-	/// Add a Linux AF_PACKET net(work) virtual device.
-	#[inline(always)]
-	pub fn add_af_packet_net_virtual_device(&mut self, net_virtual_device: AfPacketNetVirtualDevice)
-	{
-		self.af_packet_net_virtual_devices.create_configuration(net_virtual_device, ());
-	}
-	
-	/// Add a bonded net(work) virtual device.
-	#[inline(always)]
-	pub fn add_bonding_net_virtual_device(&mut self, net_virtual_device: BondingNetVirtualDevice)
-	{
-		self.bonding_net_virtual_devices.create_configuration(net_virtual_device, ());
-	}
-	
-	/// Add a packet capture (pcap) net(work) virtual device.
-	#[inline(always)]
-	pub fn add_packet_capture_net_virtual_device(&mut self, net_virtual_device: PacketCaptureNetVirtualDevice)
-	{
-		self.packet_capture_net_virtual_devices.create_configuration(net_virtual_device, ());
-	}
-	
-	/// Add a virtio (hypervisor) net(work) virtual device.
-	#[inline(always)]
-	pub fn add_virt_io_net_virtual_device(&mut self, net_virtual_device: VirtIoNetVirtualDevice)
-	{
-		self.virt_io_net_virtual_devices.create_configuration(net_virtual_device, ());
-	}
-	
-	/// Add a vhost (hypervisor) net(work) virtual device.
-	#[inline(always)]
-	pub fn add_virtual_host_net_virtual_device(&mut self, net_virtual_device: VirtualHostNetVirtualDevice)
-	{
-		self.virtual_host_net_virtual_devices.create_configuration(net_virtual_device, ());
-	}
-	
-	/// Add a Xen (hypervisor) net(work) virtual device.
-	#[inline(always)]
-	pub fn add_xen_net_virtual_device(&mut self, net_virtual_device: XenNetVirtualDevice)
-	{
-		self.xen_net_virtual_devices.create_configuration(net_virtual_device, ());
-	}
-	
-	/// Add memory settings.
-	#[inline(always)]
-	pub fn add_memory_settings(&mut self, memory_limits: Option<MemoryLimits>, numberOfMemoryChannels: Option<MemoryChannels>, numberOfMemoryRanks: Option<MemoryRanks>)
-	{
-		self.memory_limits = memory_limits;
-		self.override_number_of_memory_channels = numberOfMemoryChannels;
-		self.override_number_of_memory_ranks = numberOfMemoryRanks;
+		self.kernel_native_interface_net_virtual_devices.len() != 0
 	}
 	
 	/// Initialise DPDK.
 	///
 	/// When the returned result is dropped, resources are released.
 	#[inline(always)]
-	pub fn initialize_dpdk(&self, numa_sockets: &NumaSockets, huge_page_file_path_information: HugePageFilePathInformation) -> Result<DpdkProcess, &'static str>
+	pub fn initialize_dpdk<V>(&self, pci_devices: &HashMap<PciDevice, V>, numa_sockets: &NumaSockets, huge_page_file_path_information: HugePageFilePathInformation) -> Result<DpdkProcess, &'static str>
 	{
 		let huge_page_details = huge_page_file_path_information.huge_page_file_system_mount_path_and_so_on();
 		let use_huge_pages = huge_page_details.is_some();
 
 		let mut arguments: Vec<*const c_char> = Vec::initialise();
 
-		self.initialize_dpdk_pci_device_settings(&mut arguments);
+		Self::initialize_dpdk_pci_device_settings(&mut arguments, pci_devices);
 		self.initialize_dpdk_virtual_device_settings(&mut arguments);
 		self.initialize_dpdk_process_type_settings(&mut arguments);
 		Self::initialize_dpdk_logical_core_settings(&mut arguments, numa_sockets);
@@ -166,30 +126,43 @@ impl<'a> DpdkRteInitData<'a>
 	}
 	
 	#[inline(always)]
-	fn initialize_dpdk_pci_device_settings(&self, mut arguments: &mut Vec<*const c_char>)
+	pub(crate) fn initialize_dpdk_pci_device_settings<V>(arguments: &mut Vec<*const c_char>, pci_devices: &HashMap<PciDevice, V>)
 	{
-		if self.pci_devices.is_empty()
+		for pci_device in pci_devices.iter_keys()
 		{
-			return;
-		}
-
-		let pci_device_list_key = PciDeviceListColour::Whitelist.as_initialisation_argument();
-		for pci_device_address in &self.pci_devices
-		{
-			let value = pci_device_address.as_c_string();
-			arguments.keyCStrValue(pci_device_list_key, &value);
+			const_cstr!
+			{
+				__pci_whitelist = "--pci-whitelist";    // aka -w
+			}
+			let value = pci_device.to_address_c_string();
+			arguments.keyCStrValue(__pci_whitelist.as_ptr(), &value);
 		}
 	}
 	
 	#[inline(always)]
 	fn initialize_dpdk_virtual_device_settings(&self, mut arguments: &mut Vec<*const c_char>)
 	{
-		self.af_packet_net_virtual_devices.add_virtual_devices_sorted(&mut arguments);
-		self.bonding_net_virtual_devices.add_virtual_devices_sorted(&mut arguments);
-		self.packet_capture_net_virtual_devices.add_virtual_devices_sorted(&mut arguments);
-		self.virt_io_net_virtual_devices.add_virtual_devices_sorted(&mut arguments);
-		self.virtual_host_net_virtual_devices.add_virtual_devices_sorted(&mut arguments);
-		self.xen_net_virtual_devices.add_virtual_devices_sorted(&mut arguments);
+		#[inline(always)]
+		fn add_virtual_devices<V: VirtualDevice>(arguments: &mut Vec<*const c_char>, map: &BTreeMap<u8, V>)
+		{
+			const_cstr!
+			{
+				__vdev = "--vdev";
+			}
+			
+			for (index, virtual_device) in map.iter()
+			{
+				let argument = virtual_device.as_initialisation_argument(*index);
+				arguments.keyCStrValue(__vdev, &argument);
+			}
+		}
+		
+		add_virtual_devices(arguments, &self.af_packet_net_virtual_devices);
+		add_virtual_devices(arguments, &self.bonding_net_virtual_devices);
+		add_virtual_devices(arguments, &self.kernel_native_interface_net_virtual_devices);
+		add_virtual_devices(arguments, &self.packet_capture_net_virtual_devices);
+		add_virtual_devices(arguments, &self.virt_io_net_virtual_devices);
+		add_virtual_devices(arguments, &self.virtual_host_net_virtual_devices);
 	}
 	
 	#[inline(always)]
@@ -233,13 +206,13 @@ impl<'a> DpdkRteInitData<'a>
 			_r = "-r";                              // 5-bit, != 0, <= 16, Number of memory ranks to use
 		}
 
-		if let Some(override_number_of_memory_channels) = self.override_number_of_memory_channels
+		if let Some(override_number_of_memory_channels) = self.memory_channels
 		{
 			let value = CString::new(format!("{}", override_number_of_memory_channels as u32)).unwrap();
 			arguments.keyCStrValue(_n, &value);
 		}
 
-		if let Some(override_number_of_memory_ranks) = self.override_number_of_memory_ranks
+		if let Some(override_number_of_memory_ranks) = self.memory_ranks
 		{
 			let value = CString::new(format!("{}", override_number_of_memory_ranks as u8)).unwrap();
 			arguments.keyCStrValue(_r, &value);
@@ -352,7 +325,7 @@ impl<'a> DpdkRteInitData<'a>
 
 		arguments.optionalArgument(__no_hpet, !self.use_hpet_timer);
 
-		arguments.optionalArgument(__no_pci, self.pci_devices.is_empty());
+		arguments.optionalArgument(__no_pci, self.pci_net_devices.is_empty());
 
 		arguments.optionalArgument(__no_shconf, !self.use_shared_configuration_memory_map);
 
@@ -388,13 +361,10 @@ impl<'a> DpdkRteInitData<'a>
 		{
 			const_cstr!
 			{
-				__xen_dom0 = "--xen-dom0";
 				__base_virtaddr = "--base-virtaddr";
 				__vfio_intr = "--vfio-intr";
 				__create_uio_dev = "--create-uio-dev";
 			}
-	
-			arguments.optionalArgument(__xen_dom0, self.support_running_on_xen_domain_0_without_hugetlbfs);
 	
 			arguments.optionalArgument(__create_uio_dev, self.create_uio_device_on_file_system_in_slash_dev);
 	

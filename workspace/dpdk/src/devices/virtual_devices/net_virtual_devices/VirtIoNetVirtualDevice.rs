@@ -6,7 +6,6 @@
 #[derive(Serialize, Deserialize)]
 pub struct VirtIoNetVirtualDevice
 {
-	index: u5,
 	locationOfVirtIoDeviceFile: String,
 	media_access_control_address: MediaAccessControlAddress,
 	controlQueueIndex: u31,
@@ -19,12 +18,6 @@ impl VirtualDevice for VirtIoNetVirtualDevice
 	type V = NetVirtualDeviceDriverName;
 
 	const DriverName: NetVirtualDeviceDriverName = NetVirtualDeviceDriverName::VirtIoUser;
-
-	#[inline(always)]
-	fn index(&self) -> u5
-	{
-		self.index
-	}
 
 	#[inline(always)]
 	fn formatted_virtual_device_arguments_with_leading_comma(&self) -> String
@@ -43,14 +36,13 @@ impl VirtIoNetVirtualDevice
 	pub const DefaultQueueSize: u31 = 256;
 	pub const DefaultMaximumNumberOfQueuePairs: u31 = 1;
 
-	pub fn defaultish(index: u5, locationOfVirtIoDeviceFile: &Path, media_access_control_address: MediaAccessControlAddress) -> Self
+	pub fn defaultish(locationOfVirtIoDeviceFile: &Path, media_access_control_address: MediaAccessControlAddress) -> Self
 	{
-		Self::new(index, locationOfVirtIoDeviceFile, media_access_control_address, Self::DefaultControlQueueIndex, Self::DefaultQueueSize, Self::DefaultMaximumNumberOfQueuePairs)
+		Self::new(locationOfVirtIoDeviceFile, media_access_control_address, Self::DefaultControlQueueIndex, Self::DefaultQueueSize, Self::DefaultMaximumNumberOfQueuePairs)
 	}
 
-	pub fn new(index: u5, locationOfVirtIoDeviceFile: &Path, media_access_control_address: MediaAccessControlAddress, controlQueueIndex: u31, queueSize: u31, maximumNumberOfQueuePairs: u31) -> Self
+	pub fn new(locationOfVirtIoDeviceFile: &Path, media_access_control_address: MediaAccessControlAddress, controlQueueIndex: u31, queueSize: u31, maximumNumberOfQueuePairs: u31) -> Self
 	{
-		assert!(index < VirtualDeviceName::<NetVirtualDeviceDriverName>::MaximumIndex, "index '{}' can not equal or exceed MaximumIndex '{}'", index, VirtualDeviceName::<NetVirtualDeviceDriverName>::MaximumIndex);
 		assert_ne!(maximumNumberOfQueuePairs, 0, "maximumNumberOfQueuePairs can not be zero");
 		assert!(locationOfVirtIoDeviceFile.exists(), "path does not exist");
 
@@ -63,7 +55,6 @@ impl VirtIoNetVirtualDevice
 
 		VirtIoNetVirtualDevice
 		{
-			index,
 			locationOfVirtIoDeviceFile,
 			media_access_control_address,
 			controlQueueIndex,

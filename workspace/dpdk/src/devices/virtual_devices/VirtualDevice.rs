@@ -13,20 +13,16 @@ pub trait VirtualDevice: Debug + Sized
 	
 	/// Name.
 	#[inline(always)]
-	fn name(&self) -> VirtualDeviceName<Self::V>
+	fn name(&self, index: u5) -> VirtualDeviceName<Self::V>
 	{
-		VirtualDeviceName::new(Self::DriverName, self.index())
+		VirtualDeviceName::new(Self::DriverName, index)
 	}
-	
-	/// Index.
-	#[inline(always)]
-	fn index(&self) -> u5;
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn as_initialisation_argument(&self) -> CString
+	fn as_initialisation_argument(&self, index: u5) -> CString
 	{
-		CString::new(format!("{}{}", self.name().to_string(), self.formatted_virtual_device_arguments_with_leading_comma())).unwrap()
+		CString::new(format!("{}{}", self.name(index).to_string(), self.formatted_virtual_device_arguments_with_leading_comma())).unwrap()
 	}
 	
 	#[doc(hidden)]

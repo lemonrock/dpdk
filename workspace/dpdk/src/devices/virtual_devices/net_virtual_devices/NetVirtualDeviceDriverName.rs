@@ -13,6 +13,9 @@ pub enum NetVirtualDeviceDriverName
 	/// Bonded across slave network devices.
 	Bonding,
 	
+	/// Linux KNI.
+	KernelNativeInterface,
+	
 	/// Packet capture (pcap).
 	PacketCapture,
 	
@@ -37,6 +40,7 @@ impl DeviceDriverName for NetVirtualDeviceDriverName
 		{
 			AfPacket => "net_af_packet",
 			Bonding => "net_bonding",
+			KernelNativeInterface => "net_kni",
 			PacketCapture => "net_pcap",
 			VirtIoUser => "net_virtio_user",
 			VirtualHost => "net_vhost",

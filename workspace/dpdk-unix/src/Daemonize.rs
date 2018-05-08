@@ -2,6 +2,9 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+// TODO: Consider handling `SIGINFO`.
+
+
 /// An object that can be used with a configuration file (eg via Serde) to configure a daemon.
 ///
 /// The following are done:-
@@ -61,7 +64,7 @@ impl Daemonize
 		
 		Self::fork();
 		
-		Self::create_a_new_session();
+		Self::create_a_new_progress_group_and_session_detach_controlling_terminal();
 		
 		Self::fork();
 		
@@ -185,7 +188,7 @@ impl Daemonize
 	}
 	
 	#[inline(always)]
-	fn create_a_new_session()
+	fn create_a_new_progress_group_and_session_detach_controlling_terminal()
 	{
 		assert!(unsafe { setsid() } >= 0, "setsid failed because '{}'", Self::os_error());
 	}

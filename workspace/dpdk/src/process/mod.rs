@@ -7,11 +7,11 @@ use super::*;
 
 include!("DpdkProcess.rs");
 include!("DpdkRteInitData.rs");
+include!("EssentialKernelModule.rs");
+include!("EssentialKernelModulesToUnload.rs");
 include!("MasterLoop.rs");
-include!("MemoryChannels.rs");
-include!("MemoryLimits.rs");
-include!("MemoryRanks.rs");
-include!("PciDeviceListColour.rs");
+include!("PathConfiguration.rs");
+include!("PciNetDevicesConfiguration.rs");
 include!("ProcessType.rs");
 include!("VecArguments.rs");
 include!("VirtualFunctionIoInterruptMode.rs");

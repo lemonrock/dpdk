@@ -82,8 +82,8 @@ impl LinuxKernelModulesList
 	/// Returns true if loaded.
 	/// Returns false if already loaded.
 	///
-	/// Does not update the list of loaded modules.
-	pub fn load_linux_kernel_module_if_absent_from_ko_file(&self, linux_kernel_module_name: &str, module_file_base_name: &str, linux_kernel_modules_path: &Path) -> Result<bool, io::Error>
+	/// Updates the list of loaded modules.
+	pub fn load_linux_kernel_module_if_absent_from_ko_file(&mut self, linux_kernel_module_name: &str, module_file_base_name: &str, linux_kernel_modules_path: &Path) -> Result<bool, io::Error>
 	{
 		if self.is_linux_kernel_module_is_loaded(linux_kernel_module_name)
 		{
@@ -93,7 +93,9 @@ impl LinuxKernelModulesList
 		{
 			let mut linux_kernel_module_path = PathBuf::from(linux_kernel_modules_path);
 			linux_kernel_module_path.push(format!("{}.ko", module_file_base_name));
-			Self::load_linux_kernel_module_from_ko_file(&linux_kernel_module_path)
+			let loaded = Self::load_linux_kernel_module_from_ko_file(&linux_kernel_module_path)?;
+			self.0.insert(linux_kernel_module_name);
+			Ok(loaded)
 		}
 	}
 	
@@ -101,16 +103,18 @@ impl LinuxKernelModulesList
 	///
 	/// Uses `modprobe`.
 	///
-	/// Does not update the list of loaded modules.
-	pub fn load_linux_kernel_module_if_absent(&self, linux_kernel_module_name: &str, module_file_base_name: &str) -> Result<(), ModProbeError>
+	/// Updates the list of loaded modules.
+	pub fn load_linux_kernel_module_if_absent_using_modprobe(&mut self, linux_kernel_module_name: &str, module_file_base_name: &str) -> Result<bool, ModProbeError>
 	{
 		if self.is_linux_kernel_module_is_loaded(linux_kernel_module_name)
 		{
-			Ok(())
+			Ok(false)
 		}
 		else
 		{
-			modprobe(module_file_base_name)
+			modprobe(module_file_base_name)?;
+			self.0.insert(linux_kernel_module_name);
+			Ok(true)
 		}
 	}
 	
@@ -121,10 +125,10 @@ impl LinuxKernelModulesList
 	}
 	
 	/// Parses the list of loaded Linux Kernel modules.
-	pub fn parse(proc_path: &Path) -> Result<Self, LinuxKernelModulesListParseError>
+	pub fn parse_currently_loaded_linux_kernel_modules_list(proc_path: &Path) -> Result<Self, LinuxKernelModulesListParseError>
 	{
 		let mut modules_file_path = PathBuf::from(proc_path);
-		modules_file_path.push("linux_kernel_modules");
+		modules_file_path.push("modules");
 		
 		let mut reader = BufReader::with_capacity(4096, File::open(modules_file_path)?);
 		

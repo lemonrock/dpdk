@@ -9,7 +9,6 @@
 #[derive(Serialize, Deserialize)]
 pub struct BondingNetVirtualDevice
 {
-	index: u5,
 	slaves: HashSet<BondingSlave>,
 	mode: UsefulBondingMode,
 	numa_node: NumaNode,
@@ -24,12 +23,6 @@ impl VirtualDevice for BondingNetVirtualDevice
 	type V = NetVirtualDeviceDriverName;
 
 	const DriverName: NetVirtualDeviceDriverName = NetVirtualDeviceDriverName::Bonding;
-
-	#[inline(always)]
-	fn index(&self) -> u5
-	{
-		self.index
-	}
 
 	#[inline(always)]
 	fn formatted_virtual_device_arguments_with_leading_comma(&self) -> String
@@ -86,9 +79,8 @@ impl BondingNetVirtualDevice
 	pub const MaximumSlaves: usize = 31;
 	
 	/// Creates a new instance.
-	pub fn new(index: u5, slaves: HashSet<BondingSlave>, mode: UsefulBondingMode, numa_node: NumaNode, media_access_control_address: MediaAccessControlAddress, lsc_poll_period_milliseconds: u31, up_delay_milliseconds: u31, down_delay_milliseconds: u31) -> Self
+	pub fn new(slaves: HashSet<BondingSlave>, mode: UsefulBondingMode, numa_node: NumaNode, media_access_control_address: MediaAccessControlAddress, lsc_poll_period_milliseconds: u31, up_delay_milliseconds: u31, down_delay_milliseconds: u31) -> Self
 	{
-		assert!(index < VirtualDeviceName::<NetVirtualDeviceDriverName>::MaximumIndex, "index '{}' can not equal or exceed MaximumIndex '{}'", index, VirtualDeviceName::<NetVirtualDeviceDriverName>::MaximumIndex);
 		assert_ne!(slaves.len(), 0, "slaves can not be empty");
 		assert!(slaves.len() < Self::MaximumSlaves, "slaves '{}' can not equal or exceed MaximumSlaves '{}'", slaves.len(), Self::MaximumSlaves);
 		if let Some(has_primary_slave) = mode.has_primary_slave(&slaves)
@@ -98,7 +90,6 @@ impl BondingNetVirtualDevice
 
 		Self
 		{
-			index,
 			slaves,
 			mode,
 			numa_node,

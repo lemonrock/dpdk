@@ -18,4 +18,7 @@ include!("block_all_signals_on_current_thread.rs");
 include!("block_all_signals_on_current_thread_bar.rs");
 include!("block_all_signals_on_current_thread_bar_child.rs");
 include!("block_all_signals_on_current_thread_bar_hang_up_and_terminate_and_child.rs");
+include!("hash_set_to_signal_set.rs");
+include!("one_millisecond_timed_wait_for_signals.rs");
 include!("SignalNumber.rs");
+include!("TimedSignalWait.rs");

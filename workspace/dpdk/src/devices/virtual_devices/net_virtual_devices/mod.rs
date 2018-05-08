@@ -7,6 +7,7 @@ use super::*;
 
 include!("AfPacketNetVirtualDevice.rs");
 include!("BondingNetVirtualDevice.rs");
+include!("KernelNativeInterfaceNetVirtualDevice.rs");
 include!("NetVirtualDevice.rs");
 include!("NetVirtualDeviceDriverName.rs");
 include!("NetVirtualDeviceName.rs");

@@ -22,20 +22,20 @@ impl IndirectPciDeviceIdentifier
 	///
 	/// `sys_path` is a path like `/sys`.
 	#[inline(always)]
-	pub fn to_pci_device(&self, sys_path: &Path) -> Result<PciDevice, String>
+	pub fn to_pci_device(&self, sys_path: &Path) -> PciDevice
 	{
 		use self::IndirectPciDeviceIdentifier::*;
 		
 		let device_address = match *self
 		{
-			ByDpdkPciDeviceAddress(device_address) => device_address,
+			ByDpdkPciDeviceAddress(ref device_address) => device_address.clone(),
 			
 			ByNetworkInterfaceName(ref network_interface_name) =>
 			{
 				match network_interface_name.pci_device_address().expect("Could not parse PCI device address string")
 				{
 					Some(pci_device_address) => pci_device_address,
-					None => return Err(format!("No valid PCI device for interface '{:?}'", network_interface_name))
+					None => panic!("No valid PCI device for interface '{:?}'", network_interface_name)
 				}
 			}
 		};

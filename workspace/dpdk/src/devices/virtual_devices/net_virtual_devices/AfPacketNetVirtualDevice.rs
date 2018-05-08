@@ -7,7 +7,6 @@
 #[derive(Serialize, Deserialize)]
 pub struct AfPacketNetVirtualDevice
 {
-	index: u5,
 	network_interface_name: NetworkInterfaceName,
 	number_of_queue_pairs: u4,
 	block_size: u31,
@@ -20,12 +19,6 @@ impl VirtualDevice for AfPacketNetVirtualDevice
 	type V = NetVirtualDeviceDriverName;
 
 	const DriverName: NetVirtualDeviceDriverName = NetVirtualDeviceDriverName::AfPacket;
-
-	#[inline(always)]
-	fn index(&self) -> u5
-	{
-		self.index
-	}
 	
 	//noinspection SpellCheckingInspection
 	#[inline(always)]
@@ -65,22 +58,20 @@ impl AfPacketNetVirtualDevice
 	
 	/// New instance with most defaults.
 	#[inline(always)]
-	pub fn slightly_defaultish(index: u5, network_interface_name: NetworkInterfaceName, number_of_queue_pairs: u4) -> Self
+	pub fn slightly_defaultish(network_interface_name: NetworkInterfaceName, number_of_queue_pairs: u4) -> Self
 	{
-		Self::new(index, network_interface_name, number_of_queue_pairs, Self::DefaultBlockSize, Self::DefaultFrameSize, Self::DefaultFrameCount)
+		Self::new(network_interface_name, number_of_queue_pairs, Self::DefaultBlockSize, Self::DefaultFrameSize, Self::DefaultFrameCount)
 	}
 
 	/// New instance.
 	#[inline(always)]
-	pub fn new(index: u5, network_interface_name: NetworkInterfaceName, number_of_queue_pairs: u4, block_size: u31, frame_size: u31, frame_count: u31) -> Self
+	pub fn new(network_interface_name: NetworkInterfaceName, number_of_queue_pairs: u4, block_size: u31, frame_size: u31, frame_count: u31) -> Self
 	{
-		assert!(index < VirtualDeviceName::<NetVirtualDeviceDriverName>::MaximumIndex, "index '{}' can not equal or exceed MaximumIndex '{}'", index, VirtualDeviceName::<NetVirtualDeviceDriverName>::MaximumIndex);
 		assert_ne!(number_of_queue_pairs, 0, "number_of_queue_pairs can not be zero");
 		assert!(number_of_queue_pairs < Self::MaximumNumberOfQueuePairs, "number_of_queue_pairs '{}' equals or exceeds MaximumNumberOfQueuePairs of '{}'", number_of_queue_pairs, Self::MaximumNumberOfQueuePairs);
 
 		Self
 		{
-			index,
 			network_interface_name,
 			number_of_queue_pairs,
 			block_size,

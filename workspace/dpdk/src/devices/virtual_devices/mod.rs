@@ -10,6 +10,4 @@ pub mod net_virtual_devices;
 
 
 include!("VirtualDevice.rs");
-include!("VirtualDeviceConfiguration.rs");
-include!("VirtualDeviceConfigurations.rs");
 include!("VirtualDeviceName.rs");
