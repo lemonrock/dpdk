@@ -26,4 +26,3 @@ include!("PciKernelDriver.rs");
 include!("PciVendorIdentifier.rs");
 include!("SupportedDevice.rs");
 include!("SupportedDriverIdentifier.rs");
-include!("Unbind.rs");

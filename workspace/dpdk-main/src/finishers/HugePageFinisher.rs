@@ -13,7 +13,7 @@ pub struct HugePageFinisher
 impl Finisher for HugePageFinisher
 {
 	#[allow(unused_variables)]
-	fn finish(&self, sys_path: &Path)
+	fn finish(&self)
 	{
 		if let Some(ref mountPath) = self.mountPath
 		{

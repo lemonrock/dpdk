@@ -178,14 +178,9 @@ impl FileSystemType
 		}
 	}
 	
-	//noinspection SpellCheckingInspection
-	/// Parse from a file in `/proc`.
-	pub fn parse(proc_path: &Path) -> Result<HashMap<FileSystemType, HasNoAssociatedDevice>, io::Error>
+	pub(crate) fn parse(file_path: &Path) -> Result<HashMap<FileSystemType, HasNoAssociatedDevice>, io::Error>
 	{
-		let mut filesystems_file_path = PathBuf::from(proc_path);
-		filesystems_file_path.push("filesystems");
-		
-		let mut reader = BufReader::with_capacity(4096, File::open(filesystems_file_path)?);
+		let mut reader = BufReader::with_capacity(4096, File::open(file_path)?);
 		
 		let mut file_systems_map = HashMap::new();
 		let mut line_number = 0;

@@ -26,6 +26,8 @@ extern crate rust_extra;
 
 
 use self::memory_statistics::*;
+#[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::mounts::*;
+#[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::linux_kernel_modules::*;
 #[cfg(target_os = "linux")] use ::const_cstr_fork::ConstCStr;
 use ::libc::*;
 use ::std::collections::BTreeSet;

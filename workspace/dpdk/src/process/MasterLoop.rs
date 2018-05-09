@@ -10,7 +10,7 @@ pub struct MasterLoop
 	should_function_terminate: Arc<ShouldFunctionTerminate>,
 }
 
-// TODO: Load / unload huge pages.
+// TODO: Load / unload huge pages. (see also HugePageFinisher, HugePagesConfiguration)
 // TODO:HyperThread and related types which aren't finished.
 // TODO: PacketBufferExt needs finishing
 	// various methods
@@ -48,8 +48,6 @@ impl MasterLoop
 	#[inline(always)]
 	pub fn execute(&self, path_configuration: &PathConfiguration, dpdk_configuration: &DpdkConfiguration, pci_net_devices_configuration: &PciNetDevicesConfiguration, daemonize: Option<Daemonize>)
 	{
-		// essential_kernel_modules are drom PciKernelDriver & if we're going to use rte_kni.
-		
 		let reraise_signal = if let Some(daemonize) = daemonize
 		{
 			let daemonize_clean_up_on_exit = daemonize.daemonize();
@@ -76,6 +74,8 @@ impl MasterLoop
 	#[inline(always)]
 	fn execute_after_daemonizing(&self, path_configuration: &PathConfiguration, dpdk_configuration: &DpdkConfiguration, pci_net_devices_configuration: &PciNetDevicesConfiguration, running_interactively: bool) -> Option<SignalNumber>
 	{
+		Self::disable_transparent_huge_pages();
+		
 		self.set_maximum_resource_limits();
 		
 		self.load_kernel_modules(path_configuration, dpdk_configuration, pci_net_devices_configuration);
@@ -166,7 +166,7 @@ impl MasterLoop
 			}
 			pci_net_devices_configuration.add_essential_kernel_modules(&mut essential_kernel_modules);
 			
-			let mut modules_loaded = LinuxKernelModulesList::parse_currently_loaded_linux_kernel_modules_list(&path_configuration.proc_path);
+			let mut modules_loaded = path_configuration.proc_path.modules();
 			let mut essential_kernel_modules_to_unload = EssentialKernelModulesToUnload::new();
 			for essential_kernel_module in essential_kernel_modules.iter()
 			{
@@ -296,6 +296,12 @@ impl MasterLoop
 			
 			Capability::ensure_capabilities_dropped(&CapabilitiesToDrop);
 		}
+	}
+	
+	#[inline(always)]
+	fn disable_transparent_huge_pages()
+	{
+		adjust_transparent_huge_pages(false)
 	}
 	
 	#[inline(always)]

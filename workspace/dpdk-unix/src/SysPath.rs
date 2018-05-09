@@ -52,6 +52,15 @@ impl SysPath
 		path
 	}
 	
+	/// A PCI device file.
+	#[inline(always)]
+	pub fn pci_device_path(&self, pci_device: (u32, u8, u8, u8), file_name: &str) -> PathBuf
+	{
+		let mut path = self.pci_device_folder_path(pci_device);
+		path.push(file_name);
+		path
+	}
+	
 	/// A path about all CPU nodes.
 	#[inline(always)]
 	pub fn cpu_nodes_path(&self, file_name: &str) -> PathBuf
@@ -66,6 +75,15 @@ impl SysPath
 	pub fn numa_nodes_path(&self, file_name: &str) -> PathBuf
 	{
 		let mut path = self.numa_nodes_parent_path();
+		path.push(file_name);
+		path
+	}
+	
+	/// A path about all PCI devices.
+	#[inline(always)]
+	pub fn pci_devices_path(&self, file_name: &str) -> PathBuf
+	{
+		let mut path = self.pci_devices_parent_path();
 		path.push(file_name);
 		path
 	}
@@ -112,7 +130,12 @@ impl SysPath
 		self.numa_nodes_path(&format!("node{}", numa_node))
 	}
 	
-	/// A path about all NUMA nodes.
+	#[inline(always)]
+	pub(crate) fn pci_device_folder_path(&self, pci_device: (u32, u8, u8, u8)) -> PathBuf
+	{
+		self.pci_devices_path(&format!("{:04x}:{:02x}:{:02x}.{:01x}", pci_device.0, pci_device.1, pci_device.2, pci_device.3))
+	}
+	
 	#[inline(always)]
 	fn cpu_nodes_parent_path(&self) -> PathBuf
 	{
@@ -121,7 +144,6 @@ impl SysPath
 		path
 	}
 	
-	/// A path about all NUMA nodes.
 	#[inline(always)]
 	fn numa_nodes_parent_path(&self) -> PathBuf
 	{
@@ -131,7 +153,15 @@ impl SysPath
 	}
 	
 	#[inline(always)]
-	pub(crate) fn global_memory_folder_path(&self) -> PathBuf
+	fn pci_devices_parent_path(&self) -> PathBuf
+	{
+		let mut path = self.path();
+		path.push("bus/pci/devices");
+		path
+	}
+	
+	#[inline(always)]
+	fn global_memory_folder_path(&self) -> PathBuf
 	{
 		let mut path = self.path();
 		path.push("kernel/mm");

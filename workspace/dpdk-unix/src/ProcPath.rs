@@ -26,36 +26,55 @@ impl ProcPath
 	#[inline(always)]
 	pub fn global_zoned_virtual_memory_statistics(&self) -> io::Result<HashMap<VirtualMemoryStatisticName, u64>>
 	{
-		let mut path = self.path();
-		path.push("vmstat");
-		path.parse_virtual_memory_statistics_file()
+		self.file_path("vmstat").parse_virtual_memory_statistics_file()
 	}
 	
-	/// `/proc/meminfo`.
+	/// Memory information (from `/proc/meminfo`).
 	#[inline(always)]
 	pub fn memory_statistics(&self, memory_statistic_name_prefix: &str) -> Result<MemoryStatistics, MemoryStatisticsParseError>
 	{
-		let mut path = self.path();
-		path.push("meminfo");
-		path.parse_memory_information_file(memory_statistic_name_prefix)
+		self.file_path("meminfo").parse_memory_information_file(memory_statistic_name_prefix)
 	}
 	
-	/// `/proc/modules`.
+	/// File systems (from `/proc/filesystems`).
 	#[inline(always)]
-	pub fn modules(&self) -> PathBuf
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn filesystems(&self) -> Result<HashMap<FileSystemType, HasNoAssociatedDevice>, io::Error>
 	{
-		let mut path = self.path();
-		path.push("modules");
-		path
+		let file_path = self.file_path("filesystems");
+		FileSystemType::parse(&file_path)
 	}
 	
-	/// Obtains the maximum number of file descriptors as a finite resource limit.
+	/// Current mounts (from `/proc/self/mounts`).
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn mounts(&self) -> Result<HashMap<PathBuf, Mount>, io::Error>
+	{
+		let file_path = self.file_path("self/mounts");
+		Mounts::parse(&file_path)
+	}
+	
+	/// Current loaded Linux kernel modules (from `/proc/modules`).
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn modules(&self) -> Result<LinuxKernelModulesList, LinuxKernelModulesListParseError>
+	{
+		let file_path = self.file_path("modules");
+		LinuxKernelModulesList::parse(&file_path)
+	}
+	
 	#[inline(always)]
 	pub(crate) fn maximum_number_of_open_file_descriptors(&self) -> io::Result<u64>
 	{
-		let mut nr_open_file_path = self.path();
-		nr_open_file_path.push("sys/fs/nr_open");
-		nr_open_file_path.read_value()
+		self.file_path("sys/fs/nr_open").read_value()
+	}
+	
+	#[inline(always)]
+	fn file_path(&self, file_name: &str) -> PathBuf
+	{
+		let mut path = self.path();
+		path.push(file_name);
+		path
 	}
 	
 	#[inline(always)]

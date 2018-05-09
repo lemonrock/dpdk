@@ -19,10 +19,8 @@ impl IndirectPciDeviceIdentifier
 	/// Converts to a PCI device.
 	///
 	/// Can panic.
-	///
-	/// `sys_path` is a path like `/sys`.
 	#[inline(always)]
-	pub fn to_pci_device(&self, sys_path: &Path) -> PciDevice
+	pub fn to_pci_device(&self, sys_path: &SysPath) -> PciDevice
 	{
 		use self::IndirectPciDeviceIdentifier::*;
 		

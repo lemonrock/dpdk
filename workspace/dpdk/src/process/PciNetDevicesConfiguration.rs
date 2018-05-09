@@ -32,7 +32,7 @@ impl PciNetDeviceConfiguration
 		{
 			let ethernet_pci_device =
 			{
-				let pci_device = indirect_pci_device_identifier.to_pci_device(sys_path);
+				let pci_device = indirect_pci_device_identifier.to_pci_device();
 				assert!(pci_device.is_class_network_ethernet(sys_path), "PCI device '{:?}' for indirect_pci_device_identifier '{:?}' is for not an Ethernet class PCI device", pci_device, indirect_pci_device_identifier);
 				
 				if let Some((_pci_kernel_driver, alias)) = aliases.insert(pci_device.clone(), (*pci_kernel_driver, indirect_pci_device_identifier.clone()))

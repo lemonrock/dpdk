@@ -135,38 +135,22 @@ impl HugePageSize
 		}
 	}
 	
-//	pub fn supportedHugePageSizesLargestFirst(sys_path: &SysPath, default_huge_page_size: Option<HugePageSize>) -> Vec<HugePageSize>
-//	{
-//		let length = HugePageSize::PotentiallySupportedHugePageSizesLargestFirst.len();
-//
-//		let mut supported = Vec::with_capacity(length);
-//
-//		for hugePageSize in HugePageSize::PotentiallySupportedHugePageSizesLargestFirst.iter()
-//		{
-//			if Self::number_of_HugePages(sys_path, *hugePageSize).is_ok()
-//			{
-//				supported.push(*hugePageSize);
-//			}
-//		}
-//
-//		if let Some(default_huge_page_size) = default_huge_page_size
-//		{
-//			let mut containsDefaultHugePageSize = false;
-//			for hugePageSize in supported.iter()
-//			{
-//				if *hugePageSize == default_huge_page_size
-//				{
-//					containsDefaultHugePageSize = true;
-//					break;
-//				}
-//			}
-//
-//			assert!(containsDefaultHugePageSize, "supported huge page sizes '{:?}' do not contain default '{:?}'", supported, default_huge_page_size)
-//		}
-//
-//		supported.shrink_to_fit();
-//		supported
-//	}
+	/// Supported huge page sizes, sorted smallest to largest.
+	#[inline(always)]
+	pub fn supported_huge_page_sizes(sys_path: &SysPath) -> BTreeSet<Self>
+	{
+		let mut supported = BTreeSet::new();
+		
+		for huge_page_size in Self::PotentiallySupportedHugePageSizesLargestFirst.iter()
+		{
+			if let Ok(_) = huge_page_size.number_of_global_huge_pages(sys_path)
+			{
+				supported.insert(*huge_page_size);
+			}
+		}
+		
+		supported
+	}
 
 	/// Try to unreserve (clear reservations of) global huge pages.
 	///

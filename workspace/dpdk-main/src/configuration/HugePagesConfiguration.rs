@@ -30,7 +30,7 @@ impl Default for HugePagesConfiguration
 impl HugePagesConfiguration
 {
 	#[cfg(any(target_os = "android", target_os = "linux"))]
-	fn setUpHugePagesAndNumaMemory(&self, proc_path: &Path, sys_path: &Path, numa_sockets: &NumaSockets) -> (Option<PathBuf>, HugePageFinisher)
+	fn setUpHugePagesAndNumaMemory(&self, proc_path: &ProcPath, sys_path: &SysPath, numa_sockets: &NumaSockets) -> (Option<PathBuf>, HugePageFinisher)
 	{
 		let nonNumaHugePageAllocationStrategy = &self.nonNumaHugePageAllocationStrategy;
 		let numaHugePageAllocationStrategy = &self.numaHugePageAllocationStrategy;

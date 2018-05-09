@@ -22,12 +22,9 @@ impl Drop for Mounts
 
 impl Mounts
 {
-	/// Parses pseudo-file of current mounts.
-	pub fn parse(proc_path: &Path) -> Result<HashMap<PathBuf, Mount>, io::Error>
+	pub(crate) fn parse(file_path: &Path) -> Result<HashMap<PathBuf, Mount>, io::Error>
 	{
-		let mut mounts_file_path = PathBuf::from(proc_path);
-		mounts_file_path.push("self/mounts");
-		let mounts = Self::new(&mounts_file_path, true)?;
+		let mounts = Self::new(file_path, true)?;
 		
 		let mut map = HashMap::with_capacity(64);
 		
