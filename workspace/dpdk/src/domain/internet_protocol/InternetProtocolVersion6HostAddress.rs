@@ -495,8 +495,8 @@ impl InternetProtocolVersion6HostAddress
 		if self.is_deprecated_site_local_unicast()
 		{
 			let top_64_bits_network_endian: u64 = unsafe { transmute(self.0[0 .. 8]) };
-			#[cfg(target_endian = "big")] Mask54Bits: u64 = !(0xFFC0000000000000);
-			#[cfg(target_endian = "little")] Mask54Bits: u64 = !(0x000000000000C0FF);
+			#[cfg(target_endian = "big")] const Mask54Bits: u64 = !(0xFFC0000000000000);
+			#[cfg(target_endian = "little")] const Mask54Bits: u64 = !(0x000000000000C0FF);
 			let subnetIdentifier = top_64_bits_network_endian | Mask54Bits;
 			
 			let interfaceIdentifier = &self.0[9..16];

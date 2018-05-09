@@ -3,7 +3,6 @@
 
 
 /// Memory layout iterator.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub trait VirtualAddress
 {
 	/// Returns the IO address of a virtual address; need not have been allocated using `rte_malloc`.

@@ -45,8 +45,8 @@ trait EthernetDeviceInformation
 		let redirection_table_size = self.reference().reta_size;
 		debug_assert_ne!(redirection_table_size, 0, "Call is_receive_side_scaling_is_unavailable() first");
 		debug_assert!(redirection_table_size.is_power_of_two(), "Redirection table (RETA) size is not a power of two");
-		debug_assert_eq!(redirection_table_size % GroupSizeU16, 0, "redirection_table_size '{}' is not a multiple of RTE_RETA_GROUP_SIZE '{}'", RTE_RETA_GROUP_SIZE);
-		debug_assert!(number_of_receive_side_scaling_queues <= redirection_table_size, 0, "number_of_receive_side_scaling_queues '{}' exceeds redirection table (RETA) size '{}'", number_of_receive_side_scaling_queues, redirection_table_size);
+		debug_assert_eq!(redirection_table_size % GroupSizeU16, 0, "redirection_table_size '{}' is not a multiple of RTE_RETA_GROUP_SIZE '{}'", redirection_table_size, RTE_RETA_GROUP_SIZE);
+		debug_assert!(number_of_receive_side_scaling_queues <= redirection_table_size, "number_of_receive_side_scaling_queues '{}' exceeds redirection table (RETA) size '{}'", number_of_receive_side_scaling_queues, redirection_table_size);
 		
 		let number_of_structs = (redirection_table_size / RTE_RETA_GROUP_SIZE) as usize;
 		let mut redirection_table = Vec::with_capacity(number_of_structs);

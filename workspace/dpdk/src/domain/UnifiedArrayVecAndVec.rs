@@ -23,7 +23,7 @@ pub trait NonNullUnifiedArrayVecAndVec<T> : UnifiedArrayVecAndVec<NonNull<T>>
 	fn to_ffi_data_u16(&mut self, start_from_index: usize) -> (*mut *mut T, u16)
 	{
 		let (pointer, number_of_potential_packets) = self.to_ffi_data(start_from_index);
-		debug_assert!(number_of_potential_packets <= ::std::u16::MAX as usize, "number_of_potential_packets '{}' exceeds ::std::u16::MAX", number_of_potential_packets, ::std::u16::MAX);
+		debug_assert!(number_of_potential_packets <= ::std::u16::MAX as usize, "number_of_potential_packets '{}' exceeds ::std::u16::MAX '{}'", number_of_potential_packets, ::std::u16::MAX);
 		(pointer, number_of_potential_packets as u16)
 	}
 	
@@ -31,7 +31,7 @@ pub trait NonNullUnifiedArrayVecAndVec<T> : UnifiedArrayVecAndVec<NonNull<T>>
 	fn to_ffi_data_u32(&mut self, start_from_index: usize) -> (*mut *mut T, u32)
 	{
 		let (pointer, number_of_potential_packets) = self.to_ffi_data(start_from_index);
-		debug_assert!(number_of_potential_packets <= ::std::u32::MAX as usize, "number_of_potential_packets '{}' exceeds ::std::u32::MAX", number_of_potential_packets, ::std::u32::MAX);
+		debug_assert!(number_of_potential_packets <= ::std::u32::MAX as usize, "number_of_potential_packets '{}' exceeds ::std::u32::MAX '{}'", number_of_potential_packets, ::std::u32::MAX);
 		(pointer, number_of_potential_packets as u32)
 	}
 	
@@ -54,7 +54,7 @@ pub trait NonNullUnifiedArrayVecAndVec<T> : UnifiedArrayVecAndVec<NonNull<T>>
 	fn from_ffi_data_u16(&mut self) -> (*mut *mut T, u16)
 	{
 		let (pointer, number_of_potential_packets) = self.from_ffi_data();
-		debug_assert!(number_of_potential_packets <= ::std::u16::MAX as usize, "number_of_potential_packets '{}' exceeds ::std::u16::MAX", number_of_potential_packets, ::std::u16::MAX);
+		debug_assert!(number_of_potential_packets <= ::std::u16::MAX as usize, "number_of_potential_packets '{}' exceeds ::std::u16::MAX '{}'", number_of_potential_packets, ::std::u16::MAX);
 		(pointer, number_of_potential_packets as u16)
 	}
 	
@@ -62,7 +62,7 @@ pub trait NonNullUnifiedArrayVecAndVec<T> : UnifiedArrayVecAndVec<NonNull<T>>
 	fn from_ffi_data_u32(&mut self) -> (*mut *mut T, u32)
 	{
 		let (pointer, number_of_potential_packets) = self.from_ffi_data();
-		debug_assert!(number_of_potential_packets <= ::std::u32::MAX as usize, "number_of_potential_packets '{}' exceeds ::std::u32::MAX", number_of_potential_packets, ::std::u32::MAX);
+		debug_assert!(number_of_potential_packets <= ::std::u32::MAX as usize, "number_of_potential_packets '{}' exceeds ::std::u32::MAX '{}'", number_of_potential_packets, ::std::u32::MAX);
 		(pointer, number_of_potential_packets as u32)
 	}
 }

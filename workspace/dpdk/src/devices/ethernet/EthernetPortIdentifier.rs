@@ -309,7 +309,7 @@ impl EthernetPortIdentifier
 	
 	unsafe extern "C" fn link_up_or_down_events_callback<Handler: EthernetPortLinkStatusEventHandler>(ethernet_port_identifier: u16, event: rte_eth_event_type, cb_arg: *mut c_void, ret_param: *mut c_void) -> i32
 	{
-		debug_assert!(event, rte_eth_event_type::RTE_ETH_EVENT_INTR_LSC, "event '{}' was not RTE_ETH_EVENT_INTR_LSC", event);
+		debug_assert_eq!(event, rte_eth_event_type::RTE_ETH_EVENT_INTR_LSC, "event '{:?}' was not RTE_ETH_EVENT_INTR_LSC", event);
 		debug_assert!(cb_arg.is_not_null(), "cb_arg is null");
 		debug_assert!(ret_param.is_null(), "ret_param is not null");
 		let handler = unsafe { &mut * (cb_arg as *mut Handler) };
