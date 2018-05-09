@@ -5,4 +5,5 @@
 use super::*;
 
 
+include!("LogicalCorePowerManagement.rs");
 include!("PowerManagement.rs");

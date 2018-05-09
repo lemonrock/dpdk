@@ -23,12 +23,9 @@ impl ResourceLimit
 	const Infinity: rlim64_t = ::libc::RLIM_INFINITY as rlim64_t;
 	
 	/// Obtains the maximum number of file descriptors as a finite resource limit.
-	pub fn maximum_number_of_open_file_descriptors(proc_path: &Path) -> Result<ResourceLimit, io::Error>
+	pub fn maximum_number_of_open_file_descriptors(proc_path: &ProcPath) -> Result<ResourceLimit, io::Error>
 	{
-		let mut nr_open_file_path = PathBuf::from(proc_path);
-		nr_open_file_path.push("sys/fs/nr_open");
-		let value: u64 = nr_open_file_path.read_value()?;
-		Ok(ResourceLimit::Finite(value))
+		Ok(ResourceLimit::Finite(proc_path.maximum_number_of_open_file_descriptors()?))
 	}
 	
 	/// Value.

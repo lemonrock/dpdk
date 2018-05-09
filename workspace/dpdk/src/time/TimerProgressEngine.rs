@@ -25,35 +25,10 @@ impl PrintAllInformation for TimerProgressEngine
 
 impl TimerProgressEngine
 {
-	/// This must be called before using any code that uses HPET or timer functionality.
-	///
 	/// Calling the underlying timer check code in progress() is quite expensive, so use a large value of cycles, eg `Cycles::AroundTenMillisecondsAt2GigaHertzSuitableForATimerProgressEngine`.
 	#[inline(always)]
-	pub fn initialize(period: Cycles, make_hpet_the_default_timer: bool) -> Self
+	pub fn new(period: Cycles) -> Self
 	{
-		unsafe
-		{
-			rte_timer_subsystem_init();
-			
-			let make_hpet_the_default_timer = if make_hpet_the_default_timer
-			{
-				1
-			}
-			else
-			{
-				0
-			};
-			
-			match rte_eal_hpet_init(make_hpet_the_default_timer)
-			{
-				0 => (),
-				
-				-1 => panic!("HPET is not available"),
-				
-				unexpected @ _ => panic!("HPET initialisation returned unexpected error code '{}'", unexpected),
-			}
-		}
-		
 		Self
 		{
 			period,

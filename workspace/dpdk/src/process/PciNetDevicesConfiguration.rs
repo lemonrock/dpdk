@@ -15,9 +15,17 @@ pub struct PciNetDevicesConfiguration
 impl PciNetDeviceConfiguration
 {
 	#[inline(always)]
-	pub(crate) fn take_for_use_with_dpdk(&self, sys_path: &Path) -> HashMap<PciDevice, Option<String>>
+	pub(crate) fn add_essential_kernel_modules(&self, essential_kernel_modules: &mut HashSet<EssentialKernelModule>)
 	{
-		// TODO: It would be nice to do this logic at configuration-load-time.
+		for pci_kernel_driver in self.pci_net_devices.values()
+		{
+			essential_kernel_modules.insert(*pci_kernel_driver);
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn take_for_use_with_dpdk(&self, sys_path: &SysPath) -> HashMap<PciDevice, Option<String>>
+	{
 		let mut aliases = HashMap::with_capacity(self.pci_net_devices.len());
 		let mut ethernet_pci_devices = HashSet::with_capacity(self.pci_net_devices.len());
 		for (indirect_pci_device_identifier, pci_kernel_driver) in self.pci_net_devices.iter()
@@ -43,5 +51,14 @@ impl PciNetDeviceConfiguration
 		}
 		
 		originals_to_restore
+	}
+	
+	#[inline(always)]
+	pub(crate) fn release_all_from_use_with_dpdk(sys_path: &SysPath, pci_devices_and_original_driver_names: HashMap<Self, Option<String>>)
+	{
+		for (pci_device, original_drive_name) in pci_devices_and_original_driver_names.drain()
+		{
+			pci_device.release_from_use_with_dpdk(sys_path, original_drive_name)
+		}
 	}
 }

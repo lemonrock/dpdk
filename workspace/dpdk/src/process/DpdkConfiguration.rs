@@ -6,7 +6,7 @@
 #[derive(Debug)]
 #[derive(Deserialize)]
 #[serde(default)]
-pub struct DpdkRteInitData
+pub struct DpdkConfiguration
 {
 	/// Linux `AFPACKET` virtual network devices by index.
 	pub af_packet_net_virtual_devices: BTreeMap<u5, AfPacketNetVirtualDevice>,
@@ -15,6 +15,8 @@ pub struct DpdkRteInitData
 	pub bonding_net_virtual_devices: BTreeMap<u5, BondingNetVirtualDevice>,
 	
 	/// Linux Kernel Native Interface (KNI) virtual network devices by index.
+	///
+	/// Internally a `ctrl` thread may be created for these (see `rte_ctrl_thread_create`).
 	pub kernel_native_interface_net_virtual_devices: BTreeMap<u5, KniNetVirtualDevice>,
 	
 	/// Packet capture (`pcap`) virtual network devices by index.
@@ -24,6 +26,8 @@ pub struct DpdkRteInitData
 	pub virt_io_net_virtual_devices: BTreeMap<u5, VirtIoNetVirtualDevice>,
 	
 	/// `vhost` host virtual network devices by index.
+	///
+	/// Internally several `ctrl` threads may be created for these (see `rte_ctrl_thread_create`).
 	pub virtual_host_net_virtual_devices: BTreeMap<u5, VirtualHostNetVirtualDevice>,
 	
 	/// Can be changed from default (`None`).
@@ -61,15 +65,13 @@ pub struct DpdkRteInitData
 	pub create_uio_device_on_file_system_in_slash_dev: bool,
 }
 
-impl Default for DpdkRteInitData
+impl Default for DpdkConfiguration
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
 		Self
 		{
-			pci_net_devices: HashMap::new(),
-
 			af_packet_net_virtual_devices: Default::default(),
 			bonding_net_virtual_devices: Default::default(),
 			packet_capture_net_virtual_devices: Default::default(),
@@ -92,19 +94,31 @@ impl Default for DpdkRteInitData
 	}
 }
 
-impl DpdkRteInitData
+impl DpdkConfiguration
 {
+	/// Are there any Kernel Native Interface (KNI) virtual devices?
 	#[inline(always)]
-	pub fn has_kni_virtual_devices(&self) -> bool
+	pub fn has_kernel_native_interface_virtual_devices(&self) -> bool
 	{
 		self.kernel_native_interface_net_virtual_devices.len() != 0
+	}
+	
+	/// Enable the high precision event timer after initialization of DPDK if configured.
+	///
+	/// Internally creates a DPDK `ctrl` thread called `hpet-msb-inc` (see `rte_ctrl_thread_create`).
+	pub fn enable_high_precision_event_timer_after_dpdk_initialized_if_configured(&self)
+	{
+		if enable_high_precision_event_timer
+		{
+			assert_eq!(unsafe { rte_eal_hpet_init(1) }, 0, "Could not initialize high precision event timer (HPET)");
+		}
 	}
 	
 	/// Initialise DPDK.
 	///
 	/// When the returned result is dropped, resources are released.
 	#[inline(always)]
-	pub fn initialize_dpdk<V>(&self, pci_devices: &HashMap<PciDevice, V>, numa_sockets: &NumaSockets, huge_page_file_path_information: HugePageFilePathInformation) -> Result<DpdkProcess, &'static str>
+	pub fn initialize_dpdk<V>(&self, pci_devices: &HashMap<PciDevice, V>, numa_sockets: &NumaSockets, huge_page_file_path_information: HugePageFilePathInformation) -> Result<(), &'static str>
 	{
 		let huge_page_details = huge_page_file_path_information.huge_page_file_system_mount_path_and_so_on();
 		let use_huge_pages = huge_page_details.is_some();
@@ -222,6 +236,28 @@ impl DpdkRteInitData
 	#[inline(always)]
 	fn initialize_dpdk_memory_limits_settings(&self, mut arguments: &mut Vec<*const c_char>, use_huge_pages: bool, numa_sockets: &NumaSockets)
 	{
+		// --socket-mem and -m [total, 512Mb] conflict.
+		// --socket-mem requires huge pages
+		
+		// --socket-mem=1024,0,1024
+		// Allocate 1Gb socket 0
+		// Allocate 0Gb socket 1
+		// Allocate 1Gb socket 2
+		// No allocation on socket 3
+		
+		// We need an allocation strategy for numa nodes
+		
+		/*
+			For each Numa node,
+				- take the HugePageAllocationStrategy
+				- call calculate_nearest_allocation_size()
+				- convert to whatever it is that socket-mem takes
+		
+		
+		*/
+		
+		
+		
 		#[inline(always)]
 		fn initialize_dpdk_total_memory_limits(mut arguments: &mut Vec<*const c_char>, size_of_total_memory_in_megabytes: u31)
 		{
@@ -403,7 +439,7 @@ impl DpdkRteInitData
 					panic!("Parsed only number_of_parsed_arguments '{}' but provided count '{}' arguments", number_of_parsed_arguments, count);
 				}
 				
-				Ok(DpdkProcess)
+				Ok(())
 			}
 			
 			-1 => match unsafe { rte_errno() }

@@ -8,9 +8,9 @@ pub fn hash_set_to_signal_set(signals: &HashSet<i32>) -> sigset_t
 {
 	unsafe
 	{
-		let mut signal_set: sigset_t = unintialized();
+		let mut signal_set: sigset_t = uninitialized();
 		sigemptyset(&mut signal_set);
-		for signal in signals_to_accept.iter()
+		for signal in signals.iter()
 		{
 			sigaddset(&mut signal_set, *signal);
 		}

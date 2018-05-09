@@ -85,7 +85,7 @@ impl MemoryStatisticName
 	///
 	/// This list is NOT definitive; names come and go.
 	#[inline(always)]
-	fn parse(value: &str, memory_statistic_name_prefix: &str) -> MemoryStatisticName
+	pub(crate) fn parse(value: &str, memory_statistic_name_prefix: &str) -> MemoryStatisticName
 	{
 		use self::MemoryStatisticName::*;
 		

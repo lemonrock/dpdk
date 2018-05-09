@@ -2,19 +2,26 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use super::*;
+/// Memory statistic unit.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum MemoryStatisticUnit
+{
+	/// KiloByte.
+	KiloByte,
+	
+	/// Numeric count.
+	Count,
+}
 
-
-pub mod active;
-pub mod discovery;
-pub mod receiveTransmitQueuePair;
-
-
-include!("HugePageAllocationStrategy.rs");
-include!("LogicalCorePowerManagement.rs");
-include!("NonNumaMemory.rs");
-include!("NumaNodesData.rs");
-include!("NumaSocketMap.rs");
-include!("NumaNodeStatisticName.rs");
-include!("NumaNodeStatistics.rs");
-include!("SlaveLogicalCoreTask.rs");
+impl MemoryStatisticUnit
+{
+	#[inline(always)]
+	pub(crate) fn ends_with(&self) -> &'static str
+	{
+		match *self
+		{
+			MemoryStatisticUnit::KiloByte => " kB",
+			MemoryStatisticUnit::Count => "",
+		}
+	}
+}

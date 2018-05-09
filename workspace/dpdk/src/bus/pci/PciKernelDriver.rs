@@ -16,23 +16,7 @@ pub enum PciKernelDriver
 impl PciKernelDriver
 {
 	#[inline(always)]
-	pub(crate) fn all_known_pci_drivers(sys_path: &Path) -> HashSet<Self>
-	{
-		use self::PciKernelDriver::*;
-		
-		#[cfg(any(target_os = "android", target_os = "linux"))]
-		{
-			hashset!
-			(
-				IgbUio,
-				UioPciGeneric,
-				UioPciGeneric,
-			)
-		}
-	}
-	
-	#[inline(always)]
-	pub(crate) fn essential_kernel_module(&self) -> Option<EssentialKernelModule>
+	pub(crate) fn essential_kernel_module(&self) -> EssentialKernelModule
 	{
 		use self::PciKernelDriver::*;
 		
@@ -40,7 +24,7 @@ impl PciKernelDriver
 		{
 			#[cfg(any(target_os = "android", target_os = "linux"))] IgbUio => EssentialKernelModule::IgbUio,
 			#[cfg(any(target_os = "android", target_os = "linux"))] UioPciGeneric => EssentialKernelModule::UioPciGeneric,
-			#[cfg(any(target_os = "android", target_os = "linux"))] UioPciGeneric => EssentialKernelModule::VfioPci,
+			#[cfg(any(target_os = "android", target_os = "linux"))] VfioPci => EssentialKernelModule::VfioPci,
 		}
 	}
 	

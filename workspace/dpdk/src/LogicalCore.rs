@@ -213,6 +213,13 @@ impl LogicalCore
 		}
 	}
 	
+	/// Start power management.
+	#[inline(always)]
+	pub fn start_power_management(self) -> Result<LogicalCorePowerManagement, ()>
+	{
+		LogicalCorePowerManagement::start(self)
+	}
+	
 	/// Gets if the logical core role is normal.
 	#[inline(always)]
 	pub fn is_role_normal(self) -> bool

@@ -45,11 +45,6 @@ use self::domain::layer4::internet_control_message_protocol::*;
 use self::domain::virtual_lans::*;
 use self::E_RTE::*;
 use self::ethernetPorts::*;
-use self::internet_protocol_packet_reassembly::*;
-use self::logicalCores::*;
-use self::logicalCores::active::*;
-use self::logicalCores::discovery::*;
-use self::logicalCores::receiveTransmitQueuePair::*;
 use self::memory::*;
 use self::memory::zones::*;
 use self::packet_buffers::*;
@@ -113,6 +108,9 @@ use ::std::fs::File;
 use ::std::marker::PhantomData;
 use ::std::hash::Hash;
 use ::std::io;
+use ::std::io::BufRead;
+use ::std::io::BufReader;
+use ::std::io::ErrorKind;
 use ::std::iter::FromIterator;
 use ::std::iter::Step;
 use ::std::mem::forget;
@@ -177,10 +175,6 @@ pub(crate) mod E_RTE;
 pub mod ethernetPorts;
 
 
-/// Logical cores and NUMA nodes.
-pub mod logicalCores;
-
-
 /// DPDK memory management.
 pub mod memory;
 
@@ -215,6 +209,7 @@ include!("finish.rs");
 include!("AllLogicalCoreIterator.rs");
 include!("LogicalCore.rs");
 include!("LogicalCoreChoice.rs");
+include!("HyperThread.rs");
 include!("NumaNode.rs");
 include!("NumaNodeChoice.rs");
 include!("PointerExt.rs");

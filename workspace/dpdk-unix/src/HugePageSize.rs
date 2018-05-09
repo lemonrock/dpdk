@@ -5,6 +5,8 @@
 /// Commonly supported huge page sizes for modern popular CPU architectures (x86, ARM, PowerPC).
 ///
 /// See also <https://en.wikipedia.org/wiki/Page_(computer_memory)#Huge_pages>.
+///
+/// `repr(u64)` values are in KiloBytes.
 #[repr(u64)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum HugePageSize
@@ -55,18 +57,39 @@ impl HugePageSize
 		HugePageSize::_1MB,
 	];
 	
+	/// Size in mega bytes.
+	#[inline(always)]
+	pub fn size_in_mega_bytes(self) -> u64
+	{
+		self.size_in_kilo_bytes() / 1024
+	}
+	
+	/// Size in kilo bytes.
+	#[inline(always)]
+	pub fn size_in_kilo_bytes(self) -> u64
+	{
+		self as u64
+	}
+	
+	/// Size in bytes.
+	#[inline(always)]
+	pub fn size_in_bytes(self) -> u64
+	{
+		self.size_in_kilo_bytes() * 1024
+	}
+	
 	/// Calculate number of huge pages.
 	#[inline(always)]
 	pub fn calculate_number_of_huge_pages(&self, desired_number_of_kilo_bytes: u64) -> u64
 	{
-		let size = self.size();
-		if size < desired_number_of_kilo_bytes
+		let size_in_kilo_bytes = self.size_in_kilo_bytes();
+		if size_in_kilo_bytes < desired_number_of_kilo_bytes
 		{
 			1
 		}
 		else
 		{
-			size / desired_number_of_kilo_bytes
+			size_in_kilo_bytes / desired_number_of_kilo_bytes
 		}
 	}
 	
@@ -112,10 +135,149 @@ impl HugePageSize
 		}
 	}
 	
-	/// Size in bytes.
+//	pub fn supportedHugePageSizesLargestFirst(sys_path: &SysPath, default_huge_page_size: Option<HugePageSize>) -> Vec<HugePageSize>
+//	{
+//		let length = HugePageSize::PotentiallySupportedHugePageSizesLargestFirst.len();
+//
+//		let mut supported = Vec::with_capacity(length);
+//
+//		for hugePageSize in HugePageSize::PotentiallySupportedHugePageSizesLargestFirst.iter()
+//		{
+//			if Self::number_of_HugePages(sys_path, *hugePageSize).is_ok()
+//			{
+//				supported.push(*hugePageSize);
+//			}
+//		}
+//
+//		if let Some(default_huge_page_size) = default_huge_page_size
+//		{
+//			let mut containsDefaultHugePageSize = false;
+//			for hugePageSize in supported.iter()
+//			{
+//				if *hugePageSize == default_huge_page_size
+//				{
+//					containsDefaultHugePageSize = true;
+//					break;
+//				}
+//			}
+//
+//			assert!(containsDefaultHugePageSize, "supported huge page sizes '{:?}' do not contain default '{:?}'", supported, default_huge_page_size)
+//		}
+//
+//		supported.shrink_to_fit();
+//		supported
+//	}
+
+	/// Try to unreserve (clear reservations of) global huge pages.
+	///
+	/// Will only work as root.
 	#[inline(always)]
-	pub fn size(&self) -> u64
+	pub fn unreserve_global_huge_pages(self, sys_path: &SysPath) -> io::Result<()>
 	{
-		*self as u64
+		assert_effective_user_id_is_root(&format!("Clear all global huge pages of size '{:?}'", self));
+		
+		self.reserve_global_huge_pages(sys_path, 0)
+	}
+	
+	/// Try to reserve global huge pages.
+	///
+	/// Will only work as root.
+	#[inline(always)]
+	pub fn reserve_global_huge_pages(self, sys_path: &SysPath, number_to_try_to_reserve: u64) -> io::Result<()>
+	{
+		assert_effective_user_id_is_root(&format!("Reserve '{}' global huge pages of size '{:?}'", number_to_try_to_reserve, self));
+		
+		sys_path.global_hugepages_file_path(self, "nr_hugepages").write_value(number_to_try_to_reserve)
+	}
+	
+	/// Read number of global huge pages of `self` size.
+	#[inline(always)]
+	pub fn number_of_global_huge_pages(self, sys_path: &SysPath) -> io::Result<u64>
+	{
+		sys_path.read_global_hugepages_value(self, "nr_hugepages")
+	}
+	
+	/// Read number of free global huge pages of `self` size.
+	#[inline(always)]
+	pub fn number_of_free_global_huge_pages(self, sys_path: &SysPath) -> io::Result<u64>
+	{
+		sys_path.read_global_hugepages_value(self, "free_hugepages")
+	}
+	
+	/// Read number of surplus global huge pages of `self` size.
+	#[inline(always)]
+	pub fn number_of_surplus_global_huge_pages(self, sys_path: &SysPath) -> io::Result<u64>
+	{
+		sys_path.read_global_hugepages_value(self, "surplus_hugepages")
+	}
+	
+	/// Read number of reserved global huge pages of `self` size.
+	#[inline(always)]
+	pub fn number_of_reserved_global_huge_pages(self, sys_path: &SysPath) -> io::Result<u64>
+	{
+		sys_path.read_global_hugepages_value(self, "resv_hugepages")
+	}
+	
+	/// Read number of memory policy global huge pages of `self` size.
+	#[inline(always)]
+	pub fn number_of_memory_policy_global_huge_pages(self, sys_path: &SysPath) -> io::Result<u64>
+	{
+		sys_path.read_global_hugepages_value(self, "nr_hugepages_mempolicy")
+	}
+	
+	/// Read number of overcommit global huge pages of `self` size.
+	#[inline(always)]
+	pub fn number_of_overcommit_global_huge_pages(self, sys_path: &SysPath) -> io::Result<u64>
+	{
+		sys_path.read_global_hugepages_value(self, "nr_overcommit_hugepages")
+	}
+	
+	/// Try to unreserve (clear reservations of) NUMA huge pages.
+	///
+	/// Will only work as root.
+	#[inline(always)]
+	pub fn unreserve_numa_huge_pages(self, sys_path: &SysPath, numa_node: u8) -> io::Result<()>
+	{
+		assert_effective_user_id_is_root(&format!("Clear all NUMA huge pages of size '{:?}'", self));
+		
+		self.reserve_numa_huge_pages(sys_path, numa_node, 0)
+	}
+	
+	/// Try to reserve NUMA huge pages.
+	///
+	/// Will only work as root.
+	#[inline(always)]
+	pub fn reserve_numa_huge_pages(self, sys_path: &SysPath, numa_node: u8, number_to_try_to_reserve: u64) -> io::Result<()>
+	{
+		assert_effective_user_id_is_root(&format!("Reserve '{}' NUMA huge pages of size '{:?}'", number_to_try_to_reserve, self));
+		
+		sys_path.numa_hugepages_file_path(self, numa_node, "nr_hugepages").write_value(number_to_try_to_reserve)
+	}
+	
+	/// Read number of NUMA huge pages of `self` size.
+	///
+	/// This will fail if this is not a NUMA-based machine or the node is not present.
+	#[inline(always)]
+	pub fn number_of_numa_huge_pages(self, sys_path: &SysPath, numa_node: u8) -> io::Result<u64>
+	{
+		sys_path.read_numa_hugepages_value(self, numa_node, "nr_hugepages")
+	}
+	
+	/// Read number of free NUMA node huge pages of `self` size.
+	///
+	/// This will fail if this is not a NUMA-based machine or the node is not present.
+	#[inline(always)]
+	pub fn number_of_free_numa_huge_pages(self, sys_path: &SysPath, numa_node: u8) -> io::Result<u64>
+	{
+		sys_path.read_numa_hugepages_value(self, numa_node, "free_hugepages")
+	}
+	
+	/// Read number of surplus NUMA huge pages of `self` size.
+	///
+	/// This will fail if this is not a NUMA-based machine or the node is not present.
+	#[inline(always)]
+	pub fn number_of_surplus_numa_huge_pages(self, sys_path: &SysPath, numa_node: u8) -> io::Result<u64>
+	{
+		sys_path.read_numa_hugepages_value(self, numa_node, "surplus_hugepages")
 	}
 }

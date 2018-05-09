@@ -94,7 +94,7 @@ impl LinuxKernelModulesList
 			let mut linux_kernel_module_path = PathBuf::from(linux_kernel_modules_path);
 			linux_kernel_module_path.push(format!("{}.ko", module_file_base_name));
 			let loaded = Self::load_linux_kernel_module_from_ko_file(&linux_kernel_module_path)?;
-			self.0.insert(linux_kernel_module_name);
+			self.0.insert(linux_kernel_module_name.to_owned());
 			Ok(loaded)
 		}
 	}
@@ -113,7 +113,7 @@ impl LinuxKernelModulesList
 		else
 		{
 			modprobe(module_file_base_name)?;
-			self.0.insert(linux_kernel_module_name);
+			self.0.insert(linux_kernel_module_name.to_owned());
 			Ok(true)
 		}
 	}
@@ -125,12 +125,9 @@ impl LinuxKernelModulesList
 	}
 	
 	/// Parses the list of loaded Linux Kernel modules.
-	pub fn parse_currently_loaded_linux_kernel_modules_list(proc_path: &Path) -> Result<Self, LinuxKernelModulesListParseError>
+	pub fn parse_currently_loaded_linux_kernel_modules_list(proc_path: &ProcPath) -> Result<Self, LinuxKernelModulesListParseError>
 	{
-		let mut modules_file_path = PathBuf::from(proc_path);
-		modules_file_path.push("modules");
-		
-		let mut reader = BufReader::with_capacity(4096, File::open(modules_file_path)?);
+		let mut reader = BufReader::with_capacity(4096, File::open(proc_path.modules())?);
 		
 		let mut modules_list = HashSet::new();
 		let mut line_number = 0;

@@ -38,6 +38,20 @@ pub trait PathExt
 	/// Writes a value to a file which is line-feed terminated.
 	#[inline(always)]
 	fn write_value<D: Display>(&self, value: D) -> io::Result<()>;
+	
+	/// Reads and parses a linux core or numa mask string from a file.
+	///
+	/// Returns a BTreeSet with the zero-based indices found in the string. For example, "2,4-31,32-63" would return a set with all values between 0 to 63 except 0, 1 and 3.
+	#[inline(always)]
+	fn read_linux_core_or_numa_mask(&self) -> Result<BTreeSet<u16>, ListParseError>;
+	
+	/// Parses a virtual memory statistics file (`vmstat`).
+	#[inline(always)]
+	fn parse_virtual_memory_statistics_file(&self) -> io::Result<HashMap<VirtualMemoryStatisticName, u64>>;
+	
+	/// Parses a memory information file (`meminfo`).
+	#[inline(always)]
+	fn parse_memory_information_file(&self, memory_statistic_name_prefix: &str) -> Result<MemoryStatistics, MemoryStatisticsParseError>;
 }
 
 impl PathExt for Path
@@ -107,6 +121,7 @@ impl PathExt for Path
 			Ok(value) => Ok(value),
 		}
 	}
+	
 	#[inline(always)]
 	fn read_value<F>(&self) -> io::Result<F> where F: FromStr, <F as FromStr>::Err: 'static + Send + Sync + Error
 	{
@@ -138,6 +153,129 @@ impl PathExt for Path
 		let value = format!("{}\n", value).into_bytes();
 		let mut file = OpenOptions::new().write(true).open(self)?;
 		file.write_all(value.as_slice())
+	}
+	
+	#[inline(always)]
+	fn read_linux_core_or_numa_mask(&self) -> Result<BTreeSet<u16>, ListParseError>
+	{
+		let mut file = File::open(self)?;
+		let mut raw_string = String::with_capacity(256);
+		let bytes_read = file.read_to_string(&mut raw_string)?;
+		
+		use self::ListParseError::*;
+		
+		let is_empty_file = bytes_read == 0;
+		
+		if is_empty_file
+		{
+			return Err(EmptyFile);
+		}
+		
+		let should_be_line_feed = raw_string.remove(bytes_read - 1);
+		if should_be_line_feed != '\n'
+		{
+			return Err(FileContentsDidNotEndWithATrailingLineFeed);
+		}
+		
+		ListParseError::parse_linux_list_string(&raw_string)
+	}
+	
+	#[inline(always)]
+	fn parse_virtual_memory_statistics_file(&self) -> io::Result<HashMap<VirtualMemoryStatisticName, u64>>
+	{
+		let file = File::open(self)?;
+		
+		let mut reader = BufReader::with_capacity(4096, file);
+		
+		let mut statistics = HashMap::with_capacity(6);
+		let mut zero_based_line_number = 0;
+		let mut line = String::with_capacity(64);
+		while reader.read_line(&mut line)? > 0
+		{
+			{
+				use self::ErrorKind::InvalidData;
+				
+				let mut split = line.splitn(2, ' ');
+				
+				let statistic_name = VirtualMemoryStatisticName::parse(split.next().unwrap());
+				
+				let statistic_value = match split.next()
+				{
+					None => return Err(io::Error::new(InvalidData, format!("Zero based line '{}' does not have a value second column", zero_based_line_number))),
+					Some(value) =>
+					{
+						match value.parse::<u64>()
+						{
+							Err(parse_error) => return Err(io::Error::new(InvalidData, parse_error)),
+							Ok(value) => value,
+						}
+					}
+				};
+				
+				if let Some(previous) = statistics.insert(statistic_name, statistic_value)
+				{
+					return Err(io::Error::new(InvalidData, format!("Zero based line '{}' has a duplicate statistic (was '{}')", zero_based_line_number, previous)))
+				}
+			}
+			
+			line.clear();
+			zero_based_line_number += 1;
+		}
+		
+		Ok(statistics)
+	}
+	
+	/// Parses the `meminfo` file.
+	fn parse_memory_information_file(&self, memory_statistic_name_prefix: &str) -> Result<MemoryStatistics, MemoryStatisticsParseError>
+	{
+		let mut reader = BufReader::with_capacity(4096, File::open(self)?);
+		
+		let mut memory_statistics = HashMap::new();
+		let mut line_number = 0;
+		let mut line = String::with_capacity(512);
+		while reader.read_line(&mut line)? > 0
+		{
+			{
+				let mut split = line.splitn(2, ':');
+				
+				let memory_statistic_name = MemoryStatisticName::parse(split.next().unwrap(), memory_statistic_name_prefix);
+				
+				let memory_statistic_value = match split.next()
+				{
+					None => return Err(MemoryStatisticsParseError::CouldNotParseMemoryStatisticValue(line_number, memory_statistic_name)),
+					Some(raw_value) =>
+						{
+							let trimmed_raw_value = raw_value.trim();
+							let ends_with = memory_statistic_name.unit().ends_with();
+							
+							if !trimmed_raw_value.ends_with(ends_with)
+							{
+								return Err(MemoryStatisticsParseError::CouldNotParseMemoryStatisticValue(line_number, memory_statistic_name));
+							}
+							
+							let trimmed = &raw_value[0..raw_value.len() - ends_with.len()];
+							
+							match trimmed.parse::<u64>()
+							{
+								Ok(value) => value,
+								Err(int_parse_error) => return Err(MemoryStatisticsParseError::CouldNotParseMemoryStatisticValueAsU64(line_number, memory_statistic_name, raw_value.to_owned(), int_parse_error))
+							}
+						}
+				};
+				
+				if memory_statistics.contains_key(&memory_statistic_name)
+				{
+					return Err(MemoryStatisticsParseError::DuplicateMemoryStatistic(line_number, memory_statistic_name, memory_statistic_value));
+				}
+				
+				memory_statistics.insert(memory_statistic_name, memory_statistic_value);
+			}
+			
+			line.clear();
+			line_number += 1;
+		}
+		
+		Ok(MemoryStatistics(memory_statistics))
 	}
 }
 

@@ -2,13 +2,9 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use ::libc::pthread_sigmask;
-use ::libc::SIG_SETMASK;
-use ::libc::SIGCHLD;
-use ::libc::SIGHUP;
-use ::libc::SIGTERM;
-use ::libc::sigdelset;
-use ::libc::sigfillset;
+use ::errno::errno;
+use ::syscall_alt::constants::E;
+use ::libc::*;
 use ::std::collections::HashSet;
 use ::std::mem::uninitialized;
 use ::std::ptr::null_mut;

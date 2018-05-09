@@ -25,8 +25,11 @@ extern crate rust_extra;
 #[cfg(unix)] extern crate syscall_alt;
 
 
+use self::memory_statistics::*;
 #[cfg(target_os = "linux")] use ::const_cstr_fork::ConstCStr;
 use ::libc::*;
+use ::std::collections::BTreeSet;
+use ::std::collections::HashMap;
 use ::std::env::set_var;
 use ::std::env::var_os;
 use ::std::error::Error;
@@ -42,6 +45,8 @@ use ::std::fs::Permissions;
 use ::std::fs::remove_file;
 use ::std::fs::set_permissions;
 use ::std::io;
+use ::std::io::BufRead;
+use ::std::io::BufReader;
 use ::std::io::ErrorKind;
 use ::std::io::Read;
 use ::std::io::Write;
@@ -69,6 +74,10 @@ use ::std::str::FromStr;
 pub mod android_linux;
 
 
+/// Memory Statistics.
+pub mod memory_statistics;
+
+
 /// Support for signals.
 #[cfg(unix)] pub mod signals;
 
@@ -80,7 +89,11 @@ include!("Daemonize.rs");
 include!("DaemonizeCleanUpOnExit.rs");
 include!("get_program_name.rs");
 include!("HugePageSize.rs");
+include!("ListParseError.rs");
 include!("OsStrExtMore.rs");
 include!("PathExt.rs");
+include!("ProcPath.rs");
 include!("set_current_thread_name.rs");
 include!("SetCurrentThreadNameError.rs");
+include!("SysPath.rs");
+include!("VirtualMemoryStatisticName.rs");

@@ -45,7 +45,7 @@ use ::finishers::PciDevicesFinisher;
 use ::finishers::Finishers;
 use ::programArguments::ProgramArguments;
 use ::programArguments::ConfigurationAndProgramArguments;
-use ::DpdkRteInitData;
+use ::DpdkConfiguration;
 use ::LinuxKernelModule;
 
 

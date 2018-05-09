@@ -2,4 +2,4 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-pub type rte_power_get_freq_t = Option<unsafe extern "C" fn(lcore_id: c_uint) -> u32>;
+pub type rte_power_get_freq_t = unsafe extern "C" fn(lcore_id: c_uint) -> u32;

@@ -6,7 +6,7 @@ use super::*;
 
 
 include!("DpdkProcess.rs");
-include!("DpdkRteInitData.rs");
+include!("DpdkConfiguration.rs");
 include!("EssentialKernelModule.rs");
 include!("EssentialKernelModulesToUnload.rs");
 include!("MasterLoop.rs");

@@ -79,9 +79,9 @@ impl Configuration
 		HugePageFilePathInformation::new()
 	}
 
-	pub fn dpdkRteInitData(&self, finishers: &mut Finishers) -> (DpdkRteInitData, EthernetPortConfigurations)
+	pub fn dpdkRteInitData(&self, finishers: &mut Finishers) -> (DpdkConfiguration, EthernetPortConfigurations)
 	{
-		let mut dpdkRteInitData = DpdkRteInitData::default();
+		let mut dpdkRteInitData = DpdkConfiguration::default();
 
 		self.memoryConfiguration.addTo(&mut dpdkRteInitData);
 		let (unbinds, ethernetPortConfigurations) = self.networkInterfacesConfiguration.addTo(&mut dpdkRteInitData, &self.sys_path);

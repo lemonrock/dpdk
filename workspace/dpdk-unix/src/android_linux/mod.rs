@@ -5,9 +5,6 @@
 /// Capabilities.
 pub mod capabilities;
 
-/// Memory Statistics.
-pub mod memory_statistics;
-
 /// Linux linux_kernel_modules.
 pub mod linux_kernel_modules;
 

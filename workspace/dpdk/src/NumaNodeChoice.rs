@@ -113,10 +113,192 @@ impl NumaNodeChoice
 		}
 	}
 	
-	/// Converts to an `i32` value.
+	/// Allocates memory on the heap.
 	#[inline(always)]
-	pub fn to_i32(self) -> i32
+	pub fn allocate_uninitialized<T>(&self, alignment_power_of_two: u32) -> Option<DpdkAllocatedMemory<T>>
 	{
+		debug_assert!(alignment_power_of_two.is_power_of_two(), "alignment_power_of_two '{}' is not a power of two", alignment_power_of_two);
+		debug_assert!(alignment_power_of_two >= Self::CacheLineSize, "alignment_power_of_two '{}' is less than CacheLineSize", alignment_power_of_two, Self::CacheLineSize);
+		
+		use self::NumaNodeChoice::*;
+		
+		match self
+		{
+			Specific(numa_node) => numa_node.allocate_uninitialized(alignment_power_of_two),
+			
+			Any =>
+			{
+				let result = unsafe { rte_malloc(null(), size_of::<T>(), alignment) };
+				if unlikely(result.is_null())
+				{
+					None
+				}
+				else
+				{
+					Some(DpdkAllocatedMemory(result as *mut T))
+				}
+			}
+		}
+	}
 	
+	/// Allocates memory on the heap.
+	#[inline(always)]
+	pub fn allocate_zeroed<T>(&self, size: usize, alignment_power_of_two: u32) -> Option<DpdkAllocatedMemory<T>>
+	{
+		debug_assert!(alignment_power_of_two.is_power_of_two(), "alignment_power_of_two '{}' is not a power of two", alignment_power_of_two);
+		debug_assert!(alignment_power_of_two >= Self::CacheLineSize, "alignment_power_of_two '{}' is less than CacheLineSize", alignment_power_of_two, Self::CacheLineSize);
+		
+		use self::NumaNodeChoice::*;
+		
+		match self
+		{
+			Specific(numa_node) => numa_node.allocate_zeroed(alignment_power_of_two),
+			
+			Any =>
+			{
+				let result = unsafe { rte_zmalloc(null(), size_of::<T>(), alignment) };
+				if unlikely(result.is_null())
+				{
+					None
+				}
+				else
+				{
+					Some(DpdkAllocatedMemory(result as *mut T))
+				}
+			}
+		}
+	}
+	
+	/// Allocates memory on the heap.
+	#[inline(always)]
+	pub fn allocate_uninitialized_for_array<T>(&self, number_of_elements: usize, alignment_power_of_two: u32) -> Option<DpdkAllocatedMemory<T>>
+	{
+		debug_assert!(alignment_power_of_two.is_power_of_two(), "alignment_power_of_two '{}' is not a power of two", alignment_power_of_two);
+		debug_assert!(alignment_power_of_two >= Self::CacheLineSize, "alignment_power_of_two '{}' is less than CacheLineSize", alignment_power_of_two, Self::CacheLineSize);
+		
+		use self::NumaNodeChoice::*;
+		
+		match self
+		{
+			Specific(numa_node) => numa_node.allocate_uninitialized_for_array(number_of_elements, alignment_power_of_two),
+			
+			Any =>
+			{
+				let result = unsafe { rte_calloc(null(), number_of_elements, size_of::<T>(), alignment) };
+				if unlikely(result.is_null())
+				{
+					None
+				}
+				else
+				{
+					Some(DpdkAllocatedMemory(result as *mut T))
+				}
+			}
+		}
+	}
+	
+	/// Memory statistics.
+	///
+	/// Interpret this by multiplying counts by page size.
+	#[inline(always)]
+	pub fn zoned_virtual_memory_statistics(self, sys_path: &SysPath, proc_path: &ProcPath) -> io::Result<HashMap<VirtualMemoryStatisticName, u64>>
+	{
+		use self::NumaNodeChoice::*;
+		
+		match self
+		{
+			Specific(numa_node) => numa_node.zoned_virtual_memory_statistics(sys_path),
+			
+			Any => proc_path.global_zoned_virtual_memory_statistics(),
+		}
+	}
+	
+	/// Memory information.
+	#[inline(always)]
+	pub fn memory_information(&self, sys_path: &SysPath, proc_path: &ProcPath, memory_statistic_name_prefix: &str) -> Result<MemoryStatistics, MemoryStatisticsParseError>
+	{
+		use self::NumaNodeChoice::*;
+		
+		match self
+		{
+			Specific(numa_node) => numa_node.memory_information(sys_path, memory_statistic_name_prefix),
+			
+			Any => proc_path.memory_information(memory_statistic_name_prefix),
+		}
+	}
+	
+	
+	/// Try to unreserve (clear reservations of) huge pages.
+	///
+	/// Will only work as root.
+	#[inline(always)]
+	pub fn unreserve_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> io::Result<()>
+	{
+		use self::NumaNodeChoice::*;
+		
+		match self
+		{
+			Specific(numa_node) => huge_page_size.unreserve_numa_huge_pages(sys_path, numa_node.into()),
+			
+			Any => huge_page_size.unreserve_global_huge_pages(sys_path),
+		}
+	}
+	
+	/// Try to reserve huge pages.
+	///
+	/// Will only work as root.
+	#[inline(always)]
+	pub fn reserve_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize, number_to_try_to_reserve: u64) -> io::Result<()>
+	{
+		use self::NumaNodeChoice::*;
+		
+		match self
+		{
+			Specific(numa_node) => huge_page_size.reserve_numa_huge_pages(sys_path, numa_node.into(), number_to_try_to_reserve),
+			
+			Any => huge_page_size.reserve_global_huge_pages(sys_path, number_to_try_to_reserve),
+		}
+	}
+	
+	/// Read number of huge pages of `huge_page_size` size.
+	#[inline(always)]
+	pub fn number_of_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> io::Result<u64>
+	{
+		use self::NumaNodeChoice::*;
+		
+		match self
+		{
+			Specific(numa_node) => huge_page_size.number_of_numa_huge_pages(sys_path, numa_node.into()),
+			
+			Any => huge_page_size.number_of_global_huge_pages(sys_path),
+		}
+	}
+	
+	/// Read number of free huge pages of `huge_page_size` size.
+	#[inline(always)]
+	pub fn number_of_free_global_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> io::Result<u64>
+	{
+		use self::NumaNodeChoice::*;
+		
+		match self
+		{
+			Specific(numa_node) => huge_page_size.number_of_free_numa_huge_pages(sys_path, numa_node.into()),
+			
+			Any => huge_page_size.number_of_free_global_huge_pages(sys_path),
+		}
+	}
+	
+	/// Read number of surplus huge pages of `huge_page_size` size.
+	#[inline(always)]
+	pub fn number_of_surplus_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> io::Result<u64>
+	{
+		use self::NumaNodeChoice::*;
+		
+		match self
+		{
+			Specific(numa_node) => huge_page_size.number_of_surplus_numa_huge_pages(sys_path, numa_node.into()),
+			
+			Any => huge_page_size.number_of_surplus_global_huge_pages(sys_path),
+		}
 	}
 }

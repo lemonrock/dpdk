@@ -12,10 +12,10 @@ pub struct PathConfiguration
 	pub dev_path: PathBuf,
 	
 	/// `/proc`.
-	pub proc_path: PathBuf,
+	pub proc_path: ProcPath,
 	
 	/// `/sys`.
-	pub sys_path: PathBuf,
+	pub sys_path: SysPath,
 	
 	/// Path where DPDK kernel modules are found (`.ko`).
 	///
@@ -31,8 +31,8 @@ impl Default for PathConfiguration
 		Self
 		{
 			dev_path: PathBuf::from("/dev"),
-			proc_path: PathBuf::from("/proc"),
-			sys_path: PathBuf::from("/sys"),
+			proc_path: ProcPath::default(),
+			sys_path: SysPath::default(),
 			dpdk_provided_kernel_modules_path: Self::append_dpdk_relative_modules_path(Self::parent_folder_path()),
 		}
 	}

@@ -135,6 +135,166 @@ impl NumaNode
 		neighbouring_numa_nodes_in_increasing_distance_order_with_first_as_self
 	}
 	
+	/// DPDK memory allocatio statistics on this NUMA node.
+	#[inline(always)]
+	pub fn dpdk_memory_allocation_statistics(&self) -> rte_malloc_socket_stats
+	{
+		let mut statistics = unsafe { uninitialized() };
+		assert_eq!(unsafe { rte_malloc_get_socket_stats(self.as_c_int(), &mut statistics) }, 0, "rte_malloc_get_socket_stats() failed");
+		statistics
+	}
+	
+	/// NUMA nodes that could possibly be online at some point.
+	///
+	/// Not reliable, as includes NUMA nodes that can never be brought online; simply reports the number that could be used by the Linux kernel upto the `CONFIG_` number of CPUs
+	///
+	/// Consider using libnuma instead of this call.
+	#[inline(always)]
+	pub fn possible(sys_path: &SysPath) -> Option<BTreeSet<Self>>
+	{
+		Self::parse_list_mask(sys_path, "possible")
+	}
+	
+	/// NUMA nodes that are online at some point.
+	///
+	/// Consider using libnuma instead of this call.
+	#[inline(always)]
+	pub fn online(sys_path: &SysPath) -> Option<BTreeSet<Self>>
+	{
+		Self::parse_list_mask(sys_path, "online")
+	}
+	
+	/// NUMA nodes that have normal memory (as opposed to what was high memory; I suspect this is a bit useless).
+	///
+	/// Consider using libnuma instead of this call.
+	#[inline(always)]
+	pub fn have_normal_memory(sys_path: &SysPath) -> Option<BTreeSet<Self>>
+	{
+		Self::parse_list_mask(sys_path, "has_normal_memory")
+	}
+	
+	/// NUMA nodes that have a CPU.
+	///
+	/// NUMA nodes without a CPU are effectively fake NUMA nodes.
+	///
+	/// Consider using libnuma instead of this call.
+	#[inline(always)]
+	pub fn have_at_least_one_cpu(sys_path: &SysPath) -> Option<BTreeSet<Self>>
+	{
+		Self::parse_list_mask(sys_path, "has_cpu")
+	}
+	
+	/// Tries to compact pages for this NUMA node.
+	///
+	/// Will only work as root.
+	#[inline(always)]
+	pub fn compact_pages(&self, sys_path: &SysPath)
+	{
+		assert_effective_user_id_is_root(&format!("Compact pages in NUMA node '{}'", self.0));
+		
+		if sys_path.is_a_numa_machine()
+		{
+			sys_path.numa_node_path(self.into(), "compact").write_value(1).unwrap();
+		}
+	}
+	
+	/// Tries to evict pages for this NUMA node.
+	///
+	/// Will only work as root.
+	#[inline(always)]
+	pub fn evict_pages(&self, sys_path: &SysPath)
+	{
+		assert_effective_user_id_is_root(&format!("Evict pages from NUMA node '{}'", self.0));
+		
+		if sys_path.is_a_numa_machine()
+		{
+			sys_path.numa_node_path(self.into(), "scan_unevictable_pages").write_value(1).unwrap();
+		}
+	}
+	
+	/// This is a subset of `self.zoned_virtual_memory_statistics()`.
+	///
+	/// Interpret this by multiplying counts by page size.
+	#[deprecated]
+	#[inline(always)]
+	pub fn numa_memory_statistics(&self, sys_path: &SysPath) -> io::Result<HashMap<VirtualMemoryStatisticName, u64>>
+	{
+		sys_path.numa_node_path(self.into(), "numastat").parse_statistics_file()
+	}
+	
+	/// Memory statistics.
+	///
+	/// Interpret this by multiplying counts by page size.
+	#[inline(always)]
+	pub fn zoned_virtual_memory_statistics(&self, sys_path: &SysPath) -> io::Result<HashMap<VirtualMemoryStatisticName, u64>>
+	{
+		sys_path.numa_node_path(self.into(), "vmstat").parse_statistics_file()
+	}
+	
+	/// Memory information.
+	#[inline(always)]
+	pub fn memory_information(&self, sys_path: &SysPath, memory_statistic_name_prefix: &str) -> Result<MemoryStatistics, MemoryStatisticsParseError>
+	{
+		sys_path.numa_node_path(self.into(), "meminfo").parse_memory_information_file(memory_statistic_name_prefix)
+	}
+	
+	const CacheLineSize: u32 = 64;
+	
+	/// Allocates memory on the heap on to a particular NUMA node.
+	#[inline(always)]
+	pub fn allocate_uninitialized<T>(&self, alignment_power_of_two: u32) -> Option<DpdkAllocatedMemory<T>>
+	{
+		debug_assert!(alignment_power_of_two.is_power_of_two(), "alignment_power_of_two '{}' is not a power of two", alignment_power_of_two);
+		debug_assert!(alignment_power_of_two >= Self::CacheLineSize, "alignment_power_of_two '{}' is less than CacheLineSize", alignment_power_of_two, Self::CacheLineSize);
+		
+		let result = unsafe { rte_malloc_socket(null(), size_of::<T>(), alignment, self.into()) };
+		if unlikely(result.is_null())
+		{
+			None
+		}
+		else
+		{
+			Some(DpdkAllocatedMemory(result as *mut T))
+		}
+	}
+	
+	/// Allocates memory on the heap on to a particular NUMA node.
+	#[inline(always)]
+	pub fn allocate_zeroed<T>(&self, size: usize, alignment_power_of_two: u32) -> Option<DpdkAllocatedMemory<T>>
+	{
+		debug_assert!(alignment_power_of_two.is_power_of_two(), "alignment_power_of_two '{}' is not a power of two", alignment_power_of_two);
+		debug_assert!(alignment_power_of_two >= Self::CacheLineSize, "alignment_power_of_two '{}' is less than CacheLineSize", alignment_power_of_two, Self::CacheLineSize);
+		
+		let result = unsafe { rte_zmalloc_socket(null(), size_of::<T>(), alignment, self.into()) };
+		if unlikely(result.is_null())
+		{
+			None
+		}
+		else
+		{
+			Some(DpdkAllocatedMemory(result as *mut T))
+		}
+	}
+	
+	/// Allocates memory on the heap on to a particular NUMA node.
+	#[inline(always)]
+	pub fn allocate_uninitialized_for_array<T>(&self, number_of_elements: usize, alignment_power_of_two: u32) -> Option<DpdkAllocatedMemory<T>>
+	{
+		let alignment = alignment.as_u32();
+		debug_assert!(alignment_power_of_two.is_power_of_two(), "alignment_power_of_two '{}' is not a power of two", alignment_power_of_two);
+		debug_assert!(alignment_power_of_two >= Self::CacheLineSize, "alignment_power_of_two '{}' is less than CacheLineSize", alignment_power_of_two, Self::CacheLineSize);
+		
+		let result = unsafe { rte_calloc_socket(null(), number_of_elements, size_of::<T>(), alignment, self.into()) };
+		if unlikely(result.is_null())
+		{
+			None
+		}
+		else
+		{
+			Some(DpdkAllocatedMemory(result as *mut T))
+		}
+	}
+	
 	/// Hyper threads are similar to `LogicalCore`s, but, since this code often runs before DPDK has been initialized (`rte_eal_init`), we can not use them as their global and thread local statics will not have been initialized.
 	///
 	/// TODO: ?assume master logical core is current process? (DPDK defaults to first logical core).
@@ -166,189 +326,29 @@ impl NumaNode
 	}
 	
 	#[inline(always)]
+	fn parse_list_mask(sys_path: &SysPath, file_name: &str) -> Option<BTreeSet<Self>>
+	{
+		if sys_path.is_a_numa_machine()
+		{
+			let numa_nodes_u16 = sys_path.numa_nodes_path(file_name).read_linux_core_or_numa_mask().unwrap();
+			let collected: BTreeSet<Self> = numa_nodes_u16.iter().map(|as_u16|
+			{
+				assert!(as_u16 < Self::Maximum);
+				NumaNode(as_u16 as u8)
+			}).collect();
+			Some(collected)
+		}
+		else
+		{
+			None
+		}
+	}
+	
+	#[inline(always)]
 	fn initialize_libnuma()
 	{
 		static InitializeLibnuma: Once = ONCE_INIT;
 		
 		InitializeLibnuma.call_once(|| assert_eq!(unsafe { numa_available() }, 0, "numa_available failed"))
 	}
-}
-
-/// Represents a logical hyper thread, which in Operating System terms is usually a logical CPU (core).
-///
-/// These usually map 1:1 with `LogicalCore`s
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[derive(Deserialize, Serialize)]
-pub struct HyperThread(u16);
-
-impl HyperThread
-{
-	/// Current hyper thread index that this thread is running on.
-	///
-	/// Unless this thread has been scheduled to only run on this hyper thread, then the result is close to useless.
-	///
-	/// Topology is not available on FreeBSD; value will always be zero.
-	#[cfg(any(target_os = "android", target_os = "dragonfly", target_os = "linux"))]
-	pub(crate) fn current_hyper_thread() -> u16
-	{
-		extern "C"
-		{
-			fn sched_getcpu() -> c_int;
-		}
-		
-		let result = unsafe { sched_getcpu() };
-		debug_assert!(result >= 0, "sched_getcpu() was negative");
-		debug_assert!(result <= ::std::u16::MAX as i32, "sched_getcpu() was too large");
-		result as u16
-	}
-	
-	/// Current hyper thread index that this thread is running on.
-	///
-	/// Unless this thread has been scheduled to only run on this hyper thread, then the result is close to useless.
-	///
-	/// Topology is not available on FreeBSD; value will always be zero.
-	#[cfg(target_os = "freebsd")]
-	pub(crate) fn current_hyper_thread() -> u16
-	{
-		0
-	}
-	
-	pub fn hexadecimal_core_mask_c_string(hyper_threads: &HashSet<HyperThread>) -> CString
-	{
-		let core_map: HashMap<BTreeSet<HyperThread>, BTreeSet<LogicalCore>>;
-		
-		
-		// We should prefer `--lcores COREMAP` or `-l CORELIST` to `-c COREMASK`.
-		
-		// `--lcores` would allow us to handle the complexities of 'scaling down'.
-		
-		// `--master-lcore ID` - can be wherever, so we can put it on a lesser-loaded NUMA core.
-		
-		
-		/*
-			
-			If we have more than one numa node, we can reasonably assume there are at least 4 cores per node.
-			
-			(LogicalCore5.LogicalCore7.LogicalCore8)@(CpuHyperThread0.CpuHyperThread5),()@()
-			
-			
-			
-			
-		*/
-		
-		
-		
-		
-		
-		let mut bits: u64 = 0;
-		for hyper_thread in hyper_threads.iter()
-		{
-			bits |= 1 << hyper_thread.0
-		}
-		
-		let mut setBits = 0;
-		for index in 0..Maximum
-		{
-			if self.isEnabled(index)
-			{
-				setBits |= 1 << index
-			}
-		}
-		
-		debug_assert!(Self::Maximum <= 256 && Self::Maximum >= 16, "Change format string size parameter from 2 to something else, as Maximum '{}' is outside of the range expected", Self::Maximum);
-		
-		CString::new(format!("0x{:02}", setBits)).unwrap()
-	}
-	
-	/*
-		Usage
-			- master; needed for signal handling, liveness, is not a slave and so can not be used as a service core.
-			
-			- 'operating system reserved' - a core to be used by the OS for all other things (SSH, admin, cron jobs, etc)
-				- could overlap with master in systems with low core counts
-				- would not be available to DPDK
-			
-			// how is master_lcore used?
-				eal_thread_init_master
-	
-		See
-			static void
-			eal_check_mem_on_local_socket(void)
-			{
-				const struct rte_memseg *ms;
-				int i, socket_id;
-			
-				socket_id = rte_lcore_to_socket_id(rte_config.master_lcore);
-			
-				ms = rte_eal_get_physmem_layout();
-			
-				for (i = 0; i < RTE_MAX_MEMSEG; i++)
-					if (ms[i].socket_id == socket_id &&
-							ms[i].len > 0)
-						return;
-			
-				RTE_LOG(WARNING, EAL, "WARNING: Master core has no "
-						"memory on local socket!\n");
-			}
-	*/
-}
-
-
-pub struct NumaNodeLayout(HashMap<NumaNode, Vec<(LogicalCore, HyperThreadAssignment)>>);
-
-impl NumaNodeLayout
-{
-	pub fn new() -> Self
-	{
-		use self::HyperThreadAssignment::*;
-		
-		initialize();
-		
-		let current_core = Self::current_hyper_thread_index();
-		
-		let number_of_numa_nodes = NumaNode::valid_numa_nodes();
-		
-		let number_of_hyper_threads_in_hyper_thread_bitmask = unsafe { numa_num_possible_hyper_threads() } as usize;
-		
-		let likely_number_of_hyper_threads_per_numa_node = (number_of_hyper_threads_in_hyper_thread_bitmask + number_of_numa_nodes - 1) / number_of_numa_nodes;
-		
-		let mut this = NumaNodeLayout(HashMap::with_capacity(number_of_hyper_threads_in_hyper_thread_bitmask));
-		
-		for numa_node_index in 0 .. number_of_numa_nodes
-		{
-			
-			
-			
-			
-			
-			
-			
-			
-			let list = this.0.entry(NumaNode(numa_node_index as u8)).or_insert(Vec::with_capacity(likely_number_of_hyper_threads_per_numa_node));
-			
-		}
-		
-		this
-	}
-}
-
-pub enum HyperThreadAssignment
-{
-	Available,
-	
-	Master,
-	
-	ServiceCore,
-	
-	ReceiveSlave
-	{
-		ethernet_port_identifier: EthernetPortIdentifier,
-		receive_queue_identifier: ReceiveQueueIdentifier,
-	},
-	
-	TransmitSlave
-	{
-		ethernet_port_identifier: EthernetPortIdentifier,
-		transmit_queue_identifier: TransmitQueueIdentifier,
-	},
 }

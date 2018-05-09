@@ -6,12 +6,12 @@
 #[inline(always)]
 pub fn one_millisecond_timed_wait_for_signals(signals_to_wait_for: &sigset_t) -> TimedSignalWait
 {
-	const OneMillisecondTimeOut: timespace = timespec
+	const OneMillisecondTimeOut: timespec = timespec
 	{
 		tv_sec: 0,
 		tv_nsec:
 		{
-			const OneMillisecondInNanoseconds: i32 = 1_000_000;
+			const OneMillisecondInNanoseconds: i64 = 1_000_000;
 			OneMillisecondInNanoseconds
 		},
 	};

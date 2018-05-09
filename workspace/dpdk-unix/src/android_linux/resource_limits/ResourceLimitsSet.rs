@@ -20,18 +20,20 @@ impl ResourceLimitsSet
 		let _262_144: SoftAndHardResourceLimit = SoftAndHardResourceLimit::both(ResourceLimit::Finite(262_144));
 		
 		let mut map = HashMap::with_capacity(16);
-
-		map.insert(ResourceName::MaximumSizeOfFilesThatProcessCanCreateInBytes, SoftAndHardResourceLimit::BothInfinite);
-		map.insert(ResourceName::MaximumSizeOfVirtualMemoryAddressSpaceInBytes, SoftAndHardResourceLimit::BothInfinite);
-		map.insert(ResourceName::CpuTimeLimitInSeconds, SoftAndHardResourceLimit::BothInfinite);
-		map.insert(ResourceName::MaximumNumberOfFileDescriptors, SoftAndHardResourceLimit::both(maximum_number_of_open_file_descriptors));
-		map.insert(ResourceName::MaximumSizeOfProcessResidentSetSizeInBytes, SoftAndHardResourceLimit::BothInfinite); // Ignored on Linux kernels after 2.4.30.
-		map.insert(ResourceName::MaximumNumberOfProcessAndThreads, _64_000);
-		map.insert(ResourceName::MaximumSizeOfACoreDumpFileInBytes, SoftAndHardResourceLimit::BothZero);
 		
-		map.insert(ResourceName::MaximumNumberOfBytesForPosixMessageQueues, SoftAndHardResourceLimit::BothZero);
-		map.insert(ResourceName::MaximumNumberOfBytesThatProcessCanMemLock, SoftAndHardResourceLimit::BothInfinite);
-		map.insert(ResourceName::MaximumSizeOfProcessStackInBytes, _262_144); // 256Kb stacks!
+		use self::ResourceName::*;
+		
+		map.insert(MaximumSizeOfFilesThatProcessCanCreateInBytes, SoftAndHardResourceLimit::BothInfinite);
+		map.insert(MaximumSizeOfVirtualMemoryAddressSpaceInBytes, SoftAndHardResourceLimit::BothInfinite);
+		map.insert(CpuTimeLimitInSeconds, SoftAndHardResourceLimit::BothInfinite);
+		map.insert(MaximumNumberOfFileDescriptors, SoftAndHardResourceLimit::both(maximum_number_of_open_file_descriptors));
+		map.insert(MaximumSizeOfProcessResidentSetSizeInBytes, SoftAndHardResourceLimit::BothInfinite); // Ignored on Linux kernels after 2.4.30.
+		map.insert(MaximumNumberOfProcessAndThreads, _64_000);
+		map.insert(MaximumSizeOfACoreDumpFileInBytes, SoftAndHardResourceLimit::BothZero);
+		
+		map.insert(MaximumNumberOfBytesForPosixMessageQueues, SoftAndHardResourceLimit::BothZero);
+		map.insert(MaximumNumberOfBytesThatProcessCanMemLock, SoftAndHardResourceLimit::BothInfinite);
+		map.insert(MaximumSizeOfProcessStackInBytes, _262_144); // 256Kb stacks!
 		
 		ResourceLimitsSet(map)
 	}
