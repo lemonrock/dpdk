@@ -178,7 +178,12 @@ impl HugePageSize
 	{
 		assert_effective_user_id_is_root(&format!("Reserve '{}' global huge pages of size '{:?}'", number_to_try_to_reserve, self));
 		
-		sys_path.global_hugepages_file_path(self, "nr_hugepages").write_value(number_to_try_to_reserve)
+		sys_path.global_hugepages_file_path(self, "nr_hugepages").write_value(number_to_try_to_reserve);
+		
+		#[cfg(target_arch = "powerpc64")]
+		{
+			sys_path.global_hugepages_file_path(self, "nr_overcommit_hugepages").write_value(number_to_try_to_reserve)
+		}
 	}
 	
 	/// Read number of global huge pages of `self` size.
