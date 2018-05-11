@@ -6,12 +6,17 @@
 ///
 /// Defaults to `Auto`.
 ///
-/// Obtain from `DpdkProcess::process_type()`.
+/// Obtain from `process_type()`.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum ProcessType
 {
+	/// Automatically determined.
 	Auto,
+	
+	/// Primary process in a multi-process set-up.
 	Primary,
+	
+	/// Secondary process in a multi-process set-up.
 	Secondary,
 }
 
@@ -26,13 +31,6 @@ impl Default for ProcessType
 
 impl ProcessType
 {
-	const_cstr!
-	{
-		auto = "auto";
-		primary = "primary";
-		secondary = "secondary";
-	}
-	
 	#[inline(always)]
 	pub(crate) fn as_initialisation_argument(self) -> ConstCStr
 	{
@@ -40,9 +38,45 @@ impl ProcessType
 		
 		match self
 		{
-			Auto => Self::auto,
-			Primary => Self::primary,
-			Secondary => Self::secondary,
+			Auto => const_cstr!("auto"),
+			Primary => const_cstr!("primary"),
+			Secondary => const_cstr!("secondary"),
+		}
+	}
+	
+	/// Is the primary process alive?
+	///
+	/// Only valid after `DpdkConfiguration.initialize_dpdk()` called.
+	#[inline(always)]
+	pub fn is_primary_dpdk_process_alive() -> bool
+	{
+		if let Some(primary_process_configuration_file_path) = primary_process_configuration_file_path
+		{
+			let c_string = primary_process_configuration_file_path.to_c_string();
+			
+			isTrue(unsafe { rte_eal_primary_proc_alive(c_string.as_ptr()) })
+		}
+		else
+		{
+			isTrue(unsafe { rte_eal_primary_proc_alive(null()) })
+		}
+	}
+	
+	/// Process type of current process.
+	///
+	/// Only valid after `DpdkConfiguration.initialize_dpdk()` called.
+	#[inline(always)]
+	pub fn process_type() -> Result<ProcessType, ()>
+	{
+		use self::rte_proc_type_t::*;
+		use self::ProcessType::*;
+		
+		match unsafe { rte_eal_process_type() }
+		{
+			RTE_PROC_AUTO => Ok(Auto),
+			RTE_PROC_PRIMARY => Ok(Primary),
+			RTE_PROC_SECONDARY => Ok(Secondary),
+			RTE_PROC_INVALID => Err(()),
 		}
 	}
 }

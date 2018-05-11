@@ -2,12 +2,12 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Memory statistic names for a process.
+/// Memory information names for a process.
 ///
 /// Some old help here: <https://www.centos.org/docs/5/html/5.1/Deployment_Guide/s2-proc-meminfo.html>.
 #[allow(missing_docs)]
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum MemoryStatisticName
+pub enum MemoryInformationName
 {
 	TotalPhysicalRam,
 	FreePhysicalRam,
@@ -78,23 +78,23 @@ pub enum MemoryStatisticName
 	Unknown(String),
 }
 
-impl MemoryStatisticName
+impl MemoryInformationName
 {
 	//noinspection SpellCheckingInspection
 	/// Parse a memory statistic name.
 	///
 	/// This list is NOT definitive; names come and go.
 	#[inline(always)]
-	pub(crate) fn parse(value: &str, memory_statistic_name_prefix: &str) -> MemoryStatisticName
+	pub(crate) fn parse(value: &str, memory_information_name_prefix: &str) -> MemoryInformationName
 	{
-		use self::MemoryStatisticName::*;
+		use self::MemoryInformationName::*;
 		
-		if !value.starts_with(memory_statistic_name_prefix)
+		if !value.starts_with(memory_information_name_prefix)
 		{
 			return Unknown(value.to_owned());
 		}
 		
-		match &value[memory_statistic_name_prefix.len()..]
+		match &value[memory_information_name_prefix.len()..]
 		{
 			"MemTotal" => TotalPhysicalRam,
 			"MemFree" => FreePhysicalRam,
@@ -164,7 +164,7 @@ impl MemoryStatisticName
 	#[inline(always)]
 	pub fn is_deprecated_or_not_understood(&self) -> bool
 	{
-		use self::MemoryStatisticName::*;
+		use self::MemoryInformationName::*;
 		
 		match *self
 		{
@@ -182,10 +182,10 @@ impl MemoryStatisticName
 	
 	/// Associated memory statistic unit.
 	#[inline(always)]
-	pub fn unit(&self) -> MemoryStatisticUnit
+	pub fn unit(&self) -> MemoryInformationUnit
 	{
-		use self::MemoryStatisticName::*;
-		use self::MemoryStatisticUnit::*;
+		use self::MemoryInformationName::*;
+		use self::MemoryInformationUnit::*;
 		
 		match *self
 		{

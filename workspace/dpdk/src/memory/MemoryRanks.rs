@@ -76,4 +76,50 @@ impl MemoryRanks
 		}
 		Some(unsafe { transmute(ranks) })
 	}
+	
+	#[inline(always)]
+	pub(crate) fn as_initialisation_argument(self) -> ConstCStr
+	{
+		use self::MemoryRanks::*;
+		
+		const_cstr!
+		{
+			_1 = "1";
+			_2 = "2";
+			_3 = "3";
+			_4 = "4";
+			_5 = "5";
+			_6 = "6";
+			_7 = "7";
+			_8 = "8";
+			_9 = "9";
+			_10 = "10";
+			_11 = "11";
+			_12 = "12";
+			_13 = "13";
+			_14 = "14";
+			_15 = "15";
+			_16 = "16";
+		}
+		
+		match self
+		{
+			One => _1,
+			Two => _2,
+			Three => _3,
+			Four => _4,
+			Five => _5,
+			Six => _6,
+			Seven => _7,
+			Eight => _8,
+			Nine => _9,
+			Ten => _10,
+			Eleven => _11,
+			Twelve => _12,
+			Thirteen => _13,
+			Fourteen => _14,
+			Fifteen => _15,
+			Sixteen => _16,
+		}
+	}
 }

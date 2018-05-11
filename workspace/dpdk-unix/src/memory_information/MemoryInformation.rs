@@ -8,31 +8,32 @@
 /// This is broken down into DMA, DMA33 and Normal sub-zones and then by CPU for each Numa Node (aka 'zone').
 /// A sort of detailed version of `/proc/vmstat`.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct MemoryStatistics(pub(crate) HashMap<MemoryStatisticName, u64>);
+pub struct MemoryInformation(pub(crate) HashMap<MemoryInformationName, u64>);
 
-impl MemoryStatistics
+impl MemoryInformation
 {
 	/// Get a statistic.
 	#[inline]
-	pub fn get_statistic(&self, memory_statistic_name: &MemoryStatisticName) -> Option<u64>
+	pub fn get_statistic(&self, memory_information_name: &MemoryInformationName) -> Option<u64>
 	{
-		match self.0.get(memory_statistic_name)
+		match self.0.get(memory_information_name)
 		{
 			None => None,
 			Some(value) => Some(*value),
 		}
 	}
 	
-	/// Free physical RAM in bytes.
+	/// Free physical RAM in Kilobytes.
+	#[inline(always)]
 	pub fn free_physical_ram(&self) -> Option<u64>
 	{
-		self.get_statistic(&MemoryStatisticName::FreePhysicalRam)
+		self.get_statistic(&MemoryInformationName::FreePhysicalRam)
 	}
 	
 	/// Default huge page size.
 	pub fn default_huge_page_size(&self) -> Option<HugePageSize>
 	{
-		if let Some(size_in_bytes) = self.get_statistic(&MemoryStatisticName::SizeOfAHugePage)
+		if let Some(size_in_bytes) = self.get_statistic(&MemoryInformationName::SizeOfAHugePage)
 		{
 			HugePageSize::from_proc_mem_info_value(size_in_bytes)
 		}
@@ -46,9 +47,9 @@ impl MemoryStatistics
 	#[inline]
 	pub fn used_physical_ram(&self) -> Option<u64>
 	{
-		if let Some(total_physical_ram) = self.get_statistic(&MemoryStatisticName::TotalPhysicalRam)
+		if let Some(total_physical_ram) = self.get_statistic(&MemoryInformationName::TotalPhysicalRam)
 		{
-			if let Some(free_physical_ram) = self.get_statistic(&MemoryStatisticName::FreePhysicalRam)
+			if let Some(free_physical_ram) = self.get_statistic(&MemoryInformationName::FreePhysicalRam)
 			{
 				Some(total_physical_ram - free_physical_ram)
 			}
@@ -67,9 +68,9 @@ impl MemoryStatistics
 	#[inline]
 	pub fn used_swap(&self) -> Option<u64>
 	{
-		if let Some(total_swap) = self.get_statistic(&MemoryStatisticName::TotalSwap)
+		if let Some(total_swap) = self.get_statistic(&MemoryInformationName::TotalSwap)
 		{
-			if let Some(free_swap) = self.get_statistic(&MemoryStatisticName::FreeSwap)
+			if let Some(free_swap) = self.get_statistic(&MemoryInformationName::FreeSwap)
 			{
 				Some(total_swap - free_swap)
 			}

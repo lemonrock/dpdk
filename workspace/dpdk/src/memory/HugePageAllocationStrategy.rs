@@ -28,17 +28,20 @@ pub enum HugePageAllocationStrategy
 	},
 }
 
+impl Default for HugePageAllocationStrategy
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		HugePageAllocationStrategy::TotalFreeRatio
+		{
+			ratio: PerMyriad::NinetyFivePercent,
+		}
+	}
+}
+
 impl HugePageAllocationStrategy
 {
-	/// Calculates the number of huge pages required of `huge_page_size`, then multiplies by `huge_page_size`.
-	///
-	/// In effect, rounds down the allocation to the nearest multiple of `huge_page_size`.
-	#[inline(always)]
-	pub fn calculate_nearest_allocation_size(&self, huge_page_size: HugePageSize, total_free: KiloBytes) -> KiloBytes
-	{
-		KiloBytes(self.calculate_number_of_huge_pages(huge_page_size, total_free) * (huge_page_size.size_in_kilo_bytes()))
-	}
-	
 	#[inline(always)]
 	pub(crate) fn calculate_number_of_huge_pages(&self, huge_page_size: HugePageSize, total_free: KiloBytes) -> u64
 	{

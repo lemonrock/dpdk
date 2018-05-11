@@ -137,6 +137,13 @@ impl HugePageSize
 	
 	/// Supported huge page sizes, sorted smallest to largest.
 	#[inline(always)]
+	pub fn largest_supported_huge_page_size(sys_path: &SysPath) -> Self
+	{
+		*Self::supported_huge_page_sizes(sys_path).iter().rev().next().expect("Huge pages are not supported")
+	}
+	
+	/// Supported huge page sizes, sorted smallest to largest.
+	#[inline(always)]
 	pub fn supported_huge_page_sizes(sys_path: &SysPath) -> BTreeSet<Self>
 	{
 		let mut supported = BTreeSet::new();

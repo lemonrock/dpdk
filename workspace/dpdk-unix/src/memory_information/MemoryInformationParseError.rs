@@ -6,7 +6,7 @@ quick_error!
 {
 	/// Errors possible when parsing memory statistics.
 	#[derive(Debug)]
-	pub enum MemoryStatisticsParseError
+	pub enum MemoryInformationParseError
 	{
 		/// Could not open a file of memory statistics.
 		CouldNotOpenFile(cause: Error)
@@ -16,21 +16,21 @@ quick_error!
 		}
 		
 		/// Could not parse a memory statistic.
-		CouldNotParseMemoryStatisticValue(zero_based_line_number: usize, memory_statistic_name: MemoryStatisticName)
+		CouldNotParseMemoryInformationValue(zero_based_line_number: usize, memory_information_name: MemoryInformationName)
 		{
-			display("Zero-based line number  '{}' statistic '{:?}' did not contain a memory statistic value", zero_based_line_number, memory_statistic_name)
+			display("Zero-based line number  '{}' statistic '{:?}' did not contain a memory statistic value", zero_based_line_number, memory_information_name)
 		}
 		
 		/// Could not parse a memory statistic as a u64 value.
-		CouldNotParseMemoryStatisticValueAsU64(zero_based_line_number: usize, memory_statistic_name: MemoryStatisticName, bad_balue: String, cause: ParseIntError)
+		CouldNotParseMemoryInformationValueAsU64(zero_based_line_number: usize, memory_information_name: MemoryInformationName, bad_balue: String, cause: ParseIntError)
 		{
-			display("Zero-based line number  '{}' statistic '{:?}' did not contain a valid memory statistic value as u64 '{}' because '{}'", zero_based_line_number, memory_statistic_name, bad_balue, cause)
+			display("Zero-based line number  '{}' statistic '{:?}' did not contain a valid memory statistic value as u64 '{}' because '{}'", zero_based_line_number, memory_information_name, bad_balue, cause)
 		}
 		
 		/// Could not parse a memory statistic because it was a duplicate.
-		DuplicateMemoryStatistic(zero_based_line_number: usize, memory_statistic_name: MemoryStatisticName, new_value: u64)
+		DuplicateMemoryInformation(zero_based_line_number: usize, memory_information_name: MemoryInformationName, new_value: u64)
 		{
-			display("Zero-based line number  '{}' statistic '{:?}' was duplicated (this value is '{}')", zero_based_line_number, memory_statistic_name, new_value)
+			display("Zero-based line number  '{}' statistic '{:?}' was duplicated (this value is '{}')", zero_based_line_number, memory_information_name, new_value)
 		}
 	}
 }

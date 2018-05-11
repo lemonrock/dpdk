@@ -31,24 +31,24 @@ impl ProcPath
 	
 	/// Memory information (from `/proc/meminfo`).
 	#[inline(always)]
-	pub fn memory_statistics(&self, memory_statistic_name_prefix: &str) -> Result<MemoryStatistics, MemoryStatisticsParseError>
+	pub fn memory_information(&self, memory_information_name_prefix: &str) -> Result<MemoryInformation, MemoryInformationParseError>
 	{
-		self.file_path("meminfo").parse_memory_information_file(memory_statistic_name_prefix)
+		self.file_path("meminfo").parse_memory_information_file(memory_information_name_prefix)
 	}
 	
 	/// File systems (from `/proc/filesystems`).
 	#[inline(always)]
 	#[cfg(any(target_os = "android", target_os = "linux"))]
-	pub fn filesystems(&self) -> Result<HashMap<FileSystemType, HasNoAssociatedDevice>, io::Error>
+	pub fn filesystems(&self) -> Result<FileSystemTypeList, io::Error>
 	{
 		let file_path = self.file_path("filesystems");
-		FileSystemType::parse(&file_path)
+		FileSystemTypeList::parse(&file_path)
 	}
 	
 	/// Current mounts (from `/proc/self/mounts`).
 	#[inline(always)]
 	#[cfg(any(target_os = "android", target_os = "linux"))]
-	pub fn mounts(&self) -> Result<HashMap<PathBuf, Mount>, io::Error>
+	pub fn mounts(&self) -> Result<Mounts, io::Error>
 	{
 		let file_path = self.file_path("self/mounts");
 		Mounts::parse(&file_path)
@@ -61,6 +61,15 @@ impl ProcPath
 	{
 		let file_path = self.file_path("modules");
 		LinuxKernelModulesList::parse(&file_path)
+	}
+	
+	/// Command line parameters used to start Linux.
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn linux_command_line_parameters(&self) -> Result<LinuxKernelCommandLineParameters, io::Error>
+	{
+		let file_path = self.file_path("cmdline");
+		LinuxKernelCommandLineParameters::parse(&file_path)
 	}
 	
 	#[inline(always)]

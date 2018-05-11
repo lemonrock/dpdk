@@ -113,17 +113,6 @@ impl Mount
 		}
 	}
 	
-	/// Mount a huge page file system.
-	pub fn mount_huge_pages(huge_page_mount_settings: &HugePageMountSettings, override_default_huge_page_size: Option<HugePageSize>) -> Result<PathBuf, io::Error>
-	{
-		let mount_flags = huge_page_mount_settings.mount_flags;
-		match Self::new_where_source_is_file_system_type(huge_page_mount_settings.mount_point.clone(), FileSystemType::hugetlbfs, huge_page_mount_settings.as_mount_options(override_default_huge_page_size)).mount(mount_flags)
-		{
-			Ok(()) => Ok(huge_page_mount_settings.mount_point.clone()),
-			Err(error) => Err(error),
-		}
-	}
-	
 	/// New instance for file systems which do not have a source (eg `hugetlbs`).
 	pub fn new_where_source_is_file_system_type(mount_point: PathBuf, file_system_type: FileSystemType, mount_options: HashMap<String, Option<String>>) -> Self
 	{

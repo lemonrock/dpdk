@@ -15,6 +15,34 @@ pub struct PciNetDevicesConfiguration
 impl PciNetDeviceConfiguration
 {
 	#[inline(always)]
+	pub(crate) fn uses_ugb_uio_or_pci_vfio(&self) -> (bool, bool)
+	{
+		use self::PciKernelDriver::*;
+		
+		let mut uses_ugb_uio = false;
+		let mut uses_pci_vfio = false;
+		for pci_kernel_driver in self.pci_net_devices.values()
+		{
+			match pci_kernel_driver
+			{
+				#[cfg(any(target_os = "android", target_os = "linux"))] IgbUio =>
+				{
+					uses_ugb_uio = true
+				}
+				
+				#[cfg(any(target_os = "android", target_os = "linux"))] VfioPci =>
+				{
+					uses_pci_vfio = true
+				}
+				
+				_ => (),
+			}
+		}
+		
+		(uses_ugb_uio, uses_pci_vfio)
+	}
+	
+	#[inline(always)]
 	pub(crate) fn add_essential_kernel_modules(&self, essential_kernel_modules: &mut HashSet<EssentialKernelModule>)
 	{
 		for pci_kernel_driver in self.pci_net_devices.values()

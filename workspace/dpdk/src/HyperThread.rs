@@ -11,43 +11,114 @@ pub struct HyperThread(u16);
 
 impl HyperThread
 {
-	/// CPUs (hyper threaded logical cores) that could possibly be online at some point.
-	///
-	/// Not reliable, as includes CPUs that can never be brought online; simply reports the number that could be used by the Linux kernel upto the `CONFIG_` number of CPUs
+	/// CPUs (hyper threaded logical cores) that are present and that could become online.
 	///
 	/// Consider using libnuma instead of this call.
-	#[inline(always)]
-	pub fn possible(sys_path: &SysPath) -> BTreeSet<Self>
-	{
-		Self::parse_list_mask(sys_path, "possible")
-	}
-	
-	/// CPUs (hyper threaded logical cores) that could possibly be online at some point.
 	///
-	/// Consider using libnuma instead of this call.
-	#[inline(always)]
-	pub fn online(sys_path: &SysPath) -> BTreeSet<Self>
-	{
-		Self::parse_list_mask(sys_path, "online")
-	}
-	
-	/// CPUs (hyper threaded logical cores) that are present.
+	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
 	#[inline(always)]
 	pub fn present(sys_path: &SysPath) -> BTreeSet<Self>
 	{
 		Self::parse_list_mask(sys_path, "present")
 	}
 	
+	/// CPUs (hyper threaded logical cores) that are online at some point.
+	///
+	/// Consider using libnuma instead of this call.
+	///
+	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
+	#[inline(always)]
+	pub fn online(sys_path: &SysPath) -> BTreeSet<Self>
+	{
+		Self::parse_list_mask(sys_path, "online")
+	}
+	
 	/// CPUs (hyper threaded logical cores) that are offline.
+	///
+	/// The maximum CPU index in this list ***can exceed the kernel's maximum in `self.kernel_maximum_index`***.
+	///
+	/// Close to useless.
+	///
+	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
 	#[inline(always)]
 	pub fn offline(sys_path: &SysPath) -> BTreeSet<Self>
 	{
 		Self::parse_list_mask(sys_path, "offline")
 	}
 	
+	/// CPUs (hyper threaded logical cores) that could possibly be online at some point.
+	///
+	/// Close to very useless.
+	///
+	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
+	#[inline(always)]
+	pub fn possible(sys_path: &SysPath) -> BTreeSet<Self>
+	{
+		Self::parse_list_mask(sys_path, "possible")
+	}
+	
+	/// Is this CPU online?
+	///
+	/// See <https://www.kernel.org/doc/Documentation/core-api/cpu_hotplug.rst>.
+	#[inline(always)]
+	pub fn is_online(self, sys_path: &SysPath) -> bool
+	{
+		match &self.online_file_path().read_string()
+		{
+			"0" => false,
+			"1" => true,
+			invalid @ _ => panic!("Invalid value for CPU online '{}'", invalid),
+		}
+	}
+	
+	/// Is this CPU offline?
+	///
+	/// See <https://www.kernel.org/doc/Documentation/core-api/cpu_hotplug.rst>.
+	#[inline(always)]
+	pub fn is_offline(self, sys_path: &SysPath) -> bool
+	{
+		!self.is_online(sys_path)
+	}
+	
+	/// Disable (offline) this CPU.
+	///
+	/// Requires root.
+	///
+	/// CPU zero (0) is special on x86 / x86-64 and can not ordinarily be offlined.
+	///
+	/// See <https://www.kernel.org/doc/Documentation/core-api/cpu_hotplug.rst>.
+	#[inline(always)]
+	pub fn set_offline(self, sys_path: &SysPath) -> bool
+	{
+		assert_effective_user_id_is_root(&format!("Offline CPU '{}'", self.0));
+		
+		self.online_file_path(sys_path).write_value(0)
+	}
+	
+	/// Enable (online) this CPU.
+	///
+	/// Requires root.
+	///
+	/// See <https://www.kernel.org/doc/Documentation/core-api/cpu_hotplug.rst>.
+	#[inline(always)]
+	pub fn set_online(self, sys_path: &SysPath) -> bool
+	{
+		assert_effective_user_id_is_root(&format!("Online CPU '{}'", self.0));
+		
+		self.online_file_path(sys_path).write_value(1)
+	}
+	
+	#[inline(always)]
+	fn online_file_path(self, sys_path: &SysPath)
+	{
+		sys_path.cpu_node_path(self.into(), "online")
+	}
+	
 	/// CPUs (hyper threaded logical cores) that are siblings of this one.
 	///
 	/// Will include `self`.
+	///
+	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
 	#[inline(always)]
 	pub fn siblings(self, sys_path: &SysPath) -> BTreeSet<Self>
 	{
@@ -57,35 +128,41 @@ impl HyperThread
 	/// CPUs (hyper threaded logical cores) that are thread-siblings of this one.
 	///
 	/// Will include `self`.
+	///
+	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
 	#[inline(always)]
 	pub fn thread_siblings(self, sys_path: &SysPath) -> BTreeSet<Self>
 	{
 		sys_path.cpu_node_path(self.into(), "topology/thread_siblings_list").read_linux_core_or_numa_mask().unwrap().map(|value| HyperThread(value)).collect()
 	}
 	
-	/// Core identifier.
+	/// Underlying hardware, not Linux, core identifier.
+	///
+	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
 	#[inline(always)]
-	pub fn core_identifier(self, sys_path: &SysPath) -> io::Result<u16>
+	pub fn underlying_hardware_physical_core_identifier(self, sys_path: &SysPath) -> io::Result<u16>
 	{
 		sys_path.cpu_node_path(self.into(), "topology/core_id").read_value()
 	}
 	
-	/// Physical package identifier.
+	/// Underlying hardware, not Linux, socket identifier.
+	///
+	/// See <https://www.kernel.org/doc/Documentation/cputopology.txt>.
 	#[inline(always)]
-	pub fn physical_package_identifier(self, sys_path: &SysPath) -> io::Result<u16>
+	pub fn underlying_hardware_physical_socket_identifier(self, sys_path: &SysPath) -> io::Result<u16>
 	{
 		sys_path.cpu_node_path(self.into(), "topology/physical_package_id").read_value()
 	}
 	
-	/// Simply reports the maximum *identifier* that could be used by the Linux kernel upto the `CONFIG_` number of CPUs
+	/// Simply reports the maximum *identifier* that could be used by the Linux kernel upto the `CONFIG_` number of CPUs.
 	///
 	/// Add one to this to get the exclusive maximum.
 	///
 	/// Consider using libnuma instead of this call.
 	#[inline(always)]
-	pub fn kernel_maximum(sys_path: &SysPath) -> io::Result<u16>
+	pub fn kernel_maximum_index(sys_path: &SysPath) -> io::Result<HyperThread>
 	{
-		sys_path.cpu_nodes_path("kernel_max").read_value()
+		sys_path.cpu_nodes_path("kernel_max").read_value().map(|value| HyperThread(value))
 	}
 	
 	#[inline(always)]
@@ -139,7 +216,7 @@ impl HyperThread
 				
 				let current_core = Self::current_hyper_thread_index();
 				
-				let number_of_numa_nodes = NumaNode::valid_numa_nodes();
+				let number_of_numa_nodes = NumaNode::valid_numa_nodes().len();
 				
 				let number_of_hyper_threads_in_hyper_thread_bitmask = unsafe { numa_num_possible_hyper_threads() } as usize;
 				

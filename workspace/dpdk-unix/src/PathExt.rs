@@ -31,6 +31,16 @@ pub trait PathExt
 		self.read_hexadecimal_value_with_prefix(4, |raw_string| u16::from_str_radix(raw_string, 16))
 	}
 	
+	/// Reads a file as a string.
+	#[inline(always)]
+	fn read_raw_string(&self) -> io::Result<String>;
+	
+	/// Reads a file as a string, expecting a final line feed.
+	///
+	/// The returned string lacks a final line feed.
+	#[inline(always)]
+	fn read_string_without_line_feed(&self) -> io::Result<String>;
+	
 	/// Reads a value from a file which is line-feed terminated.
 	#[inline(always)]
 	fn read_value<F>(&self) -> io::Result<F> where F: FromStr, <F as FromStr>::Err: 'static + Send + Sync + Error;
@@ -51,7 +61,7 @@ pub trait PathExt
 	
 	/// Parses a memory information file (`meminfo`).
 	#[inline(always)]
-	fn parse_memory_information_file(&self, memory_statistic_name_prefix: &str) -> Result<MemoryStatistics, MemoryStatisticsParseError>;
+	fn parse_memory_information_file(&self, memory_information_name_prefix: &str) -> Result<MemoryInformation, MemoryInformationParseError>;
 }
 
 impl PathExt for Path
@@ -92,55 +102,62 @@ impl PathExt for Path
 	#[inline(always)]
 	fn read_hexadecimal_value_with_prefix<P: Fn(&str) -> Result<T, ParseIntError>, T>(&self, size: usize, parser: P) -> io::Result<T>
 	{
-		let mut opened_file = File::open(self)?;
-		let mut raw_string = String::with_capacity(128);
-		let bytes_read = opened_file.read_to_string(&mut raw_string)?;
+		use self::ErrorKind::InvalidData;
 		
-		// '0x' and '\n', eg '0x1af4'
-		let bytes_to_read = 3 + size;
-		if bytes_read != bytes_to_read
-		{
-			return Err(io::Error::new(ErrorKind::InvalidData, format!("{} bytes not read", bytes_to_read)));
-		}
+		let mut raw_string = self.read_string_without_line_feed()?;
 		
-		let should_be_line_feed = raw_string.remove(bytes_read - 1);
-		if should_be_line_feed != '\n'
+		// '0x' eg '0x1af4'.
+		let size_wih_0x_prefix = 2 + size;
+		if raw_string.len() != size_wih_0x_prefix
 		{
-			return Err(io::Error::new(ErrorKind::InvalidData, "File lacks terminating line feed"));
+			return Err(io::Error::new(InvalidData, format!("{} bytes not read", size_wih_0x_prefix)));
 		}
 		
 		match &raw_string[..2]
 		{
 			"0x" => (),
-			_ => return Err(io::Error::new(ErrorKind::InvalidData, "value does not start '0x'")),
+			_ => return Err(io::Error::new(InvalidData, "value does not start '0x'")),
 		}
 		
 		match parser(&raw_string[2..])
 		{
-			Err(error) => Err(io::Error::new(ErrorKind::InvalidData, error)),
+			Err(error) => Err(io::Error::new(InvalidData, error)),
 			Ok(value) => Ok(value),
 		}
 	}
 	
 	#[inline(always)]
-	fn read_value<F>(&self) -> io::Result<F> where F: FromStr, <F as FromStr>::Err: 'static + Send + Sync + Error
+	fn read_raw_string(&self) -> io::Result<String>
 	{
-		let mut opened_file = File::open(self)?;
-		let mut raw_string = String::with_capacity(256);
-		let bytes_read = opened_file.read_to_string(&mut raw_string)?;
+		let raw_string = read_to_string(self)?;
 		
-		if bytes_read == 0
+		if raw_string.is_empty()
 		{
-			return Err(io::Error::new(ErrorKind::InvalidData, "Empty file"));
+			Err(io::Error::new(ErrorKind::InvalidData, "Empty file"))
 		}
-		
+		else
+		{
+			Ok(raw_string)
+		}
+	}
+	
+	#[inline(always)]
+	fn read_string_without_line_feed(&self) -> io::Result<String>
+	{
 		let should_be_line_feed = raw_string.remove(bytes_read - 1);
 		if should_be_line_feed != '\n'
 		{
 			return Err(io::Error::new(ErrorKind::InvalidData, "File lacks terminating line feed"));
 		}
+		should_be_line_feed
+	}
+	
+	#[inline(always)]
+	fn read_value<F>(&self) -> io::Result<F> where F: FromStr, <F as FromStr>::Err: 'static + Send + Sync + Error
+	{
+		let string = self.read_string_without_line_feed()?;
 		
-		match raw_string.parse::<F>()
+		match string.parse::<F>()
 		{
 			Err(error) => Err(io::Error::new(ErrorKind::InvalidData, error)),
 			Ok(value) => Ok(value),
@@ -158,26 +175,9 @@ impl PathExt for Path
 	#[inline(always)]
 	fn read_linux_core_or_numa_mask(&self) -> Result<BTreeSet<u16>, ListParseError>
 	{
-		let mut file = File::open(self)?;
-		let mut raw_string = String::with_capacity(256);
-		let bytes_read = file.read_to_string(&mut raw_string)?;
+		let should_be_line_feed = self.read_string_without_line_feed()?;
 		
-		use self::ListParseError::*;
-		
-		let is_empty_file = bytes_read == 0;
-		
-		if is_empty_file
-		{
-			return Err(EmptyFile);
-		}
-		
-		let should_be_line_feed = raw_string.remove(bytes_read - 1);
-		if should_be_line_feed != '\n'
-		{
-			return Err(FileContentsDidNotEndWithATrailingLineFeed);
-		}
-		
-		ListParseError::parse_linux_list_string(&raw_string)
+		ListParseError::parse_linux_list_string(&should_be_line_feed)
 	}
 	
 	#[inline(always)]
@@ -226,11 +226,11 @@ impl PathExt for Path
 	}
 	
 	/// Parses the `meminfo` file.
-	fn parse_memory_information_file(&self, memory_statistic_name_prefix: &str) -> Result<MemoryStatistics, MemoryStatisticsParseError>
+	fn parse_memory_information_file(&self, memory_information_name_prefix: &str) -> Result<MemoryInformation, MemoryInformationParseError>
 	{
 		let mut reader = BufReader::with_capacity(4096, File::open(self)?);
 		
-		let mut memory_statistics = HashMap::new();
+		let mut map = HashMap::new();
 		let mut line_number = 0;
 		let mut line = String::with_capacity(512);
 		while reader.read_line(&mut line)? > 0
@@ -238,44 +238,44 @@ impl PathExt for Path
 			{
 				let mut split = line.splitn(2, ':');
 				
-				let memory_statistic_name = MemoryStatisticName::parse(split.next().unwrap(), memory_statistic_name_prefix);
+				let memory_information_name = MemoryInformationName::parse(split.next().unwrap(), memory_information_name_prefix);
 				
-				let memory_statistic_value = match split.next()
+				let memory_information_value = match split.next()
 				{
-					None => return Err(MemoryStatisticsParseError::CouldNotParseMemoryStatisticValue(line_number, memory_statistic_name)),
+					None => return Err(MemoryInformationParseError::CouldNotParseMemoryInformationValue(line_number, memory_information_name)),
 					Some(raw_value) =>
+					{
+						let trimmed_raw_value = raw_value.trim();
+						let ends_with = memory_information_name.unit().ends_with();
+						
+						if !trimmed_raw_value.ends_with(ends_with)
 						{
-							let trimmed_raw_value = raw_value.trim();
-							let ends_with = memory_statistic_name.unit().ends_with();
-							
-							if !trimmed_raw_value.ends_with(ends_with)
-							{
-								return Err(MemoryStatisticsParseError::CouldNotParseMemoryStatisticValue(line_number, memory_statistic_name));
-							}
-							
-							let trimmed = &raw_value[0..raw_value.len() - ends_with.len()];
-							
-							match trimmed.parse::<u64>()
-							{
-								Ok(value) => value,
-								Err(int_parse_error) => return Err(MemoryStatisticsParseError::CouldNotParseMemoryStatisticValueAsU64(line_number, memory_statistic_name, raw_value.to_owned(), int_parse_error))
-							}
+							return Err(MemoryInformationParseError::CouldNotParseMemoryInformationValue(line_number, memory_information_name));
 						}
+						
+						let trimmed = &raw_value[0..raw_value.len() - ends_with.len()];
+						
+						match trimmed.parse::<u64>()
+						{
+							Ok(value) => value,
+							Err(int_parse_error) => return Err(MemoryInformationParseError::CouldNotParseMemoryInformationValueAsU64(line_number, memory_information_name, raw_value.to_owned(), int_parse_error))
+						}
+					}
 				};
 				
-				if memory_statistics.contains_key(&memory_statistic_name)
+				if map.contains_key(&memory_information_name)
 				{
-					return Err(MemoryStatisticsParseError::DuplicateMemoryStatistic(line_number, memory_statistic_name, memory_statistic_value));
+					return Err(MemoryInformationParseError::DuplicateMemoryInformation(line_number, memory_information_name, memory_information_value));
 				}
 				
-				memory_statistics.insert(memory_statistic_name, memory_statistic_value);
+				map.insert(memory_information_name, memory_information_value);
 			}
 			
 			line.clear();
 			line_number += 1;
 		}
 		
-		Ok(MemoryStatistics(memory_statistics))
+		Ok(MemoryInformation(map))
 	}
 }
 

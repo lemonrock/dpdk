@@ -215,15 +215,15 @@ impl NumaNodeChoice
 	
 	/// Memory information.
 	#[inline(always)]
-	pub fn memory_information(&self, sys_path: &SysPath, proc_path: &ProcPath, memory_statistic_name_prefix: &str) -> Result<MemoryStatistics, MemoryStatisticsParseError>
+	pub fn memory_information(&self, sys_path: &SysPath, proc_path: &ProcPath, memory_information_name_prefix: &str) -> Result<MemoryInformation, MemoryInformationParseError>
 	{
 		use self::NumaNodeChoice::*;
 		
 		match self
 		{
-			Specific(numa_node) => numa_node.memory_information(sys_path, memory_statistic_name_prefix),
+			Specific(numa_node) => numa_node.memory_information(sys_path, memory_information_name_prefix),
 			
-			Any => proc_path.memory_information(memory_statistic_name_prefix),
+			Any => proc_path.memory_information(memory_information_name_prefix),
 		}
 	}
 	
@@ -238,7 +238,7 @@ impl NumaNodeChoice
 		
 		match self
 		{
-			Specific(numa_node) => huge_page_size.unreserve_numa_huge_pages(sys_path, numa_node.into()),
+			Specific(numa_node) => numa_node.unreserve_huge_pages(sys_path, huge_page_size),
 			
 			Any => huge_page_size.unreserve_global_huge_pages(sys_path),
 		}
@@ -254,7 +254,7 @@ impl NumaNodeChoice
 		
 		match self
 		{
-			Specific(numa_node) => huge_page_size.reserve_numa_huge_pages(sys_path, numa_node.into(), number_to_try_to_reserve),
+			Specific(numa_node) => numa_node.reserve_huge_pages(sys_path, huge_page_size, number_to_try_to_reserve),
 			
 			Any => huge_page_size.reserve_global_huge_pages(sys_path, number_to_try_to_reserve),
 		}
@@ -268,7 +268,7 @@ impl NumaNodeChoice
 		
 		match self
 		{
-			Specific(numa_node) => huge_page_size.number_of_numa_huge_pages(sys_path, numa_node.into()),
+			Specific(numa_node) => numa_node.number_of_huge_pages(sys_path, huge_page_size),
 			
 			Any => huge_page_size.number_of_global_huge_pages(sys_path),
 		}
@@ -282,7 +282,7 @@ impl NumaNodeChoice
 		
 		match self
 		{
-			Specific(numa_node) => huge_page_size.number_of_free_numa_huge_pages(sys_path, numa_node.into()),
+			Specific(numa_node) => numa_node.number_of_free_global_huge_pages(sys_path, huge_page_size),
 			
 			Any => huge_page_size.number_of_free_global_huge_pages(sys_path),
 		}
@@ -296,7 +296,7 @@ impl NumaNodeChoice
 		
 		match self
 		{
-			Specific(numa_node) => huge_page_size.number_of_surplus_numa_huge_pages(sys_path, numa_node.into()),
+			Specific(numa_node) => numa_node.number_of_surplus_huge_pages(sys_path, huge_page_size),
 			
 			Any => huge_page_size.number_of_surplus_global_huge_pages(sys_path),
 		}

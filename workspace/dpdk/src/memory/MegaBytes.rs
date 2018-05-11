@@ -2,48 +2,57 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// A value in KiloBytes.
+/// A value in MegaBytes.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Serialize, Deserialize)]
-pub struct KiloBytes(u64);
+pub struct MegaBytes(u64);
 
-impl From<u8> for KiloBytes
+impl From<u8> for MegaBytes
 {
 	#[inline(always)]
 	fn from(value: u8) -> Self
 	{
-		KiloBytes(value as u64)
+		MegaBytes(value as u64)
 	}
 }
 
-impl From<u16> for KiloBytes
+impl From<u16> for MegaBytes
 {
 	#[inline(always)]
 	fn from(value: u16) -> Self
 	{
-		KiloBytes(value as u64)
+		MegaBytes(value as u64)
 	}
 }
 
-impl From<u32> for KiloBytes
+impl From<u32> for MegaBytes
 {
 	#[inline(always)]
 	fn from(value: u32) -> Self
 	{
-		KiloBytes(value as u64)
+		MegaBytes(value as u64)
 	}
 }
 
-impl From<u64> for KiloBytes
+impl From<u64> for MegaBytes
 {
 	#[inline(always)]
 	fn from(value: u64) -> Self
 	{
-		KiloBytes(value)
+		MegaBytes(value)
 	}
 }
 
-impl Into<u64> for KiloBytes
+impl From<KiloBytes> for MegaBytes
+{
+	#[inline(always)]
+	fn from(value: KiloBytes) -> Self
+	{
+		MegaBytes(value.0 / 1024)
+	}
+}
+
+impl Into<u64> for MegaBytes
 {
 	#[inline(always)]
 	fn into(self) -> u64
@@ -52,28 +61,20 @@ impl Into<u64> for KiloBytes
 	}
 }
 
-impl From<MegaBytes> for KiloBytes
+impl MegaBytes
 {
+	/// Scale up by `scalar`.
 	#[inline(always)]
-	fn from(value: MegaBytes) -> Self
+	pub fn scale_by(self, scalar: u64) -> Self
 	{
-		KiloBytes(value.0 * 1024)
-	}
-}
-
-impl KiloBytes
-{
-	/// Scale down by `ratio`.
-	#[inline(always)]
-	pub fn scale_by(self, ratio: PerMyriad) -> Self
-	{
-		KiloBytes(ratio.scale_down_u64(self.0))
+		MegaBytes(self.0 * scalar)
 	}
 	
-	/// Subtract with a floor of zero.
 	#[inline(always)]
-	pub fn subtract_with_zero_floor(self, value: Self) -> Self
+	pub(crate) fn to_string_capped_at_dpdk_maximum(self) -> String
 	{
-		KiloBytes(self.0.checked_sub(value.0).unwrap_or(0))
+		const MaximumMegaBytes: u64 = 512;
+		
+		format!("{}", min(self.0, MaximumMegaBytes))
 	}
 }

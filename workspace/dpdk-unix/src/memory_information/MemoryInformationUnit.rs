@@ -2,13 +2,26 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use ::std::collections::HashMap;
-use ::std::num::ParseIntError;
-use ::std::io::Error;
-use ::HugePageSize;
+/// Memory statistic unit.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum MemoryInformationUnit
+{
+	/// KiloByte.
+	KiloByte,
+	
+	/// Numeric count.
+	Count,
+}
 
-
-include!("MemoryStatisticName.rs");
-include!("MemoryStatisticUnit.rs");
-include!("MemoryStatistics.rs");
-include!("MemoryStatisticsParseError.rs");
+impl MemoryInformationUnit
+{
+	#[inline(always)]
+	pub(crate) fn ends_with(&self) -> &'static str
+	{
+		match *self
+		{
+			MemoryInformationUnit::KiloByte => " kB",
+			MemoryInformationUnit::Count => "",
+		}
+	}
+}

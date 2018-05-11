@@ -2,6 +2,10 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+use super::PathExt;
+use ::std::path::Path;
+
+
 /// Capabilities.
 pub mod capabilities;
 
@@ -19,3 +23,6 @@ pub mod process_control;
 
 /// Resource Limits.
 pub mod resource_limits;
+
+
+include!("LinuxKernelCommandLineParameters.rs");

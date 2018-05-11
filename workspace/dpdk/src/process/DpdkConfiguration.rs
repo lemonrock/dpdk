@@ -36,22 +36,45 @@ pub struct DpdkConfiguration
 	/// Can be changed from default (`None`).
 	pub memory_ranks: Option<MemoryRanks>,
 	
-	// TODO: Revise this code as memory handling has changed.
-	/// Can be changed from default (`None`).
-	memory_limits: Option<MemoryLimits>,
+	/// Defaults to `false`.
+	///
+	/// Uses calculated number of huge pages to constrain memory.
+	pub limit_memory: bool,
+	
+	/// Where and how to mount huge pages.
+	pub huge_page_mount_settings: HugePageMountSettings,
+	
+	/// How many huge pages to allocate?
+	pub huge_page_allocation_strategy: HugePageAllocationStrategy,
+	
+	/// What prefix to use for the huge pages.
+	/// Defaults to program name.
+	///
+	/// Must not be empty.
+	pub huge_page_file_name_prefix: String,
 	
 	/// Can be changed from default (`None`).
 	pub process_type: Option<ProcessType>,
 	
+	/// Use High Precision Event Timer (HPET).
+	///
 	/// Can be changed from default (`true`).
-	pub use_hpet_timer: bool,
+	pub use_high_precision_event_timer: bool,
 	
 	/// Can be changed from default (`false`).
 	pub use_shared_configuration_memory_map: bool,
 	
 	/// Can be changed from default (`false`).
 	pub use_vmware_tsc_map_instead_of_native_rdtsc: bool,
-
+	
+	/// Defaults to `auth`.
+	pub syslog_facility: DpdkSyslogFacility,
+	
+	/// Defaults to `debug` for debug builds and `warning` for production builds.
+	///
+	/// DPDK also supports specifying either a regex or a pattern; this is not supported by `DpdkConfiguration` at this time.
+	pub syslog_priority: DpdkSyslogPriority,
+	
 	#[cfg(any(target_os = "android", target_os = "linux"))]
 	/// Can be changed from default (`None`).
 	pub base_virtual_address: Option<usize>,
@@ -78,14 +101,20 @@ impl Default for DpdkConfiguration
 			virt_io_net_virtual_devices: Default::default(),
 			virtual_host_net_virtual_devices: Default::default(),
 
-			memory_limits: None,
 			memory_channels: None,
 			memory_ranks: None,
+			limit_memory: false,
+			huge_page_mount_settings: HugePageMountSettings::default(),
+			huge_page_allocation_strategy: HugePageAllocationStrategy::default(),
+			huge_page_file_name_prefix: get_program_name(),
 
 			process_type: None,
-			use_hpet_timer: true,
+			use_high_precision_event_timer: true,
 			use_shared_configuration_memory_map: false,
 			use_vmware_tsc_map_instead_of_native_rdtsc: false,
+			
+			syslog_facility: Default::default(),
+			syslog_priority: Default::default(),
 			
 			#[cfg(any(target_os = "android", target_os = "linux"))] base_virtual_address: None,
 			#[cfg(any(target_os = "android", target_os = "linux"))] virtual_function_io_interrupt_mode: None,
@@ -108,7 +137,7 @@ impl DpdkConfiguration
 	/// Internally creates a DPDK `ctrl` thread called `hpet-msb-inc` (see `rte_ctrl_thread_create`).
 	pub fn enable_high_precision_event_timer_after_dpdk_initialized_if_configured(&self)
 	{
-		if enable_high_precision_event_timer
+		if self.use_high_precision_event_timer
 		{
 			assert_eq!(unsafe { rte_eal_hpet_init(1) }, 0, "Could not initialize high precision event timer (HPET)");
 		}
@@ -116,58 +145,44 @@ impl DpdkConfiguration
 	
 	/// Initialise DPDK.
 	///
-	/// When the returned result is dropped, resources are released.
+	/// Panics if this fails.
 	#[inline(always)]
-	pub fn initialize_dpdk<V>(&self, pci_devices: &HashMap<PciDevice, V>, numa_sockets: &NumaSockets, huge_page_file_path_information: HugePageFilePathInformation) -> Result<(), &'static str>
+	pub fn initialize_dpdk<V>(&self, pci_devices: &HashMap<PciDevice, V>, hugetlbfs_mount_path: &Path, memory_limits: MachineOrNumaNodes<MegaBytes>)
 	{
-		let huge_page_details = huge_page_file_path_information.huge_page_file_system_mount_path_and_so_on();
-		let use_huge_pages = huge_page_details.is_some();
+		let arguments = Arguments::new();
 
-		let mut arguments: Vec<*const c_char> = Vec::initialise();
-
-		Self::initialize_dpdk_pci_device_settings(&mut arguments, pci_devices);
-		self.initialize_dpdk_virtual_device_settings(&mut arguments);
-		self.initialize_dpdk_process_type_settings(&mut arguments);
-		Self::initialize_dpdk_logical_core_settings(&mut arguments, numa_sockets);
-		self.initialize_dpdk_memory_limits_settings(&mut arguments, use_huge_pages, numa_sockets);
-		self.initialize_dpdk_memory_rank_and_memory_channel_settings(&mut arguments);
-		self.initialize_dpdk_huge_page_settings(&mut arguments, huge_page_details);
-		self.initialize_dpdk_optional_settings(&mut arguments);
-		self.initialize_dpdk_log_settings(&mut arguments);
-		self.initialize_dpdk_os_specific_settings(&mut arguments);
+		Self::initialize_dpdk_pci_device_settings(&arguments, pci_devices);
+		self.initialize_dpdk_virtual_device_settings(&arguments);
+		self.initialize_dpdk_process_type_settings(&arguments);
+		Self::initialize_dpdk_logical_core_settings(&arguments);
+		self.initialize_dpdk_memory_limits_settings(&arguments, memory_limits);
+		self.initialize_dpdk_huge_page_settings(&arguments, hugetlbfs_mount_path);
+		self.initialize_dpdk_memory_rank_and_memory_channel_settings(&arguments);
+		self.initialize_dpdk_optional_settings(&arguments, pci_devices);
+		self.initialize_dpdk_log_settings(&arguments);
+		self.initialize_dpdk_os_specific_settings(&arguments);
 
 		Self::call_rte_eal_init(arguments)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn initialize_dpdk_pci_device_settings<V>(arguments: &mut Vec<*const c_char>, pci_devices: &HashMap<PciDevice, V>)
+	pub(crate) fn initialize_dpdk_pci_device_settings<V>(argument: &mut Arguments, pci_devices: &HashMap<PciDevice, V>)
 	{
 		for pci_device in pci_devices.iter_keys()
 		{
-			const_cstr!
-			{
-				__pci_whitelist = "--pci-whitelist";    // aka -w
-			}
-			let value = pci_device.to_address_c_string();
-			arguments.keyCStrValue(__pci_whitelist.as_ptr(), &value);
+			arguments.variable_argument(Arguments::__pci_whitelist, &pci_device.to_address_string());
 		}
 	}
 	
 	#[inline(always)]
-	fn initialize_dpdk_virtual_device_settings(&self, mut arguments: &mut Vec<*const c_char>)
+	fn initialize_dpdk_virtual_device_settings(&self, arguments: &mut Arguments)
 	{
 		#[inline(always)]
-		fn add_virtual_devices<V: VirtualDevice>(arguments: &mut Vec<*const c_char>, map: &BTreeMap<u8, V>)
+		fn add_virtual_devices<V: VirtualDevice>(argument: &mut Arguments, map: &BTreeMap<u8, V>)
 		{
-			const_cstr!
-			{
-				__vdev = "--vdev";
-			}
-			
 			for (index, virtual_device) in map.iter()
 			{
-				let argument = virtual_device.as_initialisation_argument(*index);
-				arguments.keyCStrValue(__vdev, &argument);
+				arguments.variable_argument(Arguments::__vdev, &virtual_device.as_initialisation_argument(*index));
 			}
 		}
 		
@@ -180,239 +195,156 @@ impl DpdkConfiguration
 	}
 	
 	#[inline(always)]
-	fn initialize_dpdk_process_type_settings(&self, mut arguments: &mut Vec<*const c_char>)
+	fn initialize_dpdk_process_type_settings(&self, arguments: &mut Arguments)
 	{
-		const_cstr!
-		{
-			__proc_type = "--proc-type";            // For multi-process set ups
-		}
-
 		if let Some(process_type) = self.process_type
 		{
-			arguments.keyConstantValue(__proc_type, process_type.as_initialisation_argument());
+			arguments.constant_argument(Arguments::__proc_type, process_type.as_initialisation_argument());
 		}
 	}
 	
 	#[inline(always)]
-	fn initialize_dpdk_logical_core_settings(mut arguments: &mut Vec<*const c_char>, numa_sockets: &NumaSockets)
+	fn initialize_dpdk_logical_core_settings(arguments: &mut Arguments, logical_core_list: MachineOrNumaNodes<X>)
 	{
-		const_cstr!
+		use self::MachineOrNumaNodes::*;
+		
+		let (core_list, logical_core_that_overlaps_with_linux) = match logical_core_list
 		{
-			_c = "-c";                              // COREMASK
-			__master_lcore = "--master-lcore";      // u32
-			// _l = "-l";                           // CORELIST
-			// __lcores = "--lcores";               // COREMAP, mapping of logical cores to physical CPUs, (see http://dpdk.org/doc/guides/testpmd_app_ug/run_app.html)
-		}
+			Machine(xxx) =>
+			{
+				// Sadly, the logical core mapping (--lcores) screws up the NUMA node information that DPDK uses.
+				
+				// This stops a scale-down model from working (ie treating cores as pthreads).
+				
+				// Consider parsing isolcpus, find the cpus that AREN'T isolated, then use one of those for the master logical core (and potentially any service cores).
+			}
+			
+			NumaNodes(ref map) =>
+			{
+			
+			}
+		};
+		
+		arguments.variable_argument(Arguments::_l, &core_list);
 
-		let value = numa_sockets.logical_cores_active.as_hexadecimal_core_mask_c_string();
-		arguments.keyCStrValue(_c, &value);
-
-		let value = CString::new(format!("{}", numa_sockets.master_logical_core.as_u32())).unwrap();
-		arguments.keyCStrValue(__master_lcore, &value);
+		arguments.variable_argument(Arguments::__master_lcore, &format!("{}", logical_core_that_overlaps_with_linux));
 	}
 	
 	#[inline(always)]
-	fn initialize_dpdk_memory_rank_and_memory_channel_settings(&self, mut arguments: &mut Vec<*const c_char>)
+	fn initialize_dpdk_memory_limits_settings(&self, arguments: &mut Arguments, memory_limits: MachineOrNumaNodes<MegaBytes>)
 	{
-		const_cstr!
+		if self.limit_memory
 		{
-			_n = "-n";                              // 31-bit, != 0, Number of memory channels to use
-			_r = "-r";                              // 5-bit, != 0, <= 16, Number of memory ranks to use
+			use self::MachineOrNumaNodes::*;
+			
+			match memory_limits
+			{
+				Machine(mega_bytes) => arguments.variable_argument(Arguments::_m, &mega_bytes.to_string_capped_at_dpdk_maximum()),
+				
+				NumaNodes(ref map) =>
+				{
+					let mut per_numa_node_string = String::with_capacity(128);
+					let expected_next_numa_node = 0;
+					let mut after_first = false;
+					for (numa_node, mega_bytes) in map.iter()
+					{
+						let numa_node = *numa_node;
+						let mega_bytes = *mega_bytes;
+						for _unspecified in expected_next_numa_node .. (numa_node.into() - expected_next_numa_node)
+						{
+							if after_first
+							{
+								per_numa_node_string.push(',');
+							}
+							else
+							{
+								after_first = true;
+							}
+							per_numa_node_string.push('0');
+						}
+						
+						if after_first
+						{
+							per_numa_node_string.push(',');
+						}
+						else
+						{
+							after_first = true;
+						}
+						per_numa_node_string.push_str(&mega_bytes.to_string_capped_at_dpdk_maximum());
+					}
+					
+					arguments.variable_argument(Arguments::__socket_mem, &per_numa_node_string);
+				}
+			}
 		}
-
+	}
+	
+	#[inline(always)]
+	fn initialize_dpdk_huge_page_settings(&self, arguments: &mut Arguments, hugetlbfs_mount_path: &Path)
+	{
+		arguments.variable_argument(Arguments::__huge_dir, hugetlbfs_mount_path.to_str().unwrap());
+		
+		arguments.option_argument(Arguments::__no_huge, false);
+		
+		if self.process_type.is_none()
+		{
+			arguments.option_argument(Arguments::__huge_unlink, true);
+		}
+		
+		assert_ne!(self.huge_page_file_name_prefix.len(), 0, "huge_page_file_name_prefix must not be empty");
+		
+		arguments.variable_argument(Arguments::__file_prefix, &self.huge_page_file_name_prefix);
+	}
+	
+	#[inline(always)]
+	fn initialize_dpdk_memory_rank_and_memory_channel_settings(&self, arguments: &mut Arguments)
+	{
 		if let Some(override_number_of_memory_channels) = self.memory_channels
 		{
-			let value = CString::new(format!("{}", override_number_of_memory_channels as u32)).unwrap();
-			arguments.keyCStrValue(_n, &value);
+			arguments.constant_argument(Arguments::_n, override_number_of_memory_channels.as_initialisation_argument());
 		}
-
+		
 		if let Some(override_number_of_memory_ranks) = self.memory_ranks
 		{
-			let value = CString::new(format!("{}", override_number_of_memory_ranks as u8)).unwrap();
-			arguments.keyCStrValue(_r, &value);
+			arguments.constant_argument(Arguments::_r, override_number_of_memory_ranks.as_initialisation_argument());
 		}
 	}
 	
 	#[inline(always)]
-	fn initialize_dpdk_memory_limits_settings(&self, mut arguments: &mut Vec<*const c_char>, use_huge_pages: bool, numa_sockets: &NumaSockets)
+	fn initialize_dpdk_optional_settings(&self, arguments: &mut Arguments, pci_devices: &HashMap<PciDevice, V>)
 	{
-		// --socket-mem and -m [total, 512Mb] conflict.
-		// --socket-mem requires huge pages
-		
-		// --socket-mem=1024,0,1024
-		// Allocate 1Gb socket 0
-		// Allocate 0Gb socket 1
-		// Allocate 1Gb socket 2
-		// No allocation on socket 3
-		
-		// We need an allocation strategy for numa nodes
-		
-		/*
-			For each Numa node,
-				- take the HugePageAllocationStrategy
-				- call calculate_nearest_allocation_size()
-				- convert to whatever it is that socket-mem takes
-		
-		
-		*/
-		
-		
-		
-		#[inline(always)]
-		fn initialize_dpdk_total_memory_limits(mut arguments: &mut Vec<*const c_char>, size_of_total_memory_in_megabytes: u31)
-		{
-			const_cstr!
-			{
-				_m = "-m";                              // u32 Mb of RAM (as Mb, not bytes); Maximum of 512 Gb; maximum DPDK supports
-			}
+		arguments.option_argument(Arguments::__no_hpet, !self.use_high_precision_event_timer);
 
-			let value = CString::new(format!("{}", size_of_total_memory_in_megabytes)).unwrap();
-			arguments.keyCStrValue(_m, &value);
-		}
-		
-		#[inline(always)]
-		fn initialize_dpdk_per_numa_node_memory_limits(mut arguments: &mut Vec<*const c_char>, per_numa_node_string: CString)
-		{
-			const_cstr!
-			{
-				__socket_mem = "--socket-mem";          // Conflicts with -m and use_huge_pages=false
-			}
+		arguments.option_argument(Arguments::__no_pci, pci_devices.is_empty());
 
-			arguments.keyCStrValue(__socket_mem, &per_numa_node_string);
-		}
+		arguments.option_argument(Arguments::__no_shconf, !self.use_shared_configuration_memory_map);
 
-		if let Some(memory_limits) = self.memory_limits
-		{
-			if cfg!(target_os = "freebsd")
-			{
-				if let Some(total_memory) = memory_limits.total_memory_in_megabytes(numa_sockets)
-				{
-					initialize_dpdk_total_memory_limits(arguments, total_memory);
-				}
-			}
-			else
-			{
-				if !use_huge_pages
-				{
-					panic!("Can not have per NUMA socket memory (memory_limits) and then have use_huge_pages as false");
-				}
-
-				let (per_numa_node, total_memory_option) = memory_limits.as_initialisation_string_if_is_a_numa_machine(use_huge_pages, numa_sockets);
-				if let Some(per_numa_node) = per_numa_node
-				{
-					initialize_dpdk_per_numa_node_memory_limits(arguments, per_numa_node)
-				}
-				else
-				{
-					if let Some(total_memory) = total_memory_option
-					{
-						initialize_dpdk_total_memory_limits(arguments, total_memory);
-					}
-				}
-			}
-		}
+		arguments.option_argument(Arguments::__vmware_tsc_map, self.use_vmware_tsc_map_instead_of_native_rdtsc);
 	}
 	
 	#[inline(always)]
-	fn initialize_dpdk_huge_page_settings(&self, mut arguments: &mut Vec<*const c_char>, huge_page_file_system_mount: Option<(&Path, Option<&OsStr>)>)
+	fn initialize_dpdk_log_settings(&self, argument: &mut Arguments)
 	{
-		const_cstr!
-		{
-			__huge_dir = "--huge-dir";
-			__huge_unlink = "--huge-unlink";
-			__no_huge = "--no-huge";
-			__file_prefix = "--file-prefix";
-		}
-
-		if let Some((huge_page_file_system_mount_path, huge_page_file_name_prefix)) = huge_page_file_system_mount
-		{
-			let c_string = huge_page_file_system_mount_path.to_c_string();
-			arguments.keyCStrValue(__huge_dir, &c_string);
-
-			arguments.optionalArgument(__no_huge, false);
-
-			if self.process_type.is_none()
-			{
-				arguments.optionalArgument(__huge_unlink, true);
-			}
-
-			if let Some(huge_page_file_name_prefix) = huge_page_file_name_prefix
-			{
-				let c_string = huge_page_file_name_prefix.os_str_to_c_string();
-				arguments.keyCStrValue(__file_prefix, &c_string);
-			}
-		}
-		else
-		{
-			arguments.optionalArgument(__no_huge, true);
-		}
-	}
-	
-	#[inline(always)]
-	fn initialize_dpdk_optional_settings(&self, mut arguments: &mut Vec<*const c_char>)
-	{
-		const_cstr!
-		{
-			__no_hpet = "--no-hpet";                // Debug use only
-			__no_pci = "--no-pci";                  // Debug use only
-			__no_shconf = "--no-shconf";            // Debug use only
-			__vmware_tsc_map = "--vmware-tsc-map";  //
-		}
-
-		arguments.optionalArgument(__no_hpet, !self.use_hpet_timer);
-
-		arguments.optionalArgument(__no_pci, self.pci_net_devices.is_empty());
-
-		arguments.optionalArgument(__no_shconf, !self.use_shared_configuration_memory_map);
-
-		arguments.optionalArgument(__vmware_tsc_map, self.use_vmware_tsc_map_instead_of_native_rdtsc);
-	}
-	
-	#[inline(always)]
-	fn initialize_dpdk_log_settings(&self, arguments: &mut Vec<*const c_char>)
-	{
-		const_cstr!
-		{
-			__syslog = "--syslog";                  // A facility. Not configurable, as we really don't know what DPDK will produce, so we send to 'auth'
-			__log_level = "--log-level";            // A log level. Not configurable; we choose either a debug one or a production one
-		}
-
-		arguments.keyConstantValue(__syslog, const_cstr!("auth"));
-
-		let log_level = if cfg!(debug_assertions)
-		{
-			const_cstr!("8") // RTE_LOG_DEBUG
-		}
-		else
-		{
-			const_cstr!("5") // RTE_LOG_WARNING
-		};
-		arguments.keyConstantValue(__log_level, lovel);
+		arguments.constant_argument(Arguments::__syslog, self.syslog_facility.as_initialisation_argument());
+		arguments.constant_argument(Arguments::__log_level, self.syslog_priority.as_initialisation_argument());
 	}
 
 	#[inline(always)]
-	fn initialize_dpdk_os_specific_settings(&self, mut arguments: &mut Vec<*const c_char>)
+	fn initialize_dpdk_os_specific_settings(&self, arguments: &mut Arguments)
 	{
 		#[cfg(any(target_os = "android", target_os = "linux"))]
 		{
-			const_cstr!
-			{
-				__base_virtaddr = "--base-virtaddr";
-				__vfio_intr = "--vfio-intr";
-				__create_uio_dev = "--create-uio-dev";
-			}
-	
-			arguments.optionalArgument(__create_uio_dev, self.create_uio_device_on_file_system_in_slash_dev);
+			arguments.option_argument(Arguments::__create_uio_dev, self.create_uio_device_on_file_system_in_slash_dev);
 	
 			if let Some(base_virtual_address) = self.base_virtual_address
 			{
-				let value = &CString::new(format!("{0:x}", base_virtual_address)).unwrap();
-				arguments.keyCStrValue(__base_virtaddr, value);
+				arguments.variable_argument(Arguments::__base_virtaddr, &format!("{0:x}", base_virtual_address));
 			}
 	
 			if let Some(virtual_function_io_interrupt_mode) = self.virtual_function_io_interrupt_mode
 			{
-				arguments.keyConstantValue(__vfio_intr, virtual_function_io_interrupt_mode.as_initialisation_argument());
+				arguments.constant_argument(Arguments::__vfio_intr, virtual_function_io_interrupt_mode.as_initialisation_argument());
 			}
 		}
 		
@@ -422,41 +354,33 @@ impl DpdkConfiguration
 	}
 	
 	#[inline(always)]
-	fn call_rte_eal_init(mut arguments: Vec<*const c_char>) -> Result<(), &'static str>
+	fn call_rte_eal_init(arguments: Arguments)
 	{
-		let count = arguments.len();
-		arguments.push(null_mut());
-
-		let argc = count as c_int;
-		let argv = arguments.as_mut_ptr() as *mut *mut c_char;
-
-		match unsafe { rte_eal_init(argc, argv) }
+		arguments.use_arguments(|argc, argv|
 		{
-			number_of_parsed_arguments if number_of_parsed_arguments >= 0 =>
+			match unsafe { rte_eal_init(argc, argv) }
 			{
-				if number_of_parsed_arguments != count as c_int
+				number_of_parsed_arguments if number_of_parsed_arguments >= 0 =>
 				{
-					panic!("Parsed only number_of_parsed_arguments '{}' but provided count '{}' arguments", number_of_parsed_arguments, count);
-				}
+					assert_eq!(number_of_parsed_arguments, argc, "Did not return correct number of parsed arguments");
+				},
 				
-				Ok(())
+				-1 => match unsafe { rte_errno() }
+				{
+					E::EACCES => panic!("Could not initialise DPDK Environment Abstraction Layer: permissions issue"),
+					E::EAGAIN => panic!("Could not initialise DPDK Environment Abstraction Layer: either a bus or system resource was not available; try again"),
+					E::EALREADY => panic!("Could not initialise DPDK Environment Abstraction Layer: already initialized"),
+					E::EFAULT => panic!("Could not initialise DPDK Environment Abstraction Layer: the tailq configuration name was not found in the memory configuration"),
+					E::EINVAL => panic!("Could not initialise DPDK Environment Abstraction Layer: invalid parameters in argc or argv"),
+					E::ENOMEM => panic!("Could not initialise DPDK Environment Abstraction Layer: failure likely caused by an out-of-memory condition"),
+					E::ENODEV => panic!("Could not initialise DPDK Environment Abstraction Layer: memory setup issues"),
+					E::ENOTSUP => panic!("Could not initialise DPDK Environment Abstraction Layer: the EAL cannot initialize on this system (not supported)"),
+					E::EPROTO => panic!("Could not initialise DPDK Environment Abstraction Layer: the PCI bus is not present or unreadable"),
+					E::ENOEXEC => panic!("Could not initialise DPDK Environment Abstraction Layer: service core failed to launch successfully"),
+				},
+				
+				illegal @ _ => panic!("Could not initialise DPDK Environment Abstraction Layer: received illegal result '{}'", illegal),
 			}
-			
-			-1 => match unsafe { rte_errno() }
-			{
-				E::EACCES => Err("permissions issue"),
-				E::EAGAIN => Err("either a bus or system resource was not available; try again"),
-				E::EALREADY => Err("already initialized"),
-				E::EFAULT => Err("the tailq configuration name was not found in the memory configuration"),
-				E::EINVAL => Err("invalid parameters in argc or argv"),
-				E::ENOMEM => Err("failure likely caused by an out-of-memory condition"),
-				E::ENODEV => Err("memory setup issues"),
-				E::ENOTSUP => Err("the EAL cannot initialize on this system (not supported)"),
-				E::EPROTO => Err("the PCI bus is not present or unreadable"),
-				E::ENOEXEC => Err("service core failed to launch successfully"),
-			}
-			
-			illegal @ _ => panic!("Could not initialise DPDK Environment Abstraction Layer, received illegal result '{}'", illegal),
-		}
+		})
 	}
 }

@@ -5,15 +5,18 @@
 /// Settings for mounting a hugetlbfs file system.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Serialize, Deserialize)]
+#[serde(default)]
 pub struct HugePageMountSettings
 {
 	/// Mount point for huge pages file system.
 	///
-	/// DPDK dpdk-setup.sh uses /mnt/huge, but:-
-	/// - DPDK docs variously also use /mnt/hugepages and /mnt/hugetlbfs
-	/// - RHEL, Debian tutorials and examples use /hugetlbfs
-	/// - Ubuntu official DEB uses /dev/hugepages (https://gerrit.fd.io/r/gitweb?p=deb_dpdk.git;a=blob;f=debian/dpdk-init;h=86eda2cb9c4e802aa07603761a82b312f4bb7fa2;hb=HEAD)
-	/// - At least one admin on a forum uses /mnt/huge_1gb
+	/// There is no real standard; we default to `/dev/hugepages`, this being the default used by the Ubuntu official deb package and similar in spirit to `/dev/shm`. Other options include:-
+	///
+	/// - DPDK `dpdk-setup.sh` uses `/mnt/huge`
+	/// - DPDK docs variously also use `/mnt/hugepages` and `/mnt/hugetlbfs`.
+	/// - RHEL, Debian tutorials and examples use `/hugetlbfs`.
+	/// - Ubuntu official deb package uses `/dev/hugepages` (<https://gerrit.fd.io/r/gitweb?p=deb_dpdk.git;a=blob;f=debian/dpdk-init;h=86eda2cb9c4e802aa07603761a82b312f4bb7fa2;hb=HEAD>).
+	/// - At least one admin on a forum uses `/mnt/huge_1gb`.
 	pub mount_point: PathBuf,
 	
 	/// User id (`uid`), eg `0`.
@@ -47,11 +50,11 @@ impl Default for HugePageMountSettings
 	{
 		Self
 		{
-			mount_point: PathBuf::from("/mnt/huge"),
+			mount_point: PathBuf::from("/dev/hugepages"),
 			user_id: 0,
 			group_id: 0,
 		
-			mode: 0o0755,
+			mode: 0o0700,
 			
 			maximum_value_of_memory_in_bytes: None,
 			minimum_value_of_memory_in_bytes: None,
@@ -63,8 +66,46 @@ impl Default for HugePageMountSettings
 
 impl HugePageMountSettings
 {
+	/// Creates the required mount point then mounts `hugetlbfs`.
+	///
+	/// Panics if mount already exists and is not a directory.
+	///
+	/// Returns `true` if the mount point was created or `false` if it already existed.
+	pub fn mount(&self, sys_path: &SysPath) -> bool
+	{
+		let largest_huge_page_size = HugePageSize::largest_supported_huge_page_size(sys_path);
+		
+		let was_created = self.create_mount_point_if_required();
+		
+		let mount_options = self.as_mount_options(Some(largest_huge_page_size));
+		Mount::new_where_source_is_file_system_type(self.mount_point.clone(), FileSystemType::hugetlbfs, mount_options).mount(self.mount_flags).expect("Could not mount hugetlbfs");
+		
+		was_created
+	}
+	
+	#[inline(always)]
+	fn create_mount_point_if_required(&self) -> bool
+	{
+		let mount_point = &self.mount_point;
+		
+		if mount_point.exists()
+		{
+			if !mount_point.is_dir()
+			{
+				panic!("Mount point {:?} for hugeltbfs is not a directory", mount_point);
+			}
+			false
+		}
+		else
+		{
+			create_dir_all(mount_point).expect(&format!("Could not create hugeltbfs mount_point at {:?}", mount_point));
+			true
+		}
+	}
+	
 	//noinspection SpellCheckingInspection
-	pub(crate) fn as_mount_options(&self, override_default_huge_page_size: Option<HugePageSize>) -> HashMap<String, Option<String>>
+	#[inline(always)]
+	fn as_mount_options(&self, override_default_huge_page_size: Option<HugePageSize>) -> HashMap<String, Option<String>>
 	{
 		let mut mount_options = HashMap::with_capacity(8);
 		mount_options.insert("uid".to_owned(), Some(format!("{}", self.user_id)));

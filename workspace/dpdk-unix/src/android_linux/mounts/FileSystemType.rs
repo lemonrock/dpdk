@@ -177,43 +177,4 @@ impl FileSystemType
 			_ => Unrecognised(value.to_owned())
 		}
 	}
-	
-	pub(crate) fn parse(file_path: &Path) -> Result<HashMap<FileSystemType, HasNoAssociatedDevice>, io::Error>
-	{
-		let mut reader = BufReader::with_capacity(4096, File::open(file_path)?);
-		
-		let mut file_systems_map = HashMap::new();
-		let mut line_number = 0;
-		let mut line = String::with_capacity(32);
-		while reader.read_line(&mut line)? > 0
-		{
-			{
-				let mut split = line.splitn(2, '\t');
-				
-				let has_no_associated_device = match split.next().unwrap()
-				{
-					"" => false,
-					"nodev" => true,
-					
-					unrecognised @ _ => return Err(io::Error::new(ErrorKind::InvalidData, format!("Zero-based line number '{}' has a first column value of '{}' which isn't recognised", line_number, unrecognised.to_owned()))),
-				};
-				
-				let file_system_type = match split.next()
-				{
-					None => return Err(io::Error::new(ErrorKind::InvalidData, format!("Zero-based line number '{}' does not have second column", line_number))),
-					Some(value) => Self::from_str(value),
-				};
-				
-				if let Some(_) = file_systems_map.insert(file_system_type, has_no_associated_device)
-				{
-					return Err(io::Error::new(ErrorKind::InvalidData, format!("Zero-based line number '{}' is a duplicate", line_number)));
-				}
-			}
-			
-			line.clear();
-			line_number += 1;
-		}
-		
-		Ok(file_systems_map)
-	}
 }

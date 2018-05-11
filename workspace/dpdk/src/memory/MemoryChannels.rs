@@ -40,4 +40,26 @@ impl MemoryChannels
 		}
 		Some(unsafe { transmute(channels) })
 	}
+	
+	#[inline(always)]
+	pub(crate) fn as_initialisation_argument(self) -> ConstCStr
+	{
+		use self::MemoryChannels::*;
+		
+		const_cstr!
+		{
+			_1 = "1";
+			_2 = "2";
+			_3 = "3";
+			_4 = "4";
+		}
+		
+		match self
+		{
+			One => _1,
+			Two => _2,
+			Three => _3,
+			Four => _4,
+		}
+	}
 }

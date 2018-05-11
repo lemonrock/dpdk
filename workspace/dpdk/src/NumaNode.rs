@@ -79,8 +79,10 @@ impl NumaNode
 	}
 	
 	/// Valid NUMA nodes.
+	///
+	/// Cheap.
 	#[inline(always)]
-	pub fn valid_numa_nodes() -> &'static HashSet<Self>
+	pub fn valid_numa_nodes() -> &'static BTreeSet<Self>
 	{
 		lazy_static!
 		{
@@ -93,7 +95,7 @@ impl NumaNode
 				let number_of_numa_nodes_in_numa_nodes_bitmask = unsafe { numa_num_possible_nodes() } as usize;
 				let maximum = min(number_of_numa_nodes_in_numa_nodes_bitmask, Self::Maximum);
 				
-				let mut valid_numa_nodes = HashSet::with_capacity(maximum);
+				let mut valid_numa_nodes = BTreeSet::new();
 				for numa_node_index in 0 .. maximum
 				{
 					let is_unset = unsafe { numa_bitmask_isbitset(numa_nodes_bitmask as *const _, numa_node_index as u32) } == 0;
@@ -102,13 +104,37 @@ impl NumaNode
 						continue
 					}
 					
-					valid_numa_nodes.insert(NumaNode(numa_node_index as u8))
+					valid_numa_nodes.insert(NumaNode(numa_node_index as u8));
 				}
 				valid_numa_nodes
 			}
 		}
 		
 		ValidNumaNodes
+	}
+	
+	/// Valid NUMA nodes (as a map).
+	///
+	/// Cheap.
+	#[inline(always)]
+	pub fn valid_numa_nodes_map() -> &'static BTreeMap<Self, ()>
+	{
+		lazy_static!
+		{
+			static ref ValidNumaNodesMap: BTreeMap<NumaNode, ()> =
+			{
+				let mut valid_numa_nodes_map = BTreeMap::new()
+				
+				for numa_node in NumaNode::valid_numa_nodes().iter()
+				{
+					valid_numa_nodes_map.insert(*numa_node, ());
+				}
+				
+				valid_numa_nodes_map
+			}
+		}
+		
+		ValidNumaNodesMap
 	}
 	
 	/// Neighbours to this NUMA node ordered in increasing distance order.
@@ -148,7 +174,7 @@ impl NumaNode
 	///
 	/// Not reliable, as includes NUMA nodes that can never be brought online; simply reports the number that could be used by the Linux kernel upto the `CONFIG_` number of CPUs
 	///
-	/// Consider using libnuma instead of this call.
+	/// Consider using libnuma-backed `valid_numa_nodes()` instead of this call.
 	#[inline(always)]
 	pub fn possible(sys_path: &SysPath) -> Option<BTreeSet<Self>>
 	{
@@ -157,7 +183,7 @@ impl NumaNode
 	
 	/// NUMA nodes that are online at some point.
 	///
-	/// Consider using libnuma instead of this call.
+	/// Consider using libnuma-backed `valid_numa_nodes()` instead of this call.
 	#[inline(always)]
 	pub fn online(sys_path: &SysPath) -> Option<BTreeSet<Self>>
 	{
@@ -166,7 +192,7 @@ impl NumaNode
 	
 	/// NUMA nodes that have normal memory (as opposed to what was high memory; I suspect this is a bit useless).
 	///
-	/// Consider using libnuma instead of this call.
+	/// Consider using libnuma-backed `valid_numa_nodes()` instead of this call.
 	#[inline(always)]
 	pub fn have_normal_memory(sys_path: &SysPath) -> Option<BTreeSet<Self>>
 	{
@@ -177,11 +203,50 @@ impl NumaNode
 	///
 	/// NUMA nodes without a CPU are effectively fake NUMA nodes.
 	///
-	/// Consider using libnuma instead of this call.
+	/// Consider using libnuma-backed `valid_numa_nodes()` instead of this call.
 	#[inline(always)]
 	pub fn have_at_least_one_cpu(sys_path: &SysPath) -> Option<BTreeSet<Self>>
 	{
 		Self::parse_list_mask(sys_path, "has_cpu")
+	}
+	
+	/// Try to unreserve (clear reservations of) huge pages.
+	///
+	/// Will only work as root.
+	#[inline(always)]
+	pub fn unreserve_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize)
+	{
+		huge_page_size.unreserve_numa_huge_pages(sys_path, self.into())
+	}
+	
+	/// Try to reserve huge pages.
+	///
+	/// Will only work as root.
+	#[inline(always)]
+	pub fn reserve_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize, number_to_try_to_reserve: u64) -> io::Result<()>
+	{
+		huge_page_size.reserve_numa_huge_pages(sys_path, self.into(), number_to_try_to_reserve)
+	}
+	
+	/// Read number of huge pages of `huge_page_size` size.
+	#[inline(always)]
+	pub fn number_of_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> io::Result<u64>
+	{
+		huge_page_size.number_of_numa_huge_pages(sys_path, self.into())
+	}
+	
+	/// Read number of free huge pages of `huge_page_size` size.
+	#[inline(always)]
+	pub fn number_of_free_global_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> io::Result<u64>
+	{
+		huge_page_size.number_of_free_numa_huge_pages(sys_path, self.into())
+	}
+	
+	/// Read number of surplus huge pages of `huge_page_size` size.
+	#[inline(always)]
+	pub fn number_of_surplus_huge_pages(self, sys_path: &SysPath, huge_page_size: HugePageSize) -> io::Result<u64>
+	{
+		huge_page_size.number_of_surplus_numa_huge_pages(sys_path, self.into())
 	}
 	
 	/// Tries to compact pages for this NUMA node.
@@ -233,9 +298,9 @@ impl NumaNode
 	
 	/// Memory information.
 	#[inline(always)]
-	pub fn memory_information(&self, sys_path: &SysPath, memory_statistic_name_prefix: &str) -> Result<MemoryStatistics, MemoryStatisticsParseError>
+	pub fn memory_information(&self, sys_path: &SysPath, memory_information_name_prefix: &str) -> Result<MemoryInformation, MemoryInformationParseError>
 	{
-		sys_path.numa_node_path(self.into(), "meminfo").parse_memory_information_file(memory_statistic_name_prefix)
+		sys_path.numa_node_path(self.into(), "meminfo").parse_memory_information_file(memory_information_name_prefix)
 	}
 	
 	const CacheLineSize: u32 = 64;

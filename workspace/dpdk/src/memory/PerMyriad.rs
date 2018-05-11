@@ -32,6 +32,9 @@ impl PerMyriad
 	/// Minimum (a ratio of 0:1).
 	pub const Minimum: Self = PerMyriad(0);
 	
+	/// 95%.
+	pub const NinetyFivePercent: Self = PerMyriad(9_500);
+	
 	/// Maximum (a ratio of 1:1).
 	pub const Maximum: Self = PerMyriad(10_000);
 	

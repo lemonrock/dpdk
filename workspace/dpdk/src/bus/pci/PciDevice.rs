@@ -8,14 +8,9 @@ pub struct PciDevice(DpdkPciDeviceAddress);
 
 impl PciDevice
 {
+	/// PCI device associate NUMA node, if known.
 	#[inline(always)]
-	pub(crate) fn to_address_c_string(&self) -> CString
-	{
-		CString::from(self.0.to_string()).unwrap()
-	}
-	
-	#[inline(always)]
-	pub(crate) fn associated_numa_node(&self, sys_path: &SysPath) -> NumaNodeChoice
+	pub fn associated_numa_node(&self, sys_path: &SysPath) -> NumaNodeChoice
 	{
 		let file_path = self.device_file_or_folder_path(sys_path, "numa_node");
 		if !file_path.exists()
@@ -25,8 +20,23 @@ impl PciDevice
 		NumaNodeChoice::from_i32(file_path.read_value().expect("Could not parse numa_node"))
 	}
 	
+	/// PCI device associated hyper threads.
+	///
+	/// May report CPUs that don't actually exist.
+	///
+	/// Panics if file unreadable.
 	#[inline(always)]
-	pub(crate) fn is_class_network_ethernet(&self, sys_path: &SysPath) -> bool
+	pub fn associated_cpus(&self, sys_path: &SysPath) -> BTreeSet<HyperThread>
+	{
+		let file_path = self.device_file_or_folder_path(sys_path, "local_cpulist");
+		
+		let list = file_path.read_linux_core_or_numa_mask().expect("Could not parse local_cpulist");
+		list.iter().map(|value| HyperThread::from(value)).collect()
+	}
+	
+	/// Is this an ethernet device?
+	#[inline(always)]
+	pub fn is_class_network_ethernet(&self, sys_path: &SysPath) -> bool
 	{
 		// See: https://pci-ids.ucw.cz/read/PD/
 		const Network: u8 = 0x02;
@@ -37,6 +47,12 @@ impl PciDevice
 			(Network, EthernetNetwork, _) => true,
 			_ => false,
 		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn to_address_string(&self) -> String
+	{
+		self.0.to_string()
 	}
 	
 	#[inline(always)]

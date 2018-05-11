@@ -25,7 +25,7 @@ extern crate rust_extra;
 #[cfg(unix)] extern crate syscall_alt;
 
 
-use self::memory_statistics::*;
+use self::memory_information::*;
 #[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::mounts::*;
 #[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::linux_kernel_modules::*;
 #[cfg(target_os = "linux")] use ::const_cstr_fork::ConstCStr;
@@ -76,8 +76,8 @@ use ::std::str::FromStr;
 pub mod android_linux;
 
 
-/// Memory Statistics.
-pub mod memory_statistics;
+/// Memory Information.
+pub mod memory_information;
 
 
 /// Support for signals.

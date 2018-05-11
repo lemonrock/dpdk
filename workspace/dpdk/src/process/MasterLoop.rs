@@ -10,33 +10,33 @@ pub struct MasterLoop
 	should_function_terminate: Arc<ShouldFunctionTerminate>,
 }
 
-// TODO: Load / unload huge pages. (see also HugePageFinisher, HugePagesConfiguration)
+// TODO: Unmount hugetlbfs mount; decide if we should inherit existing mounts.
+// TODO: Revise memory core mapping in DpdkConfiguration - use hyper threads.
 // TODO:HyperThread and related types which aren't finished.
 // TODO: PacketBufferExt needs finishing
 	// various methods
 	// fragmentation outward
-// TODO: sys_path / proc_path replacement SysPath / ProcPath
 // TODO: Understand who needs a service core.
 // TODO: Initialize slave logical cores (and service cores).
 // TODO: Set termination signal for all logical cores.
 // TODO: Wait for all logical cores
-// TODO: Stop all ethernet devices.
-// TODO: Revise memory limits code in DpdkConfiguration as memory handling has changed.
+	// but handle if a core unexpectedly panics.
+// TODO: Stop all ethernet devices and queues.
 // TODO: Service core configuration in DpdkConfiguration
 // TODO: Logical core choices.
-// TODO: Try to parse kernel parameter command line to find number of cores: `isolcpus=2,4,6`
-	// `cat /proc/cmdline` | split on space (' ')
-	// ``intel_iommu=on`` kernel parameter must be used too for igb_uio.
-	// Please note that while using ``iommu=pt`` is compulsory for ``igb_uio driver``, the ``vfio-pci`` driver can actually work with both ``iommu=pt`` and ``iommu=on``.
-// TODO: Take into account boot-time kernel parameters huge page configuration advice:-
-	// hugepages=1024
-	// default_hugepagesz=1G hugepagesz=1G hugepages=4
-	// 1Gb huge pages are recommended for x86
-	// See http://dpdk.org/doc/guides/linux_gsg/sys_reqs.html
-	// it is possible to reserve 2Mb pages after boot but not 1Gb pages
-	// on POWER machines, nr_hugepages == nr_overcommit_hugepages
 
-	// Huge pages require hugetlbfs, `nodev /mnt/huge_1GB hugetlbfs pagesize=1GB 0 0`
+//  /sys/devices/system/cpu/cpu0/cache/index0/shared_cpu_list   can give indicative information on thread siblings when official thread siblings don't work (eg Parallels desktop)...
+// index1 is typically the L1 instruction cache; 32Kb to 64Kb; shared across 2 hyper-threads
+// See also https://gz.github.io/rust-cpuid/raw_cpuid/struct.CacheParameter.html  (max_cores_for_cache, max_cores_for_package)
+
+/*
+On IBM POWER, the nr_overcommit_hugepages should be set to the same value as nr_hugepages. For example, if the required page number is 128, the following commands are used:
+
+echo 128 > /sys/kernel/mm/hugepages/hugepages-16384kB/nr_hugepages
+echo 128 > /sys/kernel/mm/hugepages/hugepages-16384kB/nr_overcommit_hugepages
+*/
+
+// ?/sys/devices/virtual/workqueue/cpumask ?
 
 impl MasterLoop
 {
@@ -46,8 +46,13 @@ impl MasterLoop
 	///
 	/// If running interactively (`daemonize == None`), then `SIGINT` and `SIGQUIT` are intercepted and will be re-raised if caught so that any parent shell can behave correctly.
 	#[inline(always)]
-	pub fn execute(&self, path_configuration: &PathConfiguration, dpdk_configuration: &DpdkConfiguration, pci_net_devices_configuration: &PciNetDevicesConfiguration, daemonize: Option<Daemonize>)
+	pub fn execute(&self, path_configuration: &PathConfiguration, dpdk_configuration: &DpdkConfiguration, pci_net_devices_configuration: &PciNetDevicesConfiguration, daemonize: Option<Daemonize>, warnings_to_suppress: &WarningsToSuppress)
 	{
+		const UsesPowerManagement: bool = true;
+		let cpu_features = CpuFeatures::validate_minimal_cpu_features(warnings_to_suppress, UsesPowerManagement);
+		
+		let isolated_hyper_threads = KernelCommandLineValidator::validate(path_configuration, warnings_to_suppress, &cpu_features, pci_net_devices_configuration);
+		
 		let reraise_signal = if let Some(daemonize) = daemonize
 		{
 			let daemonize_clean_up_on_exit = daemonize.daemonize();
@@ -74,15 +79,15 @@ impl MasterLoop
 	#[inline(always)]
 	fn execute_after_daemonizing(&self, path_configuration: &PathConfiguration, dpdk_configuration: &DpdkConfiguration, pci_net_devices_configuration: &PciNetDevicesConfiguration, running_interactively: bool) -> Option<SignalNumber>
 	{
-		Self::disable_transparent_huge_pages();
-		
 		self.set_maximum_resource_limits();
+		
+		let hugetlbfs_mount_path = Self::configure_huge_pages(path_configuration, dpdk_configuration);
 		
 		self.load_kernel_modules(path_configuration, dpdk_configuration, pci_net_devices_configuration);
 		
 		let pci_devices_and_original_driver_names = pci_net_devices_configuration.take_for_use_with_dpdk(&path_configuration.sys_path);
 		
-		let success_or_failure = catch_unwind(|| self.execute_after_pci_devices_bound_to_drivers(path_configuration, dpdk_configuration, &pci_devices_and_original_driver_names, running_interactively));
+		let success_or_failure = catch_unwind(|| self.execute_after_pci_devices_bound_to_drivers(path_configuration, dpdk_configuration, &pci_devices_and_original_driver_names, hugetlbfs_mount_path, running_interactively));
 		
 		PciNetDevicesConfiguration::release_all_from_use_with_dpdk(&path_configuration.sys_path, pci_devices_and_original_driver_names);
 		
@@ -94,12 +99,12 @@ impl MasterLoop
 	}
 	
 	#[inline(always)]
-	fn execute_after_pci_devices_bound_to_drivers(&self, path_configuration: &PathConfiguration, dpdk_configuration: &DpdkConfiguration, pci_devices: &HashMap<PciDevice, Option<String>>, running_interactively: bool)
+	fn execute_after_pci_devices_bound_to_drivers(&self, path_configuration: &PathConfiguration, dpdk_configuration: &DpdkConfiguration, pci_devices: &HashMap<PciDevice, Option<String>>, hugetlbfs_mount_path: PathBuf, running_interactively: bool)
 	{
 		Self::block_all_signals_before_initializing_dpdk_so_that_slave_logical_cores_do_not_handle_signals();
 		
-		// TODO: init DPDK - NUMA sockets and huge page files.
-		dpdk_configuration.initialize_dpdk(pci_devices, numa_sockets: &NumaSockets, huge_page_file_path_information: HugePageFilePathInformation).expect("Could not initialize DPDK");
+		// TODO: init DPDK - NUMA sockets and logical cores.
+		dpdk_configuration.initialize_dpdk(pci_devices, &hugetlbfs_mount_path, numa_sockets: Option<XXXX>).expect("Could not initialize DPDK");
 		
 		let success_or_failure = catch_unwind(|| self.execute_after_dpdk_initialized(dpdk_configuration, running_interactively));
 		
@@ -152,6 +157,59 @@ impl MasterLoop
 	fn set_maximum_resource_limits(&self)
 	{
 		ResourceLimitsSet::defaultish(ResourceLimit::maximum_number_of_open_file_descriptors(&self.proc_path).expect("Could not read maximum number of file descriptors"));
+	}
+	
+	#[inline(always)]
+	fn configure_huge_pages(path_configuration: &PathConfiguration, dpdk_configuration: &DpdkConfiguration) -> PathBuf
+	{
+		let huge_page_mount_settings = &dpdk_configuration.huge_page_mount_settings;
+		let huge_page_allocation_strategy = &dpdk_configuration.huge_page_allocation_strategy;
+		let sys_path = &path_configuration.sys_path;
+		
+		Self::disable_transparent_huge_pages();
+		
+		path_configuration.proc_path.filesystems().unwrap().verify_hugetlbfs_is_supported();
+		
+		let mounts = path_configuration.proc_path.mounts().unwrap();
+		let (unmount, hugetlbfs_mount_path) = match mounts.existing_hugetlbfs_mount()
+		{
+			Some(hugetlbfs_mount_path) => (None, hugetlbfs_mount_path.to_owned()),
+			None(_) => (Some(huge_page_mount_settings.mount(sys_path)), huge_page_mount_settings.mount_point.to_owned())
+		};
+		
+		let machine_or_numa_nodes = MachineOrNumaNodes::new(sys_path);
+		machine_or_numa_nodes.garbage_collect_memory(sys_path);
+		
+		NumaNodeChoice::reserve_huge_page_memory(&path_configuration.sys_path, &path_configuration.proc_path, huge_page_allocation_strategy);
+		
+		hugetlbfs_mount_path
+		
+		/*
+			
+			TODO: unmount
+			
+			For unmount:-
+		
+			if self.weMounted
+			{
+				if let Err(error) = Mount::unmount(mountPath, UnmountFlags::Detach)
+				{
+					warn!("Could not unmount {:?} because {:?}", mountPath, error);
+				}
+			}
+			if self.weCreated
+			{
+				if let Err(error) = remove_dir_all(mountPath)
+				{
+					warn!("Could not remove mount path {:?} because {:?}", mountPath, error);
+				}
+			}
+		
+		
+		
+		*/
+		
+		
 	}
 	
 	#[inline(always)]
