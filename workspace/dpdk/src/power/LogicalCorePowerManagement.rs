@@ -111,6 +111,8 @@ impl LogicalCorePowerManagement
 	}
 	
 	/// Set to maximum frequency.
+	///
+	/// Call this after enabling or disabling turbo boost.
 	#[inline(always)]
 	pub fn set_to_maximum_frequency(&self) -> bool
 	{
@@ -137,6 +139,8 @@ impl LogicalCorePowerManagement
 	}
 	
 	/// Enable turbo boost.
+	///
+	/// Call this before calling `set_to_maximum_frequency`.
 	#[inline(always)]
 	pub fn enable_turbo_boost(&self) -> bool
 	{
@@ -144,7 +148,7 @@ impl LogicalCorePowerManagement
 		{
 			1 => true,
 			0 => false,
-			_ => panic!("rte_power_freq_enable_turbo failed")
+			-1 => false,
 		}
 	}
 	
@@ -156,7 +160,7 @@ impl LogicalCorePowerManagement
 		{
 			1 => true,
 			0 => false,
-			_ => panic!("rte_power_freq_disable_turbo failed")
+			-1 => false,
 		}
 	}
 	

@@ -6,13 +6,25 @@
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum VirtualFunctionIoInterruptMode
 {
-	#[allow(missing_docs)]
+	/// Interrupts are delivered to a physically signalled pin by the Advanced Programmable Interrupt Controller (APIC).
+	///
+	/// This is the original scheme used to support PCI.
+	///
+	/// The APIC usually only supports 24 interrupt request lines ('IRQs'), although many of these are hardcoded for specific purposes.
 	Legacy,
 	
 	/// Message Signalled Interrupts.
+	///
+	/// The PCI bus (as of version 2.2) writes a very small message to a known location.
+	///
+	/// Up to 64 IRQs are supported.
 	Msi,
 	
 	/// Message Signalled Interrupts, Extended.
+	///
+	/// Most modern PCIe equipment should be capable of this mode.
+	///
+	/// Up to 2048 IRQs are supported.
 	MsiX,
 }
 

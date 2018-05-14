@@ -125,6 +125,13 @@ impl Default for DpdkConfiguration
 
 impl DpdkConfiguration
 {
+	/// Run this after successful initialization before program termination.
+	#[inline(always)]
+	pub fn dpdk_clean_up()
+	{
+		unsafe { rte_eal_cleanup() };
+	}
+	
 	/// Are there any Kernel Native Interface (KNI) virtual devices?
 	#[inline(always)]
 	pub fn has_kernel_native_interface_virtual_devices(&self) -> bool
@@ -147,14 +154,14 @@ impl DpdkConfiguration
 	///
 	/// Panics if this fails.
 	#[inline(always)]
-	pub fn initialize_dpdk<V>(&self, pci_devices: &HashMap<PciDevice, V>, hugetlbfs_mount_path: &Path, memory_limits: MachineOrNumaNodes<MegaBytes>)
+	pub fn initialize_dpdk<V>(&self, pci_devices: &HashMap<PciDevice, V>, hugetlbfs_mount_path: &Path, memory_limits: MachineOrNumaNodes<MegaBytes>, master_logical_core: HyperThread, remaining_logical_cores: &BTreeSet<HyperThread>)
 	{
 		let arguments = Arguments::new();
 
 		Self::initialize_dpdk_pci_device_settings(&arguments, pci_devices);
 		self.initialize_dpdk_virtual_device_settings(&arguments);
 		self.initialize_dpdk_process_type_settings(&arguments);
-		Self::initialize_dpdk_logical_core_settings(&arguments);
+		Self::initialize_dpdk_logical_core_settings(&arguments, master_logical_core, remaining_logical_cores);
 		self.initialize_dpdk_memory_limits_settings(&arguments, memory_limits);
 		self.initialize_dpdk_huge_page_settings(&arguments, hugetlbfs_mount_path);
 		self.initialize_dpdk_memory_rank_and_memory_channel_settings(&arguments);
@@ -204,30 +211,24 @@ impl DpdkConfiguration
 	}
 	
 	#[inline(always)]
-	fn initialize_dpdk_logical_core_settings(arguments: &mut Arguments, logical_core_list: MachineOrNumaNodes<X>)
+	fn initialize_dpdk_logical_core_settings(arguments: &mut Arguments, master_hyper_thread: HyperThread, remaining_hyper_threads: &BTreeSet<HyperThread>)
 	{
-		use self::MachineOrNumaNodes::*;
+		let mut hyper_threads = remaining_hyper_threads.clone();
+		hyper_threads.insert(master_hyper_thread);
 		
-		let (core_list, logical_core_that_overlaps_with_linux) = match logical_core_list
+		let mut logical_core_list = String::with_capacity(hyper_threads.len() * 4);
+		for hyper_thread in hyper_threads.iter()
 		{
-			Machine(xxx) =>
+			if !logical_core_list.is_empty()
 			{
-				// Sadly, the logical core mapping (--lcores) screws up the NUMA node information that DPDK uses.
-				
-				// This stops a scale-down model from working (ie treating cores as pthreads).
-				
-				// Consider parsing isolcpus, find the cpus that AREN'T isolated, then use one of those for the master logical core (and potentially any service cores).
+				logical_core_list.push(',');
 			}
-			
-			NumaNodes(ref map) =>
-			{
-			
-			}
-		};
+			logical_core_list.push_str(&format!("{}", hyper_thread.into::<u16>()))
+		}
 		
-		arguments.variable_argument(Arguments::_l, &core_list);
+		arguments.variable_argument(Arguments::_l, &logical_core_list);
 
-		arguments.variable_argument(Arguments::__master_lcore, &format!("{}", logical_core_that_overlaps_with_linux));
+		arguments.variable_argument(Arguments::__master_lcore, &format!("{}", master_hyper_thread.into::<u16>()));
 	}
 	
 	#[inline(always)]

@@ -49,11 +49,15 @@ pub trait PathExt
 	#[inline(always)]
 	fn write_value<D: Display>(&self, value: D) -> io::Result<()>;
 	
-	/// Reads and parses a linux core or numa mask string from a file.
+	/// Reads and parses a linux core or numa list string from a file.
 	///
 	/// Returns a BTreeSet with the zero-based indices found in the string. For example, "2,4-31,32-63" would return a set with all values between 0 to 63 except 0, 1 and 3.
 	#[inline(always)]
-	fn read_linux_core_or_numa_mask(&self) -> Result<BTreeSet<u16>, ListParseError>;
+	fn read_linux_core_or_numa_list(&self) -> Result<BTreeSet<u16>, ListParseError>;
+	
+	/// Reads and parses a linux core or numa mask string from a file.
+	#[inline(always)]
+	fn parse_linux_core_or_numa_mask(&self) -> Result<u32<u32>, io::Error>;
 	
 	/// Parses a virtual memory statistics file (`vmstat`).
 	#[inline(always)]
@@ -173,11 +177,24 @@ impl PathExt for Path
 	}
 	
 	#[inline(always)]
-	fn read_linux_core_or_numa_mask(&self) -> Result<BTreeSet<u16>, ListParseError>
+	fn read_linux_core_or_numa_list(&self) -> Result<BTreeSet<u16>, ListParseError>
 	{
-		let should_be_line_feed = self.read_string_without_line_feed()?;
+		let without_line_feed = self.read_string_without_line_feed()?;
 		
-		ListParseError::parse_linux_list_string(&should_be_line_feed)
+		ListParseError::parse_linux_list_string(&without_line_feed)
+	}
+	
+	#[inline(always)]
+	fn parse_linux_core_or_numa_mask(&self) -> Result<u32, io::Error>
+	{
+		let without_line_feed = self.read_string_without_line_feed()?;
+		
+		if without_line_feed.len() != 8
+		{
+			return Err(io::Error::new(ErrorKind::InvalidData, "Linux core or numa mask string should be 8 characters long"))
+		}
+		
+		u32::from_str_radix(&without_line_feed, 16).map_err(|error| io::Error::new(ErrorKind::InvalidData, error))
 	}
 	
 	#[inline(always)]

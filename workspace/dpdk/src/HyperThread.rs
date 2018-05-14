@@ -122,7 +122,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn siblings(self, sys_path: &SysPath) -> BTreeSet<Self>
 	{
-		sys_path.cpu_node_path(self.into(), "topology/core_siblings_list").read_linux_core_or_numa_mask().unwrap().map(|value| HyperThread(value)).collect()
+		sys_path.cpu_node_path(self.into(), "topology/core_siblings_list").read_linux_core_or_numa_list().unwrap().map(|value| HyperThread(value)).collect()
 	}
 	
 	/// CPUs (hyper threaded logical cores) that are thread-siblings of this one.
@@ -133,7 +133,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn thread_siblings(self, sys_path: &SysPath) -> BTreeSet<Self>
 	{
-		sys_path.cpu_node_path(self.into(), "topology/thread_siblings_list").read_linux_core_or_numa_mask().unwrap().map(|value| HyperThread(value)).collect()
+		sys_path.cpu_node_path(self.into(), "topology/thread_siblings_list").read_linux_core_or_numa_list().unwrap().map(|value| HyperThread(value)).collect()
 	}
 	
 	/// Underlying hardware, not Linux, core identifier.
@@ -168,7 +168,7 @@ impl HyperThread
 	#[inline(always)]
 	fn parse_list_mask(sys_path: &SysPath, file_name: &str) -> BTreeSet<Self>
 	{
-		sys_path.cpu_nodes_path(file_name).read_linux_core_or_numa_mask().unwrap().map(|value| HyperThread(value)).collect()
+		sys_path.cpu_nodes_path(file_name).read_linux_core_or_numa_list().unwrap().map(|value| HyperThread(value)).collect()
 	}
 	
 	/// Current hyper thread index that this thread is running on.
@@ -200,145 +200,5 @@ impl HyperThread
 	{
 		0
 	}
-	
-	pub fn hexadecimal_core_mask_c_string(hyper_threads: &HashSet<HyperThread>) -> CString
-	{
-		
-		pub struct NumaNodeLayout(HashMap<NumaNode, Vec<(LogicalCore, HyperThreadAssignment)>>);
-		
-		impl NumaNodeLayout
-		{
-			pub fn new() -> Self
-			{
-				use self::HyperThreadAssignment::*;
-				
-				initialize();
-				
-				let current_core = Self::current_hyper_thread_index();
-				
-				let number_of_numa_nodes = NumaNode::valid_numa_nodes().len();
-				
-				let number_of_hyper_threads_in_hyper_thread_bitmask = unsafe { numa_num_possible_hyper_threads() } as usize;
-				
-				let likely_number_of_hyper_threads_per_numa_node = (number_of_hyper_threads_in_hyper_thread_bitmask + number_of_numa_nodes - 1) / number_of_numa_nodes;
-				
-				let mut this = NumaNodeLayout(HashMap::with_capacity(number_of_hyper_threads_in_hyper_thread_bitmask));
-				
-				for numa_node_index in 0 .. number_of_numa_nodes
-				{
-					
-					
-					
-					
-					
-					
-					
-					
-					let list = this.0.entry(NumaNode(numa_node_index as u8)).or_insert(Vec::with_capacity(likely_number_of_hyper_threads_per_numa_node));
-					
-				}
-				
-				this
-			}
-		}
-		
-		pub enum HyperThreadAssignment
-		{
-			Available,
-			
-			Master,
-			
-			ServiceCore,
-			
-			ReceiveSlave
-			{
-				ethernet_port_identifier: EthernetPortIdentifier,
-				receive_queue_identifier: ReceiveQueueIdentifier,
-			},
-			
-			TransmitSlave
-			{
-				ethernet_port_identifier: EthernetPortIdentifier,
-				transmit_queue_identifier: TransmitQueueIdentifier,
-			},
-		}
-		
-		
-		let core_map: HashMap<BTreeSet<HyperThread>, BTreeSet<LogicalCore>>;
-		
-		
-		// We should prefer `--lcores COREMAP` or `-l CORELIST` to `-c COREMASK`.
-		
-		// `--lcores` would allow us to handle the complexities of 'scaling down'.
-		
-		// `--master-lcore ID` - can be wherever, so we can put it on a lesser-loaded NUMA core.
-		
-		
-		/*
-			
-			If we have more than one numa node, we can reasonably assume there are at least 4 cores per node.
-			
-			(LogicalCore5.LogicalCore7.LogicalCore8)@(CpuHyperThread0.CpuHyperThread5),()@()
-			
-			
-			
-			
-		*/
-		
-		
-		
-		
-		
-		let mut bits: u64 = 0;
-		for hyper_thread in hyper_threads.iter()
-		{
-			bits |= 1 << hyper_thread.0
-		}
-		
-		let mut setBits = 0;
-		for index in 0..Maximum
-		{
-			if self.isEnabled(index)
-			{
-				setBits |= 1 << index
-			}
-		}
-		
-		debug_assert!(Self::Maximum <= 256 && Self::Maximum >= 16, "Change format string size parameter from 2 to something else, as Maximum '{}' is outside of the range expected", Self::Maximum);
-		
-		CString::new(format!("0x{:02}", setBits)).unwrap()
-	}
-	
-	/*
-		Usage
-			- master; needed for signal handling, liveness, is not a slave and so can not be used as a service core.
-			
-			- 'operating system reserved' - a core to be used by the OS for all other things (SSH, admin, cron jobs, etc)
-				- could overlap with master in systems with low core counts
-				- would not be available to DPDK
-			
-			// how is master_lcore used?
-				eal_thread_init_master
-	
-		See
-			static void
-			eal_check_mem_on_local_socket(void)
-			{
-				const struct rte_memseg *ms;
-				int i, socket_id;
-			
-				socket_id = rte_lcore_to_socket_id(rte_config.master_lcore);
-			
-				ms = rte_eal_get_physmem_layout();
-			
-				for (i = 0; i < RTE_MAX_MEMSEG; i++)
-					if (ms[i].socket_id == socket_id &&
-							ms[i].len > 0)
-						return;
-			
-				RTE_LOG(WARNING, EAL, "WARNING: Master core has no "
-						"memory on local socket!\n");
-			}
-	*/
 }
 

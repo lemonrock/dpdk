@@ -24,6 +24,7 @@ impl ProcPath
 	///
 	/// Interpret this by multiplying counts by page size.
 	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
 	pub fn global_zoned_virtual_memory_statistics(&self) -> io::Result<HashMap<VirtualMemoryStatisticName, u64>>
 	{
 		self.file_path("vmstat").parse_virtual_memory_statistics_file()
@@ -31,6 +32,7 @@ impl ProcPath
 	
 	/// Memory information (from `/proc/meminfo`).
 	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
 	pub fn memory_information(&self, memory_information_name_prefix: &str) -> Result<MemoryInformation, MemoryInformationParseError>
 	{
 		self.file_path("meminfo").parse_memory_information_file(memory_information_name_prefix)
@@ -72,7 +74,107 @@ impl ProcPath
 		LinuxKernelCommandLineParameters::parse(&file_path)
 	}
 	
+	/// Returns known interrupt requests (IRQs).
 	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn interrupt_requests(&self) -> Result<BTreeSet<u16>, io::Error>
+	{
+		let mut interrupt_requests = BTreeSet::new();
+		
+		let irq_folder_path = self.file_path("irq");
+		for entry in irq_folder_path.read_dir()?
+		{
+			let entry = entry?;
+			if entry.file_type()?.is_file()
+			{
+				if let Ok(string) = entry.file_name().as_os_str().to_str()
+				{
+					if let Ok(interrupt_request) = string.parse::<u16>()
+					{
+						interrupt_requests.push(interrupt_request)
+					}
+				}
+			}
+		}
+		
+		Ok(interrupt_requests)
+	}
+	
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn read_interrupt_request_to_hyper_threads_affinity(&self, interrupt_request: u16) -> Result<BTreeSet<u16>, io::Error>
+	{
+		// There are also affinity_hint [seems to be for irqbalance daemon to then use to adjust] and spurious files! and /proc/interrupt_request/0/node
+		
+		self.file_path(&format!("irq/{}/smp_affinity_list", interrupt_request)).read_linux_core_or_numa_list()
+	}
+	
+	/// This logic seems to exist in the Linux kernel to provide a place for the `irqbalance` daemon to store some configuration.
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn read_interrupt_request_to_hyper_threads_affinity_hint(&self, interrupt_request: u16) -> Result<BTreeSet<u16>, io::Error>
+	{
+		self.file_path(&format!("irq/{}/affinity_hint", interrupt_request)).read_linux_core_or_numa_list()
+	}
+	
+	/// ?numa node? As always, the Linux documentation sucks.
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn read_interrupt_request_node(&self, interrupt_request: u16) -> Result<u8, io::Error>
+	{
+		self.file_path(&format!("irq/{}/node", interrupt_request)).read_value()
+	}
+	
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn read_default_interrupt_request_affinity_cpu_mask(&self) -> Result<u32, io::Error>
+	{
+		self.file_path("irq/default_smp_affinity").parse_linux_core_or_numa_mask()
+	}
+	
+	/// We ignore failures as the `/proc` for interrupt requests is brittle.
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn force_all_interrupt_requests_to_just_these_hyper_threads(&self, hyper_threads: &BTreeSet<u16>)
+	{
+		// TODO: u16 to mask.
+		
+		let mut mask: u32 = 0;
+		for hyper_thread in hyper_threads.iter()
+		{
+			let bit = (1 << hyper_thread) as u32;
+			mask |= bit;
+		}
+		let mask = format!("{:08x}", mask);
+		
+		self.file_path("irq/default_smp_affinity").write_value(&mask);
+		
+		if let Some(interrupt_requests) = self.interrupt_requests()
+		{
+			for interrupt_request in interrupt_requests.iter()
+			{
+				self.file_path(&format!("irq/{}/smp_affinity", interrupt_request)).write_value(&mask);
+				self.file_path(&format!("irq/{}/affinity_hint", interrupt_request)).write_value(&mask);
+			}
+		}
+	}
+	
+	/// Only execute this afte any kernel modules have loaded.
+	///
+	/// We ignore failures.
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn write_system_control_values(&self, settings: HashMap<String, u64>)
+	{
+		for (setting_name, setting_value) in settings.iter()
+		{
+			let file_path = self.file_path(&format!("sys/{}", setting_name));
+			file_path.write_value(setting_value);
+		}
+	}
+	
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
 	pub(crate) fn maximum_number_of_open_file_descriptors(&self) -> io::Result<u64>
 	{
 		self.file_path("sys/fs/nr_open").read_value()

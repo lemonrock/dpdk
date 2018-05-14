@@ -3,7 +3,7 @@
 
 
 /// CPU and Kernel missing feature warnings to suppress.
-#[derive(Debug, Clone, Default)]
+#[derive(Default, Debug, Clone, Default)]
 #[derive(Deserialize, Serialize)]
 #[serde(default)]
 pub struct WarningsToSuppress

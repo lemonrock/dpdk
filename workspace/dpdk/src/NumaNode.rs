@@ -395,7 +395,7 @@ impl NumaNode
 	{
 		if sys_path.is_a_numa_machine()
 		{
-			let numa_nodes_u16 = sys_path.numa_nodes_path(file_name).read_linux_core_or_numa_mask().unwrap();
+			let numa_nodes_u16 = sys_path.numa_nodes_path(file_name).read_linux_core_or_numa_list().unwrap();
 			let collected: BTreeSet<Self> = numa_nodes_u16.iter().map(|as_u16|
 			{
 				assert!(as_u16 < Self::Maximum);

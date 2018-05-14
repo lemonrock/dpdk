@@ -21,14 +21,14 @@
 /// * Environment variables are populated if missing (`IFS`, `PATH`)
 /// * User environment variables are overwritten (`HOME`, `LOGNAME`, `USER`).
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct Daemonize
 {
 	/// The folder path to use as the 'current working directory' (CWD).
 	///
 	/// Equivalent functionality to the shell command `chdir`.
 	///
-	/// Defaults to `/.
+	/// Defaults to `/`.
 	#[serde(default = "Daemonize::working_folder_path_default")] pub working_folder_path: PathBuf,
 	
 	/// A folder path in which to put a PID file.
@@ -42,6 +42,20 @@ pub struct Daemonize
 	///
 	/// Use to discover runtime user and groups to change to and the home folder of the running user.
 	#[serde(default = "Daemonize::user_name_default")] pub user_name: CString,
+}
+
+impl Default for Daemonize
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self
+		{
+			working_folder_path: Self::working_folder_path_default(),
+			pid_folder_path: Self::pid_folder_path_default(),
+			user_name: Self::user_name_default(),
+		}
+	}
 }
 
 impl Daemonize

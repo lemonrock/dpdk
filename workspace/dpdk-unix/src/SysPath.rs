@@ -88,6 +88,17 @@ impl SysPath
 		path
 	}
 	
+	/// Rescans all PCI buses and devices.
+	///
+	/// Errors are swallowed.
+	#[inline(always)]
+	pub fn rescan_all_pci_buses_and_devices(&self)
+	{
+		let mut path = self.path();
+		path.push("bus/pci/rescan");
+		path.write_value(1);
+	}
+	
 	#[inline(always)]
 	pub(crate) fn read_global_hugepages_value(&self, huge_page_size: HugePageSize, file_name: &str) -> io::Result<u64>
 	{

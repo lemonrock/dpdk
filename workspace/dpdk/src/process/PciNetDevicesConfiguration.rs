@@ -8,8 +8,8 @@
 #[serde(default)]
 pub struct PciNetDevicesConfiguration
 {
-	/// PCI network devices (ethernet cards).
-	pub pci_net_devices: HashMap<IndirectPciDeviceIdentifier, PciKernelDriver>,
+	/// PCI network devices (ethernet cards) to PCI kernel drivers and NUMA node fix (if necessary).
+	pub pci_net_devices: HashMap<IndirectPciDeviceIdentifier, (PciKernelDriver, Option<u8>)>,
 }
 
 impl PciNetDeviceConfiguration
@@ -21,7 +21,7 @@ impl PciNetDeviceConfiguration
 		
 		let mut uses_ugb_uio = false;
 		let mut uses_pci_vfio = false;
-		for pci_kernel_driver in self.pci_net_devices.values()
+		for pci_kernel_driver in self.pci_kernel_drivers()
 		{
 			match pci_kernel_driver
 			{
@@ -45,7 +45,7 @@ impl PciNetDeviceConfiguration
 	#[inline(always)]
 	pub(crate) fn add_essential_kernel_modules(&self, essential_kernel_modules: &mut HashSet<EssentialKernelModule>)
 	{
-		for pci_kernel_driver in self.pci_net_devices.values()
+		for pci_kernel_driver in self.pci_kernel_drivers()
 		{
 			essential_kernel_modules.insert(*pci_kernel_driver);
 		}
@@ -54,9 +54,11 @@ impl PciNetDeviceConfiguration
 	#[inline(always)]
 	pub(crate) fn take_for_use_with_dpdk(&self, sys_path: &SysPath) -> HashMap<PciDevice, Option<String>>
 	{
+		let is_a_numa_machine = sys_path.is_a_numa_machine();
+		
 		let mut aliases = HashMap::with_capacity(self.pci_net_devices.len());
 		let mut ethernet_pci_devices = HashSet::with_capacity(self.pci_net_devices.len());
-		for (indirect_pci_device_identifier, pci_kernel_driver) in self.pci_net_devices.iter()
+		for (indirect_pci_device_identifier, (pci_kernel_driver, numa_node_fix)) in self.pci_net_devices.iter()
 		{
 			let ethernet_pci_device =
 			{
@@ -67,6 +69,15 @@ impl PciNetDeviceConfiguration
 				{
 					panic!("ethernet_pci_device '{}' is an alias of '{}'", ethernet_pci_device, alias);
 				}
+				
+				if is_a_numa_machine
+				{
+					if let Some(numa_node_fix) = numa_node_fix
+					{
+						pci_device.set_numa_node_swallowing_errors_as_this_is_brittle(sys_path, numa_node_fix);
+					}
+				}
+				
 				pci_device
 			};
 		}
@@ -88,5 +99,11 @@ impl PciNetDeviceConfiguration
 		{
 			pci_device.release_from_use_with_dpdk(sys_path, original_drive_name)
 		}
+	}
+	
+	#[inline(always)]
+	fn pci_kernel_drivers(&self) -> impl Interator<Item=&PciKernelDriver>
+	{
+		self.pci_net_devices.values().map(|(ref pci_kernel_driver, ref _numa_node_fix)| pci_kernel_driver)
 	}
 }

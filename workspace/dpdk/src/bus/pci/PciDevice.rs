@@ -30,7 +30,7 @@ impl PciDevice
 	{
 		let file_path = self.device_file_or_folder_path(sys_path, "local_cpulist");
 		
-		let list = file_path.read_linux_core_or_numa_mask().expect("Could not parse local_cpulist");
+		let list = file_path.read_linux_core_or_numa_list().expect("Could not parse local_cpulist");
 		list.iter().map(|value| HyperThread::from(value)).collect()
 	}
 	
@@ -75,6 +75,15 @@ impl PciDevice
 		let file_path = self.device_file_or_folder_path(sys_path, "class");
 		let value = file_path.read_hexadecimal_value_with_prefix(6, |raw_string| u32::from_str_radix(raw_string, 16)).expect("Could not parse class");
 		(((value & 0xFF0000) >> 16) as u8, ((value & 0x00FF00) >> 8) as u8, (value & 0x0000FF) as u8)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn set_numa_node_swallowing_errors_as_this_is_brittle(&self, sys_path: &SysPath, numa_numa: u8)
+	{
+		// Strictly speaking, we should read a value of -1 first before attempting to set.
+		
+		let file_path = self.device_file_or_folder_path(sys_path, "numa_node");
+		file_path.write_value(numa_node);
 	}
 	
 	#[inline(always)]

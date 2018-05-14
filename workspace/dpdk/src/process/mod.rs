@@ -15,6 +15,7 @@ include!("EssentialKernelModule.rs");
 include!("EssentialKernelModulesToUnload.rs");
 include!("KernelCommandLineValidator.rs");
 include!("MasterLoop.rs");
+include!("MasterLoopConfiguration.rs");
 include!("PathConfiguration.rs");
 include!("PciNetDevicesConfiguration.rs");
 include!("ProcessType.rs");
