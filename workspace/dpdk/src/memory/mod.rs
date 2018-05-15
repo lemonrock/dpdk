@@ -14,6 +14,7 @@ include!("DpdkAllocatedMemory.rs");
 include!("FastMemoryCopy.rs");
 include!("FastMemoryCopyDestination.rs");
 include!("HugePageAllocationStrategy.rs");
+include!("HybridGlobalAllocator.rs");
 include!("KiloBytes.rs");
 include!("MegaBytes.rs");
 include!("Memory.rs");

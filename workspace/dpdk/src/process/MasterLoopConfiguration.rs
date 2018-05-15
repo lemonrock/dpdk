@@ -78,19 +78,15 @@ impl MasterLoopConfiguration
 	}
 	
 	#[inline(always)]
-	pub(crate) fn assign_interrupts_and_find_master_hyper_thread(&self, isolated_hyper_threads: &BTreeSet<HyperThread>) -> HyperThread
+	pub(crate) fn find_master_hyper_thread_and_tell_linux_to_use_shared_hyper_threads_for_all_needs(&self, isolated_hyper_threads: &BTreeSet<HyperThread>) -> HyperThread
 	{
 		let all_hyper_threads = HyperThread::online(self.sys_path());
 		let shared_hyper_threads: BTreeSet<HyperThread> =  all_hyper_threads.difference(isolated_hyper_threads).cloned().collect();
-		master_loop_configuration.force_all_interrupt_requests_to_just_these_hyper_threads(shared_hyper_threads);
+		self.proc_path().force_all_interrupt_requests_to_just_these_hyper_threads(shared_hyper_threads);
+		self.sys_path().set_work_queue_cpu_affinity(shared_hyper_threads);
+		self.proc_path().force_watchdog_to_just_these_hyper_threads(shared_hyper_threads);
 		let master_hyper_thread = shared_hyper_threads.iter().rev().next();
 		master_hyper_thread
-	}
-	
-	#[inline(always)]
-	pub(crate) fn force_all_interrupt_requests_to_just_these_hyper_threads(&self, shared_hyper_threads: &BTreeSet<HyperThread>)
-	{
-		self.proc_path().force_all_interrupt_requests_to_just_these_hyper_threads(shared_hyper_threads);
 	}
 	
 	#[inline(always)]
@@ -105,10 +101,7 @@ impl MasterLoopConfiguration
 		let huge_page_mount_settings = &self.dpdk_configuration.huge_page_mount_settings;
 		let huge_page_allocation_strategy = &self.dpdk_configuration.huge_page_allocation_strategy;
 		
-		{
-			const EnableHugeTransparentPages: bool = true;
-			adjust_transparent_huge_pages(EnableHugeTransparentPages);
-		}
+		self.disable_transparent_huge_pages();
 		
 		path_configuration.proc_path.filesystems().unwrap().verify_hugetlbfs_is_supported();
 		
@@ -127,7 +120,7 @@ impl MasterLoopConfiguration
 		(hugetlbfs_mount_path, memory_limits)
 	}
 	
-	#[cfg(any(target_os = "android", target_os = "linux"))]
+	#[cfg(target_os = "linux")]
 	#[inline(always)]
 	pub(crate) fn load_kernel_modules(&self) -> EssentialKernelModulesToUnload
 	{
@@ -221,7 +214,7 @@ impl MasterLoopConfiguration
 	#[inline(always)]
 	pub(crate) fn lock_down_security(&self)
 	{
-		#[cfg(any(target_os = "android", target_os = "linux"))]
+		#[cfg(target_os = "linux")]
 		{
 			use self::Capability::*;
 			
@@ -280,6 +273,16 @@ impl MasterLoopConfiguration
 	pub(crate) fn running_interactively(&self) -> bool
 	{
 		self.daemonize.is_none()
+	}
+	
+	#[inline(always)]
+	fn disable_transparent_huge_pages(&self)
+	{
+		self.sys_path().change_transparent_huge_pages_defragmentation(TransparentHugePageDefragmentation::never, 4096, 60_000, 10_000, 511, 64);
+		self.sys_path().change_transparent_huge_pages_usage(TransparentHugePageRegularMemoryChoice::never, TransparentHugePageSharedMemoryChoice::never, true);
+		
+		const EnableHugeTransparentPages: bool = false;
+		adjust_transparent_huge_pages(EnableHugeTransparentPages);
 	}
 	
 	#[inline(always)]

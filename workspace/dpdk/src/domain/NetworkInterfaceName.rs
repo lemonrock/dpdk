@@ -47,7 +47,7 @@ impl NetworkInterfaceName
 	
 	pub(crate) fn pci_device_address(&self) -> Result<Option<DpdkPciDeviceAddress>, DpdkPciDeviceAddressStringParseError>
 	{
-		#[cfg(any(target_os = "android", target_os = "linux"))]
+		#[cfg(target_os = "linux")]
 		{
 			if let Some(value) = PciBusInformation::raw_pci_bus_address_for_network_interface_index(self.one_based_index)
 			{

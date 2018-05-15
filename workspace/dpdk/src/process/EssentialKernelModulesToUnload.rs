@@ -24,7 +24,7 @@ impl EssentialKernelModulesToUnload
 	{
 		for module_name in self.0.iter().rev()
 		{
-			#[cfg(any(target_os = "android", target_os = "linux"))]
+			#[cfg(target_os = "linux")]
 			{
 				if LinuxKernelModulesList::unload_linux_kernel_module(module_name).is_err()
 				{

@@ -99,6 +99,62 @@ impl SysPath
 		path.write_value(1);
 	}
 	
+	/// Sets workqueue CPU affinity.
+	#[inline(always)]
+	pub fn set_work_queue_cpu_affinity(&self, hyper_threads: &BTreeSet<u16>)
+	{
+		let mask = ProcPath::hyper_threads_to_mask(hyper_threads);
+		
+		let mut path = self.path();
+		path.push("devices/virtual/workqueue/cpumask");
+		path.write_value(&mask);
+		
+		let mut path = self.path();
+		path.push("devices/virtual/workqueue/writeback/cpumask");
+		path.write_value(&mask);
+	}
+	
+	/// Changes Transparent Huge Pages (THP) settings.
+	///
+	/// The value of the `transparent_huge_page_regular_memory_choice` can also be specified in the Linux kernel command line parameters as one of "transparent_hugepage=never", "transparent_hugepage=always" or "transparent_hugepage=madvise".
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn change_transparent_huge_pages_usage(&self, transparent_huge_page_regular_memory_choice: TransparentHugePageRegularMemoryChoice, transparent_huge_page_shared_memory_choice: TransparentHugePageSharedMemoryChoice, use_zero_page: bool)
+	{
+		let use_zero_page_value = if use_zero_page
+		{
+			1
+		}
+		else
+		{
+			0
+		};
+		self.global_transparent_huge_memory_file_path("use_zero_page").write_value(use_zero_page_value);
+		
+		self.global_transparent_huge_memory_file_path("shmem_enabled").write_value(transparent_huge_page_shared_memory_choice.to_value());
+		
+		self.global_transparent_huge_memory_file_path("enabled").write_value(transparent_huge_page_regular_memory_choice.to_value());
+	}
+	
+	/// Changes defragmentation using the Kernel-internal `khugepaged` daemon thread for Transparent Huge Pages (THP).
+	///
+	/// * The kernel default for `pages_to_scan` is 4096.
+	/// * The kernel default for `scan_sleep_in_milliseconds` is 10_000.
+	/// * The kernel default for `alloc_sleep_millisecs` is 60_000.
+	/// * The kernel default for `how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages` is 511. Also known as `max_ptes_none`. A higher value leads to use additional memory for programs. A lower value produces less gains in performance. The value itself has very little effect on CPU usage.
+	/// * The kernel default for `how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages` is 64. Also known as `max_ptes_swap`. A higher value can cause excessive swap IO and waste memory. A lower value can prevent THPs from being collapsed, resulting in fewer pages being collapsed into THPs, and so lower memory access performance.
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn change_transparent_huge_pages_defragmentation(&self, transparent_huge_page_defragmentation_choice: TransparentHugePageDefragmentation, pages_to_scan: u16, scan_sleep_in_milliseconds: usize, allocation_sleep_in_milliseconds: usize, how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages: u16, how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages: u16)
+	{
+		self.khugepaged_file_path("pages_to_scan").write_value(pages_to_scan);
+		self.khugepaged_file_path("alloc_sleep_millisecs").write_value(scan_sleep_in_milliseconds);
+		self.khugepaged_file_path("scan_sleep_millisecs").write_value(allocation_sleep_in_milliseconds);
+		self.khugepaged_file_path("max_ptes_none").write_value(how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages);
+		self.khugepaged_file_path("max_ptes_swap").write_value(how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages);
+		self.khugepaged_file_path("defrag").write_value(transparent_huge_page_defragmentation_choice.defrag_value());
+		self.global_transparent_huge_memory_file_path("defrag").write_value(transparent_huge_page_defragmentation_choice.to_value());
+	}
+	
 	#[inline(always)]
 	pub(crate) fn read_global_hugepages_value(&self, huge_page_size: HugePageSize, file_name: &str) -> io::Result<u64>
 	{
@@ -168,6 +224,23 @@ impl SysPath
 	{
 		let mut path = self.path();
 		path.push("bus/pci/devices");
+		path
+	}
+	
+	#[inline(always)]
+	fn khugepaged_file_path(&self, file_name: &str) -> PathBuf
+	{
+		let mut path = self.global_transparent_huge_memory_file_path("khugepaged");
+		path.push(file_name);
+		path
+	}
+	
+	#[inline(always)]
+	fn global_transparent_huge_memory_file_path(&self, file_name: &str) -> PathBuf
+	{
+		let mut path = self.global_memory_folder_path();
+		path.push("transparent_hugepage");
+		path.push(file_name);
 		path
 	}
 	

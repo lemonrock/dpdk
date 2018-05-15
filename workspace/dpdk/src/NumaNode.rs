@@ -65,6 +65,44 @@ impl NumaNode
 	/// Maximum number of `NumaNode`s.
 	pub const Maximum: usize = RTE_MAX_NUMA_NODES;
 	
+	/// Reads the hyper thread and NUMA node of the currently executing CPU from the `IA32_TSC_AUX` model state register, which Linux populates.
+	///
+	/// Currently uses the `RDTSCP` instruction, but, once Ice Lake is widely available, could be changed to use the `RDPID` instruction.
+	#[cfg(target_os = "linux")]
+	#[inline(always)]
+	pub fn numa_node_and_hyper_thread() -> (NumaNode, HyperThread)
+	{
+		// The value of the timestamp register is stored into the `RDX` and `RAX` registers.
+		// The value of the hyper thread and NUMA node is stored into the `RCX` register.
+		// The top 32-bits of `RDX`, `RAX` and `RCX` are cleared (zero).
+		#[inline(always)]
+		unsafe fn rdtscp() -> u64
+		{
+			let _rax: u64;
+			let _rdx: u64;
+			let rcx: u64;
+			
+			asm!
+			(
+				"rdtscp"
+				:
+					"={rax}"(_rax), "={rdx}"(_rdx), "={rcx}"(rcx)
+				:
+				:
+				:
+					"volatile"
+			);
+			
+			rcx
+		}
+		let rcx = unsafe { rdtscp() };
+		
+		let numa_node = (rcx & 0x00000000_0FFFF000) >> 12;
+		let hyper_thread = rcx & 0x00000000_00000FFF;
+		
+		(NumaNode(numa_node as u8), HyperThread(hyper_thread as u16))
+	}
+	
 	/// Constructs from an `u32` value.
 	///
 	/// Panics if the value is out-of-range greater than or equal to `RTE_MAX_NUMA_NODES`).

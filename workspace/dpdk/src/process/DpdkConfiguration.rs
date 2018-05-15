@@ -75,15 +75,15 @@ pub struct DpdkConfiguration
 	/// DPDK also supports specifying either a regex or a pattern; this is not supported by `DpdkConfiguration` at this time.
 	pub syslog_priority: DpdkSyslogPriority,
 	
-	#[cfg(any(target_os = "android", target_os = "linux"))]
+	#[cfg(target_os = "linux")]
 	/// Can be changed from default (`None`).
 	pub base_virtual_address: Option<usize>,
 	
-	#[cfg(any(target_os = "android", target_os = "linux"))]
+	#[cfg(target_os = "linux")]
 	/// Can be changed from default (`None`).
 	pub virtual_function_io_interrupt_mode: Option<VirtualFunctionIoInterruptMode>,
 	
-	#[cfg(any(target_os = "android", target_os = "linux"))]
+	#[cfg(target_os = "linux")]
 	/// Can be changed from default (`true`).
 	pub create_uio_device_on_file_system_in_slash_dev: bool,
 }
@@ -116,9 +116,9 @@ impl Default for DpdkConfiguration
 			syslog_facility: Default::default(),
 			syslog_priority: Default::default(),
 			
-			#[cfg(any(target_os = "android", target_os = "linux"))] base_virtual_address: None,
-			#[cfg(any(target_os = "android", target_os = "linux"))] virtual_function_io_interrupt_mode: None,
-			#[cfg(any(target_os = "android", target_os = "linux"))] create_uio_device_on_file_system_in_slash_dev: true,
+			#[cfg(target_os = "linux")] base_virtual_address: None,
+			#[cfg(target_os = "linux")] virtual_function_io_interrupt_mode: None,
+			#[cfg(target_os = "linux")] create_uio_device_on_file_system_in_slash_dev: true,
 		}
 	}
 }
@@ -334,7 +334,7 @@ impl DpdkConfiguration
 	#[inline(always)]
 	fn initialize_dpdk_os_specific_settings(&self, arguments: &mut Arguments)
 	{
-		#[cfg(any(target_os = "android", target_os = "linux"))]
+		#[cfg(target_os = "linux")]
 		{
 			arguments.option_argument(Arguments::__create_uio_dev, self.create_uio_device_on_file_system_in_slash_dev);
 	

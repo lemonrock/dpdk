@@ -14,7 +14,7 @@ pub(crate) struct EssentialKernelModule
 
 impl EssentialKernelModule
 {
-	#[cfg(any(target_os = "android", target_os = "linux"))]
+	#[cfg(target_os = "linux")]
 	const Uio: Self = Self
 	{
 		module_name: "uio",
@@ -23,7 +23,7 @@ impl EssentialKernelModule
 		depends_on_uio: false,
 	};
 	
-	#[cfg(any(target_os = "android", target_os = "linux"))]
+	#[cfg(target_os = "linux")]
 	pub(crate) const IgbUio: Self = Self
 	{
 		module_name: "igb_uio",
@@ -32,7 +32,7 @@ impl EssentialKernelModule
 		depends_on_uio: true,
 	};
 	
-	#[cfg(any(target_os = "android", target_os = "linux"))]
+	#[cfg(target_os = "linux")]
 	pub(crate) const UioPciGeneric: Self = Self
 	{
 		module_name: "uio_pci_generic",
@@ -41,7 +41,7 @@ impl EssentialKernelModule
 		depends_on_uio: true,
 	};
 	
-	#[cfg(any(target_os = "android", target_os = "linux"))]
+	#[cfg(target_os = "linux")]
 	pub(crate) const RteKni: Self = Self
 	{
 		module_name: "rte_kni",
@@ -50,7 +50,7 @@ impl EssentialKernelModule
 		depends_on_uio: false,
 	};
 	
-	#[cfg(any(target_os = "android", target_os = "linux"))]
+	#[cfg(target_os = "linux")]
 	pub(crate) const VfioPci: Self = Self
 	{
 		module_name: "vfio-pci",
@@ -59,7 +59,7 @@ impl EssentialKernelModule
 		depends_on_uio: false,
 	};
 	
-	#[cfg(any(target_os = "android", target_os = "linux"))]
+	#[cfg(target_os = "linux")]
 	pub(crate) fn load_if_necesary(&self, modules_loaded: &mut LinuxKernelModulesList, dpdk_provided_kernel_modules_path: &Path, essential_kernel_modules_to_unload: &mut EssentialKernelModulesToUnload, dev_path: &Path)
 	{
 		if self.depends_on_uio
@@ -97,7 +97,7 @@ impl EssentialKernelModule
 		}
 	}
 	
-	#[cfg(any(target_os = "android", target_os = "linux"))]
+	#[cfg(target_os = "linux")]
 	#[inline(always)]
 	fn guard_vfio_pci_settings_are_correct(dev_path: &Path)
 	{
@@ -108,7 +108,7 @@ impl EssentialKernelModule
 		// Additionally, the BIOS/EFI and kernel must have IO virtualization enabled, eg Intel VT-d.
 	}
 	
-	#[cfg(any(target_os = "android", target_os = "linux"))]
+	#[cfg(target_os = "linux")]
 	#[inline(always)]
 	fn guard_vfio_pci_memlock_resource_limit_is_correct()
 	{
@@ -121,7 +121,7 @@ impl EssentialKernelModule
 		}
 	}
 	
-	#[cfg(any(target_os = "android", target_os = "linux"))]
+	#[cfg(target_os = "linux")]
 	#[inline(always)]
 	fn guard_vfio_pci_device_is_accessible(dev_path: &Path)
 	{

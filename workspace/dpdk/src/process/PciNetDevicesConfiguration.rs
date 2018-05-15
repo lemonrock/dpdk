@@ -25,12 +25,12 @@ impl PciNetDeviceConfiguration
 		{
 			match pci_kernel_driver
 			{
-				#[cfg(any(target_os = "android", target_os = "linux"))] IgbUio =>
+				#[cfg(target_os = "linux")] IgbUio =>
 				{
 					uses_ugb_uio = true
 				}
 				
-				#[cfg(any(target_os = "android", target_os = "linux"))] VfioPci =>
+				#[cfg(target_os = "linux")] VfioPci =>
 				{
 					uses_pci_vfio = true
 				}

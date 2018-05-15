@@ -8,9 +8,9 @@
 #[derive(Serialize, Deserialize)]
 pub enum PciKernelDriver
 {
-	#[cfg(any(target_os = "android", target_os = "linux"))] IgbUio,
-	#[cfg(any(target_os = "android", target_os = "linux"))] UioPciGeneric,
-	#[cfg(any(target_os = "android", target_os = "linux"))] VfioPci,
+	#[cfg(target_os = "linux")] IgbUio,
+	#[cfg(target_os = "linux")] UioPciGeneric,
+	#[cfg(target_os = "linux")] VfioPci,
 }
 
 impl PciKernelDriver
@@ -22,9 +22,9 @@ impl PciKernelDriver
 		
 		match *self
 		{
-			#[cfg(any(target_os = "android", target_os = "linux"))] IgbUio => EssentialKernelModule::IgbUio,
-			#[cfg(any(target_os = "android", target_os = "linux"))] UioPciGeneric => EssentialKernelModule::UioPciGeneric,
-			#[cfg(any(target_os = "android", target_os = "linux"))] VfioPci => EssentialKernelModule::VfioPci,
+			#[cfg(target_os = "linux")] IgbUio => EssentialKernelModule::IgbUio,
+			#[cfg(target_os = "linux")] UioPciGeneric => EssentialKernelModule::UioPciGeneric,
+			#[cfg(target_os = "linux")] VfioPci => EssentialKernelModule::VfioPci,
 		}
 	}
 	

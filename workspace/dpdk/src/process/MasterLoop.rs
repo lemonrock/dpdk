@@ -29,11 +29,21 @@ pub struct MasterLoop
 	// More than one reserved CPU (or pair of hyper-threads for the same CPU) per NUMA node?
 	// default_smp_affinity != irqaffinity on kernel command line?
 // TODO: How does memory binding work with numactl --cpunodebind=0 --membind=0 simulation.x ?? we want to do that ??
+	// numa_set_bind_policy
+	// numa_set_membind() - memory allocation only from these nodes.
+	// Or numa_set_localalloc() - memory policy is local NUMA node.
 	// and do we need if using DPDK?
+		// DPDK uses: numa_set_preferred() when we use its internal malloc_alloc_socket() call.
 
-// See: https://community.mellanox.com/docs/DOC-2489
+// TODO: Do we always want to set the socket-memory ?
+	// perhaps we want it uncapped; perhaps we don;t always want to garbage collect, etc
 
-// ?/sys/devices/virtual/workqueue/cpumask ?
+// TODO: Override the default Rust allocator or malloc in musl, see:-
+	// https://github.com/rust-lang/rust/issues/27389 (last few comments) and https://github.com/rust-lang/rust/pull/42727
+	// https://git.musl-libc.org/cgit/musl/commit/?id=c9f415d7ea2dace5bf77f6518b6afc36bb7a5732 (how malloc overriding works)
+	// Can this be done before DPDK starts? Can it be done using statically linked binary? How would we handle allocations made prior to switching out malloc?
+
+// TODO: Mellanox Performance Tuning: https://community.mellanox.com/docs/DOC-2489
 
 impl MasterLoop
 {
@@ -86,7 +96,7 @@ impl MasterLoop
 		
 		let isolated_hyper_threads = master_loop_configuration.validate_kernel_command_line_and_return_isolated_hyper_threads(&cpu_features);
 		
-		let master_hyper_thread = master_loop_configuration.assign_interrupts_and_find_master_hyper_thread(&isolated_hyper_threads);
+		let master_hyper_thread = master_loop_configuration.find_master_hyper_thread_and_tell_linux_to_use_shared_hyper_threads_for_all_needs(&isolated_hyper_threads);
 		
 		master_loop_configuration.set_maximum_resource_limits();
 		

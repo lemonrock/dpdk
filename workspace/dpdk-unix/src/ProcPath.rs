@@ -104,8 +104,6 @@ impl ProcPath
 	#[cfg(any(target_os = "android", target_os = "linux"))]
 	pub fn read_interrupt_request_to_hyper_threads_affinity(&self, interrupt_request: u16) -> Result<BTreeSet<u16>, io::Error>
 	{
-		// There are also affinity_hint [seems to be for irqbalance daemon to then use to adjust] and spurious files! and /proc/interrupt_request/0/node
-		
 		self.file_path(&format!("irq/{}/smp_affinity_list", interrupt_request)).read_linux_core_or_numa_list()
 	}
 	
@@ -137,15 +135,7 @@ impl ProcPath
 	#[cfg(any(target_os = "android", target_os = "linux"))]
 	pub fn force_all_interrupt_requests_to_just_these_hyper_threads(&self, hyper_threads: &BTreeSet<u16>)
 	{
-		// TODO: u16 to mask.
-		
-		let mut mask: u32 = 0;
-		for hyper_thread in hyper_threads.iter()
-		{
-			let bit = (1 << hyper_thread) as u32;
-			mask |= bit;
-		}
-		let mask = format!("{:08x}", mask);
+		let mask = Self::hyper_threads_to_mask(hyper_threads);
 		
 		self.file_path("irq/default_smp_affinity").write_value(&mask);
 		
@@ -157,6 +147,38 @@ impl ProcPath
 				self.file_path(&format!("irq/{}/affinity_hint", interrupt_request)).write_value(&mask);
 			}
 		}
+	}
+	
+	/// We ignore failures as the `/proc` for this is brittle.
+	///
+	/// Should not be needed if `nohz_full` was specified on the Linux command line.
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn force_watchdog_to_just_these_hyper_threads(&self, hyper_threads: &BTreeSet<u16>)
+	{
+		let mut list = String::with_capacity(hyper_threads.len() * 4);
+		for hyper_thread in hyper_threads.iter()
+		{
+			if !list.is_empty()
+			{
+				list.push(',');
+			}
+			list.push_str(&format!("{}", hyper_thread))
+		}
+		
+		self.file_path("sys/kernel/watchdog_cpumask").write_value(&list);
+	}
+	
+	#[inline(always)]
+	pub(crate) fn hyper_threads_to_mask(hyper_threads: &BTreeSet<u16>) -> String
+	{
+		let mut mask: u32 = 0;
+		for hyper_thread in hyper_threads.iter()
+		{
+			let bit = (1 << hyper_thread) as u32;
+			mask |= bit;
+		}
+		format!("{:08x}", mask)
 	}
 	
 	/// Only execute this afte any kernel modules have loaded.

@@ -26,3 +26,6 @@ pub mod resource_limits;
 
 
 include!("LinuxKernelCommandLineParameters.rs");
+include!("TransparentHugePageDefragmentationChoice.rs");
+include!("TransparentHugePageRegularMemoryChoice.rs");
+include!("TransparentHugePageSharedMemoryChoice.rs");
