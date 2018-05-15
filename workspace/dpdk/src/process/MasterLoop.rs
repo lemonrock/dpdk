@@ -28,20 +28,17 @@ pub struct MasterLoop
 // TODO: Bitch about:-
 	// More than one reserved CPU (or pair of hyper-threads for the same CPU) per NUMA node?
 	// default_smp_affinity != irqaffinity on kernel command line?
-// TODO: How does memory binding work with numactl --cpunodebind=0 --membind=0 simulation.x ?? we want to do that ??
-	// numa_set_bind_policy
-	// numa_set_membind() - memory allocation only from these nodes.
-	// Or numa_set_localalloc() - memory policy is local NUMA node.
-	// and do we need if using DPDK?
-		// DPDK uses: numa_set_preferred() when we use its internal malloc_alloc_socket() call.
 
 // TODO: Do we always want to set the socket-memory ?
 	// perhaps we want it uncapped; perhaps we don;t always want to garbage collect, etc
 
-// TODO: Override the default Rust allocator or malloc in musl, see:-
-	// https://github.com/rust-lang/rust/issues/27389 (last few comments) and https://github.com/rust-lang/rust/pull/42727
-	// https://git.musl-libc.org/cgit/musl/commit/?id=c9f415d7ea2dace5bf77f6518b6afc36bb7a5732 (how malloc overriding works)
-	// Can this be done before DPDK starts? Can it be done using statically linked binary? How would we handle allocations made prior to switching out malloc?
+// TODO: Do we want to use libc's malloc and friends (eg aligned_alloc) for HybridGlobalAllocator
+	// - we need a way to track whose memory is whose.
+	// - we can use unsafe { rte_malloc_validate(pointer, null() } == -1  to detect non-DPDK memory, as the cost of making realloc / free more expensive than current.
+	// musl doesn't seem to provide a way to detect if memory was allocated by it.
+	// We could use increased allocations by abusing size / alignment
+		// eg if asked to allocate 256 bytes, 16 byte aligned we allocate 272 bytes, reserving 16 bytes for ourselves.
+		// eg we could use jemalloc.
 
 // TODO: Mellanox Performance Tuning: https://community.mellanox.com/docs/DOC-2489
 
@@ -53,6 +50,8 @@ impl MasterLoop
 	///
 	/// If running interactively `SIGINT` and `SIGQUIT` are intercepted and will be re-raised if caught so that any parent shell can behave correctly.
 	///
+	/// The `hybrid_global_allocator` should be declared globally in `main.rs` as `#[global_allocator] static ALLOCATOR: HybridGlobalAllocator = HybridGlobalAllocator::new();`
+	///
 	/// Notes:-
 	///
 	/// * The daemon `irqbalance` should not really be run when this program is running. It isn't incompatible per se, but it isn't useful.
@@ -60,12 +59,12 @@ impl MasterLoop
 	/// * If running causes Linux Kernel modules to load, these are **not** unloaded at process exit as we no longer have the permissions to do so,
 	/// * Likewise, if we mount `hugeltbfs` it is not unmounted (and, if we created its mount point folder, this is not deleted) at process exit.
 	#[inline(always)]
-	pub fn execute(&self, master_loop_configuration: &MasterLoopConfiguration)
+	pub fn execute(&self, master_loop_configuration: &MasterLoopConfiguration, hybrid_global_allocator: &HybridGlobalAllocator)
 	{
 		let reraise_signal = if let Some(daemonize) = daemonize
 		{
 			let daemonize_clean_up_on_exit = daemonize.daemonize();
-			let success_or_failure = catch_unwind(|| self.execute_after_daemonizing(master_loop_configuration));
+			let success_or_failure = catch_unwind(|| self.execute_after_daemonizing(master_loop_configuration, hybrid_global_allocator));
 			daemonize_clean_up_on_exit.clean_up();
 			
 			match success_or_failure
@@ -76,7 +75,7 @@ impl MasterLoop
 		}
 		else
 		{
-			self.execute_after_daemonizing(master_loop_configuration)
+			self.execute_after_daemonizing(master_loop_configuration, hybrid_global_allocator)
 		};
 		
 		if let Some(reraise_signal_number) = reraise_signal
@@ -86,7 +85,7 @@ impl MasterLoop
 	}
 	
 	#[inline(always)]
-	fn execute_after_daemonizing(&self, master_loop_configuration: &MasterLoopConfiguration) -> Option<SignalNumber>
+	fn execute_after_daemonizing(&self, master_loop_configuration: &MasterLoopConfiguration, hybrid_global_allocator: &HybridGlobalAllocator) -> Option<SignalNumber>
 	{
 		master_loop_configuration.load_kernel_modules();
 		
@@ -104,7 +103,7 @@ impl MasterLoop
 		
 		let pci_devices_and_original_driver_names = master_loop_configuration.pci_devices_and_original_driver_names();
 		
-		let success_or_failure = catch_unwind(|| self.execute_after_pci_devices_bound_to_drivers(master_loop_configuration, &pci_devices_and_original_driver_names, hugetlbfs_mount_path, memory_limits, master_hyper_thread, &isolated_hyper_threads));
+		let success_or_failure = catch_unwind(|| self.execute_after_pci_devices_bound_to_drivers(master_loop_configuration, hybrid_global_allocator, &pci_devices_and_original_driver_names, hugetlbfs_mount_path, memory_limits, master_hyper_thread, &isolated_hyper_threads));
 		
 		PciNetDevicesConfiguration::release_all_from_use_with_dpdk(&master_loop_configuration.path_configuration.sys_path, pci_devices_and_original_driver_names);
 		
@@ -116,15 +115,16 @@ impl MasterLoop
 	}
 	
 	#[inline(always)]
-	fn execute_after_pci_devices_bound_to_drivers(&self, master_loop_configuration: &MasterLoopConfiguration, pci_devices: &HashMap<PciDevice, Option<String>>, hugetlbfs_mount_path: PathBuf, memory_limits: MachineOrNumaNodes<MegaBytes>, master_logical_core: HyperThread, remaining_logical_cores: &BTreeSet<HyperThread>)
+	fn execute_after_pci_devices_bound_to_drivers(&self, master_loop_configuration: &MasterLoopConfiguration, hybrid_global_allocator: &HybridGlobalAllocator, pci_devices: &HashMap<PciDevice, Option<String>>, hugetlbfs_mount_path: PathBuf, memory_limits: MachineOrNumaNodes<MegaBytes>, master_logical_core: HyperThread, remaining_logical_cores: &BTreeSet<HyperThread>)
 	{
 		MasterLoopConfiguration::block_all_signals_before_initializing_dpdk_so_that_slave_logical_cores_do_not_handle_signals();
 		
-		master_loop_configuration.initialize_dpdk(pci_devices, &hugetlbfs_mount_path, memory_limits, master_logical_core, remaining_logical_cores);
+		master_loop_configuration.initialize_dpdk(hybrid_global_allocator, pci_devices, &hugetlbfs_mount_path, memory_limits, master_logical_core, remaining_logical_cores);
 		
 		let success_or_failure = catch_unwind(|| self.execute_after_dpdk_initialized(master_loop_configuration));
 		
 		DpdkConfiguration::dpdk_clean_up();
+		hybrid_global_allocator.dpdk_was_cleaned_up();
 		
 		match success_or_failure
 		{
@@ -136,8 +136,6 @@ impl MasterLoop
 	#[inline(always)]
 	fn execute_after_dpdk_initialized(&self, master_loop_configuration: &MasterLoopConfiguration) -> Option<SignalNumber>
 	{
-		master_loop_configuration.enable_dpdk_timer_logic();
-		
 		master_loop_configuration.lock_down_security();
 		
 		let logical_core_power_managers = master_loop_configuration.logical_core_power_to_maximum();

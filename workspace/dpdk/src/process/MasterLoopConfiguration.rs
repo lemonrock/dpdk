@@ -162,14 +162,12 @@ impl MasterLoopConfiguration
 	}
 	
 	#[inline(always)]
-	pub(crate) fn initialize_dpdk<V>(&self, pci_devices: &HashMap<PciDevice, V>, hugetlbfs_mount_path: &Path, memory_limits: MachineOrNumaNodes<MegaBytes>, master_logical_core: HyperThread, remaining_logical_cores: &BTreeSet<HyperThread>)
+	pub(crate) fn initialize_dpdk<V>(&self, hybrid_global_allocator: &HybridGlobalAllocator, pci_devices: &HashMap<PciDevice, V>, hugetlbfs_mount_path: &Path, memory_limits: MachineOrNumaNodes<MegaBytes>, master_logical_core: HyperThread, remaining_logical_cores: &BTreeSet<HyperThread>)
 	{
 		self.dpdk_configuration.initialize_dpdk(pci_devices, &hugetlbfs_mount_path, memory_limits, master_logical_core, remaining_logical_cores);
-	}
-	
-	#[inline(always)]
-	pub(crate) fn enable_dpdk_timer_logic(&self)
-	{
+		
+		hybrid_global_allocator.dpdk_is_now_configured();
+		
 		self.dpdk_configuration.enable_high_precision_event_timer_after_dpdk_initialized_if_configured();
 		
 		fn initialize_dpdk_timer_subsystem()
