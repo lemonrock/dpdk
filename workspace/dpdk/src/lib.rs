@@ -3,8 +3,8 @@
 
 
 #![allow(non_upper_case_globals)]
-#![deny(missing_docs)]
 #![cfg_attr(any(all(target_os = "linux", any(target_arch = "aarch64", target_arch = "arm", target_arch = "powerpc64", target_arch = "x86_64")), all(target_os = "freebsd", target_arch = "x86_64")), feature(allocator_api, asm, const_fn, i128_type, integer_atomics, never_type, repr128, stmt_expr_attributes))]
+#![deny(missing_docs)]
 
 
 //! #dpdk

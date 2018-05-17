@@ -67,14 +67,6 @@ pub struct DpdkConfiguration
 	/// Can be changed from default (`false`).
 	pub use_vmware_tsc_map_instead_of_native_rdtsc: bool,
 	
-	/// Defaults to `auth`.
-	pub syslog_facility: DpdkSyslogFacility,
-	
-	/// Defaults to `debug` for debug builds and `warning` for production builds.
-	///
-	/// DPDK also supports specifying either a regex or a pattern; this is not supported by `DpdkConfiguration` at this time.
-	pub syslog_priority: DpdkSyslogPriority,
-	
 	#[cfg(target_os = "linux")]
 	/// Can be changed from default (`None`).
 	pub base_virtual_address: Option<usize>,
@@ -112,9 +104,6 @@ impl Default for DpdkConfiguration
 			use_high_precision_event_timer: true,
 			use_shared_configuration_memory_map: false,
 			use_vmware_tsc_map_instead_of_native_rdtsc: false,
-			
-			syslog_facility: Default::default(),
-			syslog_priority: Default::default(),
 			
 			#[cfg(target_os = "linux")] base_virtual_address: None,
 			#[cfg(target_os = "linux")] virtual_function_io_interrupt_mode: None,
@@ -154,7 +143,7 @@ impl DpdkConfiguration
 	///
 	/// Panics if this fails.
 	#[inline(always)]
-	pub fn initialize_dpdk<V>(&self, pci_devices: &HashMap<PciDevice, V>, hugetlbfs_mount_path: &Path, memory_limits: MachineOrNumaNodes<MegaBytes>, master_logical_core: HyperThread, remaining_logical_cores: &BTreeSet<HyperThread>)
+	pub fn initialize_dpdk<V>(&self, logging_configuration: &LoggingConfiguration, pci_devices: &HashMap<PciDevice, V>, hugetlbfs_mount_path: &Path, memory_limits: MachineOrNumaNodes<MegaBytes>, master_logical_core: HyperThread, remaining_logical_cores: &BTreeSet<HyperThread>)
 	{
 		let arguments = Arguments::new();
 
@@ -166,7 +155,7 @@ impl DpdkConfiguration
 		self.initialize_dpdk_huge_page_settings(&arguments, hugetlbfs_mount_path);
 		self.initialize_dpdk_memory_rank_and_memory_channel_settings(&arguments);
 		self.initialize_dpdk_optional_settings(&arguments, pci_devices);
-		self.initialize_dpdk_log_settings(&arguments);
+		self.initialize_dpdk_log_settings(&arguments, logging_configuration);
 		self.initialize_dpdk_os_specific_settings(&arguments);
 
 		Self::call_rte_eal_init(arguments)
@@ -325,10 +314,10 @@ impl DpdkConfiguration
 	}
 	
 	#[inline(always)]
-	fn initialize_dpdk_log_settings(&self, argument: &mut Arguments)
+	fn initialize_dpdk_log_settings(&self, argument: &mut Arguments, logging_configuration: &LoggingConfiguration)
 	{
-		arguments.constant_argument(Arguments::__syslog, self.syslog_facility.as_initialisation_argument());
-		arguments.constant_argument(Arguments::__log_level, self.syslog_priority.as_initialisation_argument());
+		arguments.constant_argument(Arguments::__syslog, logging_configuration.syslog_facility.as_initialisation_argument());
+		arguments.constant_argument(Arguments::__log_level, logging_configuration.syslog_priority.as_initialisation_argument());
 	}
 
 	#[inline(always)]

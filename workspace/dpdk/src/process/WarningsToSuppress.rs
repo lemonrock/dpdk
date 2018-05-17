@@ -10,8 +10,9 @@ pub struct WarningsToSuppress
 {
 	/// Missing CPU features whose warnings should be supressed.
 	///
-	/// Current names are:-
+	/// Current names (and typical warning messages) are:-
 	///
+	/// * `spectre_v2_google`: "Kernel has `spectre_v2=retpoline,google`; this is probably not the best choice".
 	/// * `has_rep_movsb_stosb`: "Your CPU does not support the REP MOVSB and REP STOSB instructions, which are optimal for some memory moves and copies".
 	/// * `has_prefetchw`: "Your CPU does not support the PRETFCHW instruction, which is optimal for some memory moves and copies".
 	/// * `has_ss`: "Your CPU does not support self-snoop of the cache (which nearly all should), which is important for efficient cache mamangement in this application".
@@ -22,7 +23,7 @@ pub struct WarningsToSuppress
 	
 	/// Missing Kernel features whose warnings should be supressed.
 	///
-	/// Current names are:-
+	/// Current names (and typical warning messages) are:-
 	///
 	/// * `hashdist`: Warnings about `hashdist=0`.
 	/// * `noaliencache`: "Kernel has `noaliencache` enabled; this is likely to hurt performance".
@@ -48,7 +49,7 @@ impl WarningsToSuppress
 			return
 		}
 		
-		warn!("{}", message)
+		LoggingConfiguration::warn(name, format!("{}", message))
 	}
 	
 	#[inline(always)]
@@ -64,7 +65,7 @@ impl WarningsToSuppress
 			return
 		}
 		
-		warn!("{}", message)
+		LoggingConfiguration::warn(name, format!("{}", message))
 	}
 	
 	#[inline(always)]
@@ -75,7 +76,7 @@ impl WarningsToSuppress
 			return
 		}
 		
-		warn!("{}", message)
+		LoggingConfiguration::warn(name, format!("{}", message))
 	}
 	
 	// Development on Mac Pro `trash cans` at this time assumes at least Intel Ivy Bridge CPUs.

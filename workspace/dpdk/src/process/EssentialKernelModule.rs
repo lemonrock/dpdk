@@ -93,19 +93,8 @@ impl EssentialKernelModule
 		
 		if self == &Self::VfioPci
 		{
-			Self::guard_vfio_pci_settings_are_correct(dev_path);
+			Self::guard_vfio_pci_memlock_resource_limit_is_correct(dev_path);
 		}
-	}
-	
-	#[cfg(target_os = "linux")]
-	#[inline(always)]
-	fn guard_vfio_pci_settings_are_correct(dev_path: &Path)
-	{
-		Self::guard_vfio_pci_memlock_resource_limit_is_correct();
-		
-		Self::guard_vfio_pci_device_is_accessible(dev_path);
-		
-		// Additionally, the BIOS/EFI and kernel must have IO virtualization enabled, eg Intel VT-d.
 	}
 	
 	#[cfg(target_os = "linux")]
@@ -117,56 +106,7 @@ impl EssentialKernelModule
 		let limits = ResourceName::MaximumNumberOfBytesThatProcessCanMemLock.get();
 		if limits.hard_limit().value() < _64MegaBytesInKiloBytes
 		{
-			warn!("MemLock is limited to less than 64Mb; VFIO may not be able to initialize (check `ulimit -l`)");
-		}
-	}
-	
-	#[cfg(target_os = "linux")]
-	#[inline(always)]
-	fn guard_vfio_pci_device_is_accessible(dev_path: &Path)
-	{
-		let mut dev_vfio_path = PathBuf::from(dev_path);
-		dev_vfio_path.push("vfio");
-		
-		match dev_vfio_path.make_folder_searchable_to_all()
-		{
-			Err(error) => warn!("Could not change permissions on '{:?}' because '{}'", dev_vfio_path, error),
-			Ok(_) => (),
-		};
-		
-		let mut dev_vfio_vfio_path = PathBuf::from(dev_vfio_path);
-		dev_vfio_vfio_path.push("vfio");
-		
-		if !dev_vfio_vfio_path.exists()
-		{
-			panic!("Path '{:?}' does not exist", dev_vfio_vfio_path);
-		}
-		
-		match read_dir(&dev_vfio_vfio_path)
-		{
-			Err(_) => panic!("Could not read directory entries for {:?}!", dev_vfio_vfio_path),
-			
-			Ok(read_directory) =>
-			{
-				for entry in read_directory
-				{
-					match entry
-					{
-						Err(error) => panic!("Could not access directory entry for '{:?}' because '{}'", &dev_vfio_vfio_path, error),
-						
-						Ok(entry) =>
-						{
-							let path = &entry.path();
-							match path.make_file_read_write_all()
-							{
-								Err(error) => panic!("Could not change permissions on '{:?}' because '{}'", path, error),
-								
-								Ok(_) => (),
-							}
-						},
-					};
-				}
-			}
+			panic!("MemLock is limited to less than 64Mb; VFIO will not be able to initialize (check `ulimit -l`)");
 		}
 	}
 }

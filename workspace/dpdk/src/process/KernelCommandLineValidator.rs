@@ -16,7 +16,7 @@ impl KernelCommandLineValidator
 		kernel_command_line_validator.validate_dpdk_pci_drivers(uses_igb_uio, uses_vfio_pci);
 		let isolated_hyper_threads = kernel_command_line_validator.validate_cpus();
 		kernel_command_line_validator.validate_huge_page_sizes(cpu_features.has_1gb_huge_pages);
-		kernel_command_line_validator.panic_on_incompatible_settings(cpu_features.has_1gb_huge_pages);
+		kernel_command_line_validator.panic_on_incompatible_settings(cpu_features.has_1gb_huge_pages, warnings_to_suppress);
 		kernel_command_line_validator.warnings(warnings_to_suppress);
 		
 		isolated_hyper_threads
@@ -145,7 +145,7 @@ impl KernelCommandLineValidator
 	}
 	
 	#[inline(always)]
-	fn panic_on_incompatible_settings(&self, cpu_supports_1gb_pages: bool)
+	fn panic_on_incompatible_settings(&self, cpu_supports_1gb_pages: bool, warnings_to_suppress: &WarningsToSuppress)
 	{
 		if self.0.norandmaps()
 		{
@@ -215,7 +215,7 @@ impl KernelCommandLineValidator
 				{
 					"on" | "auto" | "retpoline" | "retpoline,amd" => (),
 					
-					"retpoline,google" => warn!("Kernel has `spectre_v2=retpoline,google`; this is probably not the best choice"),
+					"retpoline,google" => warnings_to_suppress.kernel_warn_without_check("spectre_v2_google", "Kernel has `spectre_v2=retpoline,google`; this is probably not the best choice"),
 					
 					"off" => panic!("Kernel spectre_v2 mitigation has been disabled; this is wrong and also useless, as DPDK-based applications make very few syscalls"),
 					

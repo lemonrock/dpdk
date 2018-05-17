@@ -17,11 +17,18 @@ impl ShouldFunctionTerminate
 {
 	const Sleepiness: Duration = Duration::from_millis(10);
 	
+	/// New instance.
+	#[inline(always)]
+	pub fn new() -> Arc<ShouldFunctionTerminate>
+	{
+		Arc::new(ShouldFunctionTerminate(AtomicBool::new(false)))
+	}
+	
 	/// Should we terminate?
 	#[inline(always)]
 	pub fn should_terminate(&self) -> bool
 	{
-		self.0.load(Ordering::Relaxed)
+		self.0.load(Relaxed)
 	}
 	
 	/// Should we continue?
@@ -39,10 +46,12 @@ impl ShouldFunctionTerminate
 		self.should_terminate()
 	}
 	
-	/// New instance.
+	/// A thread-like function panicked; terminate.
 	#[inline(always)]
-	pub fn new() -> Arc<ShouldFunctionTerminate>
+	pub fn we_panicked(&self, payload: &(Any + 'static + Send))
 	{
-		Arc::new(ShouldFunctionTerminate(AtomicBool::new(false)))
+		LoggingConfiguration::caught_unwind(payload);
+		
+		self.0.store(SeqCst)
 	}
 }

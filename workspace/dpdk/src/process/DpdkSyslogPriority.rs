@@ -8,16 +8,17 @@
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Serialize, Deserialize)]
 #[allow(missing_docs)]
+#[repr(i32)]
 pub enum DpdkSyslogPriority
 {
-	emergency,
-	alert,
-	critical,
-	error,
-	warning,
-	notice,
-	info,
-	debug,
+	emergency = LOG_EMERG,
+	alert = LOG_ALERT,
+	critical = LOG_CRIT,
+	error = LOG_ERR,
+	warning = LOG_WARNING,
+	notice = LOG_NOTICE,
+	info = LOG_INFO,
+	debug = LOG_DEBUG,
 }
 
 impl Default for DpdkSyslogPriority
@@ -56,5 +57,11 @@ impl DpdkSyslogPriority
 			info => const_cstr!("info"),
 			debug => const_cstr!("debug"),
 		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn log_upto(self) -> i32
+	{
+		(1 << ((self as i32) + 1)) - 1
 	}
 }

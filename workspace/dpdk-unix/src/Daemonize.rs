@@ -230,25 +230,25 @@ impl Daemonize
 		#[cfg(target_os = "linux")]
 		{
 			#[inline(always)]
-			fn write_to_syslog(priority: c_int, facility: c_int, data: *const c_char, length: size_t) -> ssize_t
+			fn write_to_syslog(priority: c_int, data: *const c_char, length: size_t) -> ssize_t
 			{
 				const_cstr!
 				{
 					SyslogFormat = "%s:%s";
 				}
 				
-				unsafe { syslog(priority | facility, SyslogFormat.as_ptr(), length, program_invocation_short_name, data) };
+				unsafe { syslog(priority, SyslogFormat.as_ptr(), length, program_invocation_short_name, data) };
 				length as ssize_t
 			}
 			
 			unsafe extern "C" fn write_standard_out_to_syslog(_cookie: *mut c_void, data: *const c_char, length: size_t) -> ssize_t
 			{
-				write_to_syslog(LOG_NOTICE, LOG_DAEMON, data, length)
+				write_to_syslog(LOG_NOTICE, data, length)
 			}
 			
 			unsafe extern "C" fn write_standard_error_to_syslog(_cookie: *mut c_void, data: *const c_char, length: size_t) -> ssize_t
 			{
-				write_to_syslog(LOG_ERR, LOG_DAEMON, data, length)
+				write_to_syslog(LOG_ERR, data, length)
 			}
 			
 			#[inline(always)]

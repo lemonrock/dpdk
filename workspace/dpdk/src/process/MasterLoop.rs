@@ -2,6 +2,89 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// A wrapper type to catch panics and ensure termination.
+#[derive(Debug)]
+pub struct PanicCatchingSlaveLogicalCoreFunction
+{
+	function_which_can_panic: ServiceFunction,
+	should_function_terminate: Arc<ShouldFunctionTerminate>,
+}
+
+impl SlaveLogicalCoreFunction for PanicCatchingSlaveLogicalCoreFunction
+{
+	#[inline(always)]
+	fn execute(&mut self)
+	{
+		let can_panic = &mut self.function_which_can_panic;
+		let success_or_failure = catch_unwind(AssertUnwindSafe(|| can_panic.execute()));
+		
+		if let Err(panicked_with) = success_or_failure
+		{
+			self.should_function_terminate.we_panicked(panicked_with.as_ref())
+		}
+	}
+}
+
+impl PanicCatchingSlaveLogicalCoreFunction
+{
+	/// Creates a new instance.
+	#[inline(always)]
+	pub fn new(function_which_can_panic: ServiceFunction, should_function_terminate: &Arc<ShouldFunctionTerminate>) -> Self
+	{
+		Self
+		{
+			function_which_can_panic,
+			should_function_terminate: should_function_terminate.clone(),
+		}
+	}
+}
+
+/// A wrapper type to catch panics and ensure termination.
+#[derive(Debug)]
+pub struct PanicCatchingServiceFunction
+{
+	function_which_can_panic: ServiceFunction,
+	should_function_terminate: Arc<ShouldFunctionTerminate>,
+	panicked: bool,
+}
+
+impl ServiceFunction for PanicCatchingServiceFunction
+{
+	#[inline(always)]
+	fn execute(&mut self)
+	{
+		if unlikely(self.panicked)
+		{
+			return
+		}
+		
+		let can_panic = &mut self.function_which_can_panic;
+		let success_or_failure = catch_unwind(AssertUnwindSafe(|| can_panic.execute()));
+		
+		if let Err(panicked_with) = success_or_failure
+		{
+			self.should_function_terminate.we_panicked(panicked_with.as_ref())
+		}
+	}
+}
+
+impl PanicCatchingServiceFunction
+{
+	/// Creates a new instance.
+	#[inline(always)]
+	pub fn new(can_panic: ServiceFunction, should_function_terminate: &Arc<ShouldFunctionTerminate>) -> Self
+	{
+		Self
+		{
+			function_which_can_panic,
+			should_function_terminate: should_function_terminate.clone(),
+			panicked: false,
+		}
+	}
+}
+
+
+
 /// Master loop.
 pub struct MasterLoop
 {
@@ -32,25 +115,38 @@ pub struct MasterLoop
 // TODO: Do we always want to set the socket-memory ?
 	// perhaps we want it uncapped; perhaps we don;t always want to garbage collect, etc
 
-// TODO: Do we want to use libc's malloc and friends (eg aligned_alloc) for HybridGlobalAllocator
-	// - we need a way to track whose memory is whose.
-	// - we can use unsafe { rte_malloc_validate(pointer, null() } == -1  to detect non-DPDK memory, as the cost of making realloc / free more expensive than current.
-	// musl doesn't seem to provide a way to detect if memory was allocated by it.
-	// We could use increased allocations by abusing size / alignment
-		// eg if asked to allocate 256 bytes, 16 byte aligned we allocate 272 bytes, reserving 16 bytes for ourselves.
-		// eg we could use jemalloc.
-
 // TODO: Mellanox Performance Tuning: https://community.mellanox.com/docs/DOC-2489
 
 impl MasterLoop
 {
+	/// An exit code that is for normal software exits.
+	pub const EXIT_SUCCESS: i32 = 0;
+	
+	/// An exit code that is for software failures (ie panics).
+	pub const EX_SOFTWARE: i32 = 70;
+	
+	/// Creates a new instance.
+	#[cold]
+	pub fn new(hybrid_global_allocator: &HybridGlobalAllocator) -> Self
+	{
+		Self
+		{
+			should_function_terminate: ShouldFunctionTerminate::new()
+		}
+	}
+	
 	/// Executes a program which uses DPDK.
 	///
-	/// Panics may be caught but are re-raised.
-	///
-	/// If running interactively `SIGINT` and `SIGQUIT` are intercepted and will be re-raised if caught so that any parent shell can behave correctly.
-	///
 	/// The `hybrid_global_allocator` should be declared globally in `main.rs` as `#[global_allocator] static ALLOCATOR: HybridGlobalAllocator = HybridGlobalAllocator::new();`
+	///
+	/// If running interactively `SIGINT` and `SIGQUIT` are intercepted and will be re-raised (using libc's `raise()`) after handling so that any parent shell can behave correctly.
+	///
+	/// Always returns normally; panics are handled and logged.
+	///
+	/// The return value is an exit code in the range 0 - 127 inclusive which should be passed to `std::process::exit()`. Currenty values are:-
+	///
+	/// * `0`: successful
+	/// * `70`: (aka `EX_SOFTWARE`) - something panicked
 	///
 	/// Notes:-
 	///
@@ -58,29 +154,35 @@ impl MasterLoop
 	/// * It is recommended to boot the kernel with the command line parameter `irqaffinity` set to the inverse of `isolcpus`.
 	/// * If running causes Linux Kernel modules to load, these are **not** unloaded at process exit as we no longer have the permissions to do so,
 	/// * Likewise, if we mount `hugeltbfs` it is not unmounted (and, if we created its mount point folder, this is not deleted) at process exit.
-	#[inline(always)]
-	pub fn execute(&self, master_loop_configuration: &MasterLoopConfiguration, hybrid_global_allocator: &HybridGlobalAllocator)
+	#[cold]
+	pub fn execute(&self, master_loop_configuration: &MasterLoopConfiguration) -> i32
 	{
-		let reraise_signal = if let Some(daemonize) = daemonize
-		{
-			let daemonize_clean_up_on_exit = daemonize.daemonize();
-			let success_or_failure = catch_unwind(|| self.execute_after_daemonizing(master_loop_configuration, hybrid_global_allocator));
-			daemonize_clean_up_on_exit.clean_up();
-			
-			match success_or_failure
-			{
-				Err(failure) => resume_unwind(failure),
-				Ok(reraise_signal) => reraise_signal,
-			}
-		}
-		else
-		{
-			self.execute_after_daemonizing(master_loop_configuration, hybrid_global_allocator)
-		};
+		master_loop_configuration.start_logging();
 		
-		if let Some(reraise_signal_number) = reraise_signal
+		let exit_code_or_error = catch_unwind(||
 		{
-			unsafe { raise(reraise_signal_number) };
+			let reraise_signal = master_loop_configuration.daemonize_if_required(|| self.execute_after_daemonizing(master_loop_configuration, hybrid_global_allocator));
+			
+			if let Some(reraise_signal_number) = reraise_signal
+			{
+				master_loop_configuration.stop_logging();
+				unsafe { raise(reraise_signal_number) };
+			}
+			
+			Self::EXIT_SUCCESS
+		});
+		
+		master_loop_configuration.stop_logging();
+		
+		match exit_code_or_error
+		{
+			Ok(exit_code) => exit_code,
+			Err(panicked_with) =>
+			{
+				LoggingConfiguration::caught_unwind(panicked_with.as_ref());
+				
+				Self::EX_SOFTWARE
+			}
 		}
 	}
 	

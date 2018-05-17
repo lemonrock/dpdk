@@ -14,6 +14,9 @@ pub struct MasterLoopConfiguration
 	/// PCI network devices to use.
 	pub pci_net_devices_configuration: PciNetDevicesConfiguration,
 	
+	/// Logging configuration.
+	pub logging_configuration: LoggingConfiguration,
+	
 	/// Should we daemonize? (Default, yes).
 	pub daemonize: Option<Daemonize>,
 	
@@ -43,6 +46,8 @@ impl Default for MasterLoopConfiguration
 			
 			pci_net_devices_configuration: PciNetDevicesConfiguration,
 			
+			logging_configuration: LoggingConfiguration::default(),
+			
 			daemonize: Some(Daemonize::default()),
 			
 			system_control_settings: hashmap!
@@ -62,6 +67,46 @@ impl Default for MasterLoopConfiguration
 
 impl MasterLoopConfiguration
 {
+	#[inline(always)]
+	pub(crate) fn start_logging(&self)
+	{
+		self.logging_configuration.configure_rust_stack_back_traces();
+		self.logging_configuration.configure_syslog(self.running_interactively());
+		self.logging_configuration.configure_panic_hook()
+	}
+	
+	pub(crate) fn daemonize_if_required<F: Fn() -> Option<SignalNumber>>(&self, callback: F)
+	{
+		let reraise_signal = if let Some(daemonize) = daemonize
+		{
+			let daemonize_clean_up_on_exit = daemonize.daemonize();
+			let success_or_failure = catch_unwind(|| self.execute_after_daemonizing(master_loop_configuration, hybrid_global_allocator));
+			daemonize_clean_up_on_exit.clean_up();
+			
+			match success_or_failure
+			{
+				Err(failure) =>
+				{
+					self.stop_logging();
+					
+					resume_unwind(failure)
+				}
+				Ok(reraise_signal) => reraise_signal,
+			}
+		}
+		else
+		{
+			self.execute_after_daemonizing(master_loop_configuration, hybrid_global_allocator)
+		};
+	}
+	
+	#[inline(always)]
+	pub(crate) fn stop_logging(&self)
+	{
+		self.logging_configuration.stop_panic_hook();
+		self.logging_configuration.stop_logging()
+	}
+	
 	#[inline(always)]
 	pub(crate) fn validate_minimal_cpu_features(&self) -> CpuFeatures
 	{
@@ -164,7 +209,7 @@ impl MasterLoopConfiguration
 	#[inline(always)]
 	pub(crate) fn initialize_dpdk<V>(&self, hybrid_global_allocator: &HybridGlobalAllocator, pci_devices: &HashMap<PciDevice, V>, hugetlbfs_mount_path: &Path, memory_limits: MachineOrNumaNodes<MegaBytes>, master_logical_core: HyperThread, remaining_logical_cores: &BTreeSet<HyperThread>)
 	{
-		self.dpdk_configuration.initialize_dpdk(pci_devices, &hugetlbfs_mount_path, memory_limits, master_logical_core, remaining_logical_cores);
+		self.dpdk_configuration.initialize_dpdk(&self.logging_configuration, pci_devices, &hugetlbfs_mount_path, memory_limits, master_logical_core, remaining_logical_cores);
 		
 		hybrid_global_allocator.dpdk_is_now_configured();
 		
