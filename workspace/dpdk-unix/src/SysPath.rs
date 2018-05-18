@@ -27,18 +27,18 @@ impl SysPath
 	
 	/// Is this a NUMA node (assuming we're on a NUMA-based machine)?
 	///
-	/// Note that this might be a fake NUMA node, ie one lacking any CPUs.
+	/// Note that this might be a fake NUMA node, ie one lacking any hyper threads.
 	#[inline(always)]
 	pub fn is_a_numa_node(&self, numa_node: u8) -> bool
 	{
 		self.numa_node_folder_path(numa_node).exists()
 	}
 	
-	/// A CPU node file.
+	/// A hyper thread file.
 	#[inline(always)]
-	pub fn cpu_node_path(&self, cpu_node: u16, file_name: &str) -> PathBuf
+	pub fn hyper_thread_path(&self, hyper_thread: HyperThread, file_name: &str) -> PathBuf
 	{
-		let mut path = self.cpu_node_folder_path(cpu_node);
+		let mut path = self.hyper_thread_folder_path(hyper_thread);
 		path.push(file_name);
 		path
 	}
@@ -61,11 +61,11 @@ impl SysPath
 		path
 	}
 	
-	/// A path about all CPU nodes.
+	/// A path about all hyper threads.
 	#[inline(always)]
-	pub fn cpu_nodes_path(&self, file_name: &str) -> PathBuf
+	pub fn hyper_threads_path(&self, file_name: &str) -> PathBuf
 	{
-		let mut path = self.cpu_nodes_parent_path();
+		let mut path = self.hyper_threads_parent_path();
 		path.push(file_name);
 		path
 	}
@@ -99,19 +99,13 @@ impl SysPath
 		path.write_value(1);
 	}
 	
-	/// Sets workqueue CPU affinity.
 	#[inline(always)]
-	pub fn set_work_queue_cpu_affinity(&self, hyper_threads: &BTreeSet<u16>)
+	pub(crate) fn workqueue_file_path(&self, file_name: &str) -> PathBuf
 	{
-		let mask = ProcPath::hyper_threads_to_mask(hyper_threads);
-		
 		let mut path = self.path();
-		path.push("devices/virtual/workqueue/cpumask");
-		path.write_value(&mask);
-		
-		let mut path = self.path();
-		path.push("devices/virtual/workqueue/writeback/cpumask");
-		path.write_value(&mask);
+		path.push("devices/virtual/workqueue");
+		path.push(file_name);
+		path
 	}
 	
 	/// Changes Transparent Huge Pages (THP) settings.
@@ -186,9 +180,9 @@ impl SysPath
 	}
 	
 	#[inline(always)]
-	pub(crate) fn cpu_node_folder_path(&self, cpu_node: u16) -> PathBuf
+	pub(crate) fn hyper_thread_folder_path(&self, hyper_thread: HyperThread) -> PathBuf
 	{
-		self.cpu_nodes_path(&format!("cpu{}", cpu_node))
+		self.hyper_threads_path(&format!("cpu{}", hyper_thread.into::<u16>()))
 	}
 	
 	#[inline(always)]
@@ -204,7 +198,7 @@ impl SysPath
 	}
 	
 	#[inline(always)]
-	fn cpu_nodes_parent_path(&self) -> PathBuf
+	fn hyper_threads_parent_path(&self) -> PathBuf
 	{
 		let mut path = self.path();
 		path.push("devices/system/cpu");

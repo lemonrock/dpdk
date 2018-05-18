@@ -29,7 +29,7 @@ hyper-thread-random = "0.4"
 indexmap = "1.0"
 lazy_static = { version = "1.0", features = ["nightly"] }
 libc = "^0.2.26"
-libc-extra = "0.3"
+libc-extra = "^0.3.1"
 libnuma-sys = "0.0.9"
 linked_list_allocator = "^0.6"
 lock-free-multi-producer-single-consumer-ring-buffer = "0.1"

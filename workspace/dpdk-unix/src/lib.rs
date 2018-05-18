@@ -93,6 +93,8 @@ include!("Daemonize.rs");
 include!("DaemonizeCleanUpOnExit.rs");
 include!("get_program_name.rs");
 include!("HugePageSize.rs");
+include!("HyperThread.rs");
+include!("InterruptRequest.rs");
 include!("ListParseError.rs");
 include!("OsStrExtMore.rs");
 include!("PathExt.rs");

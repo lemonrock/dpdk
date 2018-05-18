@@ -76,6 +76,17 @@ impl LoggingConfiguration
 	}
 	
 	#[inline(always)]
+	pub(crate) fn exit_signalled(&self, signal_number: Option<SignalNumber>)
+	{
+		match signal_number
+		{
+			None => unsafe { syslog(LOG_NOTICE, const_cstr!("ExitSignalled:Other").as_ptr()) },
+			Some(signal_number) => unsafe { syslog(LOG_NOTICE, const_cstr!("ExitSignalled:%s").as_ptr(), unsafe { strsignal(signal_number) }) },
+		}
+		
+	}
+	
+	#[inline(always)]
 	pub(crate) fn configure_rust_stack_back_traces(&self)
 	{
 		let setting = if self.enable_full_rust_stack_back_traces

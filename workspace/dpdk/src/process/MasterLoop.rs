@@ -2,86 +2,30 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// A wrapper type to catch panics and ensure termination.
-#[derive(Debug)]
-pub struct PanicCatchingSlaveLogicalCoreFunction
-{
-	function_which_can_panic: ServiceFunction,
-	should_function_terminate: Arc<ShouldFunctionTerminate>,
-}
 
-impl SlaveLogicalCoreFunction for PanicCatchingSlaveLogicalCoreFunction
-{
-	#[inline(always)]
-	fn execute(&mut self)
-	{
-		let can_panic = &mut self.function_which_can_panic;
-		let success_or_failure = catch_unwind(AssertUnwindSafe(|| can_panic.execute()));
-		
-		if let Err(panicked_with) = success_or_failure
-		{
-			self.should_function_terminate.we_panicked(panicked_with.as_ref())
-		}
-	}
-}
 
-impl PanicCatchingSlaveLogicalCoreFunction
-{
-	/// Creates a new instance.
-	#[inline(always)]
-	pub fn new(function_which_can_panic: ServiceFunction, should_function_terminate: &Arc<ShouldFunctionTerminate>) -> Self
-	{
-		Self
-		{
-			function_which_can_panic,
-			should_function_terminate: should_function_terminate.clone(),
-		}
-	}
-}
+// TODO: Service core configuration in DpdkConfiguration
+	// See evt_service_setup in evt_common.h for an example of 'balancing' services and assigned a service (service_id) to a service logical core.
+// TODO: How to stop control threads and service cores???
+	/*
+		rte_service_component_runstate_set(t->tx_service.service_id, 0);
+		rte_service_runstate_set(t->tx_service.service_id, 0);
+		rte_service_component_unregister(t->tx_service.service_id);
+	*/
+// TODO: Logical core choices.
+// TODO: Initialize logical slave cores and services..
+	// TODO: Explore rte_eventdev
 
-/// A wrapper type to catch panics and ensure termination.
-#[derive(Debug)]
-pub struct PanicCatchingServiceFunction
-{
-	function_which_can_panic: ServiceFunction,
-	should_function_terminate: Arc<ShouldFunctionTerminate>,
-	panicked: bool,
-}
+// TODO: Stop all ethernet devices and queues - could be quite interesting.
+// TODO: Run custom services on service cores.
 
-impl ServiceFunction for PanicCatchingServiceFunction
-{
-	#[inline(always)]
-	fn execute(&mut self)
-	{
-		if unlikely(self.panicked)
-		{
-			return
-		}
-		
-		let can_panic = &mut self.function_which_can_panic;
-		let success_or_failure = catch_unwind(AssertUnwindSafe(|| can_panic.execute()));
-		
-		if let Err(panicked_with) = success_or_failure
-		{
-			self.should_function_terminate.we_panicked(panicked_with.as_ref())
-		}
-	}
-}
 
-impl PanicCatchingServiceFunction
-{
-	/// Creates a new instance.
-	#[inline(always)]
-	pub fn new(can_panic: ServiceFunction, should_function_terminate: &Arc<ShouldFunctionTerminate>) -> Self
-	{
-		Self
-		{
-			function_which_can_panic,
-			should_function_terminate: should_function_terminate.clone(),
-			panicked: false,
-		}
-	}
-}
+// TODO: PacketBufferExt needs finishing
+// various methods
+// fragmentation outward, inward
+// GRO for TCP / IPv4
+
+// TODO: Mellanox Performance Tuning: https://community.mellanox.com/docs/DOC-2489
 
 
 
@@ -91,31 +35,54 @@ pub struct MasterLoop
 	should_function_terminate: Arc<ShouldFunctionTerminate>,
 }
 
-// TODO: PacketBufferExt needs finishing
-	// various methods
-	// fragmentation outward
-// TODO: Set termination signal for all logical cores.
-// TODO: Wait for all logical cores
-	// TODO: but handle if a core unexpectedly panics (wrap all logic in a thread handler).
-// TODO: Stop all ethernet devices and queues.
-
-// TODO: Understand who needs a service core.
-// TODO: Initialize slave logical cores (and service cores).
-
-// TODO: Service core configuration in DpdkConfiguration
-// TODO: Logical core choices.
-
-// TODO: Incorporate knowledge of hyper-thread siblings using eg `sys/devices/system/cpu/cpu0/cache/index0/shared_cpu_list` (which works better than [hyper] thread_siblings_list on virtualized systems, eg Parallels).
-	// We should look to shard Rx / Tx logic so similar code runs on similar hyper-thread pairs so that the L1 instruction cache is best used.
-
-// TODO: Bitch about:-
-	// More than one reserved CPU (or pair of hyper-threads for the same CPU) per NUMA node?
-	// default_smp_affinity != irqaffinity on kernel command line?
-
-// TODO: Do we always want to set the socket-memory ?
-	// perhaps we want it uncapped; perhaps we don;t always want to garbage collect, etc
-
-// TODO: Mellanox Performance Tuning: https://community.mellanox.com/docs/DOC-2489
+macro_rules! wait_for_signals
+{
+	($self: ident, $signals_to_wait_for: ident, $running_interactively: ident) =>
+	{
+		{
+			use self::TimedSignalWait::*;
+			
+			match one_millisecond_timed_wait_for_signals(&$signals_to_wait_for)
+			{
+				TimedOut => (),
+				
+				OtherSignalInterrupted =>
+				{
+					$self.should_function_terminate.exit_signalled(None);
+					
+					return None
+				}
+				
+				Signalled(signal_number) =>
+				{
+					$self.should_function_terminate.exit_signalled(Some(signal_number));
+					
+					return if $running_interactively
+					{
+						match signal_number
+						{
+							SIGTERM => None,
+							SIGHUP => None,
+							SIGINT => Some(SIGINT),
+							SIGQUIT => Some(SIGQUIT),
+							
+							_ => panic!("Blocked signal '{}' received", signal),
+						}
+					}
+					else
+					{
+						match signal_number
+						{
+							SIGTERM => None,
+							
+							_ => panic!("Blocked signal '{}' received", signal),
+						}
+					}
+				}
+			}
+		}
+	}
+}
 
 impl MasterLoop
 {
@@ -137,7 +104,11 @@ impl MasterLoop
 	
 	/// Executes a program which uses DPDK.
 	///
-	/// The `hybrid_global_allocator` should be declared globally in `main.rs` as `#[global_allocator] static ALLOCATOR: HybridGlobalAllocator = HybridGlobalAllocator::new();`
+	/// The `hybrid_global_allocator` should be declared globally in `main.rs` as `#[global_allocator] static ALLOCATOR: HybridGlobalAllocator = HybridGlobalAllocator::new();`.
+	///
+	/// The number of logical cores used is calculated by examining the Linux command line kernel parameters.
+	///
+	/// It is recommended that Linux run with at least 2 cores assigned to the Kernel; one of these will be used as a master logical core, and the other will be used for control threads as necessary. Neither usage is particularly high or critical.
 	///
 	/// If running interactively `SIGINT` and `SIGQUIT` are intercepted and will be re-raised (using libc's `raise()`) after handling so that any parent shell can behave correctly.
 	///
@@ -189,23 +160,27 @@ impl MasterLoop
 	#[inline(always)]
 	fn execute_after_daemonizing(&self, master_loop_configuration: &MasterLoopConfiguration, hybrid_global_allocator: &HybridGlobalAllocator) -> Option<SignalNumber>
 	{
+		master_loop_configuration.set_maximum_resource_limits();
+		
 		master_loop_configuration.load_kernel_modules();
 		
 		master_loop_configuration.write_system_control_values();
 		
 		let cpu_features = master_loop_configuration.validate_minimal_cpu_features();
 		
-		let isolated_hyper_threads = master_loop_configuration.validate_kernel_command_line_and_return_isolated_hyper_threads(&cpu_features);
+		let isolated_hyper_threads_including_those_offline = master_loop_configuration.validate_kernel_command_line(&cpu_features);
 		
-		let master_hyper_thread = master_loop_configuration.find_master_hyper_thread_and_tell_linux_to_use_shared_hyper_threads_for_all_needs(&isolated_hyper_threads);
+		let (online_shared_hyper_threads, online_isolated_hyper_threads) = master_loop_configuration.online_shared_and_isolated_hyper_threads(isolated_hyper_threads_including_those_offline);
 		
-		master_loop_configuration.set_maximum_resource_limits();
+		let master_logical_core = master_loop_configuration.find_master_logical_core_and_tell_linux_to_use_shared_hyper_threads_for_all_needs(&online_shared_hyper_threads);
 		
-		let (hugetlbfs_mount_path, memory_limits) = configure_huge_pages.configure_huge_pages();
+		let (slave_logical_cores, service_logical_cores) = master_loop_configuration.divide_logical_cores_into_slave_logical_cores_and_service_logical_cores(online_isolated_hyper_threads);
+		
+		let (hugetlbfs_mount_path, memory_limits) = master_loop_configuration.configure_huge_pages();
 		
 		let pci_devices_and_original_driver_names = master_loop_configuration.pci_devices_and_original_driver_names();
 		
-		let success_or_failure = catch_unwind(|| self.execute_after_pci_devices_bound_to_drivers(master_loop_configuration, hybrid_global_allocator, &pci_devices_and_original_driver_names, hugetlbfs_mount_path, memory_limits, master_hyper_thread, &isolated_hyper_threads));
+		let success_or_failure = catch_unwind(|| self.execute_after_pci_devices_bound_to_drivers(master_loop_configuration, hybrid_global_allocator, &pci_devices_and_original_driver_names, hugetlbfs_mount_path, memory_limits, master_logical_core, &slave_logical_cores, &service_logical_cores));
 		
 		PciNetDevicesConfiguration::release_all_from_use_with_dpdk(&master_loop_configuration.path_configuration.sys_path, pci_devices_and_original_driver_names);
 		
@@ -217,13 +192,15 @@ impl MasterLoop
 	}
 	
 	#[inline(always)]
-	fn execute_after_pci_devices_bound_to_drivers(&self, master_loop_configuration: &MasterLoopConfiguration, hybrid_global_allocator: &HybridGlobalAllocator, pci_devices: &HashMap<PciDevice, Option<String>>, hugetlbfs_mount_path: PathBuf, memory_limits: MachineOrNumaNodes<MegaBytes>, master_logical_core: HyperThread, remaining_logical_cores: &BTreeSet<HyperThread>)
+	fn execute_after_pci_devices_bound_to_drivers(&self, master_loop_configuration: &MasterLoopConfiguration, hybrid_global_allocator: &HybridGlobalAllocator, pci_devices: &HashMap<PciDevice, Option<String>>, hugetlbfs_mount_path: PathBuf, memory_limits: MachineOrNumaNodes<MegaBytes>, master_logical_core: HyperThread, slave_logical_cores: &BTreeSet<HyperThread>, service_logical_cores: &BTreeSet<HyperThread>)
 	{
 		MasterLoopConfiguration::block_all_signals_before_initializing_dpdk_so_that_slave_logical_cores_do_not_handle_signals();
 		
-		master_loop_configuration.initialize_dpdk(hybrid_global_allocator, pci_devices, &hugetlbfs_mount_path, memory_limits, master_logical_core, remaining_logical_cores);
+		master_loop_configuration.initialize_dpdk(hybrid_global_allocator, pci_devices, &hugetlbfs_mount_path, memory_limits, master_logical_core, slave_logical_cores, service_logical_cores);
 		
-		let success_or_failure = catch_unwind(|| self.execute_after_dpdk_initialized(master_loop_configuration));
+		let slave_logical_cores_to_uses = master_loop_configuration.slave_logical_cores_to_uses(pci_devices, slave_logical_cores);
+		
+		let success_or_failure = catch_unwind(|| self.execute_after_dpdk_initialized(master_loop_configuration, &slave_logical_cores_to_uses));
 		
 		DpdkConfiguration::dpdk_clean_up();
 		hybrid_global_allocator.dpdk_was_cleaned_up();
@@ -236,32 +213,54 @@ impl MasterLoop
 	}
 	
 	#[inline(always)]
-	fn execute_after_dpdk_initialized(&self, master_loop_configuration: &MasterLoopConfiguration) -> Option<SignalNumber>
+	fn execute_after_dpdk_initialized(&self, master_loop_configuration: &MasterLoopConfiguration, slave_logical_cores_to_uses: &HashMap<LogicalCore, Box<Fn(LogicalCore, &Arc<ShouldFunctionTerminate>)>>) -> Option<SignalNumber>
 	{
 		master_loop_configuration.lock_down_security();
 		
 		let logical_core_power_managers = master_loop_configuration.logical_core_power_to_maximum();
 		
-		// TODO: Initialize logical slave cores and services..
-		// TODO - control threads by default run on the first 'ROLE_OFF' core; if there are none of these, then they run on the master core.
+		let success_or_failure = catch_unwind(||
+		{
+			for slave_logical_core in LogicalCore::slave_logical_cores_without_service_cores()
+			{
+				(slave_logical_cores_to_uses.remove(&slave_logical_core).unwrap())(slave_logical_core, &self.should_function_terminate)
+			}
+			self.progress_busy_loop_with_signal_handling(master_loop_configuration)
+		});
 		
-		let reraise_signal = Self::infinite_signal_handling_and_timer_progress_loop(master_loop_configuration.running_interactively());
+		#[inline(always)]
+		fn clean_up(logical_core_power_managers: Vec<LogicalCorePowerManagement>)
+		{
+			LogicalCore::block_until_all_slaves_are_in_the_wait_state();
+			MasterLoopConfiguration::restore_default_power(logical_core_power_managers)
+		}
 		
-		MasterLoopConfiguration::restore_default_power(logical_core_power_managers);
-		
-		// TODO: Set termination signal for all logical cores.
-		
-		// TODO: Wait for all logical cores
-		
-		// TODO: Stop all ethernet devices.
-		
-		reraise_signal
+		match success_or_failure
+		{
+			Err(panic_payload) =>
+			{
+				self.should_function_terminate.we_panicked(&panic_payload);
+				
+				clean_up(logical_core_power_managers);
+				
+				resume_unwind(panic_payload)
+			}
+			
+			Ok(reraise_signal) =>
+			{
+				clean_up(logical_core_power_managers);
+				
+				reraise_signal
+			}
+		}
 	}
 	
 	#[inline(always)]
-	fn infinite_signal_handling_and_timer_progress_loop(running_interactively: bool) -> Option<SignalNumber>
+	fn progress_busy_loop_with_signal_handling(&self, master_loop_configuration: &MasterLoopConfiguration) -> Option<SignalNumber>
 	{
-		let mut timer_progress_engine = TimerProgressEngine::new(Cycles::AroundTenMillisecondsAt2GigaHertzSuitableForATimerProgressEngine);
+		let mut timer_progress_engine = master_loop_configuration.timer_progress_engine();
+		
+		let running_interactively = master_loop_configuration.running_interactively();
 		
 		let signals_to_accept = if running_interactively
 		{
@@ -282,44 +281,14 @@ impl MasterLoop
 				// `SIGUSR1` / `SIGUSR2` can also be used, with `sigqueue`, to send a 32-bit value to a process using `SI_QUEUE` `si_code`.
 			}
 		};
-		
 		block_all_signals_on_current_thread_bar(&signals_to_accept);
-		
 		let signals_to_wait_for = hash_set_to_signal_set(&signals_to_accept);
 		
-		loop
+		while self.should_function_terminate.should_continue()
 		{
 			timer_progress_engine.progress();
 			
-			use self::TimedSignalWait::*;
-			match one_millisecond_timed_wait_for_signals(&signals_to_wait_for)
-			{
-				TimedOut => continue,
-				
-				Signalled(signal_number) => if running_interactively
-				{
-					match signal_number
-					{
-						SIGTERM => return None,
-						SIGHUP => return None,
-						SIGINT => return Some(SIGTERM),
-						SIGQUIT => return Some(SIGQUIT),
-						
-						_ => panic!("Blocked signal '{}' received", signal),
-					}
-				}
-				else
-				{
-					match signal_number
-					{
-						SIGTERM => return None,
-						
-						_ => panic!("Blocked signal '{}' received", signal),
-					}
-				}
-				
-				OtherSignalInterrupted => return None,
-			}
+			wait_for_signals!(self, signals_to_wait_for, running_interactively)
 		}
 	}
 }

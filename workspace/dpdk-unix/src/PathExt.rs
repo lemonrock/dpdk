@@ -53,11 +53,11 @@ pub trait PathExt
 	///
 	/// Returns a BTreeSet with the zero-based indices found in the string. For example, "2,4-31,32-63" would return a set with all values between 0 to 63 except 0, 1 and 3.
 	#[inline(always)]
-	fn read_linux_core_or_numa_list(&self) -> Result<BTreeSet<u16>, ListParseError>;
+	fn read_linux_core_or_numa_list<Mapper: Fn(u16) -> R, R>(&self, mapper: Mapper) -> Result<BTreeSet<R>, ListParseError>;
 	
 	/// Reads and parses a linux core or numa mask string from a file.
 	#[inline(always)]
-	fn parse_linux_core_or_numa_mask(&self) -> Result<u32<u32>, io::Error>;
+	fn parse_linux_core_or_numa_mask(&self) -> Result<u32, io::Error>;
 	
 	/// Parses a virtual memory statistics file (`vmstat`).
 	#[inline(always)]
@@ -177,11 +177,11 @@ impl PathExt for Path
 	}
 	
 	#[inline(always)]
-	fn read_linux_core_or_numa_list(&self) -> Result<BTreeSet<u16>, ListParseError>
+	fn read_linux_core_or_numa_list<Mapper: Fn(u16) -> R, R>(&self, mapper: Mapper) -> Result<BTreeSet<R>, ListParseError>
 	{
 		let without_line_feed = self.read_string_without_line_feed()?;
 		
-		ListParseError::parse_linux_list_string(&without_line_feed)
+		ListParseError::parse_linux_list_string::<Mapper, R>(&without_line_feed, mapper)
 	}
 	
 	#[inline(always)]

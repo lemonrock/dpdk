@@ -46,7 +46,7 @@ impl ListParseError
 	/// Parses a Linux list string used for cpu sets, core masks and NUMA nodes such as "2,4-31,32-63" and "1,2,10-20,100-2000:2/25" (see <https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html> for an awful description of this mad syntax).
 	///
 	/// Returns a BTreeSet with the zero-based indices found in the string. For example, "2,4-31,32-63" would return a set with all values between 0 to 63 except 0, 1 and 3.
-	pub fn parse_linux_list_string(linux_list_string: &str) -> Result<BTreeSet<u16>, ListParseError>
+	pub fn parse_linux_list_string<Mapper: Fn(u16) -> R, R>(linux_list_string: &str, mapper: Mapper) -> Result<BTreeSet<R>, ListParseError>
 	{
 		#[inline(always)]
 		fn parse_index(index_string: &str, description: &'static str) -> Result<u16, ListParseError>
@@ -104,7 +104,7 @@ impl ListParseError
 					{
 						for index in first .. (second + 1)
 						{
-							result.insert(index);
+							result.insert(mapper(index));
 						}
 						
 						next_minimum_index_expected = second;
@@ -125,7 +125,7 @@ impl ListParseError
 							for cpu_index_increment in 0 .. used_size
 							{
 								let cpu_index = base_cpu_index + cpu_index_increment;
-								result.insert(cpu_index);
+								result.insert(mapper(cpu_index));
 							}
 							
 							base_cpu_index += group_size;
@@ -136,7 +136,7 @@ impl ListParseError
 			else
 			{
 				let sole = first;
-				result.insert(sole);
+				result.insert(mapper(sole));
 				next_minimum_index_expected = sole;
 			}
 		}

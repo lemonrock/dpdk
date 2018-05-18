@@ -6,6 +6,7 @@
 ///
 /// Multiply by `Hertz` to get a time duration in seconds.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
 pub struct Cycles(u64);
 
 impl From<u64> for Cycles
@@ -23,6 +24,15 @@ impl Into<u64> for Cycles
 	fn into(self) -> u64
 	{
 		self.0
+	}
+}
+
+impl Default for Cycles
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::AroundTenMillisecondsAt2GigaHertzSuitableForATimerProgressEngine
 	}
 }
 

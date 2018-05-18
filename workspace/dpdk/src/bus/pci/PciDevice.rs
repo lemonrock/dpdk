@@ -26,12 +26,11 @@ impl PciDevice
 	///
 	/// Panics if file unreadable.
 	#[inline(always)]
-	pub fn associated_cpus(&self, sys_path: &SysPath) -> BTreeSet<HyperThread>
+	pub fn associated_hyper_threads(&self, sys_path: &SysPath) -> BTreeSet<HyperThread>
 	{
 		let file_path = self.device_file_or_folder_path(sys_path, "local_cpulist");
 		
-		let list = file_path.read_linux_core_or_numa_list().expect("Could not parse local_cpulist");
-		list.iter().map(|value| HyperThread::from(value)).collect()
+		file_path.read_linux_core_or_numa_list().map(HyperThread::from).expect("Could not parse local_cpulist")
 	}
 	
 	/// Is this an ethernet device?

@@ -14,6 +14,9 @@ pub struct MasterLoopConfiguration
 	/// PCI network devices to use.
 	pub pci_net_devices_configuration: PciNetDevicesConfiguration,
 	
+	/// Number of service cores to use. Defaults to 1.
+	pub service_cores: u8,
+	
 	/// Logging configuration.
 	pub logging_configuration: LoggingConfiguration,
 	
@@ -31,6 +34,11 @@ pub struct MasterLoopConfiguration
 	/// Enables power management; forces all logical cores to TurboBoost if possible.
 	pub power_to_maximum: bool,
 	
+	/// Number of cycles to wait before checking timers on master loop.
+	///
+	/// Defaults to a value equivalent to 100 milliseconds at 2Ghz.
+	pub timer_progress_engine_cycles: Cycles,
+	
 	/// Location of `/dev`, `/proc` and `/sys`.
 	pub path_configuration: PathConfiguration,
 }
@@ -44,7 +52,9 @@ impl Default for MasterLoopConfiguration
 		{
 			dpdk_configuration: DpdkConfiguration::default(),
 			
-			pci_net_devices_configuration: PciNetDevicesConfiguration,
+			pci_net_devices_configuration: PciNetDevicesConfiguration::default(),
+			
+			service_cores: 1,
 			
 			logging_configuration: LoggingConfiguration::default(),
 			
@@ -59,6 +69,10 @@ impl Default for MasterLoopConfiguration
 			},
 			
 			warnings_to_suppress: WarningsToSuppress::default(),
+			
+			power_to_maximum: true,
+			
+			timer_progress_engine_cycles: Cycles::AroundTenMillisecondsAt2GigaHertzSuitableForATimerProgressEngine,
 			
 			path_configuration: PathConfiguration::default(),
 		}
@@ -114,24 +128,104 @@ impl MasterLoopConfiguration
 	}
 	
 	#[inline(always)]
-	pub(crate) fn validate_kernel_command_line_and_return_isolated_hyper_threads(&self) -> BTreeSet<HyperThread>
+	pub(crate) fn validate_kernel_command_line(&self, cpu_features: &CpuFeatures) -> BTreeSet<HyperThread>
 	{
-		let isolated_hyper_threads = KernelCommandLineValidator::validate(&self.path_configuration, &self.warnings_to_suppress, &cpu_features, &self.pci_net_devices_configuration);
-		assert_ne!(isolated_hyper_threads.len(), 0, "There are no `isolcpus` on the Linux kernel command line (isolated CPUs)");
-		
-		isolated_hyper_threads
+		KernelCommandLineValidator::validate(&self.path_configuration, &self.warnings_to_suppress, cpu_features, &self.pci_net_devices_configuration)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn find_master_hyper_thread_and_tell_linux_to_use_shared_hyper_threads_for_all_needs(&self, isolated_hyper_threads: &BTreeSet<HyperThread>) -> HyperThread
+	pub(crate) fn online_shared_and_isolated_hyper_threads(&self, isolated_hyper_threads_including_those_offline: BTreeSet<HyperThread>) -> (BTreeSet<HyperThread>, BTreeSet<HyperThread>)
 	{
-		let all_hyper_threads = HyperThread::online(self.sys_path());
-		let shared_hyper_threads: BTreeSet<HyperThread> =  all_hyper_threads.difference(isolated_hyper_threads).cloned().collect();
-		self.proc_path().force_all_interrupt_requests_to_just_these_hyper_threads(shared_hyper_threads);
-		self.sys_path().set_work_queue_cpu_affinity(shared_hyper_threads);
-		self.proc_path().force_watchdog_to_just_these_hyper_threads(shared_hyper_threads);
-		let master_hyper_thread = shared_hyper_threads.iter().rev().next();
-		master_hyper_thread
+		assert_ne!(isolated_hyper_threads_including_those_offline.len(), 0, "There must be at least one hyper thread in `isolated_hyper_threads_including_those_offline`");
+		
+		let shared_hyper_threads_including_those_offline = HyperThread::complement(isolated_hyper_threads_including_those_offline);
+		assert_ne!(shared_hyper_threads_including_those_offline.len(), 0, "There must be at least one hyper thread in `shared_hyper_threads_including_those_offline`");
+		
+		let online_isolated_hyper_threads = HyperThread::remove_those_offline(&isolated_hyper_threads_including_those_offline);
+		assert_ne!(online_isolated_hyper_threads.len(), 0, "There must be at least one hyper thread in `online_isolated_hyper_threads`");
+		
+		let online_shared_hyper_threads = HyperThread::remove_those_offline(&shared_hyper_threads_including_those_offline);
+		assert_ne!(online_shared_hyper_threads.len(), 0, "There must be at least one hyper thread in `online_shared_hyper_threads`");
+		
+		self.warnings_to_suppress.miscellany_warn("too_many_shared_hyper_threads", "There are more than 2 shared hyper threads", || online_shared_hyper_threads.len() <= 2);
+		self.warnings_to_suppress.miscellany_warn("too_few_shared_hyper_threads", "There is only 1 shared hyper thread (which will be shared with the master logical core and control threads)", || online_shared_hyper_threads.len() != 1);
+		
+		{
+			let mut numa_nodes = BTreeSet::new();
+			if self.sys_path().is_a_numa_machine()
+			{
+				for online_shared_hyper_thread in online_shared_hyper_threads.iter()
+				{
+					numa_nodes.insert((*online_shared_hyper_thread).numa_node().unwrap());
+				}
+				self.warnings_to_suppress.miscellany_warn("too_many_numa_nodes_shared_hyper_threads", &format!("More than one (actually, {:?}) NUMA nodes are present in the shared hyper threads", numa_nodes), || numa_nodes.len() == 1);
+			}
+		}
+		
+		{
+			HyperThread::hyper_thread_groups(&online_shared_hyper_threads);
+			
+			for hyper_thread_group in HyperThread::hyper_thread_groups(&online_shared_hyper_threads).iter()
+			{
+				let mut hits = 0;
+				for hyper_thread in hyper_thread_group.iter()
+				{
+					if online_shared_hyper_threads.contains(*hyper_thread)
+					{
+						hits += 1;
+					}
+				}
+				self.warnings_to_suppress.miscellany_warn("overlapping_shared_hyper_threads", &format!("More than one (actually, {}) hyper threads of the group '{:?}' are present in the shared hyper threads", hits, hyper_thread_group), || hits < 2);
+			}
+		}
+		
+		(online_shared_hyper_threads, online_isolated_hyper_threads)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn find_master_logical_core_and_tell_linux_to_use_shared_hyper_threads_for_all_needs(&self, online_shared_hyper_threads: &BTreeSet<HyperThread>) -> HyperThread
+	{
+		let master_logical_core = HyperThread::last(online_shared_hyper_threads).unwrap();
+		
+		InterruptRequest::force_all_interrupt_requests_to_just_these_hyper_threads(online_shared_hyper_threads, self.proc_path());
+		
+		HyperThread::set_work_queue_hyper_thread_affinity(online_shared_hyper_threads, self.sys_path());
+		
+		HyperThread::force_watchdog_to_just_these_hyper_threads(online_shared_hyper_threads, self.proc_path());
+		
+		master_logical_core
+	}
+	
+	#[inline(always)]
+	pub(crate) fn divide_logical_cores_into_slave_logical_cores_and_service_logical_cores(&self, isolated_hyper_threads: BTreeSet<HyperThread>) -> (BTreeSet<HyperThread>, BTreeSet<HyperThread>)
+	{
+		assert!(isolated_hyper_threads.len() > self.service_cores, "There must be more isolated hyper threads '{}' than number of service cores '{}'", isolated_hyper_threads.len(), self.service_cores);
+		
+		// TODO: It's very difficult to decide on a good strategy for service cores, but they should not be hyper thread siblings; possibly they should come from a different NUMA node to master.
+		
+		
+		xxxxxx
+	}
+	
+	#[inline(always)]
+	pub(crate) fn slave_logical_cores_to_uses(&self, pci_devices: &HashMap<PciDevice, Option<String>>, slave_logical_cores: &BTreeSet<HyperThread>) -> HashMap<LogicalCore, Box<Fn(LogicalCore, &Arc<ShouldFunctionTerminate>)>>
+	{
+		// TODO: Probably some sort of 2-loop strategy, the first to work out ethernet device capabilities (we will need somewhere to stick some configuration), the second to assign processes.
+		// We need to reserve some space for UCX processes. Everything else can either run on master or a service core.
+		// Our minimal spec - 4 cores - leaves just one core available as a slave logical core...
+
+		// We should look to shard Rx / Tx logic so similar code runs on similar hyper-thread pairs so that the L1 instruction cache is best used.
+		
+		/*
+			Example of Box<Fn(LogicalCore, &Arc<ShouldFunctionTerminate>)>:-
+			
+			/// Very irritatingly, we can't return the result of `create_some_busy_poll_behaviour_type_a()` without it being a boxed trait object.
+			fn xxx(slave_logical_core: LogicalCore, should_function_terminate: &Arc<ShouldFunctionTerminate>)
+			{
+				create_some_busy_poll_behaviour_type_a().execute_code_on_slave(slave_logical_core, should_function_terminate)
+			}
+		*/
+		
 	}
 	
 	#[inline(always)]
@@ -141,7 +235,7 @@ impl MasterLoopConfiguration
 	}
 	
 	#[inline(always)]
-	pub(crate) fn configure_huge_pages(&self) -> (PathBuf, MachineOrNumaNodes<MegaBytes>)
+	pub(crate) fn configure_huge_pages(&self) -> (PathBuf, Option<MachineOrNumaNodes<MegaBytes>>)
 	{
 		let huge_page_mount_settings = &self.dpdk_configuration.huge_page_mount_settings;
 		let huge_page_allocation_strategy = &self.dpdk_configuration.huge_page_allocation_strategy;
@@ -160,7 +254,11 @@ impl MasterLoopConfiguration
 		let machine_or_numa_nodes = MachineOrNumaNodes::new(self.sys_path());
 		machine_or_numa_nodes.garbage_collect_memory(self.sys_path());
 		
-		let memory_limits = NumaNodeChoice::reserve_huge_page_memory(self.sys_path(), self.proc_path(), huge_page_allocation_strategy);
+		let memory_limits = match self.dpdk_configuration.huge_page_allocation_strategy
+		{
+			None => None,
+			Some(ref huge_page_allocation_strategy) => Some(MachineOrNumaNodes::reserve_huge_page_memory(self.sys_path(), self.proc_path(), huge_page_allocation_strategy))
+		};
 		
 		(hugetlbfs_mount_path, memory_limits)
 	}
@@ -207,9 +305,9 @@ impl MasterLoopConfiguration
 	}
 	
 	#[inline(always)]
-	pub(crate) fn initialize_dpdk<V>(&self, hybrid_global_allocator: &HybridGlobalAllocator, pci_devices: &HashMap<PciDevice, V>, hugetlbfs_mount_path: &Path, memory_limits: MachineOrNumaNodes<MegaBytes>, master_logical_core: HyperThread, remaining_logical_cores: &BTreeSet<HyperThread>)
+	pub(crate) fn initialize_dpdk<V>(&self, hybrid_global_allocator: &HybridGlobalAllocator, pci_devices: &HashMap<PciDevice, V>, hugetlbfs_mount_path: &Path, memory_limits: Option<MachineOrNumaNodes<MegaBytes>>, master_logical_core: HyperThread, slave_logical_cores: &BTreeSet<HyperThread>, service_logical_cores: &BTreeSet<HyperThread>)
 	{
-		self.dpdk_configuration.initialize_dpdk(&self.logging_configuration, pci_devices, &hugetlbfs_mount_path, memory_limits, master_logical_core, remaining_logical_cores);
+		self.dpdk_configuration.initialize_dpdk(&self.logging_configuration, pci_devices, &hugetlbfs_mount_path, memory_limits, master_logical_core, slave_logical_cores, service_logical_cores);
 		
 		hybrid_global_allocator.dpdk_is_now_configured();
 		
@@ -310,6 +408,12 @@ impl MasterLoopConfiguration
 			
 			lock_secure_bits_and_remove_ambient_capability_raise_and_keep_capabilities();
 		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn timer_progress_engine(&self) -> TimerProgressEngine
+	{
+		TimerProgressEngine::new(self.timer_progress_engine_cycles)
 	}
 	
 	#[inline(always)]

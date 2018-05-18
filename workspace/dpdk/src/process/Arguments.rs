@@ -93,6 +93,28 @@ impl Arguments
 		/// If omitted defaults to the first DPDK logical core.
 		__master_lcore = "--master-lcore";
 		
+		/// Logical core mask for service cores.
+		///
+		/// May be specified never or only once.
+		///
+		/// Specify either this, or `-S`.
+		///
+		/// Followed by `COREMASK`.
+		///
+		/// A `COREMASK` maps hyper-threads (logical CPUs) 1:1 with DPDK logical cores.
+		_s = "-s";
+		
+		/// Logical core list for service cores.
+		///
+		/// May be specified never or only once.
+		///
+		/// Specify either this, or `-s`.
+		///
+		/// Followed by `CORELIST`.
+		///
+		/// A `CORELIST` maps hyper-threads (logical CPUs) 1:1 with DPDK logical cores.
+		_S = "-S";
+		
 		/// Memory to consume for entire machine.
 		///
 		/// May be specified never or only once.

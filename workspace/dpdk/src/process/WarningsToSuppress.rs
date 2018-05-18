@@ -32,6 +32,16 @@ pub struct WarningsToSuppress
 	/// * `idle_poll`: "Warnings about idle!=poll".
 	/// * `noxsaveopt`: "Kernel has `noxsaveopt` enabled; this is likely to hurt performance".
 	pub suppress_warnings_for_kernel_features: HashSet<String>,
+	
+	/// Miscellaneous warnings which should be supressed.
+	///
+	/// Current names (and typical warning messages) are:-
+	///
+	/// * `too_many_shared_hyper_threads`: "There are more than 2 shared hyper threads".
+	/// * `too_few_shared_hyper_threads`: "There is only 1 shared hyper thread (which will be shared with the master logical core and control threads)".
+	/// * `overlapping_shared_hyper_threads`: "More than one (actually, {}) hyper threads of the group '{:?}' are present in the shared hyper threads".
+	/// * `too_many_numa_nodes_shared_hyper_threads`: "More than one (actually, {:?}) NUMA nodes are present in the shared hyper threads".
+	pub suppress_warnings_for_miscellany: HashSet<String>,
 }
 
 impl WarningsToSuppress
@@ -61,6 +71,22 @@ impl WarningsToSuppress
 		}
 		
 		if self.suppress_warnings_for_kernel_features.contains(name)
+		{
+			return
+		}
+		
+		LoggingConfiguration::warn(name, format!("{}", message))
+	}
+	
+	#[inline(always)]
+	pub(crate) fn miscellany_warn<F: FnOnce() -> bool>(&self, name: &str, message: &str, true_if_should_not_warn: F)
+	{
+		if true_if_should_not_warn()
+		{
+			return
+		}
+		
+		if self.suppress_warnings_for_miscellany.contains(name)
 		{
 			return
 		}

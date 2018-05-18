@@ -36,16 +36,13 @@ pub struct DpdkConfiguration
 	/// Can be changed from default (`None`).
 	pub memory_ranks: Option<MemoryRanks>,
 	
-	/// Defaults to `false`.
-	///
-	/// Uses calculated number of huge pages to constrain memory.
-	pub limit_memory: bool,
-	
 	/// Where and how to mount huge pages.
 	pub huge_page_mount_settings: HugePageMountSettings,
 	
 	/// How many huge pages to allocate?
-	pub huge_page_allocation_strategy: HugePageAllocationStrategy,
+	///
+	/// If `None`, then memory limits and huge page memory reservation are not done.
+	pub huge_page_allocation_strategy: Option<HugePageAllocationStrategy>,
 	
 	/// What prefix to use for the huge pages.
 	/// Defaults to program name.
@@ -95,9 +92,8 @@ impl Default for DpdkConfiguration
 
 			memory_channels: None,
 			memory_ranks: None,
-			limit_memory: false,
 			huge_page_mount_settings: HugePageMountSettings::default(),
-			huge_page_allocation_strategy: HugePageAllocationStrategy::default(),
+			huge_page_allocation_strategy: Some(HugePageAllocationStrategy::default()),
 			huge_page_file_name_prefix: get_program_name(),
 
 			process_type: None,
@@ -143,14 +139,14 @@ impl DpdkConfiguration
 	///
 	/// Panics if this fails.
 	#[inline(always)]
-	pub fn initialize_dpdk<V>(&self, logging_configuration: &LoggingConfiguration, pci_devices: &HashMap<PciDevice, V>, hugetlbfs_mount_path: &Path, memory_limits: MachineOrNumaNodes<MegaBytes>, master_logical_core: HyperThread, remaining_logical_cores: &BTreeSet<HyperThread>)
+	pub fn initialize_dpdk<V>(&self, logging_configuration: &LoggingConfiguration, pci_devices: &HashMap<PciDevice, V>, hugetlbfs_mount_path: &Path, memory_limits: Option<MachineOrNumaNodes<MegaBytes>>, master_logical_core: HyperThread, slave_logical_cores: &BTreeSet<HyperThread>, service_logical_cores: &BTreeSet<HyperThread>)
 	{
 		let arguments = Arguments::new();
 
 		Self::initialize_dpdk_pci_device_settings(&arguments, pci_devices);
 		self.initialize_dpdk_virtual_device_settings(&arguments);
 		self.initialize_dpdk_process_type_settings(&arguments);
-		Self::initialize_dpdk_logical_core_settings(&arguments, master_logical_core, remaining_logical_cores);
+		Self::initialize_dpdk_logical_core_settings(&arguments, master_logical_core, slave_logical_cores, service_logical_cores);
 		self.initialize_dpdk_memory_limits_settings(&arguments, memory_limits);
 		self.initialize_dpdk_huge_page_settings(&arguments, hugetlbfs_mount_path);
 		self.initialize_dpdk_memory_rank_and_memory_channel_settings(&arguments);
@@ -200,30 +196,47 @@ impl DpdkConfiguration
 	}
 	
 	#[inline(always)]
-	fn initialize_dpdk_logical_core_settings(arguments: &mut Arguments, master_hyper_thread: HyperThread, remaining_hyper_threads: &BTreeSet<HyperThread>)
+	fn initialize_dpdk_logical_core_settings(arguments: &mut Arguments, master_hyper_thread: HyperThread, slave_logical_cores: &BTreeSet<HyperThread>, service_logical_cores: &BTreeSet<HyperThread>)
 	{
-		let mut hyper_threads = remaining_hyper_threads.clone();
-		hyper_threads.insert(master_hyper_thread);
-		
-		let mut logical_core_list = String::with_capacity(hyper_threads.len() * 4);
-		for hyper_thread in hyper_threads.iter()
+		let logical_cores =
 		{
-			if !logical_core_list.is_empty()
+			let mut logical_cores = BTreeSet::new();
+			logical_cores.insert(master_hyper_thread);
+			for slave_logical_core in slave_logical_cores.iter()
 			{
-				logical_core_list.push(',');
+				logical_cores.insert(*slave_logical_core);
 			}
-			logical_core_list.push_str(&format!("{}", hyper_thread.into::<u16>()))
+			for service_logical_core in service_logical_cores.iter()
+			{
+				logical_cores.insert(*service_logical_core);
+			}
+			logical_cores
+		};
+		
+		#[inline(always)]
+		fn to_logical_core_list(logical_cores: &BTreeSet<HyperThread>) -> String
+		{
+			let mut logical_core_list = String::with_capacity(logical_cores.len() * 4);
+			for hyper_thread in logical_cores.iter()
+			{
+				if !logical_core_list.is_empty()
+				{
+					logical_core_list.push(',');
+				}
+				logical_core_list.push_str(&format!("{}", hyper_thread.into::<u16>()))
+			}
+			logical_core_list
 		}
 		
-		arguments.variable_argument(Arguments::_l, &logical_core_list);
-
+		arguments.variable_argument(Arguments::_l, &to_logical_core_list(&logical_cores));
+		arguments.variable_argument(Arguments::_S, &to_logical_core_list(service_logical_cores));
 		arguments.variable_argument(Arguments::__master_lcore, &format!("{}", master_hyper_thread.into::<u16>()));
 	}
 	
 	#[inline(always)]
-	fn initialize_dpdk_memory_limits_settings(&self, arguments: &mut Arguments, memory_limits: MachineOrNumaNodes<MegaBytes>)
+	fn initialize_dpdk_memory_limits_settings(&self, arguments: &mut Arguments, memory_limits: Option<MachineOrNumaNodes<MegaBytes>>)
 	{
-		if self.limit_memory
+		if let Some(memory_limits) = memory_limits
 		{
 			use self::MachineOrNumaNodes::*;
 			

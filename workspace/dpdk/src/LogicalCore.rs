@@ -406,6 +406,12 @@ impl LogicalCore
 		Default::default()
 	}
 	
+	#[inline(always)]
+	pub fn slave_logical_cores_without_service_cores() -> impl Iterator<Item=Self>
+	{
+		Self::slave_logical_cores().filter(|slave_logical_core| !slave_logical_core.is_role_service())
+	}
+	
 	/// Gets if the logical core execution state.
 	///
 	/// **WARNING:** Can only be called by code currently running on the master logical core.
@@ -425,34 +431,34 @@ impl LogicalCore
 	///
 	/// Execution will fail and an error is returned if ths slave logical core is not in the wait state.
 	#[inline(always)]
-	pub fn execute_code_on_slave<F: SlaveLogicalCoreFunction>(self, function_to_execute_on_slave: F) -> Result<(), ()>
+	pub fn execute_code_on_slave<F: SlaveLogicalCoreFunction>(self, function_to_execute_on_slave: Box<F>) -> Result<(), ()>
 	{
 		Self::debug_assert_code_is_currently_running_on_the_master_logical_core();
 		debug_assert_ne!(&self, &Self::master(), "Can not wait for a slave when self is master logical core");
 		
-		struct SlaveLogicalCoreFunctionWrapper<F: LogicalCoreFunction>(F);
-		
-		impl<F: LogicalCoreFunction> SlaveLogicalCoreFunctionWrapper<F>
+		unsafe extern "C" fn execute<F: SlaveLogicalCoreFunction>(arg1: *mut c_void) -> i32
 		{
-			unsafe extern "C" fn execute(arg1: *mut c_void) -> i32
-			{
-				debug_assert!(arg1.is_not_null(), "arg1 is null");
-				
-				let mut this = unsafe { Box::frow_raw(arg1 as *mut Self) };
-				
-				this.0.execute();
-				
-				0
-			}
+			debug_assert!(arg1.is_not_null(), "arg1 is null");
+			
+			let mut this = unsafe { Box::frow_raw(arg1 as *mut F) };
+			
+			this.execute();
+			
+			0
 		}
 		
-		let arg1 = Box::into_raw(Box::new(SlaveLogicalCoreFunctionWrapper(function_to_execute_on_slave)));
+		let arg1 = Box::into_raw(function_to_execute_on_slave) as *mut c_void;
 		
-		match unsafe { rte_eal_remote_launch(SlaveLogicalCoreFunctionWrapper::<F>::execute, arg1, self.into()) }
+		match unsafe { rte_eal_remote_launch(execute::<F>, arg1, self.into()) }
 		{
 			0 => Ok(()),
 			
-			NegativeE::EBUSY => Err(()),
+			NegativeE::EBUSY =>
+			{
+				drop(unsafe { Box::from_raw(arg1) });
+				
+				Err(())
+			}
 			
 			invalid @ _ => panic!("Invalid result from rte_eal_remote_launch '{}'", invalid),
 		}
@@ -464,7 +470,7 @@ impl LogicalCore
 	///
 	/// This will also update slaves that are in the finished state to the wait state.
 	///
-	/// Use a busy-loop with a CPU pause.
+	/// Uses a busy-loop with a CPU pause.
 	///
 	/// Note that we ignore the return values from the result of executing on the slave logical cores.
 	#[inline(always)]
@@ -478,7 +484,7 @@ impl LogicalCore
 		}
 	}
 	
-	/// Blocks until all slave logical cores enter the wait state.
+	/// Blocks until this slave logical core enters the wait state.
 	///
 	/// **WARNING:** Can only be called by code currently running on the master logical core.
 	///

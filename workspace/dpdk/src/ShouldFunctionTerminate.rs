@@ -52,6 +52,15 @@ impl ShouldFunctionTerminate
 	{
 		LoggingConfiguration::caught_unwind(payload);
 		
-		self.0.store(SeqCst)
+		self.0.store(true, SeqCst)
+	}
+	
+	/// The master loop was signalled (caught a signal) that was interpreted as meanining 'exit'.
+	#[inline(always)]
+	pub fn exit_signalled(&self, signal_number: Option<SignalNumber>)
+	{
+		LoggingConfiguration::exit_signalled(signal_number);
+		
+		self.0.store(true, SeqCst)
 	}
 }

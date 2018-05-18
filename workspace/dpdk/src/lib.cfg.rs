@@ -163,6 +163,7 @@ use ::std::sync::atomic::Ordering::Relaxed;
 use ::std::sync::atomic::Ordering::AcqRel;
 use ::std::sync::atomic::Ordering::Release;
 use ::std::sync::atomic::Ordering::SeqCst;
+use ::std::sync::atomic::spin_loop_hint;
 use ::std::thread::sleep;
 use ::std::time::Duration;
 use ::syscall_alt::PosixErrorNumber;
@@ -218,10 +219,11 @@ include!("finish.rs");
 
 
 include!("AllLogicalCoreIterator.rs");
+include!("BusyPollBehaviour.rs");
+include!("BusyPollingLogicalCoreFunction.rs");
 include!("LogicalCore.rs");
 include!("LogicalCoreChoice.rs");
 include!("MachineOrNumaNodes.rs");
-include!("HyperThread.rs");
 include!("NumaNode.rs");
 include!("NumaNodeChoice.rs");
 include!("PointerExt.rs");

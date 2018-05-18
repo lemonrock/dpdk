@@ -103,6 +103,19 @@ impl NumaNode
 		(NumaNode(numa_node as u8), HyperThread(hyper_thread as u16))
 	}
 	
+	/// Constructs from an `u16` value.
+	///
+	/// Panics if the value is out-of-range greater than or equal to `RTE_MAX_NUMA_NODES`).
+	#[inline(always)]
+	pub fn from_u16(value: u16) -> Self
+	{
+		debug_assert!((Self::Maximum as u16) <= (::std::u8::MAX as u32), "Self::Maximum '{}' exceeds ::std::u8::MAX; the DPDK API is broken", Self::Maximum, ::std::u8::MAX);
+		
+		assert!(value < (Self::Maximum as u16), "value '{}' equals or exceeds Self::Maximum '{}'", value, Self::Maximum);
+		
+		NumaNode(value as u8)
+	}
+	
 	/// Constructs from an `u32` value.
 	///
 	/// Panics if the value is out-of-range greater than or equal to `RTE_MAX_NUMA_NODES`).
@@ -433,13 +446,7 @@ impl NumaNode
 	{
 		if sys_path.is_a_numa_machine()
 		{
-			let numa_nodes_u16 = sys_path.numa_nodes_path(file_name).read_linux_core_or_numa_list().unwrap();
-			let collected: BTreeSet<Self> = numa_nodes_u16.iter().map(|as_u16|
-			{
-				assert!(as_u16 < Self::Maximum);
-				NumaNode(as_u16 as u8)
-			}).collect();
-			Some(collected)
+			Some(sys_path.numa_nodes_path(file_name).read_linux_core_or_numa_list(Self::from_u16).unwrap())
 		}
 		else
 		{
