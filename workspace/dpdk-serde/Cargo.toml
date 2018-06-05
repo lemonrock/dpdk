@@ -15,7 +15,7 @@ include = ["README.md", "src/**/*.rs", "benches/**/*.rs", "examples/**/*.rs", "t
 # Relative to Cargo.toml
 readme = "README.md"
 publish = true
-version = "0.0.3"
+version = "0.0.4"
 
 [dependencies]
 serde = "1.0"

@@ -10,10 +10,10 @@ license = "MIT"
 authors = ["Raphael Cohn <raphael.cohn@stormmq.com>"]
 homepage = "https://github.com/lemonrock/dpdk"
 repository = "https://github.com/lemonrock/dpdk.git"
-exclude = ["compile-dpdk-with-tldk.conf.d/temporary", "tools/bindgen-wrapper/temporary", "lib/dpdk-and-tldk/dpdk/doc/**", "lib/dpdk-and-tldk/dpdk/test/**", "lib/dpdk-and-tldk/dpdk/examples/**", "lib/dpdk-and-tldk/tldk/doc/**", "lib/dpdk-and-tldk/tldk/test/**", "lib/dpdk-and-tldk/tldk/examples/**"]
+exclude = ["compile-dpdk-with-tldk.conf.d/temporary", "tools/bindgen-wrapper/temporary", "lib/dpdk-and-tldk/dpdk/doc/**", "lib/dpdk-and-tldk/dpdk/test/**", "lib/dpdk-and-tldk/tldk/doc/**", "lib/dpdk-and-tldk/tldk/test/**"]
 readme = "README.md"
 publish = true
-version = "0.0.3"
+version = "0.0.4"
 build = "src/build.rs"
 links = "dpdk"
 
