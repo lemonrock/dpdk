@@ -8,9 +8,9 @@
 ///
 /// Dropping this object ***DOES NOT*** cancel the alarm clock.
 #[derive(Debug)]
-pub struct AlarmClock<T: AlarmClockCallback>(NonNull<T>);
+pub struct AlarmClock<S: SmartPointer>(NonNull<S::Target>, PhantomData<S>) where S::Target: AlarmClockCallback + Sized;
 
-impl<T: AlarmClockCallback> AlarmClock<T>
+impl<S: SmartPointer> AlarmClock<S> where S::Target: AlarmClockCallback + Sized
 {
 	/// Creates a new alarm clock.
 	///
@@ -18,31 +18,29 @@ impl<T: AlarmClockCallback> AlarmClock<T>
 	///
 	/// Returns `alarm_clock_callback` if an error occurred.
 	#[inline(always)]
-	pub fn new(period: Microseconds, alarm_clock_callback: Box<T>) -> Result<Self, Box<T>>
+	pub fn new(period: Microseconds, alarm_clock_callback: S) -> Result<Self, S>
 	{
-		let callback_argument = Box::into_raw(alarm_clock_callback);
+		let callback_argument = S::to_non_null(alarm_clock_callback);
 		
-		match unsafe { rte_eal_alarm_set(period.into() as u64, Self::callback, callback_argument as *mut c_void) }
+		match unsafe { rte_eal_alarm_set(period.into(), Self::callback, callback_argument as *mut c_void) }
 		{
-			0 => Ok(AlarmClock(unsafe { NonNull::new_unchecked(callback_argument) })),
+			0 => Ok(AlarmClock(callback_argument, PhantomData)),
 			
-			valid if valid.is_negative() => Err(unsafe { Box::from_raw(callback_argument) }),
+			valid if valid.is_negative() => Err(S::from_non_null(callback_argument)),
 			
 			_ =>
 			{
-				drop(unsafe { Box::from_raw(callback_argument) });
+				drop(S::from_non_null(callback_argument));
 				panic!("Non-negative return code '{}' from rte_eal_alarm_set()", result)
 			}
 		}
-		
-		this
 	}
 	
 	unsafe extern "C" fn callback(arg: *mut c_void)
 	{
 		debug_assert!(arg.is_not_null(), "arg is null");
 		
-		let alarm_clock_callback = unsafe { Box::from_raw(arg as *mut T) };
+		let alarm_clock_callback = S::from_non_null(NonNull::new_unchecked(arg as *mut S::Target));
 		
 		alarm_clock_callback.call();
 		
@@ -53,11 +51,68 @@ impl<T: AlarmClockCallback> AlarmClock<T>
 	///
 	/// Can only fail if we call cancel from inside an alarm callback.
 	#[inline(always)]
-	pub fn cancel(self) -> Result<Box<T>, ()>
+	pub fn cancel(self) -> Result<S, ()>
 	{
 		match unsafe { rte_eal_alarm_cancel(Self::callback, self.0.as_ptr()) }
 		{
-			1 => Ok(unsafe { Box::from_raw(self.0.as_ptr()) }),
+			1 => Ok(S::from_non_null(self.0)),
+			_ => Err(()),
+		}
+	}
+}
+
+/// A one-shot alarm.
+///
+/// Can be cancelled before it goes off.
+///
+/// Dropping this object ***DOES NOT*** cancel the alarm clock.
+#[derive(Debug)]
+pub struct AlarmClock2<S: SmartPointer, ACC: AlarmClockCallback2>(NonNull<S::Target>, PhantomData<(S, ACC)>);
+
+impl<S: SmartPointer, ACC: AlarmClockCallback2> AlarmClock2<S, ACC>
+{
+	/// Creates a new alarm clock.
+	///
+	/// The alarm clock callback will be called on or just after the `period`, but never earlier.
+	///
+	/// Returns `callback_state` if an error occurred.
+	#[inline(always)]
+	pub fn new(period: Microseconds, callback_state: S) -> Result<Self, S>
+	{
+		let callback_argument = S::to_non_null(callback_state);
+		
+		match unsafe { rte_eal_alarm_set(period.into(), Self::callback, callback_argument.as_ptr() as *mut c_void) }
+		{
+			0 => Ok(AlarmClock2(callback_argument, PhantomData)),
+			
+			valid if valid.is_negative() => Err(S::from_non_null(callback_argument)),
+			
+			_ =>
+			{
+				drop(S::from_non_null(callback_argument));
+				panic!("Non-negative return code '{}' from rte_eal_alarm_set()", result)
+			}
+		}
+	}
+	
+	unsafe extern "C" fn callback(arg: *mut c_void)
+	{
+		debug_assert!(arg.is_not_null(), "arg is null");
+		
+		let callback_argument = S::from_non_null(NonNull::new_unchecked(arg as *mut S::Target));
+		
+		ACC::alarmed(callback_argument)
+	}
+	
+	/// Cancels an alarm.
+	///
+	/// Can only fail if we call cancel from inside an alarm callback.
+	#[inline(always)]
+	pub fn cancel(self) -> Result<S, ()>
+	{
+		match unsafe { rte_eal_alarm_cancel(Self::callback, self.0.as_ptr()) }
+		{
+			1 => Ok(S::from_non_null(self.0)),
 			_ => Err(()),
 		}
 	}

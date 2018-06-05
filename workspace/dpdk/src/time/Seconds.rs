@@ -4,7 +4,43 @@
 
 /// Seconds.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct Seconds(pub u64);
+pub struct Seconds(u64);
+
+impl From<u8> for Seconds
+{
+	#[inline(always)]
+	fn from(seconds: u8) -> Self
+	{
+		Seconds(seconds as u64)
+	}
+}
+
+impl From<u16> for Seconds
+{
+	#[inline(always)]
+	fn from(seconds: u16) -> Self
+	{
+		Seconds(seconds as u64)
+	}
+}
+
+impl From<u32> for Seconds
+{
+	#[inline(always)]
+	fn from(seconds: u32) -> Self
+	{
+		Seconds(seconds as u64)
+	}
+}
+
+impl From<usize> for Seconds
+{
+	#[inline(always)]
+	fn from(seconds: usize) -> Self
+	{
+		Seconds(seconds as u64)
+	}
+}
 
 impl From<u64> for Seconds
 {

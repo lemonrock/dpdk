@@ -203,6 +203,9 @@ impl MasterLoopConfiguration
 		
 		// TODO: It's very difficult to decide on a good strategy for service cores, but they should not be hyper thread siblings; possibly they should come from a different NUMA node to master.
 		
+		// rte_event_eth_rx_adapter uses a poll over devices and ports, `event_eth_rx_adapter_service_func()` - and wrr - weighted round robin - to 'over balance' some rx queue - ethernet socket combinations. See eth_poll_wrr_calc() for calculaiton of polling weights (more entries for more weight, scaled down to minimal array size using GCD, greatest common deniminator).
+		
+		// See also `sw_event_timer_adapter_service_func` which takes in messages to arm or cancel using `rte_timer_reset`.
 		
 		xxxxxx
 	}

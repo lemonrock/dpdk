@@ -28,6 +28,10 @@
 // TODO: Mellanox Performance Tuning: https://community.mellanox.com/docs/DOC-2489
 
 
+// TODO: Review PKT_RX_TIMESTAMP and whether to use 		ts = rte_get_tsc_cycles();
+// m->timestamp = ts;
+// m->ol_flags |= PKT_RX_TIMESTAMP;
+// Also do_softrss / rte_softrss_be / rte_softrss (non-optimized), part of rte_thash (toeplitz hash functions), used entirely by the ethernet event adaptor.
 
 /// Master loop.
 pub struct MasterLoop

@@ -4,21 +4,57 @@
 
 /// Milliseconds.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct Milliseconds(pub u32);
+pub struct Milliseconds(u64);
+
+impl From<u8> for Milliseconds
+{
+	#[inline(always)]
+	fn from(milliseconds: u8) -> Self
+	{
+		Milliseconds(milliseconds as u64)
+	}
+}
+
+impl From<u16> for Milliseconds
+{
+	#[inline(always)]
+	fn from(milliseconds: u16) -> Self
+	{
+		Milliseconds(milliseconds as u64)
+	}
+}
 
 impl From<u32> for Milliseconds
 {
 	#[inline(always)]
 	fn from(milliseconds: u32) -> Self
 	{
+		Milliseconds(milliseconds as u64)
+	}
+}
+
+impl From<usize> for Milliseconds
+{
+	#[inline(always)]
+	fn from(milliseconds: usize) -> Self
+	{
+		Milliseconds(milliseconds as u64)
+	}
+}
+
+impl From<u64> for Milliseconds
+{
+	#[inline(always)]
+	fn from(milliseconds: u64) -> Self
+	{
 		Milliseconds(milliseconds)
 	}
 }
 
-impl Into<u32> for Milliseconds
+impl Into<u64> for Milliseconds
 {
 	#[inline(always)]
-	fn into(self) -> u32
+	fn into(self) -> u64
 	{
 		self.0
 	}

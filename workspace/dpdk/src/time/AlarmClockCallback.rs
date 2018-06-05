@@ -9,3 +9,11 @@ pub trait AlarmClockCallback
 	#[inline(always)]
 	fn call(&self);
 }
+
+/// An object that gets called when an alarm clock goes off (expires).
+pub trait AlarmClockCallback2<S: SmartPointer>
+{
+	/// Called when an alarm clock goes off.
+	#[inline(always)]
+	fn alarmed(state: S);
+}

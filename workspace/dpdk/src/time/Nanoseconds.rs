@@ -4,7 +4,43 @@
 
 /// Nanoseconds.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct Nanoseconds(pub u64);
+pub struct Nanoseconds(u64);
+
+impl From<u8> for Nanoseconds
+{
+	#[inline(always)]
+	fn from(nanoseconds: u8) -> Self
+	{
+		Nanoseconds(nanoseconds as u64)
+	}
+}
+
+impl From<u16> for Nanoseconds
+{
+	#[inline(always)]
+	fn from(nanoseconds: u16) -> Self
+	{
+		Nanoseconds(nanoseconds as u64)
+	}
+}
+
+impl From<u32> for Nanoseconds
+{
+	#[inline(always)]
+	fn from(nanoseconds: u32) -> Self
+	{
+		Nanoseconds(nanoseconds as u64)
+	}
+}
+
+impl From<usize> for Nanoseconds
+{
+	#[inline(always)]
+	fn from(nanoseconds: usize) -> Self
+	{
+		Nanoseconds(nanoseconds as u64)
+	}
+}
 
 impl From<u64> for Nanoseconds
 {
