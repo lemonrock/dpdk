@@ -78,7 +78,7 @@ impl InternetProtocolVersion
 				// Commented out fields are overwritten by TLDK
 				let header = unsafe { &mut * (buffer.as_ptr() as *mut ipv6_hdr) };
 				header.vtc_flow = (Version << 24 | traffic_class.as_u32() << 20 | FlowLabel).to_be();
-				//header.payload_len = 0;
+				//header.payload_length_including_extension_headers = 0;
 				header.proto = layer_4_protocol.libc_value();
 				header.hop_limits = hop_limits;
 				//header.src_addr = unsafe { zeroed() };

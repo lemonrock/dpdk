@@ -3,6 +3,7 @@
 
 
 use super::*;
+use super::layer4::Layer4Packet;
 
 
 /// Longest prefix matching, typically used to turn a destination internet protocol (IP) address into an index in a routing table.
@@ -22,14 +23,19 @@ pub mod routing;
 include!("DifferentiatedServiceCodePoint.rs");
 include!("ExplicitCongestionNotification.rs");
 include!("InternetHeaderLength.rs");
+include!("InternetProtocolHostAddress.rs");
 include!("InternetProtocolNetworkAddress.rs");
 include!("InternetProtocolVersion.rs");
 include!("InternetProtocolVersion4HostAddress.rs");
 include!("InternetProtocolVersion4NetworkAddress.rs");
+include!("InternetProtocolVersion4Packet.rs");
+include!("InternetProtocolVersion4PacketHeader.rs");
+include!("InternetProtocolVersion4OrVersion6OrBoth.rs");
 include!("InternetProtocolVersion6HostAddress.rs");
 include!("InternetProtocolVersion6NetworkAddress.rs");
 include!("InternetProtocolVersion6MulticastAddressLifetime.rs");
 include!("InternetProtocolVersion6MulticastAddressScope.rs");
-include!("InternetProtocolNetworkAddress.rs");
-include!("InternetProtocolVersion4OrVersion6OrBoth.rs");
+include!("InternetProtocolVersion6NetworkAddress.rs");
+include!("InternetProtocolVersion6Packet.rs");
+include!("InternetProtocolVersion6PacketHeader.rs");
 include!("TrafficClass.rs");

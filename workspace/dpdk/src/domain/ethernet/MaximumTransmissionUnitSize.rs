@@ -4,7 +4,7 @@
 
 /// Maximum Transmission Unit (MTU) size in bytes.
 ///
-/// Note: With an ethernet MTU of 1500, the TCP Maximum Segment Size (MSS) would be 1460 after subtracting 20 bytes for the internet protocol version 4 header and TCP header.
+/// Note: With an ethernet MTU of 1500, the TCP Maximum Segment Size (MSS) would be 1460 after subtracting 20 bytes each for the internet protocol version 4 header and TCP header.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Serialize, Deserialize)]
 pub struct MaximumTransmissionUnitSize(u16);

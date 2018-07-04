@@ -125,7 +125,7 @@ impl EthernetPortIdentifier
 			{
 				mq_mode: ETH_MQ_TX_NONE,
 				
-				offloads: ethernet_device_information.tx_offload_capa & (DEV_TX_OFFLOAD_MBUF_FAST_FREE | DEV_TX_OFFLOAD_VLAN_INSERT | DEV_TX_OFFLOAD_QINQ_INSERT | DEV_TX_OFFLOAD_IPV4_CKSUM | DEV_TX_OFFLOAD_UDP_CKSUM | DEV_TX_OFFLOAD_TCP_CKSUM | DEV_TX_OFFLOAD_TCP_TSO | DEV_TX_OFFLOAD_UDP_TSO),
+				offloads: ethernet_device_information.tx_offload_capa & (DEV_TX_OFFLOAD_VLAN_INSERT | DEV_TX_OFFLOAD_QINQ_INSERT | DEV_TX_OFFLOAD_IPV4_CKSUM | DEV_TX_OFFLOAD_UDP_CKSUM | DEV_TX_OFFLOAD_TCP_CKSUM | DEV_TX_OFFLOAD_TCP_TSO | DEV_TX_OFFLOAD_UDP_TSO),
 				pvid:
 				{
 					const NoPortBasedVirtualLanInsertionAsMostNicsDoNotSupportIt: u64 = 0;

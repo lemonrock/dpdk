@@ -4,11 +4,14 @@
 
 /// This is a specialized structure designed to represent a buffer of packet data.
 #[repr(C, packed)]
-pub struct InternetProtocolVersion6Packet
+pub struct InternetProtocolVersion4Packet
 {
 	/// Header.
 	pub header: InternetProtocolVersion4PacketHeader,
 	
+	/// Options.
+	pub options: PhantomData<u8>,
+	
 	/// Payload.
-	pub payload: InternetProtocolPacketPayload,
+	pub payload: Layer4Packet,
 }

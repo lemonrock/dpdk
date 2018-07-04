@@ -88,4 +88,10 @@ impl DifferentiatedServiceCodePoint
 	
 	/// ?
 	pub const NetworkControl: DifferentiatedServiceCodePoint = DifferentiatedServiceCodePoint(0b111000);
+	
+	#[inline(always)]
+	pub fn is_for_local_or_experimental_use(self) -> bool
+	{
+		self.0 & 0b11 != 0
+	}
 }

@@ -3,11 +3,13 @@
 
 
 use super::*;
+use super::internet_protocol::*;
 
 
 /// Internet Control Message Protocol (ICMP).
 pub mod internet_control_message_protocol;
 
 
+include!("Layer4Packet.rs");
 include!("Layer4Port.rs");
 include!("Layer4Protocol.rs");
