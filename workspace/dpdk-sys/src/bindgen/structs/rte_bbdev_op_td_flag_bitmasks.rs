@@ -81,6 +81,11 @@ impl rte_bbdev_op_td_flag_bitmasks
 	pub const RTE_BBDEV_TURBO_DEC_SCATTER_GATHER: rte_bbdev_op_td_flag_bitmasks = rte_bbdev_op_td_flag_bitmasks(32768);
 }
 
+impl rte_bbdev_op_td_flag_bitmasks
+{
+	pub const RTE_BBDEV_TURBO_DEC_TB_CRC_24B_KEEP: rte_bbdev_op_td_flag_bitmasks = rte_bbdev_op_td_flag_bitmasks(65536);
+}
+
 impl BitOr<rte_bbdev_op_td_flag_bitmasks> for rte_bbdev_op_td_flag_bitmasks
 {
 	type Output = Self;

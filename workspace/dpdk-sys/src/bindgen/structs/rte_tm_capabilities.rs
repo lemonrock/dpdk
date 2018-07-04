@@ -27,6 +27,8 @@ pub struct rte_tm_capabilities
 	pub sched_wfq_n_children_per_group_max: u32,
 	pub sched_wfq_n_groups_max: u32,
 	pub sched_wfq_weight_max: u32,
+	pub cman_wred_packet_mode_supported: c_int,
+	pub cman_wred_byte_mode_supported: c_int,
 	pub cman_head_drop_supported: c_int,
 	pub cman_wred_context_n_max: u32,
 	pub cman_wred_context_private_n_max: u32,

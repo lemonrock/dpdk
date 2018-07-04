@@ -6,7 +6,6 @@ extern "C"
 {
 	#[link_name = "\u{1}rte_table_acl_ops"] pub static mut rte_table_acl_ops: rte_table_ops;
 	#[link_name = "\u{1}rte_table_array_ops"] pub static mut rte_table_array_ops: rte_table_ops;
-	#[link_name = "\u{1}rte_table_hash_cuckoo_ops"] pub static mut rte_table_hash_cuckoo_ops: rte_table_ops;
 	#[link_name = "\u{1}rte_table_hash_ext_ops"] pub static mut rte_table_hash_ext_ops: rte_table_ops;
 	#[link_name = "\u{1}rte_table_hash_key16_ext_ops"] pub static mut rte_table_hash_key16_ext_ops: rte_table_ops;
 	#[link_name = "\u{1}rte_table_hash_key16_lru_ops"] pub static mut rte_table_hash_key16_lru_ops: rte_table_ops;

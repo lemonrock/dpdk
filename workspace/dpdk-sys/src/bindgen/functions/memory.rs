@@ -23,8 +23,8 @@ extern "C"
 	pub fn rte_mbuf_user_mempool_ops() -> *const c_char;
 	pub fn rte_mem_alloc_validator_register(name: *const c_char, clb: rte_mem_alloc_validator_t, socket_id: c_int, limit: usize) -> c_int;
 	pub fn rte_mem_alloc_validator_unregister(name: *const c_char, socket_id: c_int) -> c_int;
-	pub fn rte_mem_event_callback_register(name: *const c_char, clb: rte_mem_event_callback_t) -> c_int;
-	pub fn rte_mem_event_callback_unregister(name: *const c_char) -> c_int;
+	pub fn rte_mem_event_callback_register(name: *const c_char, clb: rte_mem_event_callback_t, arg: *mut c_void) -> c_int;
+	pub fn rte_mem_event_callback_unregister(name: *const c_char, arg: *mut c_void) -> c_int;
 	pub fn rte_mem_iova2virt(iova: rte_iova_t) -> *mut c_void;
 	pub fn rte_mem_lock_page(virt: *const c_void) -> c_int;
 	pub fn rte_mem_virt2iova(virt: *const c_void) -> rte_iova_t;

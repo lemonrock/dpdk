@@ -33,6 +33,13 @@ pub struct rte_eventdev_ops
 	pub eth_rx_adapter_stats_get: eventdev_eth_rx_adapter_stats_get,
 	pub eth_rx_adapter_stats_reset: eventdev_eth_rx_adapter_stats_reset,
 	pub timer_adapter_caps_get: eventdev_timer_adapter_caps_get_t,
+	pub crypto_adapter_caps_get: eventdev_crypto_adapter_caps_get_t,
+	pub crypto_adapter_queue_pair_add: eventdev_crypto_adapter_queue_pair_add_t,
+	pub crypto_adapter_queue_pair_del: eventdev_crypto_adapter_queue_pair_del_t,
+	pub crypto_adapter_start: eventdev_crypto_adapter_start_t,
+	pub crypto_adapter_stop: eventdev_crypto_adapter_stop_t,
+	pub crypto_adapter_stats_get: eventdev_crypto_adapter_stats_get,
+	pub crypto_adapter_stats_reset: eventdev_crypto_adapter_stats_reset,
 	pub dev_selftest: eventdev_selftest,
 	pub dev_stop_flush: eventdev_stop_flush_t,
 }

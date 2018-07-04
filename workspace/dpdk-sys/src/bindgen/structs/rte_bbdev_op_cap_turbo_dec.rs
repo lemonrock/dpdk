@@ -6,6 +6,7 @@
 pub struct rte_bbdev_op_cap_turbo_dec
 {
 	pub capability_flags: u32,
+	pub max_llr_modulus: i8,
 	pub num_buffers_src: u8,
 	pub num_buffers_hard_out: u8,
 	pub num_buffers_soft_out: u8,

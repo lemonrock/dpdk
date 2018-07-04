@@ -2,27 +2,4 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-#[repr(C)]
-pub struct rte_tm_wred_params
-{
-	pub red_params: [rte_tm_red_params; 3usize],
-	pub packet_mode: c_int,
-}
-
-impl Default for rte_tm_wred_params
-{
-	#[inline(always)]
-	fn default() -> Self
-	{
-		unsafe { zeroed() }
-	}
-}
-
-impl Debug for rte_tm_wred_params
-{
-	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> Result
-	{
-		write!(f, "rte_tm_wred_params {{ red_params: {:?} }}", self.red_params)
-	}
-}
+pub type eventdev_crypto_adapter_start_t = Option<unsafe extern "C" fn(dev: *const rte_eventdev, cdev: *const rte_cryptodev) -> c_int>;

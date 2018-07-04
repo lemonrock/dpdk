@@ -59,6 +59,8 @@ extern "C"
 	pub fn rte_cryptodev_sym_capability_check_auth(capability: *const rte_cryptodev_symmetric_capability, key_size: u16, digest_size: u16, iv_size: u16) -> c_int;
 	pub fn rte_cryptodev_sym_capability_check_cipher(capability: *const rte_cryptodev_symmetric_capability, key_size: u16, iv_size: u16) -> c_int;
 	pub fn rte_cryptodev_sym_capability_get(dev_id: u8, idx: *const rte_cryptodev_sym_capability_idx) -> *const rte_cryptodev_symmetric_capability;
+	pub fn rte_cryptodev_sym_get_header_session_size() -> c_uint;
+	pub fn rte_cryptodev_sym_get_private_session_size(dev_id: u8) -> c_uint;
 	pub fn rte_cryptodev_sym_session_clear(dev_id: u8, sess: *mut rte_cryptodev_sym_session) -> c_int;
 	pub fn rte_cryptodev_sym_session_create(mempool: *mut rte_mempool) -> *mut rte_cryptodev_sym_session;
 	pub fn rte_cryptodev_sym_session_free(sess: *mut rte_cryptodev_sym_session) -> c_int;

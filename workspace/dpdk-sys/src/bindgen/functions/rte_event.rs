@@ -4,6 +4,7 @@
 
 extern "C"
 {
+	pub fn rte_event_crypto_adapter_caps_get(dev_id: u8, cdev_id: u8, caps: *mut u32) -> c_int;
 	pub fn rte_event_dequeue_timeout_ticks(dev_id: u8, ns: u64, timeout_ticks: *mut u64) -> c_int;
 	pub fn rte_event_dev_attr_get(dev_id: u8, attr_id: u32, attr_value: *mut u32) -> c_int;
 	pub fn rte_event_dev_close(dev_id: u8) -> c_int;
@@ -26,8 +27,8 @@ extern "C"
 	pub fn rte_event_eth_rx_adapter_create(id: u8, dev_id: u8, port_config: *mut rte_event_port_conf) -> c_int;
 	pub fn rte_event_eth_rx_adapter_create_ext(id: u8, dev_id: u8, conf_cb: rte_event_eth_rx_adapter_conf_cb, conf_arg: *mut c_void) -> c_int;
 	pub fn rte_event_eth_rx_adapter_free(id: u8) -> c_int;
-	pub fn rte_event_eth_rx_adapter_queue_add(id: u8, eth_dev_id: u8, rx_queue_id: i32, conf: *const rte_event_eth_rx_adapter_queue_conf) -> c_int;
-	pub fn rte_event_eth_rx_adapter_queue_del(id: u8, eth_dev_id: u8, rx_queue_id: i32) -> c_int;
+	pub fn rte_event_eth_rx_adapter_queue_add(id: u8, eth_dev_id: u16, rx_queue_id: i32, conf: *const rte_event_eth_rx_adapter_queue_conf) -> c_int;
+	pub fn rte_event_eth_rx_adapter_queue_del(id: u8, eth_dev_id: u16, rx_queue_id: i32) -> c_int;
 	pub fn rte_event_eth_rx_adapter_service_id_get(id: u8, service_id: *mut u32) -> c_int;
 	pub fn rte_event_eth_rx_adapter_start(id: u8) -> c_int;
 	pub fn rte_event_eth_rx_adapter_stats_get(id: u8, stats: *mut rte_event_eth_rx_adapter_stats) -> c_int;

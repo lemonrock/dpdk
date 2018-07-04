@@ -90,5 +90,6 @@ extern "C"
 	pub fn rte_pmd_ixgbe_set_vf_vlan_filter(port: u16, vlan: u16, vf_mask: u64, vlan_on: u8) -> c_int;
 	pub fn rte_pmd_ixgbe_set_vf_vlan_insert(port: u16, vf: u16, vlan_id: u16) -> c_int;
 	pub fn rte_pmd_ixgbe_set_vf_vlan_stripq(port: u16, vf: u16, on: u8) -> c_int;
+	pub fn rte_pmd_ixgbe_upd_fctrl_sbp(port: u16, enable: c_int) -> c_int;
 	pub fn rte_pmd_softnic_run(port_id: u16) -> c_int;
 }

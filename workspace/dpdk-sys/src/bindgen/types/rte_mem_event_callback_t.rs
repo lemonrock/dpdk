@@ -2,4 +2,4 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-pub type rte_mem_event_callback_t = Option<unsafe extern "C" fn(event_type: rte_mem_event, addr: *const c_void, len: usize)>;
+pub type rte_mem_event_callback_t = Option<unsafe extern "C" fn(event_type: rte_mem_event, addr: *const c_void, len: usize, arg: *mut c_void)>;

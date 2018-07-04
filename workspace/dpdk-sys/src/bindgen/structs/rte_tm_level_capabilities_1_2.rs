@@ -10,6 +10,8 @@ pub struct rte_tm_level_capabilities_1_2
 	pub shaper_private_rate_min: u64,
 	pub shaper_private_rate_max: u64,
 	pub shaper_shared_n_max: u32,
+	pub cman_wred_packet_mode_supported: c_int,
+	pub cman_wred_byte_mode_supported: c_int,
 	pub cman_head_drop_supported: c_int,
 	pub cman_wred_context_private_supported: c_int,
 	pub cman_wred_context_shared_n_max: u32,

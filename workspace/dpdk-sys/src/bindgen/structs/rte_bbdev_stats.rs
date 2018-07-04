@@ -9,6 +9,7 @@ pub struct rte_bbdev_stats
 	pub dequeued_count: u64,
 	pub enqueue_err_count: u64,
 	pub dequeue_err_count: u64,
+	pub offload_time: u64,
 }
 
 impl Default for rte_bbdev_stats

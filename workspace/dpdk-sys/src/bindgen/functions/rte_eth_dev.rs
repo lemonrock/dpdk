@@ -51,6 +51,7 @@ extern "C"
 	pub fn rte_eth_dev_owner_unset(port_id: u16, owner_id: u64) -> c_int;
 	pub fn rte_eth_dev_pool_ops_supported(port_id: u16, pool: *const c_char) -> c_int;
 	pub fn rte_eth_dev_priority_flow_ctrl_set(port_id: u16, pfc_conf: *mut rte_eth_pfc_conf) -> c_int;
+	pub fn rte_eth_dev_probing_finish(dev: *mut rte_eth_dev);
 	pub fn rte_eth_dev_release_port(eth_dev: *mut rte_eth_dev) -> c_int;
 	pub fn rte_eth_dev_reset(port_id: u16) -> c_int;
 	pub fn rte_eth_dev_rss_hash_conf_get(port_id: u16, rss_conf: *mut rte_eth_rss_conf) -> c_int;

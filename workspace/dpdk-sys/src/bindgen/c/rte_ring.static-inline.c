@@ -81,12 +81,12 @@ unsigned int rust_rte_ring_dequeue_bulk(struct rte_ring * r, void * * obj_table,
 	return rte_ring_dequeue_bulk(r, obj_table, n, available);
 }
 
-unsigned int rust___rte_ring_do_enqueue(struct rte_ring * r, void * const * obj_table, unsigned int n, enum rte_ring_queue_behavior behavior, int is_sp, unsigned int * free_space)
+unsigned int rust___rte_ring_do_enqueue(struct rte_ring * r, void * const * obj_table, unsigned int n, enum rte_ring_queue_behavior behavior, unsigned int is_sp, unsigned int * free_space)
 {
 	return __rte_ring_do_enqueue(r, obj_table, n, behavior, is_sp, free_space);
 }
 
-unsigned int rust___rte_ring_do_dequeue(struct rte_ring * r, void * * obj_table, unsigned int n, enum rte_ring_queue_behavior behavior, int is_sc, unsigned int * available)
+unsigned int rust___rte_ring_do_dequeue(struct rte_ring * r, void * * obj_table, unsigned int n, enum rte_ring_queue_behavior behavior, unsigned int is_sc, unsigned int * available)
 {
 	return __rte_ring_do_dequeue(r, obj_table, n, behavior, is_sc, available);
 }

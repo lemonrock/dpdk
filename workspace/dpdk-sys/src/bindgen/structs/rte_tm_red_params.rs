@@ -5,8 +5,8 @@
 #[repr(C)]
 pub struct rte_tm_red_params
 {
-	pub min_th: u16,
-	pub max_th: u16,
+	pub min_th: u32,
+	pub max_th: u32,
 	pub maxp_inv: u16,
 	pub wq_log2: u16,
 }

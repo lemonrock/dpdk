@@ -241,6 +241,7 @@ include!("structs/rte_eth_xstat_name.rs");
 include!("structs/rte_event.rs");
 include!("structs/rte_event_1.rs");
 include!("structs/rte_event_1_1.rs");
+include!("structs/rte_event_crypto_adapter_stats.rs");
 include!("structs/rte_event_dev_config.rs");
 include!("structs/rte_event_dev_info.rs");
 include!("structs/rte_event_dev_xstats_name.rs");

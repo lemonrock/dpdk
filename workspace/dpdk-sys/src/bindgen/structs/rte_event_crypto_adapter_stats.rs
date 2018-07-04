@@ -3,29 +3,8 @@
 
 
 #[repr(C)]
-pub struct rte_tm_node_capabilities_1_2
+#[derive(Debug, Copy, Clone)]
+pub struct rte_event_crypto_adapter_stats
 {
-	pub cman_wred_packet_mode_supported: c_int,
-	pub cman_wred_byte_mode_supported: c_int,
-	pub cman_head_drop_supported: c_int,
-	pub cman_wred_context_private_supported: c_int,
-	pub cman_wred_context_shared_n_max: u32,
-}
-
-impl Default for rte_tm_node_capabilities_1_2
-{
-	#[inline(always)]
-	fn default() -> Self
-	{
-		unsafe { zeroed() }
-	}
-}
-
-impl Debug for rte_tm_node_capabilities_1_2
-{
-	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> Result
-	{
-		write!(f, "rte_tm_node_capabilities_1_2 {{  }}")
-	}
+	_unused: [u8; 0],
 }
