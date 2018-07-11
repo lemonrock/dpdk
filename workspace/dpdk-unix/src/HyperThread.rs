@@ -52,19 +52,19 @@ impl HyperThread
 			{
 				list.push(',');
 			}
-			list.push_str(&format!("{}", hyper_thread))
+			list.push_str(&format!("{}", hyper_thread.0))
 		}
 		list
 	}
 	
 	/// Sets workqueue hyper thread affinity.
 	#[inline(always)]
-	pub fn set_work_queue_hyper_thread_affinity(hyper_threads: &BTreeSet<HyperThread>, sys_path: &SysPath)
+	pub fn set_work_queue_hyper_thread_affinity(hyper_threads: &BTreeSet<HyperThread>, sys_path: &SysPath) -> io::Result<()>
 	{
 		let mask = Self::hyper_threads_to_mask(hyper_threads);
 		
-		proc_path.workqueue_file_path("cpumask").write_value(&mask);
-		proc_path.workqueue_file_path("writeback/cpumask").write_value(&mask);
+		sys_path.workqueue_file_path("cpumask").write_value(&mask)?;
+		sys_path.workqueue_file_path("writeback/cpumask").write_value(&mask)
 	}
 	
 	/// We ignore failures as the `/proc` for this is brittle.
@@ -72,19 +72,20 @@ impl HyperThread
 	/// Should not be needed if `nohz_full` was specified on the Linux command line.
 	#[inline(always)]
 	#[cfg(any(target_os = "android", target_os = "linux"))]
-	pub fn force_watchdog_to_just_these_hyper_threads(hyper_threads: &BTreeSet<HyperThread>, proc_path: &ProcPath)
+	pub fn force_watchdog_to_just_these_hyper_threads(hyper_threads: &BTreeSet<HyperThread>, proc_path: &ProcPath) -> io::Result<()>
 	{
 		let yes_a_list_even_though_file_is_named_a_cpumask = HyperThread::hyper_threads_to_list(hyper_threads);
-		proc_path.file_path("sys/kernel/watchdog_cpumask").write_value(&yes_a_list_even_though_file_is_named_a_cpumask);
+		proc_path.file_path("sys/kernel/watchdog_cpumask").write_value(&yes_a_list_even_though_file_is_named_a_cpumask)
 	}
 	
 	/// Last hyper thread.
 	#[inline(always)]
-	pub fn last(hyper_threads: &BTreeSet<HyperThread>) -> Option<Self>
+	pub fn last(hyper_threads: &BTreeSet<HyperThread>) -> Option<&Self>
 	{
 		hyper_threads.iter().last()
 	}
 	
+	/// The complement of `hyper_threads`.
 	#[inline(always)]
 	pub fn complement(hyper_threads: &BTreeSet<Self>, sys_path: &SysPath) -> BTreeSet<Self>
 	{
@@ -92,6 +93,7 @@ impl HyperThread
 		present.difference(hyper_threads).cloned().collect()
 	}
 	
+	/// Remove as offline `hyper_threads`.
 	#[inline(always)]
 	pub fn remove_those_offline(hyper_threads: &BTreeSet<Self>, sys_path: &SysPath) -> BTreeSet<Self>
 	{
@@ -151,7 +153,7 @@ impl HyperThread
 	#[inline(always)]
 	pub fn is_online(self, sys_path: &SysPath) -> bool
 	{
-		match &self.online_file_path(sys_path).read_string()
+		match &self.online_file_path(sys_path).read_string_without_line_feed().unwrap()[..]
 		{
 			"0" => false,
 			"1" => true,
@@ -176,7 +178,7 @@ impl HyperThread
 	///
 	/// See <https://www.kernel.org/doc/Documentation/core-api/cpu_hotplug.rst>.
 	#[inline(always)]
-	pub fn set_offline(self, sys_path: &SysPath) -> bool
+	pub fn set_offline(self, sys_path: &SysPath) -> io::Result<()>
 	{
 		assert_effective_user_id_is_root(&format!("Offline CPU '{}'", self.0));
 		
@@ -189,7 +191,7 @@ impl HyperThread
 	///
 	/// See <https://www.kernel.org/doc/Documentation/core-api/cpu_hotplug.rst>.
 	#[inline(always)]
-	pub fn set_online(self, sys_path: &SysPath) -> bool
+	pub fn set_online(self, sys_path: &SysPath) -> io::Result<()>
 	{
 		assert_effective_user_id_is_root(&format!("Online CPU '{}'", self.0));
 		
@@ -233,8 +235,8 @@ impl HyperThread
 		let mut hyper_thread_groups = BTreeSet::new();
 		for hyper_thread in hyper_threads.iter()
 		{
-			let hyper_thread_group = (*hyper_thread).level1_cache_hyper_thread_siblings_including_self();
-			hyper_thread_groups.insert(hyper_thread_group)
+			let hyper_thread_group = (*hyper_thread).level1_cache_hyper_thread_siblings_including_self(sys_path);
+			hyper_thread_groups.insert(hyper_thread_group);
 		}
 		hyper_thread_groups
 	}
@@ -287,7 +289,7 @@ impl HyperThread
 	pub fn level1_cache_hyper_thread_siblings_excluding_self(self, sys_path: &SysPath) -> BTreeSet<Self>
 	{
 		let mut hyper_threads = self.level1_cache_hyper_thread_siblings_including_self(sys_path);
-		hyper_threads.remove(self);
+		hyper_threads.remove(&self);
 		hyper_threads
 	}
 	
@@ -332,7 +334,7 @@ impl HyperThread
 	///
 	/// Topology is not available on FreeBSD; value will always be zero.
 	#[cfg(any(target_os = "android", target_os = "dragonfly", target_os = "linux"))]
-	pub(crate) fn current_hyper_thread() -> Self
+	pub fn current_hyper_thread() -> Self
 	{
 		extern "C"
 		{

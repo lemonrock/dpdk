@@ -9,7 +9,7 @@ pub enum TransparentHugePageDefragmentationChoice
 	/// Never defragment.
 	Never,
 	
-	// Defer defragmentation until allocation requires it.
+	/// Defer defragmentation until allocation requires it.
 	Defer,
 	
 	/// Only for pages so specified by the `madvise()` (or `fadvise()`) syscall with the `MADV_HUGEPAGE` flag.
@@ -26,7 +26,7 @@ impl TransparentHugePageDefragmentationChoice
 	#[inline(always)]
 	pub(crate) fn to_value(self) -> &'static str
 	{
-		use self::TransparentHugePageDefragmentation::*;
+		use self::TransparentHugePageDefragmentationChoice::*;
 		
 		match self
 		{
@@ -40,7 +40,7 @@ impl TransparentHugePageDefragmentationChoice
 	#[inline(always)]
 	pub(crate) fn defrag_value(self) -> &'static str
 	{
-		use self::TransparentHugePageDefragmentation::*;
+		use self::TransparentHugePageDefragmentationChoice::*;
 		
 		match self
 		{

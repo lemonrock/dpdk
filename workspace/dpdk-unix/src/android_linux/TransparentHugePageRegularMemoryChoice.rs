@@ -22,7 +22,7 @@ impl TransparentHugePageRegularMemoryChoice
 	#[inline(always)]
 	pub(crate) fn to_value(self) -> &'static str
 	{
-		use self::TransparentHugePageDefragmentation::*;
+		use self::TransparentHugePageRegularMemoryChoice::*;
 		
 		match self
 		{

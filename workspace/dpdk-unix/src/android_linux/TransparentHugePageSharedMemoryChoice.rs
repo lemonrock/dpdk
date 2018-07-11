@@ -40,7 +40,7 @@ impl TransparentHugePageSharedMemoryChoice
 	#[inline(always)]
 	pub(crate) fn to_value(self) -> &'static str
 	{
-		use self::TransparentHugePageDefragmentation::*;
+		use self::TransparentHugePageSharedMemoryChoice::*;
 		
 		match self
 		{

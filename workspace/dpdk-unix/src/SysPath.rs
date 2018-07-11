@@ -92,11 +92,11 @@ impl SysPath
 	///
 	/// Errors are swallowed.
 	#[inline(always)]
-	pub fn rescan_all_pci_buses_and_devices(&self)
+	pub fn rescan_all_pci_buses_and_devices(&self) -> io::Result<()>
 	{
 		let mut path = self.path();
 		path.push("bus/pci/rescan");
-		path.write_value(1);
+		path.write_value(1)
 	}
 	
 	#[inline(always)]
@@ -112,7 +112,7 @@ impl SysPath
 	///
 	/// The value of the `transparent_huge_page_regular_memory_choice` can also be specified in the Linux kernel command line parameters as one of "transparent_hugepage=never", "transparent_hugepage=always" or "transparent_hugepage=madvise".
 	#[cfg(any(target_os = "android", target_os = "linux"))]
-	pub fn change_transparent_huge_pages_usage(&self, transparent_huge_page_regular_memory_choice: TransparentHugePageRegularMemoryChoice, transparent_huge_page_shared_memory_choice: TransparentHugePageSharedMemoryChoice, use_zero_page: bool)
+	pub fn change_transparent_huge_pages_usage(&self, transparent_huge_page_regular_memory_choice: TransparentHugePageRegularMemoryChoice, transparent_huge_page_shared_memory_choice: TransparentHugePageSharedMemoryChoice, use_zero_page: bool) -> io::Result<()>
 	{
 		let use_zero_page_value = if use_zero_page
 		{
@@ -122,11 +122,11 @@ impl SysPath
 		{
 			0
 		};
-		self.global_transparent_huge_memory_file_path("use_zero_page").write_value(use_zero_page_value);
+		self.global_transparent_huge_memory_file_path("use_zero_page").write_value(use_zero_page_value)?;
 		
-		self.global_transparent_huge_memory_file_path("shmem_enabled").write_value(transparent_huge_page_shared_memory_choice.to_value());
+		self.global_transparent_huge_memory_file_path("shmem_enabled").write_value(transparent_huge_page_shared_memory_choice.to_value())?;
 		
-		self.global_transparent_huge_memory_file_path("enabled").write_value(transparent_huge_page_regular_memory_choice.to_value());
+		self.global_transparent_huge_memory_file_path("enabled").write_value(transparent_huge_page_regular_memory_choice.to_value())
 	}
 	
 	/// Changes defragmentation using the Kernel-internal `khugepaged` daemon thread for Transparent Huge Pages (THP).
@@ -138,15 +138,16 @@ impl SysPath
 	/// * The kernel default for `how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages` is 64. Also known as `max_ptes_swap`. A higher value can cause excessive swap IO and waste memory. A lower value can prevent THPs from being collapsed, resulting in fewer pages being collapsed into THPs, and so lower memory access performance.
 	#[inline(always)]
 	#[cfg(any(target_os = "android", target_os = "linux"))]
-	pub fn change_transparent_huge_pages_defragmentation(&self, transparent_huge_page_defragmentation_choice: TransparentHugePageDefragmentation, pages_to_scan: u16, scan_sleep_in_milliseconds: usize, allocation_sleep_in_milliseconds: usize, how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages: u16, how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages: u16)
+	pub fn change_transparent_huge_pages_defragmentation(&self, transparent_huge_page_defragmentation_choice: TransparentHugePageDefragmentationChoice, pages_to_scan: u16, scan_sleep_in_milliseconds: usize, allocation_sleep_in_milliseconds: usize, how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages: u16, how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages: u16) -> io::Result<()>
 	{
-		self.khugepaged_file_path("pages_to_scan").write_value(pages_to_scan);
-		self.khugepaged_file_path("alloc_sleep_millisecs").write_value(scan_sleep_in_milliseconds);
-		self.khugepaged_file_path("scan_sleep_millisecs").write_value(allocation_sleep_in_milliseconds);
-		self.khugepaged_file_path("max_ptes_none").write_value(how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages);
-		self.khugepaged_file_path("max_ptes_swap").write_value(how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages);
-		self.khugepaged_file_path("defrag").write_value(transparent_huge_page_defragmentation_choice.defrag_value());
-		self.global_transparent_huge_memory_file_path("defrag").write_value(transparent_huge_page_defragmentation_choice.to_value());
+		self.khugepaged_file_path("pages_to_scan").write_value(pages_to_scan)?;
+		self.khugepaged_file_path("alloc_sleep_millisecs").write_value(scan_sleep_in_milliseconds)?;
+		self.khugepaged_file_path("scan_sleep_millisecs").write_value(allocation_sleep_in_milliseconds)?;
+		self.khugepaged_file_path("max_ptes_none").write_value(how_many_extra_small_pages_not_already_mapped_can_be_allocated_when_collapsing_small_pages)?;
+		self.khugepaged_file_path("max_ptes_swap").write_value(how_many_extra_small_pages_not_already_mapped_can_be_swapped_when_collapsing_small_pages)?;
+		self.khugepaged_file_path("defrag").write_value(transparent_huge_page_defragmentation_choice.defrag_value())?;
+		self.global_transparent_huge_memory_file_path("defrag").write_value(transparent_huge_page_defragmentation_choice.to_value())?;
+		Ok(())
 	}
 	
 	#[inline(always)]
@@ -182,7 +183,8 @@ impl SysPath
 	#[inline(always)]
 	pub(crate) fn hyper_thread_folder_path(&self, hyper_thread: HyperThread) -> PathBuf
 	{
-		self.hyper_threads_path(&format!("cpu{}", hyper_thread.into::<u16>()))
+		let into: u16 = hyper_thread.into();
+		self.hyper_threads_path(&format!("cpu{}", into))
 	}
 	
 	#[inline(always)]

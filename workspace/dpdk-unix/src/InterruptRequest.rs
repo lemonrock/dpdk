@@ -29,9 +29,10 @@ impl Into<u16> for InterruptRequest
 
 impl InterruptRequest
 {
+	/// Reads interrupt request (IRQ) affinity to hyper threads.
 	#[inline(always)]
 	#[cfg(any(target_os = "android", target_os = "linux"))]
-	pub fn read_interrupt_request_to_hyper_threads_affinity(&self, proc_path: &ProcPath) -> Result<BTreeSet<HyperThread>, io::Error>
+	pub fn read_interrupt_request_to_hyper_threads_affinity(&self, proc_path: &ProcPath) -> Result<BTreeSet<HyperThread>, ListParseError>
 	{
 		proc_path.file_path(&format!("irq/{}/smp_affinity_list", self.0)).read_linux_core_or_numa_list(HyperThread::from)
 	}
@@ -39,7 +40,7 @@ impl InterruptRequest
 	/// This logic seems to exist in the Linux kernel to provide a place for the `irqbalance` daemon to store some configuration.
 	#[inline(always)]
 	#[cfg(any(target_os = "android", target_os = "linux"))]
-	pub fn read_interrupt_request_to_hyper_threads_affinity_hint(&self, proc_path: &ProcPath) -> Result<BTreeSet<HyperThread>, io::Error>
+	pub fn read_interrupt_request_to_hyper_threads_affinity_hint(&self, proc_path: &ProcPath) -> Result<BTreeSet<HyperThread>, ListParseError>
 	{
 		proc_path.file_path(&format!("irq/{}/affinity_hint", self.0)).read_linux_core_or_numa_list(HyperThread::from)
 	}
@@ -63,20 +64,22 @@ impl InterruptRequest
 	/// We ignore failures as the `/proc` for interrupt requests is brittle.
 	#[inline(always)]
 	#[cfg(any(target_os = "android", target_os = "linux"))]
-	pub fn force_all_interrupt_requests_to_just_these_hyper_threads(hyper_threads: &BTreeSet<HyperThread>, proc_path: &ProcPath)
+	pub fn force_all_interrupt_requests_to_just_these_hyper_threads(hyper_threads: &BTreeSet<HyperThread>, proc_path: &ProcPath) -> io::Result<()>
 	{
 		let mask = HyperThread::hyper_threads_to_mask(hyper_threads);
 		
-		proc_path.file_path("irq/default_smp_affinity").write_value(&mask);
+		proc_path.file_path("irq/default_smp_affinity").write_value(&mask)?;
 		
-		if let Some(interrupt_requests) = InterruptRequest::interrupt_requests()
+		if let Ok(interrupt_requests) = InterruptRequest::interrupt_requests(proc_path)
 		{
 			for interrupt_request in interrupt_requests.iter()
 			{
-				proc_path.file_path(&format!("irq/{}/smp_affinity", interrupt_request)).write_value(&mask);
-				proc_path.file_path(&format!("irq/{}/affinity_hint", interrupt_request)).write_value(&mask);
+				proc_path.file_path(&format!("irq/{}/smp_affinity", interrupt_request.0)).write_value(&mask)?;
+				proc_path.file_path(&format!("irq/{}/affinity_hint", interrupt_request.0)).write_value(&mask)?;
 			}
 		}
+		
+		Ok(())
 	}
 	
 	/// Returns known interrupt requests (IRQs).
@@ -92,11 +95,11 @@ impl InterruptRequest
 			let entry = entry?;
 			if entry.file_type()?.is_file()
 			{
-				if let Ok(string) = entry.file_name().as_os_str().to_str()
+				if let Some(string) = entry.file_name().as_os_str().to_str()
 				{
 					if let Ok(interrupt_request) = string.parse::<u16>()
 					{
-						interrupt_requests.push(interrupt_request)
+						interrupt_requests.insert(InterruptRequest(interrupt_request));
 					}
 				}
 			}

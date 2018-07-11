@@ -46,8 +46,11 @@ impl VirtualAddress for *const c_void
 	#[inline(always)]
 	fn io_virtual_address(self) -> Result<rte_iova_t, ()>
 	{
+		const RTE_BAD_IOVA: u64 = 0xFFFF_FFFF_FFFF_FFFF;
+		
 		let result = unsafe { rte_mem_virt2iova(self) };
-		if (result as i64) == -1
+		
+		if result == RTE_BAD_IOVA
 		{
 			Err(())
 		}

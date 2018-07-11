@@ -137,7 +137,7 @@ impl FileSystemType
 	//noinspection SpellCheckingInspection
 	/// From str.
 	#[inline(always)]
-	fn from_str(value: &str) -> FileSystemType
+	pub fn from_str(value: &str) -> FileSystemType
 	{
 		use self::FileSystemType::*;
 		

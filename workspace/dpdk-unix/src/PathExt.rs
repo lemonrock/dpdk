@@ -53,7 +53,7 @@ pub trait PathExt
 	///
 	/// Returns a BTreeSet with the zero-based indices found in the string. For example, "2,4-31,32-63" would return a set with all values between 0 to 63 except 0, 1 and 3.
 	#[inline(always)]
-	fn read_linux_core_or_numa_list<Mapper: Fn(u16) -> R, R>(&self, mapper: Mapper) -> Result<BTreeSet<R>, ListParseError>;
+	fn read_linux_core_or_numa_list<Mapper: Fn(u16) -> R, R: Ord>(&self, mapper: Mapper) -> Result<BTreeSet<R>, ListParseError>;
 	
 	/// Reads and parses a linux core or numa mask string from a file.
 	#[inline(always)]
@@ -108,7 +108,7 @@ impl PathExt for Path
 	{
 		use self::ErrorKind::InvalidData;
 		
-		let mut raw_string = self.read_string_without_line_feed()?;
+		let raw_string = self.read_string_without_line_feed()?;
 		
 		// '0x' eg '0x1af4'.
 		let size_wih_0x_prefix = 2 + size;
@@ -148,12 +148,14 @@ impl PathExt for Path
 	#[inline(always)]
 	fn read_string_without_line_feed(&self) -> io::Result<String>
 	{
-		let should_be_line_feed = raw_string.remove(bytes_read - 1);
+		let mut raw_string = self.read_raw_string()?;
+		let length = raw_string.len();
+		let should_be_line_feed = raw_string.remove(length - 1);
 		if should_be_line_feed != '\n'
 		{
 			return Err(io::Error::new(ErrorKind::InvalidData, "File lacks terminating line feed"));
 		}
-		should_be_line_feed
+		Ok(raw_string)
 	}
 	
 	#[inline(always)]
@@ -177,7 +179,7 @@ impl PathExt for Path
 	}
 	
 	#[inline(always)]
-	fn read_linux_core_or_numa_list<Mapper: Fn(u16) -> R, R>(&self, mapper: Mapper) -> Result<BTreeSet<R>, ListParseError>
+	fn read_linux_core_or_numa_list<Mapper: Fn(u16) -> R, R: Ord>(&self, mapper: Mapper) -> Result<BTreeSet<R>, ListParseError>
 	{
 		let without_line_feed = self.read_string_without_line_feed()?;
 		

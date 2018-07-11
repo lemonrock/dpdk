@@ -133,14 +133,18 @@ impl LinuxKernelCommandLineParameters
 			let mut flags = HashSet::with_capacity(2);
 			match flags_to_split
 			{
-				None => flags.insert("domain"),
+				None =>
+				{
+					flags.insert("domain");
+				}
+				
 				Some(flags_to_split) =>
 				{
 					for flag in flags_to_split.split(',')
 					{
 						flags.insert(flag);
 					}
-				},
+				}
 			}
 			
 			(flags, Self::parse_cpu_list(cpu_list))
@@ -199,7 +203,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	fn parse_cpu_list(list: &str) -> BTreeSet<u16>
 	{
-		ListParseError::parse_linux_list_string(list).unwrap()
+		ListParseError::parse_linux_list_string(list, |value| value).unwrap()
 	}
 	
 	/// CPUs isolated from the Linux scheduler.
@@ -254,7 +258,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// See <https://www.kernel.org/doc/Documentation/core-api/cpu_hotplug.rst>.
 	#[inline(always)]
-	pub fn maxcpus(&self) -> u16
+	pub fn maxcpus(&self) -> Option<u16>
 	{
 		self.get_value("maxcpus").map(|value| value.parse().unwrap())
 	}
@@ -267,7 +271,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// See <https://www.kernel.org/doc/Documentation/core-api/cpu_hotplug.rst>.
 	#[inline(always)]
-	pub fn nr_cpus(&self) -> u16
+	pub fn nr_cpus(&self) -> Option<u16>
 	{
 		self.get_value("nr_cpus").map(|value| value.parse().unwrap())
 	}
@@ -280,7 +284,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// See <https://www.kernel.org/doc/Documentation/core-api/cpu_hotplug.rst>.
 	#[inline(always)]
-	pub fn possible_cpus(&self) -> u16
+	pub fn possible_cpus(&self) -> Option<u16>
 	{
 		self.get_value("possible_cpus").map(|value| value.parse().unwrap())
 	}
@@ -348,7 +352,7 @@ impl LinuxKernelCommandLineParameters
 	{
 		self.get_value("numa").map(|value|
 		{
-			let split = value.splitn(2, '=');
+			let mut split = value.splitn(2, '=');
 			(split.next().unwrap(), split.last())
 		})
 	}
@@ -563,7 +567,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Rarely used in practice.
 	#[inline(always)]
-	pub fn panic(&self) -> i64
+	pub fn panic(&self) -> Option<i64>
 	{
 		self.get_value("panic").map(|value| value.parse().unwrap())
 	}
@@ -586,7 +590,7 @@ impl LinuxKernelCommandLineParameters
 	{
 		self.get_value("root").map(|root|
 		{
-			let key_value = root.splitn(2, '=');
+			let mut key_value = root.splitn(2, '=');
 			let key_or_value = key_value.next().unwrap();
 			match key_value.next()
 			{
@@ -664,6 +668,7 @@ impl LinuxKernelCommandLineParameters
 	}
 	
 	/// Single-user mode.
+	#[allow(non_snake_case)]
 	#[inline(always)]
 	pub fn S(&self) -> bool
 	{
@@ -756,7 +761,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Panics if present with a value.
 	#[inline(always)]
-	pub fn is_present_with_no_value(&self, parameter_name: &str) -> bool
+	pub fn is_present_with_no_value<'a>(&self, parameter_name: &'a str) -> bool
 	{
 		match self.get(parameter_name)
 		{
@@ -776,37 +781,41 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Panics if present without a value or if multiple values are present.
 	#[inline(always)]
-	pub fn get_value(&self, parameter_name: &str) -> Option<&str>
+	pub fn get_value<'a>(&self, parameter_name: &'a str) -> Option<&str>
 	{
 		match self.get(parameter_name)
 		{
 			None => None,
-			Some(ref list) =>
+			
+			// &Vec<Option<String>>
+			Some(list) =>
 			{
 				debug_assert_ne!(list.len(), 0, "list has no elements");
-				
 				assert_eq!(list.len(), 1, "more than one value for parameter");
-				Some(list[0].expect("present without a value"))
+				
+				(unsafe { list.get_unchecked(0) }).as_ref().map(|value| value.as_str())
 			}
 		}
 	}
 	
 	/// Gets the values of this parameter.
 	#[inline(always)]
-	pub fn get_values(&self, parameter_name: &str) -> Option<Vec<&str>>
+	pub fn get_values<'a>(&self, parameter_name: &'a str) -> Option<Vec<&str>>
 	{
 		match self.get(parameter_name)
 		{
 			None => None,
-			Some(ref list) =>
+			Some(list) =>
 			{
 				debug_assert_ne!(list.len(), 0, "list has no elements");
 				
 				let mut strings = Vec::with_capacity(list.len());
-				for value in list.iter()
+				
+				for index in 0 .. list.len()
 				{
-					strings.push(value.expect("present without a value"));
+					strings.push((unsafe { list.get_unchecked(index) }).as_ref().map(|value| value.as_str()).unwrap())
 				}
+				
 				Some(strings)
 			}
 		}
@@ -821,13 +830,13 @@ impl LinuxKernelCommandLineParameters
 		
 		for parameter in line_of_parameters.split(' ')
 		{
-			let key_value = parameter.splitn(2, '=');
+			let mut key_value = parameter.splitn(2, '=');
 			let key = key_value.next().expect("There is no key");
 			if key.is_empty()
 			{
 				continue
 			}
-			let key = key.replace('-', '_');
+			let key = key.replace('-', "_");
 			
 			let entry = map.entry(key).or_insert_with(|| Vec::with_capacity(1));
 			
@@ -860,8 +869,8 @@ impl LinuxKernelCommandLineParameters
 	}
 	
 	#[inline(always)]
-	fn get(&self, parameter_name: &str) -> Option<&Vec<Option<String>>>
+	fn get<'a>(&self, parameter_name: &'a str) -> Option<&Vec<Option<String>>>
 	{
-		self.0.get(&parameter_name.replace('-', '_'))
+		self.0.get(parameter_name)
 	}
 }
