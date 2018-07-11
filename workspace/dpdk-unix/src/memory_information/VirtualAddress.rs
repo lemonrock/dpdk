@@ -176,6 +176,7 @@ impl VirtualAddress
 	/// This function will translate virtual addresses to physical addresses.
 	///
 	/// Before using this function, memory should have been `mlock()`'d.
+	#[cfg(any(target_os = "android", target_os = "linux"))]
 	#[inline(always)]
 	pub fn our_virtual_addresses_to_physical_addresses(virtual_addresses: impl Iterator<Item=Self>, mut physical_address_user: impl FnMut(Self, PhysicalAddress))
 	{

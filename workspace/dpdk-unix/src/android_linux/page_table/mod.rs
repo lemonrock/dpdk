@@ -3,21 +3,11 @@
 
 
 use super::*;
-use ::std::mem::size_of;
+use ::memory_information::PhysicalPageFrameNumber;
 use ::std::mem::uninitialized;
-use ::std::ptr::NonNull;
 use ::std::fs::File;
 use ::std::io;
 use ::std::io::prelude::*;
-use ::std::io::SeekFrom;
-use ::std::ops::Add;
-use ::std::ops::AddAssign;
-use ::std::ops::Sub;
-use ::std::ops::SubAssign;
 
 
 include!("PageMapEntry.rs");
-include!("PhysicalAddress.rs");
-include!("PhysicalPageFrameNumber.rs");
-include!("VirtualAddress.rs");
-include!("VirtualPageFrameNumber.rs");
