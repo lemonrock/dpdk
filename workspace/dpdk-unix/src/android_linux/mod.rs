@@ -9,19 +9,22 @@ use ::std::path::Path;
 /// Capabilities.
 pub mod capabilities;
 
-/// Linux linux_kernel_modules.
+/// Linux kernel modules.
 pub mod linux_kernel_modules;
 
 /// Mounts.
 pub mod mounts;
 
+/// Page table.
+pub mod page_table;
+
 /// PCI
 pub mod pci;
 
-/// Process Control.
+/// Process control.
 pub mod process_control;
 
-/// Resource Limits.
+/// Resource limits.
 pub mod resource_limits;
 
 

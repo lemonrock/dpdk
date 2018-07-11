@@ -4,6 +4,7 @@
 
 #![allow(non_upper_case_globals)]
 #![deny(missing_docs)]
+#![feature(int_to_from_bytes)]
 
 
 //! #dpdk-unix
