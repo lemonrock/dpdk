@@ -97,6 +97,7 @@ include!("HyperThread.rs");
 include!("InterruptRequest.rs");
 include!("ListParseError.rs");
 include!("OsStrExtMore.rs");
+#[cfg(unix)] include!("page_size.rs");
 include!("PathExt.rs");
 include!("ProcPath.rs");
 include!("set_current_thread_name.rs");
