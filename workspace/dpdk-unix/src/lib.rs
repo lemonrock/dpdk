@@ -21,7 +21,7 @@ extern crate libc;
 extern crate libc_extra;
 #[cfg(unix)] #[macro_use] extern crate maplit;
 #[macro_use] extern crate quick_error;
-#[cfg(any(target_os = "android", target_os = "linux"))] #[macro_use] extern crate serde_derive;
+#[macro_use] extern crate serde_derive;
 extern crate rust_extra;
 #[cfg(unix)] extern crate syscall_alt;
 
