@@ -10,21 +10,22 @@ impl PageMapEntry
 {
 	/// Read the current process' pagemap file.
 	#[inline(always)]
-	pub fn read_our_pagemap_file(virtual_addresses: impl Iterator<Item=VirtualAddress>, page_map_entry_user: impl FnMut(VirtualAddress, PageMapEntry)) -> io::Result<()>
+	pub fn read_our_pagemap_file<HVA: HasVirtualAddress>(have_virtual_addresses: impl Iterator<Item=HVA>, page_map_entry_user: impl FnMut(HVA, VirtualAddress, PageMapEntry)) -> io::Result<()>
 	{
-		Self::read_pagemap_file(virtual_addresses, page_map_entry_user, "/proc/self/pagemap")
+		Self::read_pagemap_file(have_virtual_addresses, page_map_entry_user, "/proc/self/pagemap")
 	}
 	
 	/// Read the a process' pagemap file, typically at `/proc/PID/pagemap`, where `UPID` is the process' identifier ('pid').
 	#[inline(always)]
-	pub fn read_pagemap_file(virtual_addresses: impl Iterator<Item=VirtualAddress>, mut page_map_entry_user: impl FnMut(VirtualAddress, PageMapEntry), page_map_file_path: impl AsRef<Path>) -> io::Result<()>
+	pub fn read_pagemap_file<HVA: HasVirtualAddress>(have_virtual_addresses: impl Iterator<Item=HVA>, mut page_map_entry_user: impl FnMut(HVA, VirtualAddress, PageMapEntry), page_map_file_path: impl AsRef<Path>) -> io::Result<()>
 	{
 		let mut file = File::open(page_map_file_path)?;
 		
-		for virtual_address in virtual_addresses
+		for has_virtual_address in have_virtual_addresses
 		{
+			let virtual_address = has_virtual_address.virtual_address();
 			let page_map_entry = PageMapEntry::read_from_pagemap_file(&mut file, virtual_address)?;
-			page_map_entry_user(virtual_address, page_map_entry)
+			page_map_entry_user(has_virtual_address, virtual_address, page_map_entry)
 		}
 		
 		Ok(())

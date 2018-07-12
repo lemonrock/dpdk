@@ -175,16 +175,16 @@ impl VirtualAddress
 	
 	/// This function will translate virtual addresses to physical addresses.
 	///
-	/// Before using this function, memory should have been `mlock()`'d.
+	/// Before using this function, the memory reference by a virtual address should have been `mlock()`'d.
 	#[cfg(any(target_os = "android", target_os = "linux"))]
 	#[inline(always)]
-	pub fn our_virtual_addresses_to_physical_addresses(virtual_addresses: impl Iterator<Item=Self>, mut physical_address_user: impl FnMut(Self, PhysicalAddress))
+	pub fn virtual_addresses_to_physical_addresses<HVA: HasVirtualAddress>(have_virtual_addresses: impl Iterator<Item=HVA>, mut physical_address_user: impl FnMut(HVA, Self, PhysicalAddress))
 	{
-		PageMapEntry::read_our_pagemap_file(virtual_addresses, |virtual_address, page_map_entry|
+		PageMapEntry::read_our_pagemap_file(have_virtual_addresses, |has_virtual_address, virtual_address, page_map_entry|
 		{
 			let physical_address_of_physical_page: PhysicalAddress = page_map_entry.physical_page_frame_number().into();
 			let physical_address = physical_address_of_physical_page.add(virtual_address.offset_from_start_of_page());
-			physical_address_user(virtual_address, physical_address)
+			physical_address_user(has_virtual_address, virtual_address, physical_address)
 		}).expect("could not read pagemap");
 	}
 }

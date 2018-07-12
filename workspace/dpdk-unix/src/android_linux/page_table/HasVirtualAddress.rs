@@ -2,13 +2,9 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use super::*;
-use ::memory_information::PhysicalPageFrameNumber;
-use ::std::mem::uninitialized;
-use ::std::fs::File;
-use ::std::io;
-use ::std::io::prelude::*;
-
-
-include!("HasVirtualAddress.rs");
-include!("PageMapEntry.rs");
+/// Has a virtual address.
+pub trait HasVirtualAddress
+{
+	/// Provides the virtual address of this object.
+	fn virtual_address(&self) -> VirtualAddress;
+}
