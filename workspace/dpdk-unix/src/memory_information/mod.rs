@@ -7,7 +7,7 @@ use super::*;
 use ::std::collections::HashMap;
 use ::std::io::Error;
 #[cfg(any(target_os = "android", target_os = "linux"))] use ::std::io::SeekFrom;
-use ::std::mem::size_of;
+#[cfg(any(target_os = "android", target_os = "linux"))] use ::std::mem::size_of;
 use ::std::num::ParseIntError;
 use ::std::ops::Add;
 use ::std::ops::AddAssign;

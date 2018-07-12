@@ -135,7 +135,8 @@ impl Daemonize
 		let pid_file_path = self.create_pid_file_before_switching_user(uid, gid);
 		
 		assert_eq!(unsafe { setgid(gid) }, 0, "Could not set group identifier to '{}' because '{}'", gid, Self::os_error());
-		assert_eq!(unsafe { initgroups(user_name.as_ptr(), gid) }, 0, "Could not initialize additional groups for '{}' because '{}'", gid, Self::os_error());
+		#[cfg(not(any(target_os = "ios", target_os = "macos")))] assert_eq!(unsafe { initgroups(user_name.as_ptr(), gid) }, 0, "Could not initialize additional groups for '{}' because '{}'", gid, Self::os_error());
+		#[cfg(any(target_os = "ios", target_os = "macos"))] assert_eq!(unsafe { initgroups(user_name.as_ptr(), gid as i32) }, 0, "Could not initialize additional groups for '{}' because '{}'", gid, Self::os_error());
 		
 		Self::restrict_umask_to_current_user();
 		
@@ -166,7 +167,7 @@ impl Daemonize
 		let pid_file_path = self.pid_file_path();
 		let pid_file_path_string = pid_file_path.to_c_string();
 		
-		let file_descriptor = unsafe { open(pid_file_path_string.as_ptr(), O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) };
+		let file_descriptor = unsafe { open(pid_file_path_string.as_ptr(), O_CREAT | O_WRONLY, (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) as u32) };
 		assert!(file_descriptor >= 0, "Could not create PID file '{:?}' because '{}'", &pid_file_path_string, Self::os_error());
 		assert_eq!(unsafe { fchown(file_descriptor, uid, gid) }, 0, "Could not change ownership of PID file '{:?}' because '{}'", &pid_file_path_string, Self::os_error());
 		unsafe { close(file_descriptor) };

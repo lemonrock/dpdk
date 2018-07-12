@@ -96,6 +96,7 @@ impl ProcPath
 		self.file_path("sys/fs/nr_open").read_value()
 	}
 	
+	#[cfg(any(target_os = "android", target_os = "linux"))]
 	#[inline(always)]
 	fn file_path(&self, file_name: &str) -> PathBuf
 	{
@@ -104,6 +105,7 @@ impl ProcPath
 		path
 	}
 	
+	#[cfg(any(target_os = "android", target_os = "linux"))]
 	#[inline(always)]
 	fn path(&self) -> PathBuf
 	{

@@ -2,8 +2,8 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use ::errno::errno;
-use ::syscall_alt::constants::E;
+#[cfg(any(target_os = "android", target_os = "linux"))] use ::errno::errno;
+#[cfg(any(target_os = "android", target_os = "linux"))] use ::syscall_alt::constants::E;
 use ::libc::*;
 use ::std::collections::HashSet;
 use ::std::mem::uninitialized;

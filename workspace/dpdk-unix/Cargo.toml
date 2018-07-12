@@ -19,6 +19,7 @@ publish = true
 version = "0.0.5"
 
 [dependencies]
+const-cstr-fork = "^0.2"
 errno = "0.1"
 libc = "^0.2"
 quick-error = "1.1"
@@ -33,4 +34,3 @@ syscall-alt = "0.0.14"
 
 [target.'cfg(any(target_os = "android", target_os = "linux"))'.dependencies]
 bitflags = "1.0"
-const-cstr-fork = "^0.2"

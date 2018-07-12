@@ -3,6 +3,7 @@
 
 
 /// Waits a maximum of one millisecond for signals.
+#[cfg(any(target_os = "android", target_os = "linux"))]
 #[inline(always)]
 pub fn one_millisecond_timed_wait_for_signals(signals_to_wait_for: &sigset_t) -> TimedSignalWait
 {

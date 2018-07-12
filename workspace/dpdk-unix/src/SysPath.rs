@@ -223,6 +223,7 @@ impl SysPath
 		path
 	}
 	
+	#[cfg(any(target_os = "android", target_os = "linux"))]
 	#[inline(always)]
 	fn khugepaged_file_path(&self, file_name: &str) -> PathBuf
 	{
@@ -231,6 +232,7 @@ impl SysPath
 		path
 	}
 	
+	#[cfg(any(target_os = "android", target_os = "linux"))]
 	#[inline(always)]
 	fn global_transparent_huge_memory_file_path(&self, file_name: &str) -> PathBuf
 	{
