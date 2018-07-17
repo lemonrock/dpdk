@@ -67,7 +67,7 @@ impl InternetProtocolVersion4PacketHeader
 	#[inline(always)]
 	pub fn payload_length(&self) -> u16
 	{
-		self.header_length_including_options() - self.total_length
+		self.total_length.to_native_byte_order_value() - (self.header_length_including_options() as u16)
 	}
 	
 	/// DifferentiatedServiceCodePoint and ExplicitCongestionNotification.

@@ -27,8 +27,9 @@ fn main()
 /// Mask bits for `/0` to `/32`.
 ///
 /// Stored internally in network byte (big endian) byte order.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[repr(u32)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Serialize, Deserialize)]
 pub enum InternetProtocolVersion4MaskBits
 {
 	/// `/0`

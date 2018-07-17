@@ -2,6 +2,7 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+#[macro_use] extern crate arrayref;
 extern crate arrayvec;
 extern crate dpdk_core;
 #[macro_use] extern crate dpdk_likely;

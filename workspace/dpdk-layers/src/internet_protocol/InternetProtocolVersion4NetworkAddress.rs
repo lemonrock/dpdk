@@ -27,11 +27,11 @@ impl InternetProtocolNetworkAddress for InternetProtocolVersion4NetworkAddress
 		let mask_bits = self.mask_bits as u32;
 		if cfg!(target_endian = "little")
 		{
-			mask_bits.count_ones()
+			mask_bits.count_ones() as u8
 		}
 		else
 		{
-			(!mask_bits).trailing_zeros()
+			(!mask_bits).trailing_zeros() as u8
 		}
 	}
 	
