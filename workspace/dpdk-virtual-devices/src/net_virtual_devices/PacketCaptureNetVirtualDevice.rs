@@ -20,7 +20,7 @@ impl VirtualDevice for PacketCaptureNetVirtualDevice
 	#[inline(always)]
 	fn formatted_virtual_device_arguments_with_leading_comma(&self) -> String
 	{
-		if self.receive.isInterface() && self.transmit.isInterface() && self.receive == self.transmit
+		if self.receive.is_interface() && self.transmit.is_interface() && self.receive == self.transmit
 		{
 			format!(",{}", self.receive.format(PacketCaptureFileOrInterfacePrefix::Both))
 		}
@@ -48,8 +48,8 @@ impl PacketCaptureNetVirtualDevice
 	#[inline(always)]
 	pub fn from_interface_to_interface(from_interface: NetworkInterfaceName, to_interface: NetworkInterfaceName) -> Self
 	{
-		let receive = PacketCaptureFileOrInterface::newInterface(from_interface);
-		let transmit = PacketCaptureFileOrInterface::newInterface(to_interface);
+		let receive = PacketCaptureFileOrInterface::new_interface(from_interface);
+		let transmit = PacketCaptureFileOrInterface::new_interface(to_interface);
 		Self::new(receive, transmit)
 	}
 	
@@ -57,8 +57,8 @@ impl PacketCaptureNetVirtualDevice
 	#[inline(always)]
 	pub fn from_interface_to_file(from_interface: NetworkInterfaceName, to_packet_capture_file_path: &Path) -> Self
 	{
-		let receive = PacketCaptureFileOrInterface::newInterface(from_interface);
-		let transmit = PacketCaptureFileOrInterface::newFile(to_packet_capture_file_path);
+		let receive = PacketCaptureFileOrInterface::new_interface(from_interface);
+		let transmit = PacketCaptureFileOrInterface::new_file(to_packet_capture_file_path);
 		Self::new(receive, transmit)
 	}
 	
@@ -66,8 +66,8 @@ impl PacketCaptureNetVirtualDevice
 	#[inline(always)]
 	pub fn from_file_to_interface(from_packet_capture_file_path: &Path, to_interface: NetworkInterfaceName) -> Self
 	{
-		let receive = PacketCaptureFileOrInterface::newFile(from_packet_capture_file_path);
-		let transmit = PacketCaptureFileOrInterface::newInterface(to_interface);
+		let receive = PacketCaptureFileOrInterface::new_file(from_packet_capture_file_path);
+		let transmit = PacketCaptureFileOrInterface::new_interface(to_interface);
 		Self::new(receive, transmit)
 	}
 	
@@ -77,8 +77,8 @@ impl PacketCaptureNetVirtualDevice
 	{
 		assert_ne!(from_packet_capture_file_path, to_packet_capture_file_path, "from_packet_capture_file_path and to_packet_capture_file_path can not be the same file");
 
-		let receive = PacketCaptureFileOrInterface::newFile(from_packet_capture_file_path);
-		let transmit = PacketCaptureFileOrInterface::newFile(to_packet_capture_file_path);
+		let receive = PacketCaptureFileOrInterface::new_file(from_packet_capture_file_path);
+		let transmit = PacketCaptureFileOrInterface::new_file(to_packet_capture_file_path);
 		Self::new(receive, transmit)
 	}
 	

@@ -12,15 +12,17 @@ pub trait VirtualDevice: Debug + Sized
 	const DriverName: Self::V;
 	
 	/// Name.
+	///
+	/// The index is a 5-bit unsigned integer.
 	#[inline(always)]
-	fn name(&self, index: u5) -> VirtualDeviceName<Self::V>
+	fn name(&self, index: u8) -> VirtualDeviceName<Self::V>
 	{
 		VirtualDeviceName::new(Self::DriverName, index)
 	}
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn as_initialisation_argument(&self, index: u5) -> String
+	fn as_initialisation_argument(&self, index: u8) -> String
 	{
 		format!("{}{}", self.name(index).to_string(), self.formatted_virtual_device_arguments_with_leading_comma())
 	}
@@ -28,11 +30,4 @@ pub trait VirtualDevice: Debug + Sized
 	#[doc(hidden)]
 	#[inline(always)]
 	fn formatted_virtual_device_arguments_with_leading_comma(&self) -> String;
-	
-	#[doc(hidden)]
-	#[inline(always)]
-	fn add_to_map(self, map: &mut HashMap<u8, Self>) -> Option<Self>
-	{
-		map.insert(self.index(), self)
-	}
 }

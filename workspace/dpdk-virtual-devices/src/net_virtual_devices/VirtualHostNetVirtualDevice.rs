@@ -29,6 +29,9 @@ impl NetVirtualDevice for VirtualHostNetVirtualDevice
 
 impl VirtualHostNetVirtualDevice
 {
+	/// Creates a new instance.
+	///
+	/// `queues` can not be zero.
 	pub fn new(interface: &Path, queues: u8) -> Self
 	{
 		assert!(interface.exists(), "interface '{:?}' does not exist", interface);

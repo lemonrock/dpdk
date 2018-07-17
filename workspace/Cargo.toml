@@ -12,4 +12,5 @@ members = [
     "dpdk-sys",
     "dpdk-time",
     "dpdk-unix",
+    "dpdk-virtual-devices",
 ]

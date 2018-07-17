@@ -8,10 +8,10 @@
 pub struct AfPacketNetVirtualDevice
 {
 	network_interface_name: NetworkInterfaceName,
-	number_of_queue_pairs: u4,
-	block_size: u31,
-	frame_size: u31,
-	frame_count: u31,
+	number_of_queue_pairs: u8,
+	block_size: u32,
+	frame_size: u32,
+	frame_count: u32,
 }
 
 impl VirtualDevice for AfPacketNetVirtualDevice
@@ -38,34 +38,39 @@ impl AfPacketNetVirtualDevice
 	pub const MaximumNumberOfQueuePairs: u8 = 16;
 	
 	#[allow(missing_docs)]
-	pub const DefaultNumberOfQueuePairs: u4 = 1;
+	pub const DefaultNumberOfQueuePairs: u8 = 1;
 	
 	#[allow(missing_docs)]
-	pub const DefaultBlockSize: u31 = 1 << 12;
+	pub const DefaultBlockSize: u32 = 1 << 12;
 	
 	#[allow(missing_docs)]
-	pub const DefaultFrameSize: u31 = 1 << 11;
+	pub const DefaultFrameSize: u32 = 1 << 11;
 	
 	#[allow(missing_docs)]
-	pub const DefaultFrameCount: u31 = 1 << 9;
+	pub const DefaultFrameCount: u32 = 1 << 9;
 	
 	/// New instance with defaults.
 	#[inline(always)]
-	pub fn defaultish(index: u5, network_interface_name: NetworkInterfaceName) -> Self
+	pub fn defaultish(network_interface_name: NetworkInterfaceName) -> Self
 	{
-		Self::slightly_defaultish(index, network_interface_name, Self::DefaultNumberOfQueuePairs)
+		Self::slightly_defaultish(network_interface_name, Self::DefaultNumberOfQueuePairs)
 	}
 	
 	/// New instance with most defaults.
+	///
+	/// `number_of_queue_pairs` is a 4-bit unsigned integer, but can not be zero.
 	#[inline(always)]
-	pub fn slightly_defaultish(network_interface_name: NetworkInterfaceName, number_of_queue_pairs: u4) -> Self
+	pub fn slightly_defaultish(network_interface_name: NetworkInterfaceName, number_of_queue_pairs: u8) -> Self
 	{
 		Self::new(network_interface_name, number_of_queue_pairs, Self::DefaultBlockSize, Self::DefaultFrameSize, Self::DefaultFrameCount)
 	}
 
 	/// New instance.
+	///
+	/// `number_of_queue_pairs` is a 4-bit unsigned integer, but can not be zero.
+	/// `block_size`, `frame_size` and `frame_count` are all 31-bit unsigned integer.
 	#[inline(always)]
-	pub fn new(network_interface_name: NetworkInterfaceName, number_of_queue_pairs: u4, block_size: u31, frame_size: u31, frame_count: u31) -> Self
+	pub fn new(network_interface_name: NetworkInterfaceName, number_of_queue_pairs: u8, block_size: u32, frame_size: u32, frame_count: u32) -> Self
 	{
 		assert_ne!(number_of_queue_pairs, 0, "number_of_queue_pairs can not be zero");
 		assert!(number_of_queue_pairs < Self::MaximumNumberOfQueuePairs, "number_of_queue_pairs '{}' equals or exceeds MaximumNumberOfQueuePairs of '{}'", number_of_queue_pairs, Self::MaximumNumberOfQueuePairs);

@@ -2,15 +2,13 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// Balance bonding mode transmit policy for bonded network devices.
 #[repr(u8)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum BondingMode
+#[derive(Serialize, Deserialize)]
+pub enum BalanceBondingModeTransmitPolicy
 {
-	RoundRobin = 0,
-	ActiveBackup = 1,
-	Balance = 2,
-	Broadcast = 3,
-	Lacp = 4, // IEEE 802.23ad
-	AdaptiveTransmitLoadBalancing = 5,
-	AdaptiveLoadBalancing = 6,
+	Layer2Only = 0,
+	Layers2And3 = 1,
+	Layers3And4 = 2,
 }

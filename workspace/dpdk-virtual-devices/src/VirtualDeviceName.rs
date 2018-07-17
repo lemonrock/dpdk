@@ -7,7 +7,7 @@
 pub struct VirtualDeviceName<V: DeviceDriverName>
 {
 	virtual_device_driver_name: V,
-	index: u5,
+	index: u8,
 }
 
 impl<V: DeviceDriverName> DeviceName for VirtualDeviceName<V>
@@ -25,8 +25,10 @@ impl<V: DeviceDriverName> VirtualDeviceName<V>
 	pub const MaximumIndex: u8 = 32;
 	
 	/// New instance.
+	///
+	/// `index` is a 5-bit unsigned integer.
 	#[inline(always)]
-	pub fn new(virtual_device_driver_name: V, index: u5) -> Self
+	pub fn new(virtual_device_driver_name: V, index: u8) -> Self
 	{
 		assert!(index < Self::MaximumIndex, "index '{}' can not equal or exceed MaximumIndex '{}'", index, Self::MaximumIndex);
 
@@ -49,8 +51,8 @@ impl<V: DeviceDriverName> VirtualDeviceName<V>
 		let index = self.index;
 		match index
 		{
-			0...9 => (48 + index) as char,
-			10...31 => (97 + index - 10) as char,
+			0...9 => (48u8 + index) as char,
+			10...31 => (97u8 + index - 10) as char,
 
 			_ => panic!("index can not be {} or greater, but it was: '{}", Self::MaximumIndex, index),
 		}

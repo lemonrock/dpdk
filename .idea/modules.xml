@@ -10,6 +10,7 @@
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-sys/dpdk-sys.iml" filepath="$PROJECT_DIR$/workspace/dpdk-sys/dpdk-sys.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-time/dpdk-time.iml" filepath="$PROJECT_DIR$/workspace/dpdk-time/dpdk-time.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-unix/dpdk-unix.iml" filepath="$PROJECT_DIR$/workspace/dpdk-unix/dpdk-unix.iml" />
+      <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-virtual-devices/dpdk-virtual-devices.iml" filepath="$PROJECT_DIR$/workspace/dpdk-virtual-devices/dpdk-virtual-devices.iml" />
     </modules>
   </component>
 </project>

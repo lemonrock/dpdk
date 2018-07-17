@@ -18,7 +18,7 @@ pub enum BondingSlave
 	ByVirtualDeviceName(NetVirtualDeviceName),
 	
 	/// By ethernet port identifier.
-	ByEthernetPortIdentifier(EthernetPortIdentifier),
+	ByEthernetPortIdentifier(u32),
 }
 
 impl BondingSlave
@@ -34,7 +34,7 @@ impl BondingSlave
 			
 			ByVirtualDeviceName(ref virtual_device_name) =>
 			{
-				assert!(new_virtual_device_name.is_not_backed_by_driver_name(NetVirtualDeviceDriverName::Bonding), "A bonding slave can not itself be a bonding device");
+				assert!(virtual_device_name.is_not_backed_by_driver_name(NetVirtualDeviceDriverName::Bonding), "A bonding slave can not itself be a bonding device");
 				
 				virtual_device_name.to_string()
 			}

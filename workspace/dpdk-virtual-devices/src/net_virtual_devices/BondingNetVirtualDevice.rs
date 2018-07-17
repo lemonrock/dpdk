@@ -13,9 +13,9 @@ pub struct BondingNetVirtualDevice
 	mode: UsefulBondingMode,
 	numa_node: NumaNode,
 	media_access_control_address: MediaAccessControlAddress,
-	lsc_poll_period_milliseconds: u31,
-	up_delay_milliseconds: u31,
-	down_delay_milliseconds: u31,
+	lsc_poll_period_milliseconds: u32,
+	up_delay_milliseconds: u32,
+	down_delay_milliseconds: u32,
 }
 
 impl VirtualDevice for BondingNetVirtualDevice
@@ -54,8 +54,10 @@ impl VirtualDevice for BondingNetVirtualDevice
 			};
 			result.push_str(&format!(",xmit_policy={}", value.to_owned()));
 		}
-
-		result.push_str(&format!(",socket_id={}", self.numa_socket_id.as_u8()));
+		
+		let socket_id: u8 = self.numa_node.into();
+		
+		result.push_str(&format!(",socket_id={}", socket_id));
 		result.push_str(&format!(",mac={}", self.media_access_control_address));
 
 		result.push_str(&format!(",lsc_poll_period_ms={}", self.lsc_poll_period_milliseconds));
@@ -79,7 +81,9 @@ impl BondingNetVirtualDevice
 	pub const MaximumSlaves: usize = 31;
 	
 	/// Creates a new instance.
-	pub fn new(slaves: HashSet<BondingSlave>, mode: UsefulBondingMode, numa_node: NumaNode, media_access_control_address: MediaAccessControlAddress, lsc_poll_period_milliseconds: u31, up_delay_milliseconds: u31, down_delay_milliseconds: u31) -> Self
+	///
+	/// `lsc_poll_period_milliseconds`, `up_delay_milliseconds`, and `down_delay_milliseconds` are 31-bit unsigned integers.
+	pub fn new(slaves: HashSet<BondingSlave>, mode: UsefulBondingMode, numa_node: NumaNode, media_access_control_address: MediaAccessControlAddress, lsc_poll_period_milliseconds: u32, up_delay_milliseconds: u32, down_delay_milliseconds: u32) -> Self
 	{
 		assert_ne!(slaves.len(), 0, "slaves can not be empty");
 		assert!(slaves.len() < Self::MaximumSlaves, "slaves '{}' can not equal or exceed MaximumSlaves '{}'", slaves.len(), Self::MaximumSlaves);

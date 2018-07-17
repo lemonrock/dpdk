@@ -7,12 +7,25 @@
 #[derive(Serialize, Deserialize)]
 pub enum UsefulBondingMode
 {
+	/// Round-Robin.
 	RoundRobin,
+	
+	/// Active-Backup with slave specified.
 	ActiveBackup(BondingSlave),
+	
+	/// Balance.
 	Balance(BalanceBondingModeTransmitPolicy),
+	
+	/// Broadcast.
 	Broadcast,
+	
+	/// IEEE 802.23ad Link Aggregation Control Protocol (LACP).
 	Lacp,
+	
+	/// Adaptive transmit load-balancing.
 	AdaptiveTransmitLoadBalancing,
+	
+	/// Load-balancing.
 	AdaptiveLoadBalancing,
 }
 
@@ -22,18 +35,23 @@ impl UsefulBondingMode
 	#[inline]
 	pub fn mode_and_primary_slave_and_transmit_policy(self) -> (BondingMode, Option<BondingSlave>, Option<BalanceBondingModeTransmitPolicy>)
 	{
-		use self::BondingMode::*;
 		use self::UsefulBondingMode::*;
 		
 		match self
 		{
-			RoundRobin => (RoundRobin, None, None),
-			ActiveBackup(bonding_slave) => (RoundRobin, Some(bonding_slave), None),
-			Balance(balance_bonding_mode_transmit_policy) => (RoundRobin, None, Some(balance_bonding_mode_transmit_policy)),
-			Broadcast => (Broadcast, None, None),
-			Lacp => (Lacp, None, None),
-			AdaptiveTransmitLoadBalancing => (AdaptiveTransmitLoadBalancing, None, None),
-			AdaptiveLoadBalancing => (AdaptiveLoadBalancing, None, None),
+			RoundRobin => (BondingMode::RoundRobin, None, None),
+			
+			ActiveBackup(bonding_slave) => (BondingMode::RoundRobin, Some(bonding_slave), None),
+			
+			Balance(balance_bonding_mode_transmit_policy) => (BondingMode::Balance, None, Some(balance_bonding_mode_transmit_policy)),
+			
+			Broadcast => (BondingMode::Broadcast, None, None),
+			
+			Lacp => (BondingMode::Lacp, None, None),
+			
+			AdaptiveTransmitLoadBalancing => (BondingMode::AdaptiveTransmitLoadBalancing, None, None),
+			
+			AdaptiveLoadBalancing => (BondingMode::AdaptiveLoadBalancing, None, None),
 		}
 	}
 	
