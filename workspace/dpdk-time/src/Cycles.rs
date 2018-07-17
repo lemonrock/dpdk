@@ -5,7 +5,7 @@
 /// Cycles.
 ///
 /// Multiply by `Hertz` to get a time duration in seconds.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 pub struct Cycles(u64);
 
@@ -36,10 +36,20 @@ impl Default for Cycles
 	}
 }
 
+impl Sub for Cycles
+{
+	type Output = Self;
+	
+	fn sub(self, rhs: Self) -> Self::Output
+	{
+		Cycles(self.0 - rhs.0)
+	}
+}
+
 impl Cycles
 {
 	/// A sensible amount to use with a TimerProgressEngine.
-	pub const AroundTenMillisecondsAt2GigaHertzSuitableForATimerProgressEngine: u64 = Cycles(20_000_000);
+	pub const AroundTenMillisecondsAt2GigaHertzSuitableForATimerProgressEngine: Cycles = Cycles(20_000_000);
 	
 	/// Current HPET cycles since boot.
 	///
@@ -52,7 +62,7 @@ impl Cycles
 	
 	/// Current RDTSC cycles since boot.
 	#[inline(always)]
-	pub fn current_rdtsc_cycles_since_boot() -> u64
+	pub fn current_rdtsc_cycles_since_boot() -> Cycles
 	{
 		Cycles(unsafe { rust_rte_rdtsc() })
 	}
@@ -61,7 +71,7 @@ impl Cycles
 	///
 	/// Uses a memory barrier internally.
 	#[inline(always)]
-	pub fn current_rdtsc_cycles_since_boot_precisely_but_slightly_slowly() -> u64
+	pub fn current_rdtsc_cycles_since_boot_precisely_but_slightly_slowly() -> Cycles
 	{
 		Cycles(unsafe { rust_rte_rdtsc_precise() })
 	}

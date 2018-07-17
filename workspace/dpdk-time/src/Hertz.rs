@@ -32,7 +32,7 @@ impl Hertz
 	#[inline(always)]
 	pub fn number_of_cycles_in_one_second_for_the_hpet_timer() -> Self
 	{
-		Cycles(unsafe { rte_get_hpet_cycles() })
+		Hertz(unsafe { rte_get_hpet_cycles() })
 	}
 	
 	/// Number of cycles in one second (measured frequency) in hertz for the TSC timer.

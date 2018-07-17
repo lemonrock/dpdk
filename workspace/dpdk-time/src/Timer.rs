@@ -13,10 +13,11 @@ impl<T: TimerCallback> Drop for Timer<T>
 {
 	fn drop(&mut self)
 	{
-		if !self.0.arg.is_null()
+		let arg = (unsafe { & * self.0.get() }).arg;
+		if !arg.is_null()
 		{
-			self.wait_until_timer_is_stopped();
-			drop(Arc::from_raw(self.0.arg as *const T))
+			self.blocking_stop();
+			drop(unsafe { Arc::from_raw(arg as *const T) })
 		}
 	}
 }
@@ -31,7 +32,7 @@ impl<T: TimerCallback> Timer<T>
 		{
 			rte_timer_subsystem_init();
 			
-			match rte_eal_hpet_init()
+			match rte_eal_hpet_init(1)
 			{
 				0 => (),
 				
@@ -66,21 +67,21 @@ impl<T: TimerCallback> Timer<T>
 			)
 		);
 		
-		unsafe { rte_timer_init(&mut this.0) };
+		unsafe { rte_timer_init(this.0.get()) };
 		
 		this
 	}
 	
 	unsafe extern "C" fn callback(arg1: *mut rte_timer, arg2: *mut c_void)
 	{
-		debug_assert!(arg1.is_not_null(), "arg1 is null");
-		debug_assert!(arg2.is_not_null(), "arg2 is null");
-		debug_assert_eq!(arg2, unsafe { & * arg1 }.arg, "arg2 and arg1.arg are not the same");
+		debug_assert!(!arg1.is_null(), "arg1 is null");
+		debug_assert!(!arg2.is_null(), "arg2 is null");
+		debug_assert_eq!(arg2, (& * arg1).arg, "arg2 and arg1.arg are not the same");
 		
-		let timer_callback = unsafe { & * (arg2 as *mut T) };
+		let timer_callback = & * (arg2 as *mut T);
 		
 		// Possible as long as there is only one non-zero-sized field in Self.
-		let this = unsafe { & * (arg1 as *const Self) };
+		let this = & * (arg1 as *const Self);
 		
 		timer_callback.call(this)
 	}
@@ -92,15 +93,15 @@ impl<T: TimerCallback> Timer<T>
 	pub fn non_blocking_start_or_restart(&self, period: Cycles, one_off_or_periodic: rte_timer_type, run_callback_on_logical_core: LogicalCore, timer_callback: Arc<T>) -> Result<(), Arc<T>>
 	{
 		let callback_argument = Arc::into_raw(timer_callback.clone()) as *mut T;
-		match unsafe { rte_timer_reset(self.0.get(), period.into(), one_off_or_periodic, run_callback_on_logical_core.as_u32(), Self::callback, callback_argument as *mut c_void) }
+		match unsafe { rte_timer_reset(self.0.get(), period.into(), one_off_or_periodic, run_callback_on_logical_core.into(), Self::callback, callback_argument as *mut c_void) }
 		{
 			0 => Ok(()),
 			
-			-1 => Err(Arc::from_raw(callback_argument as *const T)),
+			-1 => Err(unsafe { Arc::from_raw(callback_argument as *const T) }),
 			
 			unexpected @ _ =>
 			{
-				drop(Arc::from_raw(callback_argument as *const T));
+				drop(unsafe { Arc::from_raw(callback_argument as *const T) });
 				panic!("Unexpected result '{}' from rte_timer_reset()", unexpected)
 			},
 		}
@@ -108,10 +109,10 @@ impl<T: TimerCallback> Timer<T>
 	
 	/// Uses HPET timer where possible.
 	#[inline(always)]
-	pub fn blocking_start_or_restart(&self, period: Cycles, one_off_or_periodic: rte_timer_type, run_callback_on_logical_core: LogicalCore, mut timer_callback: Arc<T>)
+	pub fn blocking_start_or_restart(&self, period: Cycles, one_off_or_periodic: rte_timer_type, run_callback_on_logical_core: LogicalCore, timer_callback: Arc<T>)
 	{
 		let callback_argument = Arc::into_raw(timer_callback.clone()) as *mut T;
-		unsafe { rte_timer_reset_sync(self.0.get(), period, one_off_or_periodic, run_callback_on_logical_core.as_u32(), Self::callback(), callback_argument) }
+		unsafe { rte_timer_reset_sync(self.0.get(), period.into(), one_off_or_periodic, run_callback_on_logical_core.into(), Self::callback, callback_argument as *mut _) }
 	}
 	
 	/// Is pending.
@@ -120,7 +121,7 @@ impl<T: TimerCallback> Timer<T>
 	#[inline(always)]
 	pub fn is_pending(&self) -> bool
 	{
-		isTrue(unsafe { rte_timer_pending(self.0.get()) })
+		(unsafe { rte_timer_pending(self.0.get()) }) == 1
 	}
 	
 	/// Stop.

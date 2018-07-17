@@ -2,17 +2,10 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("AlarmClock.rs");
-include!("AlarmClockCallback.rs");
-include!("Cycles.rs");
-include!("Hertz.rs");
-include!("Milliseconds.rs");
-include!("Microseconds.rs");
-include!("Nanoseconds.rs");
-include!("SmartPointer.rs");
-include!("Timer.rs");
-include!("TimerCallback.rs");
-include!("TimerProgressEngine.rs");
+/// An object that gets called when a timer goes off (expires).
+pub trait TimerCallback: Sized
+{
+	/// Called when a timer goes off.
+	#[inline(always)]
+	fn call(&self, timer: &Timer<Self>);
+}

@@ -2,78 +2,70 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Nanoseconds.
+/// Microseconds.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct Nanoseconds(u64);
+pub struct Microseconds(u64);
 
-impl From<u8> for Nanoseconds
+impl From<u8> for Microseconds
 {
 	#[inline(always)]
-	fn from(nanoseconds: u8) -> Self
+	fn from(microseconds: u8) -> Self
 	{
-		Nanoseconds(nanoseconds as u64)
+		Microseconds(microseconds as u64)
 	}
 }
 
-impl From<u16> for Nanoseconds
+impl From<u16> for Microseconds
 {
 	#[inline(always)]
-	fn from(nanoseconds: u16) -> Self
+	fn from(microseconds: u16) -> Self
 	{
-		Nanoseconds(nanoseconds as u64)
+		Microseconds(microseconds as u64)
 	}
 }
 
-impl From<u32> for Nanoseconds
+impl From<u32> for Microseconds
 {
 	#[inline(always)]
-	fn from(nanoseconds: u32) -> Self
+	fn from(microseconds: u32) -> Self
 	{
-		Nanoseconds(nanoseconds as u64)
+		Microseconds(microseconds as u64)
 	}
 }
 
-impl From<usize> for Nanoseconds
+impl From<usize> for Microseconds
 {
 	#[inline(always)]
-	fn from(nanoseconds: usize) -> Self
+	fn from(microseconds: usize) -> Self
 	{
-		Nanoseconds(nanoseconds as u64)
+		Microseconds(microseconds as u64)
 	}
 }
 
-impl From<u64> for Nanoseconds
+impl From<u64> for Microseconds
 {
 	#[inline(always)]
-	fn from(nanoseconds: u64) -> Self
+	fn from(microseconds: u64) -> Self
 	{
-		Nanoseconds(nanoseconds)
+		Microseconds(microseconds)
 	}
 }
 
-impl<'a> From<&'a timespec> for Nanoseconds
-{
-	#[inline(always)]
-	fn from(nanoseconds: &'a timespec) -> Self
-	{
-		Nanoseconds(unsafe { rust_rte_timespec_to_ns(nanoseconds) })
-	}
-}
-
-impl Into<u64> for Nanoseconds
+impl Into<u64> for Microseconds
 {
 	#[inline(always)]
 	fn into(self) -> u64
 	{
-		self.0
+		self.0 as u64
 	}
 }
 
-impl Into<timespace> for Nanoseconds
+impl Microseconds
 {
+	/// Wait at lest this number of microseconds.
 	#[inline(always)]
-	fn into(self) -> timespace
+	pub fn wait_at_least(self)
 	{
-		unsafe { rust_rte_ns_to_timespec(self.0) }
+		unsafe { rte_delay_us_block(self.0 as u32) }
 	}
 }

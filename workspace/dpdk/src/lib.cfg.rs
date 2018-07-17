@@ -199,10 +199,6 @@ pub mod memory;
 pub mod process;
 
 
-/// Alarms and Timers.
-pub mod time;
-
-
 include!("finish.rs");
 
 

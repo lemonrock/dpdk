@@ -5,11 +5,11 @@
 #![allow(non_upper_case_globals)]
 #![allow(renamed_and_removed_lints)]
 #![deny(missing_docs)]
-#![cfg_attr(any(all(target_os = "linux", any(target_arch = "aarch64", target_arch = "arm", target_arch = "powerpc64", target_arch = "x86_64")), all(target_os = "freebsd", target_arch = "x86_64")), feature(asm, const_fn, core_intrinsics))]
+//#![cfg_attr(any(all(target_os = "linux", any(target_arch = "aarch64", target_arch = "arm", target_arch = "powerpc64", target_arch = "x86_64")), all(target_os = "freebsd", target_arch = "x86_64")), feature(const_fn, core_intrinsics))]
 
 
-//! #dpdk-core
-//! Mid-level wrappers around the DPDK core features.
+//! #dpdk-time
+//! Mid-level wrappers around the DPDK time features.
 //!
 //! Whilst DPDK is supported for Linux on AArch64, ARM v7, PowerPC 64-bit (recent) and x86-64, and FreeBSD on x86-64, only Linux x86-64 will compile.
 //!

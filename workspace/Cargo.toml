@@ -10,5 +10,6 @@ members = [
 	"dpdk-likely",
     "dpdk-serde",
     "dpdk-sys",
+    "dpdk-time",
     "dpdk-unix",
 ]

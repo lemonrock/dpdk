@@ -2,70 +2,70 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Microseconds.
+/// Milliseconds.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct Microseconds(u64);
+pub struct Milliseconds(u64);
 
-impl From<u8> for Microseconds
+impl From<u8> for Milliseconds
 {
 	#[inline(always)]
-	fn from(microseconds: u8) -> Self
+	fn from(milliseconds: u8) -> Self
 	{
-		Microseconds(microseconds as u64)
+		Milliseconds(milliseconds as u64)
 	}
 }
 
-impl From<u16> for Microseconds
+impl From<u16> for Milliseconds
 {
 	#[inline(always)]
-	fn from(microseconds: u16) -> Self
+	fn from(milliseconds: u16) -> Self
 	{
-		Microseconds(microseconds as u64)
+		Milliseconds(milliseconds as u64)
 	}
 }
 
-impl From<u32> for Microseconds
+impl From<u32> for Milliseconds
 {
 	#[inline(always)]
-	fn from(microseconds: u32) -> Self
+	fn from(milliseconds: u32) -> Self
 	{
-		Microseconds(microseconds as u64)
+		Milliseconds(milliseconds as u64)
 	}
 }
 
-impl From<usize> for Microseconds
+impl From<usize> for Milliseconds
 {
 	#[inline(always)]
-	fn from(microseconds: usize) -> Self
+	fn from(milliseconds: usize) -> Self
 	{
-		Microseconds(microseconds as u64)
+		Milliseconds(milliseconds as u64)
 	}
 }
 
-impl From<u64> for Microseconds
+impl From<u64> for Milliseconds
 {
 	#[inline(always)]
-	fn from(microseconds: u64) -> Self
+	fn from(milliseconds: u64) -> Self
 	{
-		Microseconds(microseconds)
+		Milliseconds(milliseconds)
 	}
 }
 
-impl Into<u64> for Microseconds
+impl Into<u64> for Milliseconds
 {
 	#[inline(always)]
 	fn into(self) -> u64
 	{
-		self.0 as u64
+		self.0
 	}
 }
 
-impl Microseconds
+impl Milliseconds
 {
-	/// Wait at lest this number of microseconds.
+	/// Wait at lest this number of milliseconds.
 	#[inline(always)]
 	pub fn wait_at_least(self)
 	{
-		unsafe { rte_delay_us_block(self.0) }
+		unsafe { rust_rte_delay_ms(self.0 as u32) }
 	}
 }

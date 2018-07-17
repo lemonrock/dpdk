@@ -22,16 +22,16 @@ impl<S: SmartPointer> AlarmClock<S> where S::Target: AlarmClockCallback + Sized
 	{
 		let callback_argument = S::to_non_null(alarm_clock_callback);
 		
-		match unsafe { rte_eal_alarm_set(period.into(), Self::callback, callback_argument as *mut c_void) }
+		match unsafe { rte_eal_alarm_set(period.into(), Self::callback, callback_argument.as_ptr() as *mut c_void) }
 		{
 			0 => Ok(AlarmClock(callback_argument, PhantomData)),
 			
 			valid if valid.is_negative() => Err(S::from_non_null(callback_argument)),
 			
-			_ =>
+			return_code @ _ =>
 			{
 				drop(S::from_non_null(callback_argument));
-				panic!("Non-negative return code '{}' from rte_eal_alarm_set()", result)
+				panic!("Non-negative return code '{}' from rte_eal_alarm_set()", return_code)
 			}
 		}
 	}
@@ -53,7 +53,7 @@ impl<S: SmartPointer> AlarmClock<S> where S::Target: AlarmClockCallback + Sized
 	#[inline(always)]
 	pub fn cancel(self) -> Result<S, ()>
 	{
-		match unsafe { rte_eal_alarm_cancel(Self::callback, self.0.as_ptr()) }
+		match unsafe { rte_eal_alarm_cancel(Self::callback, self.0.as_ptr() as *mut _) }
 		{
 			1 => Ok(S::from_non_null(self.0)),
 			_ => Err(()),
