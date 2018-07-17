@@ -26,7 +26,7 @@ impl Default for InternetProtocolVersion6HostAddress
 }
 
 /// A trait abstracting the similarities between internet protocol (IP) version 4 and version 6 host addresses.
-impl InternetProtocolHostAddress for InternetProtocolVersion6HostAddress
+impl<'deserialize> InternetProtocolHostAddress<'deserialize> for InternetProtocolVersion6HostAddress
 {
 	type BigEndianValue = u128;
 	

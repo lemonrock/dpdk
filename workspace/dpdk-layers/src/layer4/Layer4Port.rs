@@ -15,14 +15,14 @@ impl Serialize for Layer4Port
 	}
 }
 
-impl<'de> Deserialize<'de> for Layer4Port
+impl<'deserialize> Deserialize<'deserialize> for Layer4Port
 {
 	#[inline(always)]
-	fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error>
+	fn deserialize<D: Deserializer<'deserialize>>(deserializer: D) -> Result<Self, D::Error>
 	{
 		struct U16Visitor;
 		
-		impl<'de> Visitor<'de> for U16Visitor
+		impl<'deserialize> Visitor<'deserialize> for U16Visitor
 		{
 			type Value = u16;
 			

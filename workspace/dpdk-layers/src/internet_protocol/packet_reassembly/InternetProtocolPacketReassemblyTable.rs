@@ -7,7 +7,7 @@
 ///
 ///                                IMPORTANT NOTICE
 ///
-///     This code uses the words 'death_row' and 'free' and seems quite tasteless and trivialising.
+///     This code uses the words 'deserializeath_row' and 'free' and seems quite tasteless and trivialising.
 ///     Be assured that the use of this language is solely to ensure correspondence with the
 ///     underlying logic in the DPDK library. By doing so, we allow a maintainer of this code to analyze
 ///     it effectively.

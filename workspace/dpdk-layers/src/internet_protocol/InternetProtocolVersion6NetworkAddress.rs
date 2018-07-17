@@ -11,7 +11,7 @@ pub struct InternetProtocolVersion6NetworkAddress
 	mask_bits: InternetProtocolVersion6MaskBits,
 }
 
-impl InternetProtocolNetworkAddress for InternetProtocolVersion6NetworkAddress
+impl<'deserialize> InternetProtocolNetworkAddress<'deserialize> for InternetProtocolVersion6NetworkAddress
 {
 	type HostAddress = InternetProtocolVersion6HostAddress;
 	
@@ -42,7 +42,7 @@ impl InternetProtocolNetworkAddress for InternetProtocolVersion6NetworkAddress
 	}
 	
 	#[inline(always)]
-	fn new(network: Self::HostAddress, mask_bits: <<InternetProtocolVersion6NetworkAddress as InternetProtocolNetworkAddress>::HostAddress as InternetProtocolHostAddress>::MaskBits) -> Self
+	fn new(network: Self::HostAddress, mask_bits: <<InternetProtocolVersion6NetworkAddress as InternetProtocolNetworkAddress<'deserialize>>::HostAddress as InternetProtocolHostAddress<'deserialize>>::MaskBits) -> Self
 	{
 		Self
 		{

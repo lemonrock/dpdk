@@ -3,10 +3,10 @@
 
 
 /// An internet protocol (IP) network address, either version 4 or version 6.
-pub trait InternetProtocolNetworkAddress: Sized
+pub trait InternetProtocolNetworkAddress<'deserialize>: Sized + Eq + Hash + Serialize + Deserialize<'deserialize>
 {
 	/// Associated Internet Protocol (IP) host address, either version 4 or 6.
-	type HostAddress: InternetProtocolHostAddress;
+	type HostAddress: InternetProtocolHostAddress<'deserialize>;
 	
 	/// Network information.
 	#[inline(always)]
@@ -35,5 +35,5 @@ pub trait InternetProtocolNetworkAddress: Sized
 	
 	/// Creates new instance.
 	#[inline(always)]
-	fn new(network: Self::HostAddress, mask_bits: <<Self as InternetProtocolNetworkAddress>::HostAddress as InternetProtocolHostAddress>::MaskBits) -> Self;
+	fn new(network: Self::HostAddress, mask_bits: <<Self as InternetProtocolNetworkAddress<'deserialize>>::HostAddress as InternetProtocolHostAddress<'deserialize>>::MaskBits) -> Self;
 }

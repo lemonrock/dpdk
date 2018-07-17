@@ -43,14 +43,14 @@ impl Serialize for MediaAccessControlAddress
 	}
 }
 
-impl<'de> Deserialize<'de> for MediaAccessControlAddress
+impl<'deserialize> Deserialize<'deserialize> for MediaAccessControlAddress
 {
 	#[inline(always)]
-	fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error>
+	fn deserialize<D: Deserializer<'deserialize>>(deserializer: D) -> Result<Self, D::Error>
 	{
 		struct FromString;
 		
-		impl<'de> Visitor<'de> for FromString
+		impl<'deserialize> Visitor<'deserialize> for FromString
 		{
 			type Value = MediaAccessControlAddress;
 			

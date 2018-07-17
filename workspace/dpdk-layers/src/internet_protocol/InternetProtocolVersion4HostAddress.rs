@@ -17,12 +17,12 @@ impl Default for InternetProtocolVersion4HostAddress
 	#[inline(always)]
 	fn default() -> Self
 	{
-		InternetProtocolVersion6HostAddress::Any
+		Self::Unspecified
 	}
 }
 
 /// A trait abstracting the similarities between internet protocol (IP) version 4 and version 6 host addresses.
-impl InternetProtocolHostAddress for InternetProtocolVersion4HostAddress
+impl<'deserialize> InternetProtocolHostAddress<'deserialize> for InternetProtocolVersion4HostAddress
 {
 	type BigEndianValue = u32;
 	
@@ -41,7 +41,7 @@ impl InternetProtocolHostAddress for InternetProtocolVersion4HostAddress
 	#[inline(always)]
 	fn from_octets(octets: Self::Octets) -> Self
 	{
-		InternetProtocolVersion6HostAddress(octets)
+		InternetProtocolVersion4HostAddress(octets)
 	}
 	
 	#[inline(always)]
@@ -67,7 +67,7 @@ impl InternetProtocolHostAddress for InternetProtocolVersion4HostAddress
 	{
 		in_addr
 		{
-			s_addr: self.0
+			s_addr: unsafe { transmute(self.0) },
 		}
 	}
 	
@@ -203,24 +203,24 @@ impl InternetProtocolVersion4HostAddress
 	#[inline(always)]
 	fn get_first_byte(&self) -> u8
 	{
-		unsafe { self.0.get_unchecked(0) }
+		unsafe { * self.0.get_unchecked(0) }
 	}
 	
 	#[inline(always)]
 	fn get_second_byte(&self) -> u8
 	{
-		unsafe { self.0.get_unchecked(1) }
+		unsafe { * self.0.get_unchecked(1) }
 	}
 	
 	#[inline(always)]
 	fn get_third_byte(&self) -> u8
 	{
-		unsafe { self.0.get_unchecked(2) }
+		unsafe { * self.0.get_unchecked(2) }
 	}
 	
 	#[inline(always)]
 	fn get_fourth_byte(&self) -> u8
 	{
-		unsafe { self.0.get_unchecked(3) }
+		unsafe { * self.0.get_unchecked(3) }
 	}
 }

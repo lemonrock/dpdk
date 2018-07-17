@@ -3,14 +3,13 @@
 
 
 /// A static routing table.
-#[derive(Debug)]
-pub struct StaticRoutingTable<NetworkAddress: InternetProtocolNetworkAddress>
+pub struct StaticRoutingTable<'deserialize, NetworkAddress: InternetProtocolNetworkAddress<'deserialize>>
 {
-	longest_prefix_match: IpLookupTable<<<NetworkAddress as InternetProtocolNetworkAddress>::HostAddress as InternetProtocolHostAddress>::RustAddress, Route<NetworkAddress::HostAddress>>,
+	longest_prefix_match: IpLookupTable<<<NetworkAddress as InternetProtocolNetworkAddress<'deserialize>>::HostAddress as InternetProtocolHostAddress<'deserialize>>::RustAddress, Route<'deserialize, NetworkAddress::HostAddress>>,
 	default_route_to_next_hop: EthernetDestination,
 }
 
-impl<NetworkAddress: InternetProtocolNetworkAddress> StaticRoutingTable<NetworkAddress>
+impl<'deserialize, NetworkAddress: InternetProtocolNetworkAddress<'deserialize>> StaticRoutingTable<'deserialize, NetworkAddress>
 {
 	/// Finds the information necessary to send to this address.
 	#[inline(always)]

@@ -5,20 +5,20 @@
 /// Configuration used to build a static routing table.
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct StaticRoutingTableConfiguration<NetworkAddress: InternetProtocolNetworkAddress>
+pub struct StaticRoutingTableConfiguration<'deserialize, NetworkAddress: InternetProtocolNetworkAddress<'deserialize>>
 {
 	/// These are the static routes.
-	pub static_routes: HashMap<NetworkAddress, Route<NetworkAddress::HostAddress>>,
+	pub static_routes: HashMap<NetworkAddress, Route<'deserialize, NetworkAddress::HostAddress>>,
 	
 	/// This is used if no other routes match, or if essential information can't be found for a route.
 	pub default_route_to_next_hop: EthernetDestination,
 }
 
-impl<NetworkAddress: InternetProtocolNetworkAddress> StaticRoutingTableConfiguration<NetworkAddress>
+impl<'deserialize, NetworkAddress: InternetProtocolNetworkAddress<'deserialize>> StaticRoutingTableConfiguration<'deserialize, NetworkAddress>
 {
 	/// Next hop Ethernet (Layer 2) information.
 	#[inline(always)]
-	pub fn configure(&self) -> StaticRoutingTable<NetworkAddress>
+	pub fn configure(&self) -> StaticRoutingTable<'deserialize, NetworkAddress>
 	{
 		StaticRoutingTable
 		{
@@ -26,10 +26,12 @@ impl<NetworkAddress: InternetProtocolNetworkAddress> StaticRoutingTableConfigura
 			{
 				let mut look_up_table = IpLookupTable::with_capacity(self.static_routes.len());
 				
-				for (network_address, static_route) in self.static_routes.iter()
+				for &(network_address, static_route) in self.static_routes.iter()
 				{
 					look_up_table.insert(network_address.network().to_rust_address(), network_address.mask_bits_as_depth_u32(), static_route.clone());
 				}
+				
+				look_up_table
 			},
 			default_route_to_next_hop: self.default_route_to_next_hop,
 		}
