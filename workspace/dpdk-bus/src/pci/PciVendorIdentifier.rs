@@ -4,7 +4,25 @@
 
 /// PCI Vendor Identifier.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PciVendorIdentifier(pub u16);
+pub struct PciVendorIdentifier(u16);
+
+impl From<u16> for PciVendorIdentifier
+{
+	#[inline(always)]
+	fn from(value: u16) -> Self
+	{
+		PciVendorIdentifier(value)
+	}
+}
+
+impl Into<u16> for PciVendorIdentifier
+{
+	#[inline(always)]
+	fn into(self) -> u16
+	{
+		self.0
+	}
+}
 
 impl PciVendorIdentifier
 {

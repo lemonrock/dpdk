@@ -5,7 +5,19 @@
 /// Represents the unique address of a PCI device in a system, such as an individual ethernet port (connector).
 #[derive(Debug)]
 #[derive(Serialize, Deserialize)]
-pub struct DpdkPciDeviceAddress(rte_pci_addr);
+pub struct DpdkPciDeviceAddress(#[serde(with = "rte_pci_addr_for_serde")] rte_pci_addr);
+
+#[allow(non_camel_case_types)]
+#[derive(Serialize, Deserialize)]
+#[serde(remote = "rte_pci_addr")]
+#[allow(dead_code)]
+struct rte_pci_addr_for_serde
+{
+	domain: u32,
+	bus: u8,
+	devid: u8,
+	function: u8,
+}
 
 impl Clone for DpdkPciDeviceAddress
 {
@@ -25,7 +37,20 @@ impl Clone for DpdkPciDeviceAddress
 	}
 }
 
-impl PartialOrd for DpdkPciDevice
+impl PartialEq for DpdkPciDeviceAddress
+{
+	#[inline(always)]
+	fn eq(&self, other: &Self) -> bool
+	{
+		self.0.domain == other.0.domain && self.0.bus == other.0.bus && self.0.devid == other.0.devid && self.0.function == other.0.function
+	}
+}
+
+impl Eq for DpdkPciDeviceAddress
+{
+}
+
+impl PartialOrd for DpdkPciDeviceAddress
 {
 	#[inline(always)]
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering>
@@ -34,14 +59,14 @@ impl PartialOrd for DpdkPciDevice
 	}
 }
 
-impl Ord for DpdkPciDevice
+impl Ord for DpdkPciDeviceAddress
 {
 	#[inline(always)]
 	fn cmp(&self, other: &Self) -> Ordering
 	{
 		use self::Ordering::*;
 		
-		match unsafe { rte_pci_addr_cmp(self.0.as_ptr() as *const _, other.0.as_ptr() as *const _) }
+		match unsafe { rte_pci_addr_cmp(&self.0, &other.0) }
 		{
 			0 => Equal,
 			negative if negative < 0 => Less,
@@ -50,12 +75,24 @@ impl Ord for DpdkPciDevice
 	}
 }
 
+impl Hash for DpdkPciDeviceAddress
+{
+	#[inline(always)]
+	fn hash<H: Hasher>(&self, hasher: &mut H)
+	{
+		hasher.write_u32(self.0.domain);
+		hasher.write_u8(self.0.bus);
+		hasher.write_u8(self.0.devid);
+		hasher.write_u8(self.0.function);
+	}
+}
+
 impl DeviceName for DpdkPciDeviceAddress
 {
 	#[inline]
 	fn to_string(&self) -> String
 	{
-		format!("{:04x}:{:02x}:{:02x}.{:01x}", self.domain, self.bus, self.device_identifier, self.function)
+		format!("{:04x}:{:02x}:{:02x}.{:01x}", self.0.domain, self.0.bus, self.0.devid, self.0.function)
 	}
 }
 
@@ -89,7 +126,7 @@ impl DpdkPciDeviceAddress
 		let buffer = output.as_mut_ptr() as *mut c_char;
 		unsafe { rte_pci_device_name(&self.0 as *const _, buffer, PCI_PRI_STR_SIZE) };
 		
-		unsafe { Vec::set_len(PCI_PRI_STR_SIZE) };
+		unsafe { output.set_len(PCI_PRI_STR_SIZE) };
 		output.shrink_to_fit();
 		
 		unsafe { CString::from_vec_unchecked(output) }
@@ -191,7 +228,7 @@ impl DpdkPciDeviceAddress
 			}
 		};
 
-		Ok(DpdkPciDeviceAddress::fromDomainBusDeviceIdAndFunction(domain, bus, devid, function))
+		Ok(DpdkPciDeviceAddress::new(domain, bus, devid, function))
 	}
 
 	/// Creates a new instance.
@@ -278,81 +315,17 @@ impl DpdkPciDeviceAddress
 		self.0.function
 	}
 
+	/// Equality.
 	#[inline(always)]
-	pub(crate) fn is_rte_pci_addr(&self, other: &rte_pci_addr) -> bool
+	pub fn is_rte_pci_addr(&self, other: &rte_pci_addr) -> bool
 	{
-		self.domain == other.domain && self.bus == other.bus && self.device_identifier == other.devid && self.function == other.function
+		self.0.domain == other.domain && self.0.bus == other.bus && self.0.devid == other.devid && self.0.function == other.function
 	}
-
+	
+	/// As a C string.
 	#[inline(always)]
-	pub(crate) fn underlying_ethernet_port(&self) -> Option<((EthernetPort, rte_eth_dev))>
-	{
-		let mut port_identifier = 0;
-		while port_identifier < EthernetPort::MaximumEthernetPortsU8
-		{
-			if let Some(ethernet_port) = EthernetPort::new(port_identifier)
-			{
-				let underlying_rte_eth_dev = ethernet_port.underlying_ethernet_device();
-				if !underlying_rte_eth_dev.device.is_null()
-				{
-					unsafe
-					{
-						let pci_device = *(rust_RTE_DEV_TO_PCI(underlying_rte_eth_dev.device));
-						if self.is_rte_pci_addr(&pci_device.addr)
-						{
-							return Some((ethernet_port, underlying_rte_eth_dev));
-						}
-					}
-				}
-			}
-			port_identifier += 1;
-		}
-		None
-	}
-
-	#[inline(always)]
-	pub(crate) fn as_c_string(&self) -> CString
+	pub fn as_c_string(&self) -> CString
 	{
 		CString::new(self.to_string()).unwrap()
-	}
-
-	#[inline(always)]
-	pub(crate) fn probe(&self) -> Result<(), i32>
-	{
-		let dpdk_address = self.as_rte_pci_addr();
-		let result = unsafe { rte_pci_probe_one(&dpdk_address) };
-		if likely!(result == 0)
-		{
-			Ok(())
-		}
-		else
-		{
-			match result
-			{
-				negative if negative < 0 => Err(result),
-
-				illegal @ _ => panic!("rte_pci_probe_one() returned illegal result '{}'", illegal),
-			}
-		}
-	}
-
-	#[inline(always)]
-	pub(crate) fn detach(&self) -> Result<(), i32>
-	{
-		let dpdk_address = self.as_rte_pci_addr();
-		let result = unsafe { rte_pci_detach(&dpdk_address) };
-		if likely!(result == 0)
-		{
-			Ok(())
-		}
-		else
-		{
-			match result
-			{
-				negative if negative < 0 => Err(result),
-
-				illegal @ _ => panic!("rte_pci_detach() returned illegal result '{}'", illegal),
-			}
-		}
 	}
 }

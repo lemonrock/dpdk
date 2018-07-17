@@ -13,7 +13,7 @@
 /// * `fslmc`
 /// * `pci`
 /// * `vdev`
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct DpdkBus(NonNull<rte_bus>);
 
 impl PrintAllInformation for DpdkBus
@@ -52,7 +52,7 @@ impl DpdkBus
 		}
 		else
 		{
-			DpdkBus(unsafe { NonNull::new_unchecked(next) })
+			Some(DpdkBus(unsafe { NonNull::new_unchecked(next) }))
 		}
 	}
 	
@@ -67,7 +67,7 @@ impl DpdkBus
 	#[inline(always)]
 	pub fn scan_mode(&self) -> rte_bus_scan_mode
 	{
-		(unsafe { &self.0.as_ref().rte_bus_conf }).scan_mode
+		(unsafe { &self.0.as_ref().conf }).scan_mode
 	}
 	
 	/// Get the IOMMU class of this bus.
@@ -141,17 +141,17 @@ impl DpdkBus
 	///
 	/// `start_from` should be passed as `None` to start from the beginning of all known buses. Alternatively, pass a value seen during a previous comparison (note that the comparator is passed by immutable reference due to limitations in the DPDK API).
 	#[inline(always)]
-	pub fn find_bus_by_comparator<DpdkBusComparator: PartialOrd<Rhs = NonNull<rte_bus>>>(comparator: &DpdkBusComparator, start_from: Option<Self>) -> Option<Self>
+	pub fn find_bus_by_comparator<DpdkBusComparator: PartialOrd<NonNull<rte_bus>>>(comparator: &DpdkBusComparator, start_from: Option<Self>) -> Option<Self>
 	{
-		unsafe extern "C" fn callback<DpdkBusComparator: PartialOrd<Rhs = NonNull<rte_bus>>>(bus: *const rte_bus, data: *const c_void) -> i32
+		unsafe extern "C" fn callback<DpdkBusComparator: PartialOrd<NonNull<rte_bus>>>(bus: *const rte_bus, data: *const c_void) -> i32
 		{
 			use self::Ordering::*;
 			
-			debug_assert!(bus.is_not_null(), "bus is null");
-			debug_assert!(data.is_not_null(), "data is null");
+			debug_assert!(!bus.is_null(), "bus is null");
+			debug_assert!(!data.is_null(), "data is null");
 			
-			let comparator = unsafe { & * (data as *const DpdkBusComparator) };
-			match comparator.partial_cmp(unsafe { NonNull::new_unchecked(bus) })
+			let comparator = & * (data as *const DpdkBusComparator);
+			match comparator.partial_cmp(&(NonNull::new_unchecked(bus as *mut _)))
 			{
 				None => !0,
 				Some(Less) => -1,
@@ -166,7 +166,9 @@ impl DpdkBus
 			Some(DpdkBus(non_null)) => non_null.as_ptr() as *const _,
 		};
 		
-		let result = unsafe { rte_bus_find(start, callback, comparator as *const _ as
+		let x: rte_bus_cmp_t = callback::<DpdkBusComparator>;
+		
+		let result = unsafe { rte_bus_find(start, x, comparator as *const _ as
 			*const c_void) };
 		if result.is_null()
 		{

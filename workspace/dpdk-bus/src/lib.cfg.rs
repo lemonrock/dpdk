@@ -14,15 +14,22 @@ extern crate serde;
 #[macro_use] extern crate quick_error;
 
 
+use self::pci::DpdkPciDeviceAddress;
+use self::pci::DpdkPciDeviceAddressStringParseError;
 use ::const_cstr_fork::ConstCStr;
 use ::dpdk_core::*;
+use ::dpdk_core::print_information::PrintAllInformation;
 use ::dpdk_sys::*;
 use ::dpdk_unix::*;
+use ::dpdk_unix::android_linux::pci::PciBusInformation;
 use ::libc::*;
 use ::std::collections::BTreeSet;
-use ::std::cell::UnsafeCell;
 use ::std::cmp::Ordering;
+use ::std::hash::Hash;
+use ::std::hash::Hasher;
 use ::std::marker::PhantomData;
+use ::std::mem::transmute;
+#[allow(unused_imports)] use ::std::os::unix::ffi::OsStrExt;
 use ::std::os::unix::io::RawFd;
 use ::std::path::PathBuf;
 use ::std::ptr::null;
@@ -33,15 +40,6 @@ use ::std::ffi::OsStr;
 use ::std::mem::uninitialized;
 use ::std::num::ParseIntError;
 use ::std::slice::from_raw_parts;
-use ::serde::*;
-use ::serde::de;
-use ::serde::de::Deserialize;
-use ::serde::de::Deserializer;
-use ::serde::de::Visitor;
-use ::serde::de::Error as DeserializerError;
-use ::serde::ser;
-use ::serde::ser::Serialize;
-use ::serde::ser::Serializer;
 
 
 /// PCI bus.

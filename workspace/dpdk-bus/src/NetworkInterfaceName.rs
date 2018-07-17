@@ -32,20 +32,23 @@ impl NetworkInterfaceName
 			(
 				Self
 				{
-					name,
+					name: name.to_string(),
 					one_based_index,
 				}
 			),
 		}
 	}
 	
+	/// Text.
 	#[inline(always)]
-	pub(crate) fn text<'a>(&'a self) -> &'a str
+	pub fn text<'a>(&'a self) -> &'a str
 	{
 		&self.name
 	}
 	
-	pub(crate) fn pci_device_address(&self) -> Result<Option<DpdkPciDeviceAddress>, DpdkPciDeviceAddressStringParseError>
+	/// PCI device address.
+	#[inline(always)]
+	pub fn pci_device_address(&self) -> Result<Option<DpdkPciDeviceAddress>, DpdkPciDeviceAddressStringParseError>
 	{
 		#[cfg(target_os = "linux")]
 		{

@@ -20,7 +20,7 @@ impl IndirectPciDeviceIdentifier
 	///
 	/// Can panic.
 	#[inline(always)]
-	pub fn to_pci_device(&self, sys_path: &SysPath) -> PciDevice
+	pub fn to_pci_device(&self) -> PciDevice
 	{
 		use self::IndirectPciDeviceIdentifier::*;
 		

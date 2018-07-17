@@ -5,7 +5,7 @@
 /// Supported driver identifiers.
 #[allow(missing_docs)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-enum SupportedDriverIdentifier
+pub enum SupportedDriverIdentifier
 {
 	AmazonEna,
 	ChelsioT5,

@@ -11,7 +11,7 @@ impl<'a> DpdkDevice<'a>
 	#[inline(always)]
 	pub(crate) fn new(device: *mut rte_device) -> Self
 	{
-		debug_assert!(device.is_not_null(), "device is null");
+		debug_assert!(!device.is_null(), "device is null");
 		
 		DpdkDevice(unsafe { NonNull::new_unchecked(device) }, PhantomData)
 	}
@@ -20,7 +20,7 @@ impl<'a> DpdkDevice<'a>
 	#[inline(always)]
 	pub fn next(&self) -> Option<Self>
 	{
-		let next = self.deref().tqe_next;
+		let next = self.reference().next.tqe_next;
 		if next.is_null()
 		{
 			None
@@ -35,25 +35,25 @@ impl<'a> DpdkDevice<'a>
 	#[inline(always)]
 	pub fn numa_socket_id(&self) -> NumaNodeChoice
 	{
-		NumaNodeChoice::from_i32(self.deref().numa_node)
+		NumaNodeChoice::from_i32(self.reference().numa_node)
 	}
 	
 	/// Name (does not exceed 64 bytes).
 	#[inline(always)]
 	pub fn name(&self) -> &'a CStr
 	{
-		unsafe { CStr::from_ptr(self.deref().name) }
+		unsafe { CStr::from_ptr(self.reference().name) }
 	}
 	
 	/// Generic DPDK driver.
 	#[inline(always)]
 	pub fn driver(&'a self) -> DpdkDriver<'a>
 	{
-		DpdkDriver(unsafe { NonNull::new_unchecked(self.deref().driver as *mut _) }, PhantomData)
+		DpdkDriver(unsafe { NonNull::new_unchecked(self.reference().driver as *mut _) }, PhantomData)
 	}
 	
 	#[inline(always)]
-	fn deref(&self) -> &'a rte_device
+	fn reference(&self) -> &'a rte_device
 	{
 		unsafe { & * self.0.as_ptr() }
 	}

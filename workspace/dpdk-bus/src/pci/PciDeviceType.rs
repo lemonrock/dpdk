@@ -32,14 +32,14 @@ impl PciDeviceType
 		let (subsystem_vendor_id, subsystem_device_id) = match self.subsystem_vendor_and_device
 		{
 			None => (0xFFFF, 0xFFFF),
-			Some(subsystem_vendor_and_device) => (subsystem_vendor_and_device.vendor, subsystem_vendor_and_device.device)
+			Some(subsystem_vendor_and_device) => (subsystem_vendor_and_device.vendor.into(), subsystem_vendor_and_device.device.into())
 		};
 		
 		rte_pci_id
 		{
 			class_id: self.class.to_u32(),
-			vendor_id: self.vendor_and_device.vendor,
-			device_id: self.vendor_and_device.device,
+			vendor_id: self.vendor_and_device.vendor.into(),
+			device_id: self.vendor_and_device.device.into(),
 			subsystem_vendor_id,
 			subsystem_device_id,
 		}

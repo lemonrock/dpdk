@@ -3,7 +3,7 @@
 
 
 /// A DPDK device memory resource.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug)]
 pub struct DpdkDeviceMemoryResource<'a>(&'a rte_mem_resource, PhantomData<&'a [rte_mem_resource; 6]>);
 
 impl<'a> DpdkDeviceMemoryResource<'a>

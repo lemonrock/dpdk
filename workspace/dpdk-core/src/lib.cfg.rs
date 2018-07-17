@@ -50,9 +50,11 @@ use ::std::collections::HashSet;
 use ::std::collections::HashMap;
 use ::std::cmp::min;
 use ::std::fmt;
+use ::std::fmt::Debug;
 use ::std::fmt::Display;
 use ::std::fmt::Formatter;
 use ::std::fs::File;
+use ::std::hash::Hash;
 use ::std::io;
 use ::std::marker::PhantomData;
 #[allow(unused_imports)] use ::std::os::unix::io::IntoRawFd;
@@ -97,6 +99,8 @@ pub mod print_information;
 include!("AllLogicalCoreIterator.rs");
 include!("BusyPollBehaviour.rs");
 include!("BusyPollingLogicalCoreFunction.rs");
+include!("DeviceDriverName.rs");
+include!("DeviceName.rs");
 include!("DpdkAllocatedMemory.rs");
 include!("DpdkProcess.rs");
 include!("EssentialKernelModule.rs");
@@ -119,8 +123,3 @@ include!("SlaveLogicalCoreFunction.rs");
 include!("SlaveLogicalCoreIterator.rs");
 include!("SysLog.rs");
 include!("VirtualFunctionIoInterruptMode.rs");
-
-//
-// EssentialKernelModulesToUnload
-
-// numa_allocate_hyper_threadmask   numa_node_to_cpus

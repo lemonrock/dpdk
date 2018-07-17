@@ -5,8 +5,8 @@
 /// An input-output port.
 ///
 /// Unmapped on drop.
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct DpdkPciInputOutputPort(UnsafeCell<rte_pci_ioport>);
+#[derive(Debug)]
+pub struct DpdkPciInputOutputPort(rte_pci_ioport);
 
 impl Drop for DpdkPciInputOutputPort
 {
@@ -32,28 +32,28 @@ impl Drop for DpdkPciInputOutputPort
 impl DpdkPciInputOutputPort
 {
 	/// New
-	pub fn new(dpdk_pci_device: &DpdkPciDevice, base_address_register: i32) -> Self
+	pub fn new(dpdk_pci_device: &mut DpdkPciDevice, base_address_register: i32) -> Option<Self>
 	{
 		dpdk_pci_device.map_input_output_port(base_address_register)
 	}
 	
 	/// Read.
 	#[inline(always)]
-	pub fn read(&self, read_into: &mut [u8], offset_into_port: isize)
+	pub fn read(&mut self, read_into: &mut [u8], offset_into_port: isize)
 	{
 		unsafe { rte_pci_ioport_read(self.handle(), read_into.as_mut_ptr() as *mut c_void, read_into.len(), offset_into_port as off_t) }
 	}
 
 	/// Write.
 	#[inline(always)]
-	pub fn write(&self, write_from: &[u8], offset_into_port: isize)
+	pub fn write(&mut self, write_from: &[u8], offset_into_port: isize)
 	{
 		unsafe { rte_pci_ioport_read(self.handle(), write_from.as_ptr() as *mut c_void, write_from.len(), offset_into_port as off_t) }
 	}
 	
 	#[inline(always)]
-	fn handle(&self) -> *mut rte_pci_ioport
+	fn handle(&mut self) -> *mut rte_pci_ioport
 	{
-		self.0.get()
+		&mut self.0
 	}
 }

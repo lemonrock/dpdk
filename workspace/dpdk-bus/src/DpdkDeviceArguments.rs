@@ -12,7 +12,7 @@ impl<'a> DpdkDeviceArguments<'a>
 	#[inline(always)]
 	pub fn next(&self) -> Option<Self>
 	{
-		let next = self.deref().tqe_next;
+		let next = self.reference().next.tqe_next;
 		if next.is_null()
 		{
 			None
@@ -27,7 +27,7 @@ impl<'a> DpdkDeviceArguments<'a>
 	#[inline(always)]
 	pub fn policy(&self) -> rte_dev_policy
 	{
-		self.deref().policy
+		self.reference().policy
 	}
 	
 	/// Bus, eg PCI bus, that the device resides on.
@@ -36,7 +36,7 @@ impl<'a> DpdkDeviceArguments<'a>
 	#[inline(always)]
 	pub fn bus(&self) -> Option<DpdkBus>
 	{
-		let bus = self.deref().bus;
+		let bus = self.reference().bus;
 		if bus.is_null()
 		{
 			None
@@ -48,7 +48,7 @@ impl<'a> DpdkDeviceArguments<'a>
 	}
 	
 	#[inline(always)]
-	fn deref(&self) -> &'a rte_devargs
+	fn reference(&self) -> &'a rte_devargs
 	{
 		unsafe { & * self.0.as_ptr() }
 	}

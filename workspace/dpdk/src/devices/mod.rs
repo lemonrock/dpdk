@@ -11,7 +11,3 @@ pub mod ethernet;
 
 /// Virtual devices.
 pub mod virtual_devices;
-
-
-include!("DeviceDriverName.rs");
-include!("DeviceName.rs");

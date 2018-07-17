@@ -3,7 +3,7 @@
 
 
 /// An iterator over DPDK device memory resources.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug)]
 pub struct DpdkDeviceMemoryResources<'a>(&'a [rte_mem_resource; 6], PhantomData<&'a rte_pci_device>, usize);
 
 impl<'a> Iterator for DpdkDeviceMemoryResources<'a>

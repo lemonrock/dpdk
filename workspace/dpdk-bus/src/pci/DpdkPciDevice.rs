@@ -2,6 +2,7 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// A PCI device as defined by DPDK.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct DpdkPciDevice(NonNull<rte_pci_device>);
 
@@ -23,7 +24,7 @@ impl DpdkPciDevice
 	#[inline(always)]
 	pub fn next(&self) -> Option<Self>
 	{
-		let next = self.deref().tqe_next;
+		let next = self.reference().next.tqe_next;
 		if next.is_null()
 		{
 			None
@@ -40,21 +41,21 @@ impl DpdkPciDevice
 	#[inline(always)]
 	pub fn device<'a>(&'a self) -> DpdkDevice<'a>
 	{
-		DpdkDevice(unsafe { NonNull::new_unchecked(&self.deref().device as *mut _) }, PhantomData)
+		DpdkDevice(unsafe { NonNull::new_unchecked(&self.reference().device as *const _ as *mut _) }, PhantomData)
 	}
 	
 	/// DPDK driver.
 	#[inline(always)]
 	pub fn driver(&self) -> Option<DpdkPciDriver>
 	{
-		let driver = self.deref().driver;
+		let driver = self.reference().driver;
 		if unlikely!(driver.is_null())
 		{
 			None
 		}
 		else
 		{
-			Some(DpdkPciDriver(driver))
+			Some(DpdkPciDriver(unsafe { NonNull::new_unchecked(driver) }))
 		}
 	}
 	
@@ -62,30 +63,33 @@ impl DpdkPciDevice
 	#[inline(always)]
 	pub fn kernel_driver(&self) -> rte_kernel_driver
 	{
-		self.deref().kdrv
+		self.reference().kdrv
 	}
 	
 	/// Memory resources.
 	#[inline(always)]
 	pub fn memory_resources<'a>(&'a self) -> DpdkDeviceMemoryResources<'a>
 	{
-		DpdkDeviceMemoryResources(&self.deref().mem_resource, PhantomData, 0)
+		DpdkDeviceMemoryResources(&self.reference().mem_resource, PhantomData, 0)
 	}
 	
 	/// Interrupt handle.
 	#[inline(always)]
 	pub fn interrupt_handle<'a>(&'a self) -> &'a rte_intr_handle
 	{
-		&self.deref().intr_handle
+		&self.reference().intr_handle
 	}
 	
 	/// Name (does not exceed 18 bytes).
 	///
 	/// Formatted PCI device address.
 	#[inline(always)]
-	pub fn name<'a>(&'a self) -> &'a CStr
+	pub fn name(&self) -> CString
 	{
-		unsafe { CStr::from_ptr(self.deref().name) }
+		let length = unsafe { strnlen(self.reference().name.as_ptr(), 18) };
+		
+		let bytes: &[u8] = unsafe { transmute(&self.reference().name[0 .. length]) };
+		CString::new(bytes).unwrap()
 	}
 	
 	/// Maximum virtul; functions supported.
@@ -94,22 +98,30 @@ impl DpdkPciDevice
 	#[inline(always)]
 	pub fn maximum_virtual_functions(&self) -> u16
 	{
-		self.deref().max_vfs
+		self.reference().max_vfs
 	}
 	
 	/// PCI device address.
 	#[inline(always)]
 	pub fn pci_device_address(&self) -> DpdkPciDeviceAddress
 	{
-		let address = self.deref().addr;
-		DpdkPciDeviceAddress::from_rte_pci_addr(address)
+		let address = &self.reference().addr;
+		
+		let clone = rte_pci_addr
+		{
+			domain: address.domain,
+			bus: address.bus,
+			devid: address.devid,
+			function: address.function,
+		};
+		DpdkPciDeviceAddress::from_rte_pci_addr(clone)
 	}
 	
 	/// PCI raw class and subclass identifiers.
 	#[inline(always)]
 	pub fn pci_vendor_raw_class_and_subclass_identifiers(&self) -> (u16, u16)
 	{
-		let class_id = self.deref().id.class_id;
+		let class_id = self.reference().id.class_id;
 		(((class_id >> 16) as u16), (class_id & 0x0000_FFFFF) as u16)
 	}
 	
@@ -117,22 +129,22 @@ impl DpdkPciDevice
 	#[inline(always)]
 	pub fn pci_vendor_identifier(&self) -> PciVendorIdentifier
 	{
-		PciVendorIdentifier(self.deref().id.vendor_id)
+		PciVendorIdentifier(self.reference().id.vendor_id)
 	}
 	
 	/// PCI device identifier.
 	#[inline(always)]
 	pub fn pci_device_identifier(&self) -> PciDeviceIdentifier
 	{
-		PciDeviceIdentifier(self.deref().id.device_id)
+		PciDeviceIdentifier(self.reference().id.device_id)
 	}
 	
 	/// PCI subsystem vendor identifier.
 	#[inline(always)]
 	pub fn pci_subsystem_vendor_identifier(&self) -> Option<PciVendorIdentifier>
 	{
-		let value = self.deref().id.subsystem_vendor_id;
-		if value = 0xFFFF
+		let value = self.reference().id.subsystem_vendor_id;
+		if value == 0xFFFF
 		{
 			None
 		}
@@ -146,8 +158,8 @@ impl DpdkPciDevice
 	#[inline(always)]
 	pub fn pci_subsystem_device_identifier(&self) -> Option<PciDeviceIdentifier>
 	{
-		let value = self.deref().id.subsystem_device_id;
-		if value = 0xFFFF
+		let value = self.reference().id.subsystem_device_id;
+		if value == 0xFFFF
 		{
 			None
 		}
@@ -161,7 +173,7 @@ impl DpdkPciDevice
 	#[inline(always)]
 	pub fn matches_vendor_and_device(&self, pci_device_type: &PciDeviceType) -> bool
 	{
-		pci_device_type.vendor == self.pci_device_identifier() && pci_device_type.device == self.deref().id.device_id
+		pci_device_type.vendor_and_device.vendor == self.pci_vendor_identifier() && pci_device_type.vendor_and_device.device == self.pci_device_identifier()
 	}
 	
 	/// Map IO port.
@@ -172,7 +184,7 @@ impl DpdkPciDevice
 		let result = unsafe { rte_pci_ioport_map(self.handle(), base_address_register, &mut data) };
 		if likely!(result == 0)
 		{
-			Some(DpdkPciInputOutputPort::new(UnsafeCell::new(data)))
+			Some(DpdkPciInputOutputPort(data))
 		}
 		else
 		{
@@ -235,7 +247,7 @@ impl DpdkPciDevice
 	}
 	
 	#[inline(always)]
-	fn deref(&self) -> &rte_pci_device
+	fn reference(&self) -> &rte_pci_device
 	{
 		unsafe { & * self.handle() }
 	}

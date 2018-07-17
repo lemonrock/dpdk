@@ -6,7 +6,7 @@
 #[derive(Debug, Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub struct EssentialKernelModule
 {
-	pub(crate) module_name: &'static str,
+	module_name: &'static str,
 	file_base_name: &'static str,
 	is_provided_by_dpdk: bool,
 	depends_on_uio: bool,
@@ -69,6 +69,13 @@ impl EssentialKernelModule
 		is_provided_by_dpdk: false,
 		depends_on_uio: false,
 	};
+	
+	/// Module name.
+	#[inline(always)]
+	pub fn module_name(&self) -> &'static str
+	{
+		self.module_name
+	}
 	
 	/// Load this kernel module if necessary.
 	#[cfg(target_os = "linux")]

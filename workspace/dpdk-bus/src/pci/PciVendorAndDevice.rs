@@ -404,15 +404,15 @@ impl PciVendorAndDevice
 	
 	pub const Intel_Ixgbe_Physical_82599_XAUI_LOM: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x10FC));
 	
-	pub const Intel_Ixgbe_Physical_SubDevice82599_560FLR: Self = Self::new(PciVendorIdentifier::IntelSubDevice, PciDeviceIdentifier(0x17D0));
+	pub const Intel_Ixgbe_Physical_SubDevice82599_560FLR: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x17D0));
 	
-	pub const Intel_Ixgbe_Physical_SubDevice82599_ECNA_DP: Self = Self::new(PciVendorIdentifier::IntelSubDevice, PciDeviceIdentifier(0x0470));
+	pub const Intel_Ixgbe_Physical_SubDevice82599_ECNA_DP: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x0470));
 	
-	pub const Intel_Ixgbe_Physical_SubDevice82599_KX4_KR_Mezzanine: Self = Self::new(PciVendorIdentifier::IntelSubDevice, PciDeviceIdentifier(0x000C));
+	pub const Intel_Ixgbe_Physical_SubDevice82599_KX4_KR_Mezzanine: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x000C));
 	
-	pub const Intel_Ixgbe_Physical_SubDevice82599_RNDC: Self = Self::new(PciVendorIdentifier::IntelSubDevice, PciDeviceIdentifier(0x1F72));
+	pub const Intel_Ixgbe_Physical_SubDevice82599_RNDC: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x1F72));
 	
-	pub const Intel_Ixgbe_Physical_SubDevice82599_SFP: Self = Self::new(PciVendorIdentifier::IntelSubDevice, PciDeviceIdentifier(0x11A9));
+	pub const Intel_Ixgbe_Physical_SubDevice82599_SFP: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x11A9));
 	
 	pub const Intel_Ixgbe_Physical_X540T1: Self = Self::new(PciVendorIdentifier::Intel, PciDeviceIdentifier(0x1560));
 	
@@ -538,26 +538,6 @@ impl PciVendorAndDevice
 	#[inline(always)]
 	pub fn is_exactly_rte_pci_id(&self, other: &rte_pci_id) -> bool
 	{
-		self.pci_vendor_identifier.is(other.vendor_id) && self.device.is(other.device_id)
-	}
-	
-	/// Underlying ethernet ports, if any.
-	#[inline(always)]
-	pub fn underlying_ethernet_ports(&self) -> Vec<EthernetPortIdentifier>
-	{
-		let mut matches = EthernetPort::new_vec_with_capacity_for_all_attached_ports();
-		
-		let mut port_identifier = 0;
-		for port_identifier in 0 .. EthernetPort::MaximumEthernetPortsU8
-		{
-			if let Some(dpdk_pci_device) = DpdkPciDevice::for_ethernet_port(port_identifier)
-			{
-				if dpdk_pci_device.matches_vendor_and_device(self)
-				{
-					matches.push(port_identifier)
-				}
-			}
-		}
-		matches
+		self.vendor.is(other.vendor_id) && self.device.is(other.device_id)
 	}
 }

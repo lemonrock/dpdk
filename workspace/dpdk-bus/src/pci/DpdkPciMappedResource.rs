@@ -16,7 +16,7 @@ impl Drop for DpdkPciMappedResource
 	#[inline(always)]
 	fn drop(&mut self)
 	{
-		unsafe { pci_unmap_resource(self.requested_addr.as_ptr() as *mut c_void, self.size) }
+		unsafe { pci_unmap_resource(self.requested_address.as_ptr() as *mut c_void, self.size) }
 	}
 }
 
@@ -39,7 +39,7 @@ impl DpdkPciMappedResource
 				{
 					requested_address,
 					size,
-					mapped_area: unsafe { NonNull::new_unchecked(result) },
+					mapped_area: unsafe { NonNull::new_unchecked(result as *mut u8) },
 				}
 			)
 		}

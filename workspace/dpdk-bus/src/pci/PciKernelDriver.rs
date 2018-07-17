@@ -15,8 +15,9 @@ pub enum PciKernelDriver
 
 impl PciKernelDriver
 {
+	/// Essential kernel module.
 	#[inline(always)]
-	pub(crate) fn essential_kernel_module(&self) -> EssentialKernelModule
+	pub fn essential_kernel_module(&self) -> EssentialKernelModule
 	{
 		use self::PciKernelDriver::*;
 		
@@ -28,9 +29,10 @@ impl PciKernelDriver
 		}
 	}
 	
+	/// Kernel module name.
 	#[inline(always)]
-	fn driver_name(&self) -> &'static str
+	pub fn driver_name(&self) -> &'static str
 	{
-		self.essential_kernel_module().module_name
+		self.essential_kernel_module().module_name()
 	}
 }

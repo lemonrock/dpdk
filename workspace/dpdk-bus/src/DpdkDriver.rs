@@ -12,7 +12,7 @@ impl<'a> DpdkDriver<'a>
 	#[inline(always)]
 	pub fn next(&self) -> Option<Self>
 	{
-		let next = self.deref().tqe_next;
+		let next = self.reference().next.tqe_next;
 		if next.is_null()
 		{
 			None
@@ -27,14 +27,14 @@ impl<'a> DpdkDriver<'a>
 	#[inline(always)]
 	pub fn name(&self) -> &'a CStr
 	{
-		unsafe { CStr::from_ptr(self.deref().name) }
+		unsafe { CStr::from_ptr(self.reference().name) }
 	}
 	
 	/// Alias.
 	#[inline(always)]
 	pub fn alias(&self) -> Option<&'a CStr>
 	{
-		let alias = self.deref().alias;
+		let alias = self.reference().alias;
 		if alias.is_null()
 		{
 			None
@@ -43,5 +43,11 @@ impl<'a> DpdkDriver<'a>
 		{
 			Some(unsafe { CStr::from_ptr(alias) })
 		}
+	}
+	
+	#[inline(always)]
+	fn reference(&self) -> &rte_driver
+	{
+		unsafe { & * self.0.as_ptr() }
 	}
 }

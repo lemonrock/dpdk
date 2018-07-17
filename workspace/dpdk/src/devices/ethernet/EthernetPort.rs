@@ -508,3 +508,34 @@ impl EthernetPort for &'static mut rte_eth_dev
 		mutable_reference
 	}
 }
+
+pub trait UnderlyingEthernetPort
+{
+	fn underlying_ethernet_port(&self) -> Option<((EthernetPort, rte_eth_dev))>
+}
+
+#[inline(always)]
+pub(crate) fn underlying_ethernet_port(&self) -> Option<((EthernetPort, rte_eth_dev))>
+{
+	let mut port_identifier = 0;
+	while port_identifier < EthernetPort::MaximumEthernetPortsU8
+	{
+		if let Some(ethernet_port) = EthernetPort::new(port_identifier)
+		{
+			let underlying_rte_eth_dev = ethernet_port.underlying_ethernet_device();
+			if !underlying_rte_eth_dev.device.is_null()
+			{
+				unsafe
+				{
+					let pci_device = *(rust_RTE_DEV_TO_PCI(underlying_rte_eth_dev.device));
+					if self.is_rte_pci_addr(&pci_device.addr)
+					{
+						return Some((ethernet_port, underlying_rte_eth_dev));
+					}
+				}
+			}
+		}
+		port_identifier += 1;
+	}
+	None
+}

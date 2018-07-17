@@ -6,6 +6,24 @@
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PciDeviceIdentifier(u16);
 
+impl From<u16> for PciDeviceIdentifier
+{
+	#[inline(always)]
+	fn from(value: u16) -> Self
+	{
+		PciDeviceIdentifier(value)
+	}
+}
+
+impl Into<u16> for PciDeviceIdentifier
+{
+	#[inline(always)]
+	fn into(self) -> u16
+	{
+		self.0
+	}
+}
+
 impl PciDeviceIdentifier
 {
 	const AnyOrInvalidRaw: u16 = 0xFFFF;
@@ -34,7 +52,7 @@ impl PciDeviceIdentifier
 		self.0 == Self::AnyOrInvalidRaw
 	}
 	
-	// Is?
+	/// Is?
 	#[inline(always)]
 	pub fn is(&self, other: u16) -> bool
 	{

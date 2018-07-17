@@ -3,12 +3,21 @@
 
 
 /// Models a PCI device.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PciDevice(DpdkPciDeviceAddress);
+
+impl DeviceName for PciDevice
+{
+	#[inline]
+	fn to_string(&self) -> String
+	{
+		self.0.to_string()
+	}
+}
 
 impl PciDevice
 {
-	/// PCI device associate NUMA node, if known.
+	/// PCI device's associated NUMA node, if known.
 	#[inline(always)]
 	pub fn associated_numa_node(&self, sys_path: &SysPath) -> NumaNodeChoice
 	{
@@ -30,7 +39,7 @@ impl PciDevice
 	{
 		let file_path = self.device_file_or_folder_path(sys_path, "local_cpulist");
 		
-		file_path.read_linux_core_or_numa_list().map(HyperThread::from).expect("Could not parse local_cpulist")
+		file_path.read_linux_core_or_numa_list(HyperThread::from).expect("Could not parse local_cpulist")
 	}
 	
 	/// Is this an ethernet device?
@@ -48,36 +57,44 @@ impl PciDevice
 		}
 	}
 	
+	/// To a PCI address string.
 	#[inline(always)]
-	pub(crate) fn to_address_string(&self) -> String
+	pub fn to_address_string(&self) -> String
 	{
 		self.0.to_string()
 	}
 	
+	/// PCI vendor identifier.
 	#[inline(always)]
-	pub(crate) fn pci_vendor_identifier(&self, sys_path: &SysPath) -> PciVendorIdentifier
+	pub fn pci_vendor_identifier(&self, sys_path: &SysPath) -> PciVendorIdentifier
 	{
 		let file_path = self.device_file_or_folder_path(sys_path, "vendor");
 		PciVendorIdentifier::new(file_path.read_hexadecimal_value_with_prefix_u16().expect("Seems PCI device's vendor id does not properly exist")).expect("PCI vendor Id should not be 'Any'")
 	}
 	
+	/// PCI device identifier.
 	#[inline(always)]
-	pub(crate) fn pci_device_identifier(&self, sys_path: &SysPath) -> PciDeviceIdentifier
+	pub fn pci_device_identifier(&self, sys_path: &SysPath) -> PciDeviceIdentifier
 	{
 		let file_path = self.device_file_or_folder_path(sys_path, "device");
 		PciDeviceIdentifier::new(file_path.read_hexadecimal_value_with_prefix_u16().expect("Seems PCI device's device id does not properly exist")).expect("PCI device Id should not be 'Any'")
 	}
 	
+	/// PCI class identifier.
 	#[inline(always)]
-	pub(crate) fn pci_class_identifier(&self, sys_path: &SysPath) -> (u8, u8, u8)
+	pub fn pci_class_identifier(&self, sys_path: &SysPath) -> (u8, u8, u8)
 	{
 		let file_path = self.device_file_or_folder_path(sys_path, "class");
 		let value = file_path.read_hexadecimal_value_with_prefix(6, |raw_string| u32::from_str_radix(raw_string, 16)).expect("Could not parse class");
 		(((value & 0xFF0000) >> 16) as u8, ((value & 0x00FF00) >> 8) as u8, (value & 0x0000FF) as u8)
 	}
 	
+	/// Tries to set the NUMA node of a PCI device.
+	///
+	/// Very brittle; only really to be used for broken system buses.
+	#[allow(unused_must_use)]
 	#[inline(always)]
-	pub(crate) fn set_numa_node_swallowing_errors_as_this_is_brittle(&self, sys_path: &SysPath, numa_node: u8)
+	pub fn set_numa_node_swallowing_errors_as_this_is_brittle(&self, sys_path: &SysPath, numa_node: u8)
 	{
 		// Strictly speaking, we should read a value of -1 first before attempting to set.
 		
@@ -85,8 +102,9 @@ impl PciDevice
 		file_path.write_value(numa_node);
 	}
 	
+	/// Take for use by DPDK.
 	#[inline(always)]
-	pub(crate) fn take_for_use_with_dpdk(&self, sys_path: &SysPath, pci_kernel_driver: PciKernelDriver) -> Option<String>
+	pub fn take_for_use_with_dpdk(&self, sys_path: &SysPath, pci_kernel_driver: PciKernelDriver) -> Option<String>
 	{
 		assert_effective_user_id_is_root(&format!("Changing override of PCI driver for PCI device '{}'", self.to_string()));
 		
@@ -96,8 +114,9 @@ impl PciDevice
 		original_driver_name
 	}
 	
+	/// Release from use by DPDK.
 	#[inline(always)]
-	pub(crate) fn release_from_use_with_dpdk(&self, sys_path: &SysPath, original_driver_name: Option<String>)
+	pub fn release_from_use_with_dpdk(&self, sys_path: &SysPath, original_driver_name: Option<String>)
 	{
 		assert_effective_user_id_is_root(&format!("Changing override of PCI driver for PCI device '{}'", self.to_string()));
 		
@@ -126,7 +145,7 @@ impl PciDevice
 	#[inline(always)]
 	fn add_override_of_pci_kernel_driver(&self, sys_path: &SysPath, pci_kernel_driver: PciKernelDriver)
 	{
-		self.write_to_driver_override_file(sys_path, pci_kernel_driver.driver_name.to_string())
+		self.write_to_driver_override_file(sys_path, pci_kernel_driver.driver_name().to_string())
 	}
 	
 	#[inline(always)]
@@ -148,7 +167,7 @@ impl PciDevice
 		if let Some(original_driver_name) = original_driver_name
 		{
 			let bind_file_path = self.driver_file_or_folder_path(sys_path, "bind");
-			bind_file_path.write_value(self.to_string()).unwrap();
+			bind_file_path.write_value(original_driver_name).unwrap();
 		}
 	}
 	
@@ -170,7 +189,7 @@ impl PciDevice
 	#[inline(always)]
 	fn device_file_or_folder_path(&self, sys_path: &SysPath, file_or_folder_name: &str) -> PathBuf
 	{
-		let rte_pci_addr = (self.0).0;
+		let rte_pci_addr = &(self.0).0;
 		sys_path.pci_device_path((rte_pci_addr.domain, rte_pci_addr.bus, rte_pci_addr.devid, rte_pci_addr.function), file_or_folder_name)
 	}
 }
