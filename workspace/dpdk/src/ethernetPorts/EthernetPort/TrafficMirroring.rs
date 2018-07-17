@@ -17,7 +17,7 @@ impl EthernetPort
 		};
 		let mut mirrorConfiguration = trafficMirroringRule.as_rte_eth_mirror_conf();
 		let result = unsafe { rte_eth_mirror_rule_set(self.portIdentifier, &mut mirrorConfiguration, trafficMirroringRuleNumber as u8, on) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
@@ -51,7 +51,7 @@ impl EthernetPort
 	pub fn clearTrafficMirroringRule(&self, trafficMirroringRuleNumber: TrafficMirroringRuleNumber) -> Result<(), UnsupportedByHardwareError>
 	{
 		let result = unsafe { rte_eth_mirror_rule_reset(self.portIdentifier, trafficMirroringRuleNumber as u8) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}

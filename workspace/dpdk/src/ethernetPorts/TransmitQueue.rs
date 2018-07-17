@@ -47,7 +47,7 @@ impl TransmitQueue
 			)
 		};
 
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			let mut transmitQueue = TransmitQueue
 			{
@@ -88,7 +88,7 @@ impl TransmitQueue
 		}
 
 		let result = unsafe { rte_eth_dev_tx_queue_start(self.portIdentifier, self.queueIdentifier) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
@@ -109,7 +109,7 @@ impl TransmitQueue
 	pub fn stop(&self)
 	{
 		let result = unsafe { rte_eth_dev_tx_queue_stop(self.portIdentifier, self.queueIdentifier) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			()
 		}
@@ -130,7 +130,7 @@ impl TransmitQueue
 	pub fn setStatisticMappingIndex(&mut self, index: u8) -> bool
 	{
 		let result = unsafe { rte_eth_dev_set_tx_queue_stats_mapping(self.portIdentifier, self.queueIdentifier, index) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			true
 		}
@@ -158,7 +158,7 @@ impl TransmitQueue
 	pub fn setRateLimit(&mut self, maximumTransmissionRateInMbps: u16) -> Result<(), UnsupportedByHardwareError>
 	{
 		let result = unsafe { rte_eth_set_queue_rate_limit(self.portIdentifier, self.queueIdentifier, maximumTransmissionRateInMbps) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
@@ -182,7 +182,7 @@ impl TransmitQueue
 		let mut information = unsafe { uninitialized() };
 
 		let result = unsafe { rte_eth_tx_queue_info_get(self.portIdentifier, self.queueIdentifier, &mut information) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(information)
 		}

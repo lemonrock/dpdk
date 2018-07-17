@@ -20,7 +20,7 @@ impl EthernetPort
 	pub fn isReceivePromiscuous(&self) -> Result<bool, ()>
 	{
 		let result = unsafe { rte_eth_promiscuous_get(self.portIdentifier()) };
-		if unlikely(result == -1)
+		if unlikely!(result == -1)
 		{
 			Err(())
 		}

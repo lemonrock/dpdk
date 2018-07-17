@@ -15,7 +15,7 @@ impl EthernetPort
 	{
 		let mut statistics = unsafe { uninitialized() };
 		let result = unsafe { rte_eth_stats_get(self.portIdentifier(), &mut statistics) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(statistics)
 		}

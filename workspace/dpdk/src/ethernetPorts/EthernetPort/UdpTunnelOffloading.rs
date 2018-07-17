@@ -10,7 +10,7 @@ impl EthernetPort
 		let mut tunnel = udpTunnelConfiguration.as_rte_eth_udp_tunnel();
 
 		let result = unsafe { rte_eth_dev_udp_tunnel_port_add(self.portIdentifier(), &mut tunnel) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
@@ -33,7 +33,7 @@ impl EthernetPort
 		let mut tunnel = udpTunnelConfiguration.as_rte_eth_udp_tunnel();
 
 		let result = unsafe { rte_eth_dev_udp_tunnel_port_delete(self.portIdentifier(), &mut tunnel) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}

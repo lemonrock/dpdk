@@ -3,7 +3,6 @@
 
 
 #[cfg(any(target_os = "android", target_os = "linux"))] use ::libc::c_char;
-#[cfg(any(target_os = "android", target_os = "linux"))] use ::rust_extra::unlikely;
 #[cfg(any(target_os = "android", target_os = "linux"))] use ::std::ffi::CStr;
 #[cfg(any(target_os = "android", target_os = "linux"))] use ::std::ffi::OsStr;
 #[cfg(any(target_os = "android", target_os = "linux"))] use ::std::os::unix::ffi::OsStrExt;

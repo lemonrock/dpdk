@@ -77,7 +77,7 @@ impl MemoryLimits
 			let mut hasValidEntries = false;
 			for numaMemoryIndex in 0..NumaNode::Maximum
 			{
-				if likely(numaMemoryIndex != 0)
+				if likely!(numaMemoryIndex != 0)
 				{
 					numaMemoryString.push(',')
 				}

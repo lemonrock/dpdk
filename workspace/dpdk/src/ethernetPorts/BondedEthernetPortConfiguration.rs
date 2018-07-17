@@ -28,7 +28,7 @@ impl BondedEthernetPortConfiguration
 		for slave in self.slaves
 		{
 			bondedEthernetPort.addSlave(slave).expect("Could not add slave");
-			if unlikely(isFirst)
+			if unlikely!(isFirst)
 			{
 				bondedEthernetPort.setPrimarySlave(slave).expect("Could not set primary slave");
 				isFirst = false;

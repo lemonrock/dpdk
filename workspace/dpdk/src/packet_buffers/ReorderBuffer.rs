@@ -84,7 +84,7 @@ impl ReorderBuffer
 	pub fn insert(&self, packet_buffer: PacketBuffer) -> Result<(), CouldNotInsertPacketBufferForReordering>
 	{
 		let result = unsafe { rte_reorder_insert(self.handle(), packet_buffer.as_ptr()) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}

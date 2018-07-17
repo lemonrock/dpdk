@@ -8,7 +8,7 @@ impl EthernetPort
 	pub fn turnLedOn(&self) -> Result<(), UnsupportedByHardwareError>
 	{
 		let result = unsafe { rte_eth_led_on(self.portIdentifier()) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			return Ok(())
 		}
@@ -29,7 +29,7 @@ impl EthernetPort
 	pub fn turnLedOff(&self) -> Result<(), UnsupportedByHardwareError>
 	{
 		let result = unsafe { rte_eth_led_off(self.portIdentifier()) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			return Ok(())
 		}

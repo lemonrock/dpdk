@@ -6,7 +6,7 @@
 #[inline(always)]
 pub(crate) fn c_string_pointer_to_string_with_replacements_if_any(nul_terminated: *mut c_char) -> Option<String>
 {
-	if unlikely(nul_terminated.is_null())
+	if unlikely!(nul_terminated.is_null())
 	{
 		return None;
 	}

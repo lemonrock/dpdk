@@ -54,7 +54,7 @@ impl MemoryZone
 		Self::assert_memory_zone_name_size(name);
 
 		let result = unsafe { rte_memzone_lookup(name.as_ptr()) };
-		if unlikely(result.is_null())
+		if unlikely!(result.is_null())
 		{
 			None
 		}
@@ -132,7 +132,7 @@ impl MemoryZone
 	#[inline(always)]
 	fn process_reservation_result(name: ConstCStr, result: *const rte_memzone, function_name: &str) -> Option<Self>
 	{
-		if unlikely(result.is_null())
+		if unlikely!(result.is_null())
 		{
 			match LogicalCore::current_logical_core_error_number()
 			{

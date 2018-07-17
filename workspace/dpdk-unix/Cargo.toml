@@ -20,6 +20,7 @@ version = "0.0.6"
 
 [dependencies]
 const-cstr-fork = "^0.2"
+dpdk-likely = { version = "0.0.6", path = "../dpdk-likely" }
 errno = "0.1"
 libc = "^0.2"
 quick-error = "1.2"

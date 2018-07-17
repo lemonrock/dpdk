@@ -31,6 +31,7 @@ include!("Hertz.rs");
 include!("Milliseconds.rs");
 include!("Microseconds.rs");
 include!("Nanoseconds.rs");
+include!("Seconds.rs");
 include!("SmartPointer.rs");
 include!("Timer.rs");
 include!("TimerCallback.rs");

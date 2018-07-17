@@ -10,7 +10,7 @@ impl EthernetPort
 		let mut flowControl = flowControl.as_rte_eth_fc_conf();
 
 		let result = unsafe { rte_eth_dev_flow_ctrl_set(self.portIdentifier, &mut flowControl) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(true)
 		}
@@ -35,7 +35,7 @@ impl EthernetPort
 		let mut dataCentreBridgingPriorityFlowControl = dataCentreBridgingPriorityFlowControl.as_rte_eth_pfc_conf();
 
 		let result = unsafe { rte_eth_dev_priority_flow_ctrl_set(self.portIdentifier, &mut dataCentreBridgingPriorityFlowControl) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(true)
 		}

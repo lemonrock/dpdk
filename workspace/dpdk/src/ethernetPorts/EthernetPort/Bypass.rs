@@ -25,7 +25,7 @@ impl EthernetPort
 		let mut bypassStateValue = unsafe { uninitialized() };
 
 		let result = unsafe { rte_eth_dev_bypass_event_show(self.portIdentifier(), bypassEvent as uint32_t, &mut bypassStateValue) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(BypassState::fromC(bypassStateValue, "rte_eth_dev_bypass_event_show"))
 		}
@@ -52,7 +52,7 @@ impl EthernetPort
 		let mut bypassStateValue = unsafe { uninitialized() };
 
 		let result = unsafe { rte_eth_dev_bypass_state_show(self.portIdentifier(), &mut bypassStateValue) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(BypassState::fromC(bypassStateValue, "rte_eth_dev_bypass_state_show"))
 		}
@@ -70,7 +70,7 @@ impl EthernetPort
 		let mut bypassFirmwareVersionValue = unsafe { uninitialized() };
 
 		let result = unsafe { rte_eth_dev_bypass_ver_show(self.portIdentifier(), &mut bypassFirmwareVersionValue) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(bypassFirmwareVersionValue)
 		}
@@ -95,7 +95,7 @@ impl EthernetPort
 		let mut bypassWatchdogTimeoutValue = unsafe { uninitialized() };
 
 		let result = unsafe { rte_eth_dev_bypass_wd_timeout_show(self.portIdentifier(), &mut bypassWatchdogTimeoutValue) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(BypassWatchdogTimeout::fromC(bypassWatchdogTimeoutValue, "rte_eth_dev_bypass_wd_timeout_show"))
 		}
@@ -118,7 +118,7 @@ impl EthernetPort
 	#[inline(always)]
 	fn bypassResult(&self, result: c_int, function: &str) -> Result<(), UnsupportedByHardwareError>
 	{
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}

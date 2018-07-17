@@ -7,6 +7,7 @@ members = [
     "dpdk",
 	"dpdk-bus",
 	"dpdk-core",
+	"dpdk-layers",
 	"dpdk-likely",
     "dpdk-serde",
     "dpdk-sys",

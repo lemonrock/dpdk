@@ -52,7 +52,7 @@ impl ReceiveQueue
 				packetBufferPool.memoryPool()
 			)
 		};
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			let mut receiveQueue = ReceiveQueue
 			{
@@ -93,7 +93,7 @@ impl ReceiveQueue
 			return Ok(());
 		}
 		let result = unsafe { rte_eth_dev_rx_queue_start(self.portIdentifier, self.queueIdentifier) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
@@ -114,7 +114,7 @@ impl ReceiveQueue
 	pub fn stop(&self)
 	{
 		let result = unsafe { rte_eth_dev_rx_queue_stop(self.portIdentifier, self.queueIdentifier) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			()
 		}
@@ -144,7 +144,7 @@ impl ReceiveQueue
 		};
 
 		let result = unsafe { rte_eth_dev_set_vlan_strip_on_queue(self.portIdentifier, self.queueIdentifier, enable) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
@@ -166,7 +166,7 @@ impl ReceiveQueue
 	pub fn setStatisticMappingIndex(&self, index: u8) -> bool
 	{
 		let result = unsafe { rte_eth_dev_set_rx_queue_stats_mapping(self.portIdentifier, self.queueIdentifier, index) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			true
 		}
@@ -246,7 +246,7 @@ impl ReceiveQueue
 	pub fn isDdBitOfReceiveDescriptorSet(&self, receiveDescriptorOffsetFromTail: u16) -> Result<bool, UnsupportedByHardwareError>
 	{
 		let result = unsafe { rust_rte_eth_rx_descriptor_done(self.portIdentifier, self.queueIdentifier, receiveDescriptorOffsetFromTail) };
-		if likely(result >= 0)
+		if likely!(result >= 0)
 		{
 			Ok(isTrue(result))
 		}
@@ -283,7 +283,7 @@ impl ReceiveQueue
 	pub fn enableSleepWithInterrupt(&mut self) -> Result<(), UnsupportedByHardwareError>
 	{
 		let result = unsafe { rte_eth_dev_rx_intr_enable(self.portIdentifier, self.queueIdentifier) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
@@ -304,7 +304,7 @@ impl ReceiveQueue
 	pub fn disableSleepWithInterrupt(&mut self) -> Result<(), UnsupportedByHardwareError>
 	{
 		let result = unsafe { rte_eth_dev_rx_intr_disable(self.portIdentifier, self.queueIdentifier) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
@@ -327,7 +327,7 @@ impl ReceiveQueue
 	{
 		let epollFileDescriptor: i32 = epollFileDescriptor.unwrap_or(RTE_EPOLL_PER_THREAD);
 		let result = unsafe { rte_eth_dev_rx_intr_ctl_q(self.portIdentifier, self.queueIdentifier, epollFileDescriptor, ePollInterruptEvent as i32, userData) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			true
 		}
@@ -348,7 +348,7 @@ impl ReceiveQueue
 		let mut information = unsafe { uninitialized() };
 
 		let result = unsafe { rte_eth_rx_queue_info_get(self.portIdentifier, self.queueIdentifier, &mut information) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(information)
 		}

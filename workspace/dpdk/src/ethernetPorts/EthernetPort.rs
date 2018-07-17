@@ -81,7 +81,7 @@ impl EthernetPort
 	pub fn parentNumaSocketId(&self) -> Option<NumaSocketId>
 	{
 		let result = unsafe { rte_eth_dev_socket_id(self.portIdentifier()) };
-		if unlikely(result < 0)
+		if unlikely!(result < 0)
 		{
 			match result
 			{
@@ -179,7 +179,7 @@ impl EthernetPort
 		let mut information = unsafe { uninitialized() };
 
 		let result = unsafe { rte_eth_dev_get_dcb_info(self.portIdentifier(), &mut information) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(information)
 		}
@@ -248,7 +248,7 @@ impl EthernetPort
 		};
 
 		let result = unsafe { rte_eth_dev_get_reg_info(self.portIdentifier(), &mut findWidthAndLength) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			let width = findWidthAndLength.width;
 			let length = findWidthAndLength.length;
@@ -257,7 +257,7 @@ impl EthernetPort
 			findWidthAndLength.data = registers.as_mut_ptr() as *mut c_void;
 
 			let result = unsafe { rte_eth_dev_get_reg_info(self.portIdentifier(), &mut findWidthAndLength) };
-			if likely(result == 0)
+			if likely!(result == 0)
 			{
 				unsafe
 				{
@@ -341,7 +341,7 @@ impl EthernetPort
 		let cDeviceName = CString::new(device_name).expect("device_name contained an interior ASCII NUL");
 		let mut portIdentifier = unsafe { uninitialized() };
 		let result = unsafe { rte_eth_dev_get_port_by_name(cDeviceName.as_ptr(), &mut portIdentifier) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			// Should always return Some()
 			Self::new(portIdentifier)
@@ -365,7 +365,7 @@ impl EthernetPort
 		let (device_name, pointerToDeviceName) = Self::initialiseDeviceNameBuffer();
 		let result = unsafe { rte_eth_dev_get_name_by_port(self.portIdentifier(), pointerToDeviceName) };
 
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Self::parseDeviceName(device_name, pointerToDeviceName)
 		}

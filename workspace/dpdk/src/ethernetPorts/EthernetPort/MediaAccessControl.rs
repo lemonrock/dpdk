@@ -10,7 +10,7 @@ impl EthernetPort
 		let mut value = media_access_control_address.0;
 		let result = unsafe { rte_eth_dev_default_mac_addr_set(self.portIdentifier(), &mut value) };
 
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
@@ -58,7 +58,7 @@ impl EthernetPort
 		let mut value = media_access_control_address.0;
 		let result = unsafe { rte_eth_dev_mac_addr_add(self.portIdentifier(), &mut value, pool) };
 
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
@@ -87,7 +87,7 @@ impl EthernetPort
 		let mut value = media_access_control_address.0;
 		let result = unsafe { rte_eth_dev_mac_addr_remove(self.portIdentifier(), &mut value) };
 
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}

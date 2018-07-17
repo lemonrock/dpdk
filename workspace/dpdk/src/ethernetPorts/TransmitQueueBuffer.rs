@@ -44,7 +44,7 @@ impl<E: TransmitQueueBufferErrorCallback> TransmitQueueBuffer<E>
 		let buffer = buffer.unwrap();
 
 		let result = unsafe { rte_eth_tx_buffer_init(buffer.0, maximumPacketBurst) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			let mut transmitQueueBuffer = TransmitQueueBuffer
 			{
@@ -83,7 +83,7 @@ impl<E: TransmitQueueBufferErrorCallback> TransmitQueueBuffer<E>
 	pub fn setErrorCallback(&mut self, mut errorCallback: E)
 	{
 		let result = unsafe { rte_eth_tx_buffer_set_err_callback(self.as_rte_eth_dev_tx_buffer(), E::asFunctionPointer(), errorCallback.asFunctionArgument()) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			// Take ownership; when we get dropped, errorCallback gets dropped
 			self.errorCallback = Some(errorCallback);

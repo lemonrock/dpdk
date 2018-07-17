@@ -63,7 +63,7 @@ impl PacketBufferPool
 		let memoryZoneName = CString::new(memoryZoneName).expect("memoryZoneName contained an interior ASCII NUL");
 
 		let result = unsafe { rte_pktmbuf_pool_create(memoryZoneName.as_ptr(), numberOfElements, perCoreObjectCacheSize, applicationPrivateSize, dataRoomSize, numa_node_choice.into()) };
-		if unlikely(result.is_null())
+		if unlikely!(result.is_null())
 		{
 			match LogicalCore::current_logical_core_error_number()
 			{
@@ -100,7 +100,7 @@ impl PacketBufferPool
 	pub fn allocate(&self) -> Option<PacketBuffer>
 	{
 		let result = unsafe { rust_rte_pktmbuf_alloc(self.memoryPool()) };
-		if unlikely(result.is_null())
+		if unlikely!(result.is_null())
 		{
 			None
 		}
@@ -115,7 +115,7 @@ impl PacketBufferPool
 	{
 		let mut mbufs: [*mut rte_mbuf; BulkAllocateUsize] = unsafe { uninitialized() };
 		let result = unsafe { rust_rte_pktmbuf_alloc_bulk(self.memoryPool(), mbufs.as_mut_ptr(), BulkAllocate) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Some(unsafe { transmute(mbufs) })
 		}

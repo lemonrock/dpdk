@@ -20,7 +20,7 @@ impl EthernetPort
 	pub fn isReceiveAllMulticast(&self) -> Result<bool, ()>
 	{
 		let result = unsafe { rte_eth_allmulticast_get(self.portIdentifier()) };
-		if unlikely(result == -1)
+		if unlikely!(result == -1)
 		{
 			Err(())
 		}
@@ -47,7 +47,7 @@ impl EthernetPort
 		let mut set = list.as_mut_slice();
 
 		let result = unsafe { rte_eth_dev_set_mc_addr_list(self.portIdentifier(), set.internalMutablePointer(), length) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
@@ -69,7 +69,7 @@ impl EthernetPort
 	pub fn clearMulticastMediaAccessControlAddressesToFilter(&self) -> Result<(), UnsupportedByHardwareError>
 	{
 		let result = unsafe { rte_eth_dev_set_mc_addr_list(self.portIdentifier(), null_mut(), 0) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}

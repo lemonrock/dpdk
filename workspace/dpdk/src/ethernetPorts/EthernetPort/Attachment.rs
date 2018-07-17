@@ -30,7 +30,7 @@ impl EthernetPort
 		let mut portIdentifier = 0;
 		while portIdentifier < Self::MaximumEthernetPortsU8
 		{
-			if unlikely(Self::isAttachedPort(portIdentifier))
+			if unlikely!(Self::isAttachedPort(portIdentifier))
 			{
 				list.push(EthernetPort
 				{
@@ -74,7 +74,7 @@ impl EthernetPort
 
 		let mut portIdentifier = unsafe { uninitialized() };
 		let result = unsafe { rte_eth_dev_attach(devicePciAddressOrNameCStr.as_ptr(), &mut portIdentifier) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(EthernetPort::new(portIdentifier).unwrap())
 		}
@@ -94,7 +94,7 @@ impl EthernetPort
 		let (device_name, pointerToDeviceName) = Self::initialiseDeviceNameBuffer();
 		let result = unsafe { rte_eth_dev_detach(self.portIdentifier(), pointerToDeviceName) };
 		
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			if let Ok(ourDeviceName) = Self::parseDeviceName(device_name, pointerToDeviceName)
 			{

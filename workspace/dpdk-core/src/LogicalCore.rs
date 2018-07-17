@@ -78,6 +78,15 @@ impl Into<usize> for LogicalCore
 	}
 }
 
+impl Into<isize> for LogicalCore
+{
+	#[inline(always)]
+	fn into(self) -> isize
+	{
+		self.0 as isize
+	}
+}
+
 impl LogicalCore
 {
 	/// Maximum number of `LogicalCore`s.

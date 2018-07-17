@@ -8,13 +8,13 @@ impl EthernetPort
 	pub fn start(&self) -> Result<(), i32>
 	{
 		let result = unsafe { rte_eth_dev_start(self.portIdentifier()) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
 		else
 		{
-			if likely(result < 0)
+			if likely!(result < 0)
 			{
 				Err(result)
 			}

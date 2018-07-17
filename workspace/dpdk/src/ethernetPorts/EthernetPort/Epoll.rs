@@ -11,7 +11,7 @@ impl EthernetPort
 	{
 		let epollFileDescriptor: i32 = epollFileDescriptor.unwrap_or(RTE_EPOLL_PER_THREAD);
 		let result = unsafe { rte_eth_dev_rx_intr_ctl(self.portIdentifier(), epollFileDescriptor, ePollInterruptEvent as i32, userData) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			true
 		}

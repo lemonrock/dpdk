@@ -6,7 +6,7 @@
 #[inline(always)]
 pub(crate) fn c_string_pointer_to_path_buf(nul_terminated: *mut c_char) -> Result<Option<PathBuf>, ()>
 {
-	if unlikely(nul_terminated.is_null())
+	if unlikely!(nul_terminated.is_null())
 	{
 		return Ok(None);
 	}

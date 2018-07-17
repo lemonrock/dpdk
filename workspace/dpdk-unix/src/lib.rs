@@ -3,7 +3,9 @@
 
 
 #![allow(non_upper_case_globals)]
+#![allow(renamed_and_removed_lints)]
 #![deny(missing_docs)]
+#![feature(core_intrinsics)]
 #![feature(int_to_from_bytes)]
 
 
@@ -16,6 +18,7 @@
 
 #[cfg(any(target_os = "android", target_os = "linux"))] #[macro_use] extern crate bitflags;
 #[macro_use] extern crate const_cstr_fork;
+#[macro_use] extern crate dpdk_likely;
 extern crate errno;
 extern crate libc;
 extern crate libc_extra;

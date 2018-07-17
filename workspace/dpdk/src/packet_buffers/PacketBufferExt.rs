@@ -5,489 +5,6 @@
 /// An extension trait which makes a `NonNull<rte_mbuf>` appear as a regular object, `PacketBuffer`.
 pub trait PacketBufferExt: PrintInformation
 {
-	/// Private data alignment.
-	const AlignmentOfPrivateData: usize = RTE_MBUF_PRIV_ALIGN as usize;
-	
-	/// Normally 128 bytes, but a configuration value for DPDK.
-	///
-	/// Equivalent to `RTE_PKTMBUF_HEADROOM`.
-	const HeadRoom: u16 = RTE_PKTMBUF_HEADROOM as u16;
-	
-	/// Some NICs need at least a 2KB buffer to receive a standard Ethernet frame without splitting it into multiple segments.
-	///
-	/// Equivalent to `RTE_MBUF_DEFAULT_DATAROOM`.
-	const DefaultDataRoom: u16 = RTE_MBUF_DEFAULT_DATAROOM as u16;
-	
-	/// Some NICs need at least a 2KB buffer to receive a standard Ethernet frame without splitting it into multiple segments.
-	///
-	/// For PacketBuffers used for receive or transmit, this is the minimal recommended buffer length.
-	///
-	/// Equivalent to `RTE_MBUF_DEFAULT_BUF_SIZE`.
-	const DefaultBufferLength: u16 = buffer_length(Self::DefaultDataRoom);
-	
-	/// Maximum number of segment buffers in a packet buffer.
-	const MaximumNumberOfSegmentBuffers: u16 = RTE_MBUF_MAX_NB_SEGS as u16;
-	
-	/// Value of `data_room_size` passed to `rte_pktmbuf_pool_create()` to ensure that segmentation of receive packets is not needed and packet drops do not occur.
-	///
-	/// Use this value to avoid the need to specify `offloads::DEV_RX_OFFLOAD_SCATTER` for poll-mode drivers (PMDs).
-	#[inline(always)]
-	fn data_room_size_for_packet_buffer_pool(maximum_transmission_unit_size: MaximumTransmissionUnitSize) -> u16
-	{
-		maximum_transmission_unit_size.to_data_room_size_for_packet_buffer_pool()
-	}
-	
-	#[doc(hidden)]
-	#[inline(always)]
-	fn reference<'a>(self) -> &'a rte_mbuf
-	{
-		unsafe { & * self.as_ptr() }
-	}
-	
-	#[doc(hidden)]
-	#[inline(always)]
-	fn mutable_reference<'a>(self) -> &'a mut rte_mbuf
-	{
-		unsafe { &mut * self.as_ptr() }
-	}
-	
-	#[doc(hidden)]
-	#[inline(always)]
-	fn has_offload_flag(self, flag: u64) -> bool
-	{
-		(self.offload_flags() & flag) == flag
-	}
-	
-	#[doc(hidden)]
-	#[inline(always)]
-	fn offload_flags(self) -> u64
-	{
-		self.reference().offload_flags
-	}
-	
-	/// Set this packet to be ignored.
-	#[inline(always)]
-	fn ignore(self)
-	{
-		*self.mutable_reference()._3.packet_type.as_mut() = RTE_PTYPE_UNKNOWN
-	}
-	
-	/// Raw hardware packet type.
-	#[inline(always)]
-	fn hardware_packet_type(self) -> u32
-	{
-		 *self.reference()._3.packet_type.as_ref()
-	}
-	
-	/// Layer 2 hardware packet type.
-	#[inline(always)]
-	fn layer_2_hardware_packet_type(self) -> Layer2PacketType
-	{
-		Layer2PacketType::from_packet_buffer_packet_type(self.hardware_packet_type())
-	}
-	
-	/// Returns a Layer 2 name for this hardware packet type.
-	///
-	/// If this is a tunneled packet, then this is known as the Outer Layer 2 name.
-	///
-	/// * All names start `L2_`.
-	/// * If unknown, name will be `L2_UNKNOWN`; this occurs for invalid packet type flags.
-	/// * If known but not further categorised, name will be `L2_ETHER`.
-	/// * If the hardware identified a particular EtherType, then the name will be one of:-
-	///   * `L2_ETHER_TIMESYNC`
-	///   * `L2_ETHER_ARP`
-	///   * `L2_ETHER_LLDP`
-	///   * `L2_ETHER_NSH`
-	///   * `L2_ETHER_VLAN`
-	///   * `L2_ETHER_QINQ`
-	///   * `L2_ETHER_PPPOE`
-	#[inline(always)]
-	fn layer_2_hardware_packet_type_name(self) -> &'static CStr
-	{
-		unsafe { CStr::from_ptr(rte_get_ptype_l2_name(self.hardware_packet_type())) }
-	}
-	
-	/// Layer 3 hardware packet type.
-	///
-	/// See also `self.layer_3_hardware_packet_type_is_internet_protocol_version_4()` and `self.layer_3_hardware_packet_type_is_internet_protocol_version_6()` for a short-cut approach that.
-	#[inline(always)]
-	fn layer_3_hardware_packet_type(self) -> Layer3PacketType
-	{
-		Layer3PacketType::from_packet_buffer_packet_type(self.hardware_packet_type())
-	}
-	
-	/// Returns a Layer 3 name for this packet type.
-	///
-	/// If this is a tunneled packet, then this is known as the Outer Layer 3 name.
-	///
-	/// * All names start `L3_`.
-	/// * If unknown, name will be `L3_UNKNOWN`; this occurs for invalid packet type flags.
-	/// * If known, name will start with either `L3_IPV6` or `L3_IPV6`.
-	/// * Other names are:-
-	///   * `L3_IPV4`
-	///   * `L3_IPV4_EXT`
-	///   * `L3_IPV4_EXT_UNKNOWN`
-	///   * `L3_IPV6`
-	///   * `L3_IPV6_EXT`
-	///   * `L3_IPV6_EXT_UNKNOWN`
-	#[inline(always)]
-	fn layer_3_hardware_packet_type_name(self) -> &'static CStr
-	{
-		unsafe { CStr::from_ptr(rte_get_ptype_l3_name(self.hardware_packet_type())) }
-	}
-	
-	/// Equivalent to `RTE_ETH_IS_IPV4_HDR`.
-	#[inline(always)]
-	fn layer_3_hardware_packet_type_is_internet_protocol_version_4(self) -> bool
-	{
-		self.hardware_packet_type() & RTE_PTYPE_L3_IPV4 != 0
-	}
-	
-	/// Equivalent to `RTE_ETH_IS_IPV6_HDR`.
-	#[inline(always)]
-	fn layer_3_hardware_packet_type_is_internet_protocol_version_6(self) -> bool
-	{
-		self.hardware_packet_type() & RTE_PTYPE_L3_IPV6 != 0
-	}
-	
-	/// Layer 4 hardware packet type.
-	#[inline(always)]
-	fn layer_4_hardware_packet_type(self) -> Layer4PacketType
-	{
-		Layer4PacketType::from_packet_buffer_packet_type(self.hardware_packet_type())
-	}
-	
-	/// Returns a Layer 4 name for this packet type.
-	///
-	/// If this is a tunneled packet, then this is known as the Outer Layer 4 name.
-	///
-	/// * All names start `L4_`.
-	/// * If unknown or not a layer 4 packet, name will be `L4_UNKNOWN`; this also occurs for invalid packet type flags.
-	/// * Other names are:-
-	///   * `L4_ICMP`
-	///   * `L4_UDP`
-	///   * `L4_TCP`
-	///   * `L4_SCTP`
-	///   * `L4_FRAG`
-	///   * `L4_NONFRAG`
-	#[inline(always)]
-	fn layer_4_hardware_packet_type_name(self) -> &'static CStr
-	{
-		unsafe { CStr::from_ptr(rte_get_ptype_l4_name(self.hardware_packet_type())) }
-	}
-	
-	/// Is this packet encapsulated in a tunnel?
-	///
-	/// In which case, the inner layers are where the data is going to.
-	#[inline(always)]
-	fn is_encapsulated_in_a_tunnel_and_has_inner_layers(self) -> bool
-	{
-		self.hardware_packet_type() & RTE_PTYPE_TUNNEL_MASK == RTE_PTYPE_TUNNEL_MASK
-	}
-	
-	#[inline(always)]
-	fn tunnel_hardware_packet_type(self) -> TunnelPacketType
-	{
-		TunnelPacketType::from_packet_buffer_packet_type(self.hardware_packet_type())
-	}
-	
-	/// Returns a tunnel name for this packet type.
-	///
-	/// * All names start `TUNNEL_`.
-	/// * If unknown or not a tunnel, name will be `TUNNEL_UNKNOWN`; this also occurs for invalid packet type flags.
-	/// * Other names are:-
-	///   * `TUNNEL_IP`
-	///   * `TUNNEL_GRE`
-	///   * `TUNNEL_VXLAN`
-	///   * `TUNNEL_NVGRE`
-	///   * `TUNNEL_GENEVE`
-	///   * `TUNNEL_GRENAT`
-	///   * `TUNNEL_GTPC`
-	///   * `TUNNEL_GTPU`
-	///   * `TUNNEL_ESP`
-	///   * `TUNNEL_L2TP`
-	#[inline(always)]
-	fn tunnel_hardware_packet_type_name(self) -> &'static CStr
-	{
-		unsafe { CStr::from_ptr(rte_get_ptype_tunnel_name(self.hardware_packet_type())) }
-	}
-	
-	/// Tunnel Inner Layer 2 hardware packet type.
-	#[inline(always)]
-	fn tunnel_inner_layer_2_hardware_packet_type(self) -> Layer2PacketType
-	{
-		Layer2PacketType::inner_layer_2_for_tunnel_from_packet_buffer_packet_type(self.hardware_packet_type())
-	}
-	
-	/// Returns a Tunnel Inner Layer 2 name for this hardware packet type.
-	///
-	/// * All names start `INNER_L2_`.
-	/// * If unknown, name will be `INNER_L2_UNKNOWN`; this occurs for invalid packet type flags.
-	/// * If known but not further categorised, name will be `INNER_L2_ETHER`.
-	/// * If the hardware identified a particular EtherType, then the name will be one of:-
-	///   * `INNER_L2_ETHER_VLAN`
-	///   * `INNER_L2_ETHER_QINQ`
-	#[inline(always)]
-	fn tunnel_inner_layer_2_hardware_packet_type_name(self) -> &'static CStr
-	{
-		unsafe { CStr::from_ptr(rte_get_ptype_inner_l2_name(self.hardware_packet_type())) }
-	}
-	
-	/// Tunnel Inner Layer 3 hardware packet type.
-	#[inline(always)]
-	fn tunnel_inner_layer_3_hardware_packet_type(self) -> Layer3PacketType
-	{
-		Layer3PacketType::inner_layer_3_for_tunnel_from_packet_buffer_packet_type(self.hardware_packet_type())
-	}
-	
-	/// Returns a Tunnel Inner Layer 3 name for this packet type.
-	///
-	/// * All names start `INNER_L3_`.
-	/// * If unknown, name will be `INNER_L3_UNKNOWN`; this occurs for invalid packet type flags.
-	/// * Other names are:-
-	///   * `INNER_L3_IPV4`
-	///   * `INNER_L3_IPV4_EXT`
-	///   * `INNER_L3_IPV4_EXT_UNKNOWN`
-	///   * `INNER_L3_IPV6`
-	///   * `INNER_L3_IPV6_EXT`
-	///   * `INNER_L3_IPV6_EXT_UNKNOWN`
-	#[inline(always)]
-	fn tunnel_inner_layer_3_hardware_packet_type_name(self) -> &'static CStr
-	{
-		unsafe { CStr::from_ptr(rte_get_ptype_inner_l3_name(self.hardware_packet_type())) }
-	}
-	
-	/// Tunnel Inner Layer 4 hardware packet type.
-	#[inline(always)]
-	fn tunnel_inner_layer_4_hardware_packet_type(self) -> Layer4PacketType
-	{
-		Layer4PacketType::inner_layer_4_for_tunnel_from_packet_buffer_packet_type(self.hardware_packet_type())
-	}
-	
-	/// Returns a Tunnel Inner Layer 4 name for this packet type.
-	///
-	/// * All names start `INNER_L4_`.
-	/// * If unknown or not a layer 4 packet, name will be `INNER_L4_UNKNOWN`; this also occurs for invalid packet type flags.
-	/// * Other names are:-
-	///   * `INNER_L4_ICMP`
-	///   * `INNER_L4_UDP`
-	///   * `INNER_L4_TCP`
-	///   * `INNER_L4_SCTP`
-	///   * `INNER_L4_FRAG`
-	///   * `INNER_L4_NONFRAG`
-	#[inline(always)]
-	fn tunnel_inner_layer_4_hardware_packet_type_name(self) -> &'static CStr
-	{
-		unsafe { CStr::from_ptr(rte_get_ptype_l4_name(self.hardware_packet_type())) }
-	}
-	
-	/// Destroy this packet and return the memory it uses to its packet buffer pool (PacketBufferPool).
-	#[inline(always)]
-	fn free(self)
-	{
-		unsafe { rust_rte_pktmbuf_free(self.as_ptr()) };
-	}
-	
-	/// Was VLAN QinQ tag control information (TCI) stripped (ie did the hardware pull it out of the received packet and put it into this structure)?
-	#[inline(always)]
-	fn was_vlan_qinq_tag_control_information_stripped(self) -> bool
-	{
-		self.has_offload_flag(PKT_RX_QINQ_STRIPPED)
-	}
-	
-	/// Stripped VLAN QinQ tag control information (TCI) (outer and inner).
-	#[inline(always)]
-	fn stripped_vlan_qinq_tag_control_information(self) -> (VirtualLanPacketTagControlInformation, VirtualLanPacketTagControlInformation)
-	{
-		(VirtualLanPacketTagControlInformation(NetworkByteOrderEndianU16::from_network_byte_order_value(self.reference().vlan_tci_outer)), self.stripped_vlan_tag_control_information())
-	}
-	
-	/// Was VLAN tag control information (TCI) stripped (ie did the hardware pull it out of the received packet and put it into this structure)?
-	#[inline(always)]
-	fn was_vlan_tag_control_information_stripped(self) -> bool
-	{
-		self.has_offload_flag(PKT_RX_VLAN_STRIPPED)
-	}
-	
-	/// Stripped VLAN tag control information (TCI).
-	#[inline(always)]
-	fn stripped_vlan_tag_control_information(self) -> VirtualLanPacketTagControlInformation
-	{
-		VirtualLanPacketTagControlInformation(NetworkByteOrderEndianU16::from_network_byte_order_value(self.reference().vlan_tci))
-	}
-	
-	/// Was IEEE1588 (802.1AS) timestamp stripped (ie did the hardware pull it out of the received packet and put it into this structure)?
-	///
-	/// IEEE1588 timestamps are part of the Precision Time Protocol (PTP) (EtherType 0x88F7).
-	///
-	/// For code examples using PTP to adjust the Linux kernel's clock, see in DPDK `examples/ptpclient/ptpclient.c`, particularly `parse_ptp_frames()`.
-	#[inline(always)]
-	fn was_ieee1588_timestamp_stripped(self) -> bool
-	{
-		self.has_offload_flag(PKT_RX_TIMESTAMP)
-	}
-	
-	/// Stripped IEEE1588 (802.1AS) timestamp.
-	///
-	/// IEEE1588 timestamps are part of the Precision Time Protocol (PTP) (EtherType 0x88F7).
-	///
-	/// The unit and time reference are not normalized but are always the same for a given (ethernet) port.
-	#[inline(always)]
-	fn stripped_ieee1588_timestamp_information(self) -> u64
-	{
-		self.reference().timestamp
-	}
-	
-	/// IEEE1588 (802.1AS) flags.
-	///
-	/// Slow to obtain as not likely to be cached.
-	#[inline(always)]
-	fn timesync_flags(self) -> u16
-	{
-		(self.reference()).timesync
-	}
-	
-	/// Is this an indirectly attached packet buffer?
-	#[inline(always)]
-	fn is_indirect_attached_packet_buffer(self) -> bool
-	{
-		self.has_offload_flag(IND_ATTACHED_MBUF)
-	}
-	
-	/// Packet length.
-	///
-	/// Is the sum of the `data_length()` of all segments.
-	///
-	/// Also known as `pkt_len`.
-	#[inline(always)]
-	fn length(self) -> u32
-	{
-		self.reference().pkt_len
-	}
-	
-	/// Data length.
-	///
-	/// Amount of data 'payload' in segment buffer, always equal to or less than `segment_buffer_length()`.
-	///
-	/// Is equivalent to `self.segment_buffer_length() - self.segment_buffer_reserved_head_room() - self.segment_buffer_tail_room()`.
-	///
-	/// Also known as `data_len`.
-	#[inline(always)]
-	fn data_length(self) -> u16
-	{
-		self.reference().data_len
-	}
-	
-	/// Packet length if contiguous.
-	///
-	/// Same as `data_length()`.
-	#[inline(always)]
-	fn packet_length_if_contiguous(self) -> u16
-	{
-		self.debug_assert_is_contiguous();
-		
-		self.data_length()
-	}
-	
-	/// Packet length less ethernet header.
-	#[inline(always)]
-	fn packet_length_if_contiguous_less_ethernet_packet_header(self) -> u16
-	{
-		self.packet_length_if_contiguous() - EthernetPacketHeader::SizeU16
-	}
-	
-	/// Is too short to be an ethernet packet?
-	#[inline(always)]
-	fn is_too_short_to_be_an_ethernet_packet(self) -> bool
-	{
-		self.packet_length_if_contiguous() < EthernetPacketHeader::SizeU16
-	}
-	
-	/// Is too short to be an IEEE 802.1Q Virtual LAN packet?
-	#[inline(always)]
-	fn is_too_short_to_be_a_vlan_ethernet_packet(self) -> bool
-	{
-		const Overhead: u16 = VirtualLanPacketHeader::VirtualLanPacketHeaderSizeU16;
-		
-		self.packet_length_if_contiguous() < (EthernetPacketHeader::SizeU16 + Overhead)
-	}
-	
-	/// Is too short to be an IEEE 802.1ad QinQ Virtual LAN packet?
-	#[inline(always)]
-	fn is_too_short_to_be_a_qinq_vlan_ethernet_packet(self) -> bool
-	{
-		const Overhead: u16 = VirtualLanPacketHeader::QinQVirtualLanPacketHeaderSizeU16 + VirtualLanPacketHeader::VirtualLanPacketHeaderSizeU16;
-		
-		self.packet_length_if_contiguous() < (EthernetPacketHeader::SizeU16 + Overhead)
-	}
-	
-	/// Segment buffer length.
-	///
-	/// Also known as `buf_len`.
-	///
-	/// Size of this buffer.
-	#[inline(always)]
-	fn segment_buffer_length(self) -> u16
-	{
-		self.reference().buf_len
-	}
-	
-	/// Head room.
-	///
-	/// The length of the part at the start of the segment buffer that is reserved for header data.
-	///
-	/// The actual data 'payload' starts after this offset in the segment buffer.
-	#[inline(always)]
-	fn segment_buffer_reserved_head_room(self) -> u16
-	{
-		(self.reference()).data_off
-	}
-	
-	/// Tail room.
-	///
-	/// The amount of space (unused bytes) at the end of the segment buffer in this packet that could be used for data 'payload'.
-	#[inline(always)]
-	fn segment_buffer_tail_room(self) -> u16
-	{
-		let packet = self.reference();
-		let tail_offset = self.segment_buffer_reserved_head_room() + self.data_length();
-		self.segement_buffer_length() - tail_offset
-	}
-	
-	/// Size of the application private data.
-	///
-	/// If this is an indirect PacketBuffer, it is the size of the parent direct PacketBuffer's application private data.
-	#[inline(always)]
-	fn private_size(self) -> u16
-	{
-		(self.reference()).priv_size
-	}
-	
-	/// Implementation of DPDK `rte_pktmbuf_mtod`.
-	///
-	/// Compare with `io_virtual_address()`.
-	#[inline(always)]
-	fn start_of_data<T>(self) -> NonNull<T>
-	{
-		self.offset_into_data::<T>(0)
-	}
-	
-	/// Implementation of DPDK `rte_pktmbuf_mtod_offset`.
-	///
-	/// Compare with `io_virtual_address_offset()`.
-	#[inline(always)]
-	fn offset_into_data<T>(self, offset: usize) -> NonNull<T>
-	{
-		let packet = { self.as_ref() };
-		let pointer = ((packet.buf_addr as usize) + (self.segment_buffer_reserved_head_room() as usize) + offset) as *mut T;
-		unsafe { NonNull::new_unchecked(pointer) }
-	}
-	
-	#[inline(always)]
-	fn ethernet_packet(self) -> NonNull<EthernetPacket>
-	{
-		self.start_of_data::<EthernetPacket>()
-	}
 	
 	/// Pointer to internet protocol version 4 header (does not validate that it *is* such a header).
 	#[inline(always)]
@@ -679,7 +196,7 @@ pub trait PacketBufferExt: PrintInformation
 		
 		self.free();
 		
-		if likely(result > 1)
+		if likely!(result > 1)
 		{
 			let number_of_fragments_added = result as usize;
 			debug_assert_eq!(number_of_fragments_added, number_of_fragments_required, "Ourselves and DPDK disagree on number of fragments added");
@@ -734,7 +251,7 @@ pub trait PacketBufferExt: PrintInformation
 	fn chain_together(head: PacketBuffer, tail: PacketBuffer) -> Result<(), ()>
 	{
 		let result = unsafe { rust_rte_pktmbuf_chain(head.as_ptr(), tail.as_ptr()) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			true
 		}
@@ -846,7 +363,7 @@ pub trait PacketBufferExt: PrintInformation
 	fn last_segment(self) -> Option<NonNull<PacketBuffer>>
 	{
 		let result = unsafe { rust_rte_pktmbuf_lastseg(self.as_ptr()) };
-		if unlikely(result.is_null())
+		if unlikely!(result.is_null())
 		{
 			None
 		}
@@ -856,34 +373,6 @@ pub trait PacketBufferExt: PrintInformation
 		}
 	}
 	
-	/// Checks if this packet is contiguous.
-	#[inline(always)]
-	fn debug_assert_is_contiguous(self)
-	{
-		debug_assert!(packet.is_contiguous(), "Inbound packets should be contiguous; scatter receive (`offloads::DEV_RX_OFFLOAD_SCATTER`) is not supported. To make sure not packets are dropped by poll-mode drivers (PMDs) in this mode, the value of `data_room_size` passed to rte_pktmbuf_pool_create() is at least Self::data_room_size_for_packet_buffer_pool()");
-	}
-	
-	/// A contiguous packet has only one segment, ie there is not a chain of segments.
-	///
-	/// Opposite of `is_segmented()`.
-	#[inline(always)]
-	fn is_contiguous(self) -> bool
-	{
-		debug_assert_ne!(self.reference().nb_segs, 0, "No segments!");
-		
-		self.reference().nb_segs == 1
-	}
-	
-	/// A segmented packet has more than one segment, ie there is a chain of segments.
-	///
-	/// Opposite of `is_contiguous()`.
-	#[inline(always)]
-	fn is_segmented(self) -> bool
-	{
-		debug_assert_ne!(self.reference().nb_segs, 0, "No segments!");
-		
-		self.reference().nb_segs != 1
-	}
 	
 	/// This function moves the data into the first segment if there is enough tail room.
 	///
@@ -949,7 +438,7 @@ pub trait PacketBufferExt: PrintInformation
 	fn clone(&self, packet_buffer_pool: PacketBufferPool) -> Result<NonNull<PacketBuffer>, ()>
 	{
 		let result = unsafe { rust_rte_pktmbuf_clone(self.as_ptr(), packet_buffer_pool.as_ptr()) };
-		if unlikely(result.is_null())
+		if unlikely!(result.is_null())
 		{
 			Err(())
 		}
@@ -1021,7 +510,7 @@ pub trait PacketBufferExt: PrintInformation
 	fn prepend(self, length: u16) -> Result<NonNull<u8>, ()>
 	{
 		let result = unsafe { rust_rte_pktmbuf_prepend(self.as_ptr(), length) };
-		if unlikely(result.is_null())
+		if unlikely!(result.is_null())
 		{
 			Err(())
 		}
@@ -1038,7 +527,7 @@ pub trait PacketBufferExt: PrintInformation
 	fn append(self, length: u16) -> Result<NonNull<u8>, ()>
 	{
 		let result = unsafe { rust_rte_pktmbuf_append(self.as_ptr(), length) };
-		if unlikely(result.is_null())
+		if unlikely!(result.is_null())
 		{
 			Err(())
 		}
@@ -1055,7 +544,7 @@ pub trait PacketBufferExt: PrintInformation
 	fn remove(self, length: u16) -> Result<NonNull<u8>, ()>
 	{
 		let result = unsafe { rust_rte_pktmbuf_adj(self.as_ptr(), length) };
-		if unlikely(result.is_null())
+		if unlikely!(result.is_null())
 		{
 			Err(())
 		}
@@ -1072,7 +561,7 @@ pub trait PacketBufferExt: PrintInformation
 	fn trim(self, length: u16) -> Result<(), ()>
 	{
 		let result = unsafe { rust_rte_pktmbuf_trim(self.as_ptr(), length) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
@@ -1091,11 +580,11 @@ pub trait PacketBufferExt: PrintInformation
 	fn validate_transmit_offload(self) -> Result<(), PosixErrorNumber>
 	{
 		let result = unsafe { rust_rte_validate_tx_offload(self.as_ptr() as *const _) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
-		else if likely(result < 0)
+		else if likely!(result < 0)
 		{
 			Err(-result)
 		}
@@ -1311,7 +800,7 @@ fn read_even_if_non_contiguous<'a>(self, length: u32, offset: u32, buffer: &'a m
 	static inline const void *rte_pktmbuf_read(const struct rte_mbuf *m,
 uint32_t off, uint32_t len, void *buf)
 {
-if (likely(off + len <= rte_pktmbuf_data_len(m)))
+if (likely!(off + len <= rte_pktmbuf_data_len(m)))
 	return rte_pktmbuf_mtod_offset(m, char *, off);
 else
 	return __rte_pktmbuf_read(m, off, len, buf);

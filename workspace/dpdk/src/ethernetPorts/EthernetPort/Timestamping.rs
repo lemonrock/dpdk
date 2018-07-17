@@ -8,7 +8,7 @@ impl EthernetPort
 	pub fn enableTimestamping(&self) -> Result<(), UnsupportedByHardwareError>
 	{
 		let result = unsafe { rte_eth_timesync_enable(self.portIdentifier()) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
@@ -29,7 +29,7 @@ impl EthernetPort
 	pub fn disableTimestamping(&self) -> Result<(), UnsupportedByHardwareError>
 	{
 		let result = unsafe { rte_eth_timesync_disable(self.portIdentifier()) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
@@ -52,7 +52,7 @@ impl EthernetPort
 		let mut time = unsafe { uninitialized( )};
 
 		let result = unsafe { rte_eth_timesync_read_rx_timestamp(self.portIdentifier(), &mut time, deviceSpecificValueEgRxTimestampRegisterForIntelI40e.unwrap_or(0)) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(Some(time))
 		}
@@ -78,7 +78,7 @@ impl EthernetPort
 		let mut time = unsafe { uninitialized( )};
 
 		let result = unsafe { rte_eth_timesync_read_tx_timestamp(self.portIdentifier(), &mut time) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(Some(time))
 		}
@@ -102,7 +102,7 @@ impl EthernetPort
 	pub fn adjustTimesyncClock(&self, deltaInNanoseconds: i64) -> Result<(), UnsupportedByHardwareError>
 	{
 		let result = unsafe { rte_eth_timesync_adjust_time(self.portIdentifier(), deltaInNanoseconds) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
@@ -125,7 +125,7 @@ impl EthernetPort
 		let mut time = unsafe { uninitialized( )};
 
 		let result = unsafe { rte_eth_timesync_read_time(self.portIdentifier(), &mut time) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(time)
 		}
@@ -148,7 +148,7 @@ impl EthernetPort
 	pub fn writeTimesyncClock(&self, time: timespec) -> Result<(), UnsupportedByHardwareError>
 	{
 		let result = unsafe { rte_eth_timesync_write_time(self.portIdentifier(), &time) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}

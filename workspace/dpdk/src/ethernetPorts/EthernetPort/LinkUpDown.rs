@@ -8,13 +8,13 @@ impl EthernetPort
 	pub fn setLinkUp(&self) -> Result<(), i32>
 	{
 		let result = unsafe { rte_eth_dev_set_link_up(self.portIdentifier()) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
 		else
 		{
-			if likely(result < 0)
+			if likely!(result < 0)
 			{
 				Err(result)
 			}
@@ -29,13 +29,13 @@ impl EthernetPort
 	pub fn setLinkDown(&self) -> Result<(), i32>
 	{
 		let result = unsafe { rte_eth_dev_set_link_down(self.portIdentifier()) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
 		else
 		{
-			if likely(result < 0)
+			if likely!(result < 0)
 			{
 				Err(result)
 			}

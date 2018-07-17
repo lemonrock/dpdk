@@ -9,7 +9,7 @@ impl EthernetPort
 	fn privateRegisterEventCallback<E: EthernetPortEventCallback>(&self, eventType: rte_eth_event_type, ethernetPortEventCallback: &mut E) -> bool
 	{
 		let result = unsafe { rte_eth_dev_callback_register(self.portIdentifier(), eventType, E::asFunctionPointer(), ethernetPortEventCallback.asFunctionArgument()) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			true
 		}

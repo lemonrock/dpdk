@@ -13,7 +13,7 @@ impl EthernetPort
 		let mut mtu = unsafe { uninitialized() };
 
 		let result = unsafe { rte_eth_dev_get_mtu(self.portIdentifier(), &mut mtu) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			debug_assert!(mtu >= Self::MinimumTransmissionUnitSize, "mtu '{}' must be equal to or greater than the MinimumTransmissionUnitSize, '{}'", mtu, Self::MinimumTransmissionUnitSize);
 			mtu
@@ -37,7 +37,7 @@ impl EthernetPort
 		debug_assert!(sizeInBytes >= Self::MinimumTransmissionUnitSize, "sizeInBytes '{}' must be equal to or greater than the MinimumTransmissionUnitSize, '{}'", sizeInBytes, Self::MinimumTransmissionUnitSize);
 
 		let result = unsafe { rte_eth_dev_set_mtu(self.portIdentifier(), sizeInBytes) };
-		if likely(result == 0)
+		if likely!(result == 0)
 		{
 			Ok(())
 		}
