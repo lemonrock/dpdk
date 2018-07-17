@@ -10,16 +10,10 @@ pub mod zones;
 
 
 include!("AlignmentBitMask.rs");
-include!("DpdkAllocatedMemory.rs");
 include!("FastMemoryCopy.rs");
 include!("FastMemoryCopyDestination.rs");
-include!("HugePageAllocationStrategy.rs");
 include!("HybridGlobalAllocator.rs");
-include!("KiloBytes.rs");
-include!("MegaBytes.rs");
-include!("Memory.rs");
 include!("MemoryChannels.rs");
 include!("MemoryLimits.rs");
 include!("MemoryRanks.rs");
-include!("PerMyriad.rs");
 include!("VirtualAddress.rs");

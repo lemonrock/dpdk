@@ -17,7 +17,7 @@ pub trait VirtualAddress
 	#[inline(always)]
 	fn io_virtual_address(self) -> Result<rte_iova_t, ()>;
 	
-	/// Using direct, physical or virtual addresses?
+	/// Using physical or virtual addresses?
 	#[inline(always)]
 	fn io_virtual_address_mode() -> rte_iova_mode
 	{

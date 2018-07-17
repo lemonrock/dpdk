@@ -5,6 +5,9 @@
 [workspace]
 members = [
     "dpdk",
+	"dpdk-bus",
+	"dpdk-core",
+	"dpdk-likely",
     "dpdk-serde",
     "dpdk-sys",
     "dpdk-unix",

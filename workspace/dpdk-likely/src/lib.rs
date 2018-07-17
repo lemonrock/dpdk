@@ -1,0 +1,14 @@
+// This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+// Copyright © 2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
+
+
+#![deny(missing_docs)]
+
+
+//! # dpdk-likely
+//!
+//! Wrappers to make the use of ::std::intrinsics::likely and ::std::intrinsics::unlikely more palatable.
+
+
+include!("likely.rs");
+include!("unlikely.rs");

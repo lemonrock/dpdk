@@ -3,7 +3,9 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk/dpdk.iml" filepath="$PROJECT_DIR$/workspace/dpdk/dpdk.iml" />
-      <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-main/dpdk-main.iml" filepath="$PROJECT_DIR$/workspace/dpdk-main/dpdk-main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-bus/dpdk-bus.iml" filepath="$PROJECT_DIR$/workspace/dpdk-bus/dpdk-bus.iml" />
+      <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-core/dpdk-core.iml" filepath="$PROJECT_DIR$/workspace/dpdk-core/dpdk-core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-likely/dpdk-likely.iml" filepath="$PROJECT_DIR$/workspace/dpdk-likely/dpdk-likely.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-serde/dpdk-serde.iml" filepath="$PROJECT_DIR$/workspace/dpdk-serde/dpdk-serde.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-sys/dpdk-sys.iml" filepath="$PROJECT_DIR$/workspace/dpdk-sys/dpdk-sys.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-unix/dpdk-unix.iml" filepath="$PROJECT_DIR$/workspace/dpdk-unix/dpdk-unix.iml" />

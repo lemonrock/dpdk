@@ -154,7 +154,7 @@ impl MasterLoop
 			Ok(exit_code) => exit_code,
 			Err(panicked_with) =>
 			{
-				LoggingConfiguration::caught_unwind(panicked_with.as_ref());
+				SysLog::caught_unwind(panicked_with.as_ref());
 				
 				Self::EX_SOFTWARE
 			}

@@ -7,17 +7,13 @@ use super::*;
 
 include!("Arguments.rs");
 include!("CpuFeatures.rs");
-include!("DpdkProcess.rs");
 include!("DpdkConfiguration.rs");
 include!("DpdkSyslogFacility.rs");
 include!("DpdkSyslogPriority.rs");
-include!("EssentialKernelModule.rs");
-include!("EssentialKernelModulesToUnload.rs");
 include!("KernelCommandLineValidator.rs");
 include!("MasterLoop.rs");
 include!("MasterLoopConfiguration.rs");
 include!("PathConfiguration.rs");
 include!("PciNetDevicesConfiguration.rs");
 include!("ProcessType.rs");
-include!("VirtualFunctionIoInterruptMode.rs");
 include!("WarningsToSuppress.rs");

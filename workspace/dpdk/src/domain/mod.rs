@@ -22,6 +22,5 @@ pub mod virtual_lans;
 
 
 include!("NetworkByteOrderEndianU16.rs");
-include!("NetworkInterfaceName.rs");
 include!("PacketProcessingConfiguration.rs");
 include!("UnifiedArrayVecAndVec.rs");

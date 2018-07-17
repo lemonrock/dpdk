@@ -46,44 +46,17 @@ impl LoggingConfiguration
 	#[inline(always)]
 	pub fn warn(name: &str, message: String)
 	{
-		let name = Self::to_c_string_robustly(name);
-		let message = Self::to_c_string_robustly(message);
+		let name = SysLog::to_c_string_robustly(name);
+		let message = SysLog::to_c_string_robustly(message);
 		unsafe { syslog(LOG_WARNING, const_cstr!("%s:%s").as_ptr(), name.as_ptr(), message.as_ptr()) };
 	}
 	
 	#[inline(always)]
 	fn caught_panic(source_file: &str, line_number: u32, column_number: u32, cause: &str)
 	{
-		let source_file = Self::to_c_string_robustly(source_file);
-		let cause = Self::to_c_string_robustly(cause);
+		let source_file = SysLog::to_c_string_robustly(source_file);
+		let cause = SysLog::to_c_string_robustly(cause);
 		unsafe { syslog(LOG_CRIT, const_cstr!("File:%s:Line:%u:Column:%u:Cause:%s").as_ptr(), source_file, line_number, column_number, cause) }
-	}
-	
-	#[inline(always)]
-	pub(crate) fn caught_unwind(panic_payload: &(Any + 'static + Send))
-	{
-		use self::LogicalCoreChoice::*;
-		
-		let logical_core_choice = match LogicalCoreChoice::current_logical_core()
-		{
-			Any => Self::to_c_string_robustly("Any"),
-			Specific(logical_core) => Self::to_c_string_robustly(format!("{}", logical_core.into::<u16>())),
-		};
-		
-		let cause = Self::to_c_string_robustly(Self::panic_payload_to_cause(panic_payload));
-		
-		unsafe { syslog(LOG_ERR, const_cstr!("LogicalCore:%s:Cause:%s").as_ptr(), logical_core_choice, cause) }
-	}
-	
-	#[inline(always)]
-	pub(crate) fn exit_signalled(&self, signal_number: Option<SignalNumber>)
-	{
-		match signal_number
-		{
-			None => unsafe { syslog(LOG_NOTICE, const_cstr!("ExitSignalled:Other").as_ptr()) },
-			Some(signal_number) => unsafe { syslog(LOG_NOTICE, const_cstr!("ExitSignalled:%s").as_ptr(), unsafe { strsignal(signal_number) }) },
-		}
-		
 	}
 	
 	#[inline(always)]
@@ -127,7 +100,7 @@ impl LoggingConfiguration
 				Some(location) => (location.file(), location.line(), location.column())
 			};
 			
-			let cause = Self::panic_payload_to_cause(panic_info.payload());
+			let cause = SysLog::panic_payload_to_cause(panic_info.payload());
 			
 			Self::caught_panic(source_file, line_number, column_number, cause)
 		}));
@@ -143,34 +116,5 @@ impl LoggingConfiguration
 	pub(crate) fn stop_logging(&self)
 	{
 		unsafe { closelog() }
-	}
-	
-	#[inline(always)]
-	fn panic_payload_to_cause(panic_payload: &(Any + 'static + Send)) -> &str
-	{
-		if payload.is::<String>()
-		{
-			payload.downcast_ref::<String>().unwrap().as_str()
-		}
-		else if payload.is::<&str>()
-		{
-			*payload.downcast_ref::<&str>().unwrap()
-		}
-		else
-		{
-			"(unknown cause)"
-		}
-	}
-	
-	#[inline(always)]
-	fn to_c_string_robustly<T: Into<Vec<u8>>>(string: T) -> CString
-	{
-		CString::new(string).unwrap_or_else(|_| Self::substitute_for_bad_c_string())
-	}
-	
-	#[inline(always)]
-	fn substitute_for_bad_c_string() -> CString
-	{
-		CString::new("?").unwrap()
 	}
 }

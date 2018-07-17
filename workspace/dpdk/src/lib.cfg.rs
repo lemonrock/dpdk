@@ -180,7 +180,6 @@ pub mod devices;
 pub mod domain;
 
 
-pub(crate) mod E_RTE;
 
 
 /// Ethernet ports.
@@ -195,24 +194,13 @@ pub mod memory;
 #[macro_use] pub mod packet_buffers;
 
 
-/// CPU power management.
-pub mod power;
-
 
 /// Process and configuration helpers.
 pub mod process;
 
 
-/// Print information helpers.
-#[cfg(target_os = "linux")] pub mod print_information;
-
-
 /// Alarms and Timers.
 pub mod time;
-
-
-/// Layer 4 (TLDK).
-pub mod tldk;
 
 
 include!("finish.rs");
@@ -221,9 +209,11 @@ include!("finish.rs");
 include!("AllLogicalCoreIterator.rs");
 include!("BusyPollBehaviour.rs");
 include!("BusyPollingLogicalCoreFunction.rs");
+include!("EssentialKernelModule.rs");
 include!("LogicalCore.rs");
 include!("LogicalCoreChoice.rs");
 include!("MachineOrNumaNodes.rs");
+include!("NetworkInterfaceName.rs");
 include!("NumaNode.rs");
 include!("NumaNodeChoice.rs");
 include!("PointerExt.rs");
