@@ -17,7 +17,7 @@ impl Drop for InternetProtocolVersion4LongestPrefixMatchTable
 	}
 }
 
-impl<'deserialize> LongestPrefixMatchTable<'deserialize> for InternetProtocolVersion4LongestPrefixMatchTable
+impl LongestPrefixMatchTable for InternetProtocolVersion4LongestPrefixMatchTable
 {
 	type HostAddress = InternetProtocolVersion4HostAddress;
 

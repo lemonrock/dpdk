@@ -7,7 +7,7 @@
 ///
 ///                                IMPORTANT NOTICE
 ///
-///     This code uses the words 'deserializeath_row' and 'free' and seems quite tasteless and trivialising.
+///     This code uses the words 'death_row' and 'free' and seems quite tasteless and trivialising.
 ///     Be assured that the use of this language is solely to ensure correspondence with the
 ///     underlying logic in the DPDK library. By doing so, we allow a maintainer of this code to analyze
 ///     it effectively.
@@ -175,7 +175,7 @@ impl InternetProtocolPacketReassemblyTable
 	#[inline(always)]
 	pub fn reassemble_fragmented_internet_protocol_version_6_packet(&mut self, incoming_fragmented_packet: NonNull<rte_mbuf>, fragment_arrival_time_stamp_from_rdtsc: u64, header_inside_incoming_fragmented_packet: NonNull<ipv6_hdr>, extension_header_fragment_inside_incoming_fragmented_packet: NonNull<ipv6_extension_fragment>) -> *mut rte_mbuf
 	{
-		unsafe { rte_ipv6_frag_reassemble_packet(self.fragmentation_table.as_ptr(), &mut self.death_row, incoming_fragmented_packet, fragment_arrival_time_stamp_from_rdtsc, header_inside_incoming_fragmented_packet, extension_header_fragment_inside_incoming_fragmented_packet) }
+		unsafe { rte_ipv6_frag_reassemble_packet(self.fragmentation_table.as_ptr(), &mut self.death_row, incoming_fragmented_packet, fragment_arrival_time_stamp_from_rdtsc, header_inside_incoming_fragmented_packet.as_ptr(), extension_header_fragment_inside_incoming_fragmented_packet.as_ptr()) }
 	}
 	
 	/// Call this once after adding all fragments with either `reassemble_fragmented_internet_protocol_version_4_packet` or `reassemble_fragmented_internet_protocol_version_6_packet`.

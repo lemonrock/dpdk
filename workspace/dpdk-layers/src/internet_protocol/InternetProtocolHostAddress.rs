@@ -3,7 +3,7 @@
 
 
 /// A trait abstracting the similarities between internet protocol (IP) version 4 and version 6 host addresses.
-pub trait InternetProtocolHostAddress<'deserialize>: Sized + Default + Eq + Hash + Serialize + Deserialize<'deserialize>
+pub trait InternetProtocolHostAddress: Sized + Default + Eq + Hash + Serialize
 {
 	/// eg `u128`.
 	type BigEndianValue;

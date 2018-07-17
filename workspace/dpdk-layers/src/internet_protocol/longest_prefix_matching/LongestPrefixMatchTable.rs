@@ -3,13 +3,13 @@
 
 
 /// A trait for operations on longest prefix match tables for internet protocol version 4 or version 6 host addresses.
-pub trait LongestPrefixMatchTable<'deserialize> : Drop
+pub trait LongestPrefixMatchTable : Drop
 {
 	/// Internet Protocol (IP) version 4 or version 4 host address.
-	type HostAddress: InternetProtocolHostAddress<'deserialize>;
+	type HostAddress: InternetProtocolHostAddress;
 	
 	/// Internet Protocol (IP) version 4 or version 4 network address.
-	type NetworkAddress: InternetProtocolNetworkAddress<'deserialize, HostAddress=Self::HostAddress> + Sized;
+	type NetworkAddress: InternetProtocolNetworkAddress<HostAddress=Self::HostAddress> + Sized;
 	
 	/// Underlying DPDK type of Longest Prefix Match table.
 	type Underlying: Sized;

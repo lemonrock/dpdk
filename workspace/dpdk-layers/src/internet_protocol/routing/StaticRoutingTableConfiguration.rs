@@ -3,22 +3,22 @@
 
 
 /// Configuration used to build a static routing table.
-#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug)]
 #[derive(Deserialize, Serialize)]
-pub struct StaticRoutingTableConfiguration<'deserialize, NetworkAddress: InternetProtocolNetworkAddress<'deserialize>>
+pub struct StaticRoutingTableConfiguration<NetworkAddress: InternetProtocolNetworkAddress>
 {
 	/// These are the static routes.
-	pub static_routes: HashMap<NetworkAddress, Route<'deserialize, NetworkAddress::HostAddress>>,
+	pub static_routes: HashMap<NetworkAddress, Route<NetworkAddress::HostAddress>>,
 	
 	/// This is used if no other routes match, or if essential information can't be found for a route.
 	pub default_route_to_next_hop: EthernetDestination,
 }
 
-impl<'deserialize, NetworkAddress: InternetProtocolNetworkAddress<'deserialize>> StaticRoutingTableConfiguration<'deserialize, NetworkAddress>
+impl<NetworkAddress: InternetProtocolNetworkAddress> StaticRoutingTableConfiguration<NetworkAddress>
 {
 	/// Next hop Ethernet (Layer 2) information.
 	#[inline(always)]
-	pub fn configure(&self) -> StaticRoutingTable<'deserialize, NetworkAddress>
+	pub fn configure(&self) -> StaticRoutingTable<NetworkAddress>
 	{
 		StaticRoutingTable
 		{

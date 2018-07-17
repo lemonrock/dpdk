@@ -11,7 +11,7 @@ pub struct InternetProtocolVersion4NetworkAddress
 	mask_bits: InternetProtocolVersion4MaskBits,
 }
 
-impl<'deserialize> InternetProtocolNetworkAddress<'deserialize> for InternetProtocolVersion4NetworkAddress
+impl InternetProtocolNetworkAddress for InternetProtocolVersion4NetworkAddress
 {
 	type HostAddress = InternetProtocolVersion4HostAddress;
 	
@@ -42,7 +42,7 @@ impl<'deserialize> InternetProtocolNetworkAddress<'deserialize> for InternetProt
 	}
 	
 	#[inline(always)]
-	fn new(network: Self::HostAddress, mask_bits: <<InternetProtocolVersion4NetworkAddress as InternetProtocolNetworkAddress<'deserialize>>::HostAddress as InternetProtocolHostAddress<'deserialize>>::MaskBits) -> Self
+	fn new(network: Self::HostAddress, mask_bits: <<InternetProtocolVersion4NetworkAddress as InternetProtocolNetworkAddress>::HostAddress as InternetProtocolHostAddress>::MaskBits) -> Self
 	{
 		Self
 		{

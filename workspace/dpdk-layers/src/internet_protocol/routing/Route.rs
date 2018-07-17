@@ -12,7 +12,7 @@
 #[derive(Default, Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 #[serde(default)]
-pub struct Route<'deserialize, HostAddress: InternetProtocolHostAddress<'deserialize>>
+pub struct Route<HostAddress: InternetProtocolHostAddress>
 {
 	/// The host address of the next hop / router, if any.
 	///
@@ -32,11 +32,9 @@ pub struct Route<'deserialize, HostAddress: InternetProtocolHostAddress<'deseria
 	///
 	/// Defaults to `MaximumIncludingCyclicRedundancyCheckWithoutJumboFrames`, 1518 bytes.
 	pub ethernet_frame_length: EthernetFrameLength,
-
-	phantom_data: PhantomData<&'deserialize ()>,
 }
 
-impl<'deserialize, HostAddress: InternetProtocolHostAddress<'deserialize>> Route<'deserialize, HostAddress>
+impl<HostAddress: InternetProtocolHostAddress> Route<HostAddress>
 {
 	/// Next hop internet protocol host address.
 	#[inline(always)]
