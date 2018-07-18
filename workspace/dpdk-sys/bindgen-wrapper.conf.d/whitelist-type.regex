@@ -42,7 +42,6 @@ sctp_hdr
 security_.*
 tcp_hdr
 timer_source
-tle_.*
 udp_hdr
 vfio_.*
 vhost_.*

@@ -2,7 +2,7 @@
 # Copyright © 2016 The developers of ucx-sys. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/ucx-sys/master/COPYRIGHT.
 
 
-compile_library_name='dpdk-and-tldk'
+compile_library_name='dpdk'
 
 compile_library()
 {
@@ -10,7 +10,7 @@ compile_library()
 	{
 		local configurationName="$1"
 
-		cat >>"$rootOutputFolderPath"/dpdk/config/defconfig_"$configurationName" <<-EOF
+		cat >>"$rootOutputFolderPath"/config/defconfig_"$configurationName" <<-EOF
 			# Do not build kernel modules
 			CONFIG_RTE_EAL_IGB_UIO=n
 			CONFIG_RTE_KNI_KMOD=n
@@ -67,7 +67,7 @@ compile_library()
 		mkdir -m 0700 -p "$dpdkDestinationFolderPath"
 		mkdir -m 0700 -p "$dpdkKernelSourcesFolderPath"
 
-		cd "$rootOutputFolderPath"/dpdk 1>/dev/null 2>/dev/null
+		cd "$rootOutputFolderPath" 1>/dev/null 2>/dev/null
 
 			# This is for our own patches to buildtools/check-experimental-syms.sh
 			export CROSS="$crossCompilerPrefix"
@@ -90,52 +90,6 @@ compile_library()
 		cd - 1>/dev/null 2>/dev/null
 	}
 
-	compile_tldk_make()
-	{
-		local configurationName="$1"
-		local crossCompilerPrefix="$2"
-
-		local tldkBuildFolderPath="$OUT_DIR"/tldk-build
-		local tldkDestinationFolderPath="$rootOutputFolderPath"/DESTDIR
-
-		mkdir -m 0700 -p "$tldkBuildFolderPath"
-		mkdir -m 0700 -p "$tldkDestinationFolderPath"
-
-		local extraHostCFlags=''
-		case "$platform" in
-
-			Darwin)
-				local libelfPrefix="$(brew --prefix libelf)"
-				extraHostCFlags="-I${libelfPrefix}/include/libelf -I${libelfPrefix}/include"
-			;;
-
-		esac
-
-		cd "$rootOutputFolderPath"/tldk 1>/dev/null 2>/dev/null
-
-			RTE_SDK="$rootOutputFolderPath"/DESTDIR/usr/share/dpdk \
-			RTE_TARGET="$configurationName" \
-			make \
-				-j $numberOfMakeJobs \
-				all \
-				O="$tldkBuildFolderPath" \
-				CROSS="$crossCompilerPrefix" \
-				EXTRA_CFLAGS="-msse4.2 -O3 -D_GNU_SOURCE -D_BSD_SOURCE -I$muslIncludeFolderPath -I"$rootOutputFolderPath"/extra-musl-headers -I${DEP_LIBNUMA_ROOT}/include -I${DEP_RDMA_CORE_ROOT}/include -Wno-pointer-to-int-cast" \
-				EXTRA_LDFLAGS="-L${DEP_LIBNUMA_ROOT}/lib -L${DEP_RDMA_CORE_ROOT}/lib" \
-				EXTRA_HOST_CFLAGS="$extraHostCFlags" \
-				1>&2
-
-		cd - 1>/dev/null 2>/dev/null
-
-		set +f
-			# Installed as relative symlinks
-			# DPDK headers are in a sub-folder of usr/include, dpdk, which isn't part of their namespace for #include. Yuck.
-			cp "$tldkBuildFolderPath"/include/*.h "$rootOutputFolderPath"/DESTDIR/usr/include/dpdk
-
-			cp "$tldkBuildFolderPath"/lib/*.a "$rootOutputFolderPath"/DESTDIR/usr/lib
-		set -f
-	}
-
 	if [ -z "${DEP_LIBNUMA_ROOT+is_unset}" ]; then
 		compile_fail 'Please specify the environment variable DEP_LIBNUMA_ROOT which must point to a sys-root folder path containing an include and a lib folder'
 	fi
@@ -150,8 +104,6 @@ compile_library()
 	compile_dpdk_configure "$configurationName" 2>&1
 
 	compile_dpdk_make "$configurationName" "$crossCompilerPrefix" 2>&1
-
-	compile_tldk_make 'x86_64-hsw-linuxapp-gcc' "$crossCompilerPrefix" 2>&1
 }
 
 cargo_key_value_pairs()
@@ -159,11 +111,6 @@ cargo_key_value_pairs()
 	sed -e 's;^GROUP ( ;;g' -e 's; )$;;g' -e 's;\.a ; ;g' -e 's;\.a$;;g' -e 's;^lib;;g' -e 's; lib; ;g' "$rootOutputFolderPath"/DESTDIR/usr/lib/libdpdk.a >"$rootOutputFolderPath"/libraries.txt
 
 	cat "$rootOutputFolderPath"/libraries.txt | xargs -n 1 printf 'cargo:rustc-link-lib=static-nobundle=%s\n'
-
-	cargo_key_value_pairs_link_lib 'static-nobundle' tle_misc
-	cargo_key_value_pairs_link_lib 'static-nobundle' tle_dring
-	cargo_key_value_pairs_link_lib 'static-nobundle' tle_timer
-	cargo_key_value_pairs_link_lib 'static-nobundle' tle_l4p
 
 	# Search path
 	cargo_key_value_pairs_search 'native' "$OUT_DIR"/root/usr/lib

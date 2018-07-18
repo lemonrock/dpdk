@@ -2,7 +2,7 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-pub const RTE_EPOLL_EXEC: _bindgen_ty_5 = 2;
-pub const RTE_EPOLL_INVALID: _bindgen_ty_5 = 0;
+pub const RTE_EPOLL_EXEC: _bindgen_ty_1 = 2;
+pub const RTE_EPOLL_INVALID: _bindgen_ty_1 = 0;
 pub const RTE_EPOLL_PER_THREAD: i32 = -1;
-pub const RTE_EPOLL_VALID: _bindgen_ty_5 = 1;
+pub const RTE_EPOLL_VALID: _bindgen_ty_1 = 1;

@@ -1,5 +1,4 @@
 rte_.*
-tle_.*
 pci_.*
 eth_dev_.*
 rust_.*

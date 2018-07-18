@@ -20,12 +20,9 @@
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::in_addr;
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::in6_addr;
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::int16_t;
-#[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::iovec;
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::off_t;
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::pthread_t;
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::pthread_attr_t;
-#[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::sockaddr_storage;
-#[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::sockaddr;
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::size_t;
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::uint8_t;
 #[cfg(any(target_os = "android", target_os = "freebsd", target_os = "linux"))] use ::libc::uint16_t;

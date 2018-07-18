@@ -10,7 +10,7 @@ _extract_from_linker_script()
 }
 
 bindingsName='dpdk'
-rootIncludeFileName='dpdk-and-tldk.h'
+rootIncludeFileName='dpdk.h'
 macosXHomebrewPackageNames=''
 alpineLinuxPackageNames='rsync make gcc linux-headers libunwind-dev linux-grsec-dev'
 clangAdditionalArguments="-I${rootOutputFolderPath}/extra-musl-headers -I${temporaryFolderPath}/includes -I${outputFolderPath}/.."
@@ -132,9 +132,7 @@ preprocess_before_headersFolderPath()
 		rte_mempool \
 		rte_net \
 		rte_ring \
-		rte_vhost \
-		tle_dring \
-		tle_event
+		rte_vhost
 	do
 		bindgen_wrapper_generateStaticFunctions "$file"
 	done

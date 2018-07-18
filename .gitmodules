@@ -10,3 +10,6 @@
 [submodule "workspace/dpdk-sys/tools/bindgen-wrapper"]
 	path = workspace/dpdk-sys/tools/bindgen-wrapper
 	url = https://github.com/lemonrock/bindgen-wrapper.git
+[submodule "workspace/dpdk-sys/lib/dpdk"]
+	path = workspace/dpdk-sys/lib/dpdk
+	url = http://github.com/DPDK/dpdk.git

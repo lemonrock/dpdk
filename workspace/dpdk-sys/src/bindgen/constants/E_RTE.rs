@@ -2,5 +2,5 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-pub const E_RTE_NO_CONFIG: _bindgen_ty_1 = 1002;
-pub const E_RTE_SECONDARY: _bindgen_ty_1 = 1001;
+pub const E_RTE_NO_CONFIG: _bindgen_ty_2 = 1002;
+pub const E_RTE_SECONDARY: _bindgen_ty_2 = 1001;

@@ -2,7 +2,7 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-pub const RTE_MAX_ERRNO: _bindgen_ty_1 = 1003;
+pub const RTE_MAX_ERRNO: _bindgen_ty_2 = 1003;
 pub const RTE_MAX_ETHPORTS: size_t = 32;
 pub const RTE_MAX_LCORE: size_t = 128;
 pub const RTE_MAX_LCORE_FREQS: size_t = 64;

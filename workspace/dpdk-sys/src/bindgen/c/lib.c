@@ -14,5 +14,3 @@
 #include "bindgen/c/rte_net.static-inline.c"
 #include "bindgen/c/rte_ring.static-inline.c"
 #include "bindgen/c/rte_vhost.static-inline.c"
-#include "bindgen/c/tle_dring.static-inline.c"
-#include "bindgen/c/tle_event.static-inline.c"
