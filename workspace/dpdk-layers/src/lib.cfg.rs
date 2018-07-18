@@ -13,7 +13,8 @@ extern crate libc;
 extern crate serde;
 #[macro_use] extern crate serde_derive;
 extern crate syscall_alt;
-extern crate treebitmap;
+// TODO: Suspended as upstream crate needs changes.
+// extern crate treebitmap;
 
 
 use self::ethernet::*;
@@ -35,7 +36,8 @@ use ::dpdk_time::Seconds;
 use ::libc::*;
 use serde::de;
 use serde::de::Deserialize;
-use serde::de::DeserializeOwned;
+// TODO: Suspended as upstream crate needs changes.
+// use serde::de::DeserializeOwned;
 use serde::de::Deserializer;
 use serde::de::Visitor;
 use serde::ser::Serialize;
@@ -64,7 +66,8 @@ use ::std::slice::from_raw_parts;
 use ::std::str::SplitN;
 use ::syscall_alt::constants::NegativeE;
 use ::syscall_alt::constants::E;
-use treebitmap::IpLookupTable;
+// TODO: Suspended as upstream crate needs changes.
+// use treebitmap::IpLookupTable;
 
 
 macro_rules! finish

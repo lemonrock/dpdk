@@ -3,7 +3,7 @@
 
 
 /// An internet protocol (IP) network address, either version 4 or version 6.
-pub trait InternetProtocolNetworkAddress: Sized + Debug + Eq + Hash + Serialize
+pub trait InternetProtocolNetworkAddress: Sized + Debug + Eq + Hash + Serialize + Clone
 {
 	/// Associated Internet Protocol (IP) host address, either version 4 or 6.
 	type HostAddress: InternetProtocolHostAddress;

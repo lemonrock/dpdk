@@ -3,7 +3,6 @@
 
 
 /// A static routing table.
-#[derive(Debug)]
 pub struct StaticRoutingTable<NetworkAddress: InternetProtocolNetworkAddress>
 {
 	longest_prefix_match: IpLookupTable<<<NetworkAddress as InternetProtocolNetworkAddress>::HostAddress as InternetProtocolHostAddress>::RustAddress, Route<NetworkAddress::HostAddress>>,

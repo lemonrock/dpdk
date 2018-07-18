@@ -15,8 +15,9 @@ pub mod mask_bits;
 pub mod packet_reassembly;
 
 
-/// Combined routing and longest prefix matching.
-pub mod routing;
+// TODO: suspended as requires changes in upstream crate to make this logic work.
+// /// Combined routing and longest prefix matching.
+// pub mod routing;
 
 
 include!("DifferentiatedServiceCodePoint.rs");

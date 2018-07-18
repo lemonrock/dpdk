@@ -26,9 +26,9 @@ where <NetworkAddress as InternetProtocolNetworkAddress>::HostAddress: Deseriali
 		{
 			longest_prefix_match:
 			{
-				let mut look_up_table = IpLookupTable::with_capacity(self.static_routes.len());
+				let mut look_up_table: IpLookupTable<<<NetworkAddress as InternetProtocolNetworkAddress>::HostAddress as InternetProtocolHostAddress>::RustAddress, Route<NetworkAddress::HostAddress>> = IpLookupTable::with_capacity(self.static_routes.len());
 				
-				for &(network_address, static_route) in self.static_routes.iter()
+				for (&network_address, &static_route) in self.static_routes.iter()
 				{
 					look_up_table.insert(network_address.network().to_rust_address(), network_address.mask_bits_as_depth_u32(), static_route.clone());
 				}
