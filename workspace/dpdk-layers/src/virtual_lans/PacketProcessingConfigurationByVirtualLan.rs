@@ -20,6 +20,13 @@ pub struct PacketProcessingConfigurationByVirtualLan
 impl PacketProcessingConfigurationByVirtualLan
 {
 	#[inline(always)]
+	#[inline(always)]
+	pub(crate) fn dropped_packet(&self, reason: PacketProcessingDropReason)
+	{
+		self.none.dropped_packet(reason)
+	}
+	
+	#[inline(always)]
 	pub(crate) fn get_packet_processing_for_outer_virtual_lan(&self, outer_virtual_lan_identifier: Option<VirtualLanIdentifier>, inner_virtual_lan_identifier: Option<VirtualLanIdentifier>) -> Option<&PacketProcessingConfigurationForQinQVirtualLan>
 	{
 		self.outer.get(&(inner_virtual_lan_identifier, outer_virtual_lan_identifier))

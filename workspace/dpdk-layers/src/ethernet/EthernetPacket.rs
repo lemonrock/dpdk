@@ -19,22 +19,24 @@ macro_rules! parse_802_1q_virtual_lan_tag_control_information
 	{
 		match $tag_control_information.parse()
 		{
-			Err(_) => finish!($packet),
+			Err(_) => drop!(CouldNotParse8011QVirtualLanTag, $packet_processing_configuration_by_virtual_lan, $packet),
+			
 			Ok((class_of_service, drop_eligible_indicator, inner_virtual_lan_identifier)) =>
 			{
 				if unlikely!(drop_eligible_indicator)
 				{
-					finish!($packet)
+					drop!(DropEligibleFor8011QVirtualLan, $packet_processing_configuration_by_virtual_lan, $packet)
 				}
 
 				match $packet_processing_configuration_by_virtual_lan.get_packet_processing_for_inner_virtual_lan(inner_virtual_lan_identifier)
 				{
-					None => finish!($packet),
+					None => drop!(NoConfigurationFor8011QVirtualLan, $packet_processing_configuration_by_virtual_lan, $packet),
+					
 					Some(packet_processing_configuration) =>
 					{
 						if unlikely!(packet_processing_configuration.drop_packets_of_class_of_service(class_of_service))
 						{
-							finish!($packet)
+							drop!(DropThisClassOfServiceFor8011QVirtualLan, packet_processing_configuration, $packet)
 						}
 						packet_processing_configuration
 					}
@@ -51,12 +53,13 @@ macro_rules! parse_802_1ad_virtual_lan_tag_control_information
 		{
 			let (outer_virtual_lan_identifier, outer_class_of_service) = match $outer_tag_control_information.parse()
 			{
-				Err(_) => finish!($packet),
+				Err(_) => drop!(CouldNotParseOuterVirtualLanTag, $packet_processing_configuration_by_virtual_lan, $packet),
+				
 				Ok((class_of_service, drop_eligible_indicator, outer_virtual_lan_identifier)) =>
 				{
 					if unlikely!(drop_eligible_indicator)
 					{
-						finish!($packet)
+						drop!(DropEligibleForOuterVirtualLan, $packet_processing_configuration_by_virtual_lan, $packet)
 					}
 
 					(outer_virtual_lan_identifier, class_of_service)
@@ -65,12 +68,13 @@ macro_rules! parse_802_1ad_virtual_lan_tag_control_information
 
 			let (inner_virtual_lan_identifier, inner_class_of_service) = match $inner_tag_control_information.parse()
 			{
-				Err(_) => finish!($packet),
+				Err(_) => drop!(CouldNotParseInnerVirtualLanTag, $packet_processing_configuration_by_virtual_lan, $packet),
+				
 				Ok((class_of_service, drop_eligible_indicator, outer_virtual_lan_identifier)) =>
 				{
 					if unlikely!(drop_eligible_indicator)
 					{
-						finish!($packet)
+						drop!(DropEligibleForInnerVirtualLan, $packet_processing_configuration_by_virtual_lan, $packet)
 					}
 
 					(outer_virtual_lan_identifier, class_of_service)
@@ -79,14 +83,16 @@ macro_rules! parse_802_1ad_virtual_lan_tag_control_information
 
 			match $packet_processing_configuration_by_virtual_lan.get_packet_processing_for_outer_virtual_lan(outer_virtual_lan_identifier, inner_virtual_lan_identifier)
 			{
-				None => finish!($packet),
+				None => drop!(NoConfigurationForQinQVirtualLan, $packet_processing_configuration_by_virtual_lan, $packet),
+				
 				Some(packet_processing) =>
 				{
+					let packet_processing_configuration = &packet_processing.inner_packet_processing_configuration;
 					if unlikely!(packet_processing.drop_packets_of_class_of_service(outer_class_of_service, inner_class_of_service))
 					{
-						finish!($packet)
+						drop!(DropThisClassOfServiceForQinQVirtualLan, packet_processing_configuration, $packet)
 					}
-					&packet_processing.inner_packet_processing_configuration
+					packet_processing_configuration
 				}
 			}
 		}
@@ -100,7 +106,7 @@ macro_rules! process_802_1ad_virtual_lan_tagging
 		{
 			if unlikely!($packet.is_too_short_to_be_a_qinq_vlan_ethernet_packet())
 			{
-				finish!($packet)
+				drop!(IsTooShortToBeAQinQVirtualLanEthernetPacket, $packet_processing_configuration_by_virtual_lan, $packet)
 			}
 
 			let qinq_virtual_lan_packet = unsafe { &mut $self.payload.qinq_virtual_lan_packet };
@@ -122,14 +128,14 @@ macro_rules! process_802_1ad_virtual_lan_tagging
 
 macro_rules! guard_is_valid_ethernet_packet
 {
-	($packet: ident) =>
+	($packet_processing_configuration_by_virtual_lan: ident, $packet: ident) =>
 	{
 		{
 			$packet.debug_assert_is_contiguous();
 
 			if unlikely!($packet.is_too_short_to_be_an_ethernet_packet())
 			{
-				finish!($packet)
+				drop!(IsTooShortToBeAnEthernetPacket, $packet_processing_configuration_by_virtual_lan, $packet)
 			}
 		}
 	}
@@ -145,23 +151,23 @@ macro_rules! guard_ethernet_addresses
 			
 			if unlikely!(source_ethernet_address.is_not_valid_unicast())
 			{
-				finish!($packet)
+				drop!(SourceEthernetAddressIsNotValidUnicast, $packet_processing_configuration, $packet)
 			}
 
 			let we_do_not_support_sending_to_ourselves = $packet_processing_configuration.is_ethernet_address_our_valid_unicast_ethernet_address(source_ethernet_address);
 			if unlikely!(we_do_not_support_sending_to_ourselves)
 			{
-				finish!($packet)
+				drop!(SourceEthernetAddressIsOurUnicastEthernetAddress, $packet_processing_configuration, $packet)
 			}
 
 			if unlikely!($packet_processing_configuration.is_denied_source_ethernet_address(source_ethernet_address))
 			{
-				finish!($packet)
+				drop!(DeniedSourceEthernetAddress, $packet_processing_configuration, $packet)
 			}
 
 			if unlikely!(destination_ethernet_address.is_zero())
 			{
-				finish!($packet)
+				drop!(DestinationEthernetAddressIsZero, $packet_processing_configuration, $packet)
 			}
 
 			if destination_ethernet_address.is_valid_unicast()
@@ -169,7 +175,7 @@ macro_rules! guard_ethernet_addresses
 				let is_for_multiply_assigned_ethernet_addreses_on_one_link_or_promiscuous_mode_or_defective = $packet_processing_configuration.is_ethernet_address_not_our_valid_unicast_ethernet_address(destination_ethernet_address);
 				if unlikely!(is_for_multiply_assigned_ethernet_addreses_on_one_link_or_promiscuous_mode_or_defective)
 				{
-					finish!($packet)
+					drop!(DestinationEthernetAddressIsNotOneOfOurs, $packet_processing_configuration, $packet)
 				}
 			}
 
@@ -201,7 +207,7 @@ impl EthernetPacket
 		// TODO: Make use of packet.layer_4_hardware_packet_type() where hardware supports it - note that h/w may not support the L4_ICMP type.
 		// TODO: Make use of packet.is_encapsulated_in_a_tunnel_and_has_inner_layers() where hardware supports it to get rid of packets quickly.
 
-		guard_is_valid_ethernet_packet!(packet);
+		guard_is_valid_ethernet_packet!(packet_processing_configuration_by_virtual_lan, packet);
 
 		let packet_processing_configuration = if packet.was_vlan_tag_control_information_stripped()
 		{
@@ -225,7 +231,7 @@ impl EthernetPacket
 	#[inline(always)]
 	pub fn process_poll_mode_driver_offloads_only_vlan_tagging_stripping(&mut self, packet: PacketBuffer, packet_processing_configuration_by_virtual_lan: &PacketProcessingConfigurationByVirtualLan)
 	{
-		guard_is_valid_ethernet_packet!(packet);
+		guard_is_valid_ethernet_packet!(packet_processing_configuration_by_virtual_lan, packet);
 
 		if packet.was_vlan_tag_control_information_stripped()
 		{
@@ -247,7 +253,7 @@ impl EthernetPacket
 
 				EtherType::QinQVlanTagging => process_802_1ad_virtual_lan_tagging!(self, packet, packet_processing_configuration_by_virtual_lan),
 
-				_ => finish!(packet),
+				_ => drop!(UnsupportedEtherType, packet_processing_configuration_by_virtual_lan, packet),
 			}
 		}
 	}
@@ -255,7 +261,7 @@ impl EthernetPacket
 	#[inline(always)]
 	pub fn poll_mode_driver_does_not_offload_any_vlan_stripping(&mut self, packet: PacketBuffer, packet_processing_configuration_by_virtual_lan: &PacketProcessingConfigurationByVirtualLan)
 	{
-		guard_is_valid_ethernet_packet!(packet);
+		guard_is_valid_ethernet_packet!(packet_processing_configuration_by_virtual_lan, packet);
 
 		match self.potentially_invalid_ether_type()
 		{
@@ -271,7 +277,7 @@ impl EthernetPacket
 			{
 				if unlikely!(packet.is_too_short_to_be_a_vlan_ethernet_packet())
 				{
-					finish!(packet)
+					drop!(IsTooShortToBeA8021QVirtualLanEthernetPacket, packet_processing_configuration_by_virtual_lan, packet)
 				}
 
 				let virtual_lan_packet = unsafe { &mut self.payload.virtual_lan_packet };
@@ -319,7 +325,7 @@ impl EthernetPacket
 				layer_3_packet.process_address_resolution_protocol(packet, packet_processing_configuration, layer_3_length, source_ethernet_address, destination_ethernet_address)
 			}
 
-			_ => finish!(packet),
+			_ => drop!(UnsupportedEtherType, packet_processing_configuration, packet),
 		}
 	}
 
@@ -338,15 +344,10 @@ impl EthernetPacket
 	}
 
 	#[inline(always)]
-	fn process_address_resolution_protocol(&mut self, packet: PacketBuffer, _packet_processing_configuration_by_virtual_lan: &PacketProcessingConfigurationByVirtualLan)
+	fn process_address_resolution_protocol(&mut self, packet: PacketBuffer, packet_processing_configuration_by_virtual_lan: &PacketProcessingConfigurationByVirtualLan)
 	{
-//		let (packet_processing_configuration, layer_3_length, source_ethernet_address, destination_ethernet_address) = guard_ethernet_addresses_and_compute_packet_length!(self, packet, packet_processing_configuration_by_virtual_lan);
-//		self.layer_3_packet().process_address_resolution_protocol(packet, packet_processing_configuration, layer_3_length, source_ethernet_address, destination_ethernet_address)
-
-		// At this point in time, we do not support ARP as (a) it is insecure and (b) can not communicate the maximum ethernet frame length supported by the destination.
-		// If DPDK develops support for MACsec, then we may make use of it.
-
-		finish!(packet);
+		let (packet_processing_configuration, layer_3_length, source_ethernet_address, destination_ethernet_address) = guard_ethernet_addresses_and_compute_packet_length!(self, packet, packet_processing_configuration_by_virtual_lan);
+		self.layer_3_packet().process_address_resolution_protocol(packet, packet_processing_configuration, layer_3_length, source_ethernet_address, destination_ethernet_address)
 	}
 
 	#[inline(always)]

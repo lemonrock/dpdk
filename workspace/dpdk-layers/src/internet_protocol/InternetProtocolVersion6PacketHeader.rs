@@ -33,7 +33,7 @@ impl InternetProtocolVersion6PacketHeader
 	pub(crate) const HeaderSizeU16: u16 = size_of::<Self>() as u16;
 	
 	#[inline(always)]
-	pub fn is_version_not_6(&self) -> bool
+	pub(crate) fn is_version_not_6(&self) -> bool
 	{
 		(unsafe { *self.version_and_traffic_class_and_flow_label.get_unchecked(0) }) >> 4 != 6
 	}
@@ -43,21 +43,6 @@ impl InternetProtocolVersion6PacketHeader
 	{
 		self.hop_limits
 	}
-	
-	/// Layer 4 (after parsing self.next_header).
-	#[inline(always)]
-	pub fn layer_4(&self) -> u8
-	{
-		xxx;
-	}
-	
-	/// Zero for jumbo frames.
-	#[inline(always)]
-	pub fn payload_length(&self) -> u16
-	{
-		xxx;
-	}
-	
 	
 	/// DifferentiatedServiceCodePoint and ExplicitCongestionNotification.
 	#[inline(always)]
@@ -99,7 +84,7 @@ impl InternetProtocolVersion6PacketHeader
 	}
 	
 	#[inline(always)]
-	pub fn to_dpdk(&self) -> NonNull<ipv6_hdr>
+	pub(crate) fn to_dpdk(&self) -> NonNull<ipv6_hdr>
 	{
 		unsafe { NonNull::new_unchecked(self as *const Self as *mut Self as *mut ipv6_hdr) }
 	}

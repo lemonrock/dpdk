@@ -91,13 +91,13 @@ impl AddressResolutionProtocolAddressConflictState
 	}
 	
 	#[inline(always)]
-	pub(crate) fn internet_protocol_version_4_host_address_conflict(&mut self, packet: PacketBuffer)
+	pub(crate) fn internet_protocol_version_4_host_address_conflict(&mut self, packet: PacketBuffer, packet_processing_configuration: &PacketProcessingConfiguration)
 	{
 		use self::AddressResolutionProtocolAddressConflictState::*;
 		
 		match *self
 		{
-			YetToSendProbe { .. } => finish!(packet),
+			YetToSendProbe { .. } => drop!(XXX, packet_processing_configuration, packet),
 			
 			Probing { first_probe_sent_at, .. } =>
 			{
@@ -132,11 +132,11 @@ impl AddressResolutionProtocolAddressConflictState
 				}
 				else
 				{
-					finish!(packet)
+					drop!(XXX, packet_processing_configuration, packet)
 				}
 			}
 			
-			Conflicted => finish!(packet)
+			Conflicted => drop!(XXX, packet_processing_configuration, packet)
 		}
 	}
 	

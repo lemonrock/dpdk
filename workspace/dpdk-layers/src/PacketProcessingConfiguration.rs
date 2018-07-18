@@ -27,6 +27,13 @@ pub struct PacketProcessingConfiguration
 impl PacketProcessingConfiguration
 {
 	#[inline(always)]
+	pub(crate) fn dropped_packet(&self, reason: PacketProcessingDropReason)
+	{
+		// TODO: Log to syslog, log to a ring buffer or increment a counter.
+		// Or pass to a decision maker which can then adjust configuration - reactive security monitoring.
+	}
+	
+	#[inline(always)]
 	pub(crate) fn drop_packets_of_class_of_service(&self, class_of_service: ClassOfService) -> bool
 	{
 		self.inner_permitted_classes_of_service.is_denied(class_of_service)
@@ -91,15 +98,16 @@ impl PacketProcessingConfiguration
 	#[inline(always)]
 	pub(crate) fn internet_protocol_version_4_host_address_conflict(&self, packet: PacketBuffer)
 	{
-		// TODO: Handle ARP host address conflicts.
-		eprintln!("ARP is not supported");
-		finish!(packet)
+		// TODO: Handle ARP host address conflicts; see AddressResolutionProtocolAddressConflictState.rs.
+		unsupported!("ARP: host address conflict");
+		drop!(ReuseInReply, self, packet)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn add_to_address_resolution_cache(&self, sender_hardware_address: &MediaAccessControlAddress, sender_protocol_address: InternetProtocolVersion4HostAddress)
+	pub(crate) fn add_to_address_resolution_cache(&self, sender_hardware_address: &MediaAccessControlAddress, sender_protocol_address: InternetProtocolVersion4HostAddress, packet: PacketBuffer)
 	{
 		// TODO: Manage an ARP cache.
-		eprintln!("ARP is not supported");
+		unsupported!("ARP: adding to resolution cache");
+		packet.free_direct_contiguous_packet();
 	}
 }

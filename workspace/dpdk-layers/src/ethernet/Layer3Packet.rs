@@ -28,33 +28,33 @@ impl Layer3Packet
 	{
 		if unlikely!(InternetProtocolVersion4Packet::is_packet_length_too_short(layer_3_length))
 		{
-			finish!(packet)
+			drop!(InternetProtocolVersion4PacketIsTooShort, packet_processing_configuration, packet)
 		}
 		
 		let header = &self.internet_protocol_version_4_packet.header;
 		
 		if unlikely!(header.is_version_not_4())
 		{
-			finish!(packet)
+			drop!(InternetProtocolVersion4HeaderIsNot4, packet_processing_configuration, packet)
 		}
 		
 		let total_length = header.total_length();
 		
 		if unlikely!(total_length != layer_3_length)
 		{
-			finish!(packet)
+			drop!(InternetProtocolVersion4TotalLengthInvalid, packet_processing_configuration, packet)
 		}
 		
 		if unlikely!(header.has_invalid_fragmentation_flags_or_identification())
 		{
-			finish!(packet)
+			drop!(InternetProtocolVersion4InvalidFragmentationFlagsOrIdentification, packet_processing_configuration, packet)
 		}
 		
 		let header_length_including_options = header.header_length_including_options();
 		
 		if unlikely!(total_length < header_length_including_options as u16)
 		{
-			finish!(packet)
+			drop!(InternetProtocolVersion4TotalLengthLessThanHeader, packet_processing_configuration, packet)
 		}
 		
 		let header_has_ipv4_options = header_length_including_options != InternetProtocolVersion4PacketHeader::HeaderSizeU8;
@@ -63,7 +63,7 @@ impl Layer3Packet
 		{
 			if cfg!(feature = "drop-packets-with-ipv4-options")
 			{
-				finish!(packet)
+				drop!(InternetProtocolVersion4HasOptions, packet_processing_configuration, packet)
 			}
 			else
 			{
@@ -91,21 +91,21 @@ impl Layer3Packet
 							
 							if unlikely!(length_pointer + 1 == end_of_options_pointer)
 							{
-								finish!(packet)
+								drop!(InternetProtocolVersion4OptionLacksKind, packet_processing_configuration, packet)
 							}
 							
 							let length_including_option_kind_and_length_field = unsafe { *(length_pointer as *const u8) };
 							
 							if unlikely!(length_including_option_kind_and_length_field < 2)
 							{
-								finish!(packet)
+								drop!(InternetProtocolVersion4OptionLengthTooShort, packet_processing_configuration, packet)
 							}
 							
 							let length_including_option_kind_and_length_field = length_including_option_kind_and_length_field as usize;
 							
 							if unlikely!(options_pointer + length_including_option_kind_and_length_field > end_of_options_pointer)
 							{
-								finish!(packet)
+								drop!(InternetProtocolVersion4OptionLengthTooLong, packet_processing_configuration, packet)
 							}
 							
 							length_including_option_kind_and_length_field
@@ -117,8 +117,11 @@ impl Layer3Packet
 			}
 		}
 		
-		// NOTE: The header checksum is not validated. They are of limited benefit (indeed, they don't exist in version 6), and the assumption is made that they will nearly always be calculated by hardware offload, as nearly all modern network cards can do this. Data arriving via virtual drivers (eg TUN / TAP) will almost certainly have passed through an operating system's checksum validation.
 		
+		// TODO: The header checksum is not validated.
+		
+		
+		// TODO: fragmentation
 		
 		
 		if destination_ethernet_address.is_valid_unicast()
@@ -134,7 +137,7 @@ impl Layer3Packet
 		{
 			if packet_processing_configuration.is_denied_internet_protocol_version_4_multicast_23_bits(lower_23_bits)
 			{
-				finish!(packet)
+				drop!(InternetProtocolVersion4MulticastAddressDenied, packet_processing_configuration, packet)
 			}
 			
 			// process a multicast ipv4 packet - address must match, slightly ambiguously, the lower 23 bits.
@@ -143,7 +146,7 @@ impl Layer3Packet
 		}
 		else
 		{
-			finish!(packet)
+			drop!(InternetProtocolVersion4MulticastAddressWrong, packet_processing_configuration, packet)
 		}
 	}
 	
@@ -152,15 +155,20 @@ impl Layer3Packet
 	{
 		if unlikely!(InternetProtocolVersion6Packet::is_packet_length_too_short(layer_3_length))
 		{
-			finish!(packet)
+			drop!(InternetProtocolVersion6PacketIsTooShort, packet_processing_configuration, packet)
 		}
 		
 		let header = &self.internet_protocol_version_6_packet.header;
 		
 		if unlikely!(header.is_version_not_6())
 		{
-			finish!(packet)
+			drop!(InternetProtocolVersion6HeaderIsNot6, packet_processing_configuration, packet)
 		}
+		
+		xxx;
+		// TODO: IPV6 header validation
+		
+		// TODO: fragmentation
 		
 		if destination_ethernet_address.is_valid_unicast()
 		{
@@ -170,7 +178,7 @@ impl Layer3Packet
 		{
 			if packet_processing_configuration.is_denied_internet_protocol_version_6_multicast_32_bits(lower_32_bits)
 			{
-				finish!(packet)
+				drop!(InternetProtocolVersion6MulticastAddressDenied, packet_processing_configuration, packet)
 			}
 			
 			// process a multicast ipv4 packet - validate address prefix.
@@ -181,7 +189,7 @@ impl Layer3Packet
 		}
 		else
 		{
-			finish!(packet)
+			drop!(InternetProtocolVersion6MulticastAddressWrong, packet_processing_configuration, packet)
 		}
 	}
 	
@@ -190,14 +198,14 @@ impl Layer3Packet
 	{
 		if unlikely!(AddressResolutionProtocolPacket::is_packet_length_too_short(layer_3_length))
 		{
-			finish!(packet)
+			drop!(AddressResolutionProtocolPacketIsTooShort, packet_processing_configuration, packet)
 		}
 
 		let address_resolution_protocol_packet = unsafe { &mut self.address_resolution_protocol_packet };
 
 		if unlikely!(address_resolution_protocol_packet.is_invalid_for_internet_protocol_version_4(layer_3_length))
 		{
-			finish!(packet)
+			drop!(AddressResolutionProtocolNotSupportedForAnythingOtherThanInternetProtocolVersion4, packet_processing_configuration, packet)
 		}
 
 		address_resolution_protocol_packet.process(packet, packet_processing_configuration, source_ethernet_address, destination_ethernet_address)

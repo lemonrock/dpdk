@@ -20,7 +20,6 @@ extern crate syscall_alt;
 use self::ethernet::*;
 use self::address_resolution_protocol::*;
 use self::internet_protocol::*;
-use self::internet_protocol::longest_prefix_matching::*;
 use self::internet_protocol::mask_bits::*;
 use self::layer4::*;
 use self::layer4::internet_control_message_protocol::*;
@@ -70,16 +69,8 @@ use ::syscall_alt::constants::E;
 // use treebitmap::IpLookupTable;
 
 
-macro_rules! finish
-{
-	($packet: ident) =>
-	{
-		{
-			$packet.free_direct_contiguous_packet();
-			return
-		}
-	}
-}
+include!("drop.rs");
+include!("unsupported.rs");
 
 
 /// Address Resolution Protocol (ARP).
@@ -107,4 +98,5 @@ include!("NonNullUnifiedArrayVecAndVec.rs");
 include!("PacketBuffer.rs");
 include!("PacketBufferPool.rs");
 include!("PacketProcessingConfiguration.rs");
+include!("PacketProcessingDropReason.rs");
 include!("UnifiedArrayVecAndVec.rs");

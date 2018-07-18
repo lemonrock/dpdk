@@ -137,7 +137,7 @@ impl InternetProtocolVersion4PacketHeader
 	
 	/// Checks if an internet protocol (IP) version 4 packet is fragmented.
 	#[inline(always)]
-	pub fn is_fragmented(&self) -> bool
+	pub(crate) fn is_fragmented(&self) -> bool
 	{
 		const OffsetMask: u16 = InternetProtocolVersion4PacketHeader::MoreFragmentsFlag - 1;
 		
@@ -145,7 +145,7 @@ impl InternetProtocolVersion4PacketHeader
 	}
 	
 	#[inline(always)]
-	pub fn to_dpdk(&self) -> NonNull<ipv4_hdr>
+	pub(crate) fn to_dpdk(&self) -> NonNull<ipv4_hdr>
 	{
 		unsafe { NonNull::new_unchecked(self as *const Self as *mut Self as *mut ipv4_hdr) }
 	}

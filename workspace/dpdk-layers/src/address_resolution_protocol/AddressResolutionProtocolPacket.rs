@@ -44,7 +44,7 @@ impl AddressResolutionProtocolPacket
 		
 		if unlikely!(destination_ethernet_address.is_multicast())
 		{
-			finish!(packet)
+			drop!(AddressResolutionProtocolDestinationEthernetAddressIsMulticast, packet_processing_configuration, packet)
 		}
 		
 		debug_assert!(destination_ethernet_address.is_valid_unicast() || destination_ethernet_address.is_broadcast(), "destination_ethernet_address '{}' is not valid unicast or broadcast()", destination_ethernet_address);
@@ -55,43 +55,42 @@ impl AddressResolutionProtocolPacket
 			
 			Operation::Reply => self.process_reply(packet, packet_processing_configuration, source_ethernet_address, destination_ethernet_address),
 			
-			_ => finish!(packet),
+			_ => drop!(AddressResolutionProtocolOperationIsUnsupported, packet_processing_configuration, packet),
 		}
 	}
 	
 	#[inline(always)]
 	fn process_request(&mut self, packet: PacketBuffer, packet_processing_configuration: &PacketProcessingConfiguration, source_ethernet_address: &MediaAccessControlAddress, destination_ethernet_address: &MediaAccessControlAddress)
 	{
-		// Is the destination ethernet address invalid for an Address Resolution Protocol (ARP) request?
+		// RFC 1122 Section 2.3.2.1: "(2) Unicast Poll -- Actively poll the remote host by periodically sending a point-to-point ARP Request to it, and delete the entry if no ARP Reply is received from N successive polls".
 		//
-		// Aside from RFC 1122 § 2.3.2.1, which is a minor feature to re-validate cached ARP entries, there is no good reason to receive unicast (or indeed multicast, or anything other than broadcast) ARP requests.
-		// See first answer at [StackOverflow|https://security.stackexchange.com/questions/58131/unicast-arp-requests-considered-harmful] for a longer discussion.
-		// Consequently we consider anything other than ARP requests with a broadcast as invalid.
-		//
-		// TODO: Note, however, that not supporting this caused a problem for Mac OS Mavericks: <https://www.reddit.com/r/sysadmin/comments/1yc6n1/packet_losses_with_new_os_x_mavericks_make_sure/>.
-		if destination_ethernet_address.is_not_broadcast()
+		// Thus an ARP request should be either to a broadcast address (normal behaviour) or to an unicast address.
+		if destination_ethernet_address.is_multicast()
 		{
-			finish!(packet)
+			drop!(AddressResolutionProtocolRequestIsMulticast, packet_processing_configuration, packet)
 		}
 		
 		let payload = self.payload();
 		
-//		Strictly speaking, RFC 5227 makes this a SHOULD not a MUST.
-//		if unlikely!(payload.target_hardware_address.is_not_zero())
-//		{
-//			finish!(packet)
-//		}
+		// This violates RFC 5227 which states that requests SHOULD have a non-zero target hardware address.
+		if cfg!(feature = "drop-arp-requests-with-non-zero-target-hardware-address")
+		{
+			if unlikely!(payload.target_hardware_address.is_not_zero())
+			{
+				drop!(AddressResolutionProtocolRequestTargetHardwareAddressIsZero, packet_processing_configuration, packet)
+			}
+		}
 		
 		let sender_hardware_address = &payload.sender_hardware_address;
 		if unlikely!(source_ethernet_address != sender_hardware_address)
 		{
-			finish!(packet)
+			drop!(AddressResolutionProtocolHardwareAndPacketSourceEthernetAddressMismatch, packet_processing_configuration, packet)
 		}
 		
 		let target_protocol_address = payload.target_protocol_address;
 		if unlikely!(target_protocol_address.is_not_valid_unicast())
 		{
-			finish!(packet)
+			drop!(AddressResolutionProtocolHardwareAndPacketDestinationEthernetAddressMismatch, packet_processing_configuration, packet)
 		}
 		
 		let sender_protocol_address = payload.sender_protocol_address;
@@ -108,19 +107,24 @@ impl AddressResolutionProtocolPacket
 			{
 				// TODO: REPLY
 				// Mutate the ethernet packet and arp packet, then add to an outbound queue.
-				eprintln!("ARP is not supported");
-				finish!(packet)
+				unsupported!("ARP replies to probes are not supported");
+				drop!(ReuseInReply, packet_processing_configuration, packet)
 			}
 			else
 			{
-				finish!(packet)
+				drop!(AddressResolutionProtocolProbeIsNotForUs, packet_processing_configuration, packet)
 			}
 		}
 		else
 		{
+			if destination_ethernet_address.is_not_broadcast()
+			{
+				drop!(AddressResolutionProtocolRequestIsNotAProbeAndIsNotBroadcast, packet_processing_configuration, packet)
+			}
+			
 			if unlikely!(sender_protocol_address.is_not_valid_unicast())
 			{
-				finish!(packet)
+				drop!(AddressResolutionProtocolRequestIsNotAProbeAndSenderProtocolAddressIsNotUnicast, packet_processing_configuration, packet)
 			}
 			
 			let internet_protocol_version_4_host_address_conflict = packet_processing_configuration.is_internet_protocol_version_4_host_address_one_of_ours(sender_protocol_address);
@@ -134,19 +138,20 @@ impl AddressResolutionProtocolPacket
 			let is_arp_announcement = sender_protocol_address == target_protocol_address;
 			if is_arp_announcement
 			{
-				packet_processing_configuration.add_to_address_resolution_cache(sender_hardware_address, sender_protocol_address);
-				finish!(packet)
+				packet_processing_configuration.add_to_address_resolution_cache(sender_hardware_address, sender_protocol_address, packet);
+				return
 			}
-			else
+			
+			let we_own_the_target_protocol_address_so_reply = packet_processing_configuration.is_internet_protocol_version_4_host_address_one_of_ours(target_protocol_address);
+			if we_own_the_target_protocol_address_so_reply
 			{
-				let we_own_the_target_protocol_address_so_reply = packet_processing_configuration.is_internet_protocol_version_4_host_address_one_of_ours(target_protocol_address);
-				if we_own_the_target_protocol_address_so_reply
-				{
-					// TODO: REPLY
-					eprintln!("ARP is not supported");
-					finish!(packet)
-				}
+				// TODO: REPLY
+				unsupported!("ARP replies to broadcasts are not supported");
+				drop!(ReuseInReply, packet_processing_configuration, packet)
 			}
+			
+			packet.free_direct_contiguous_packet();
+			return
 		}
 	}
 	
@@ -173,51 +178,45 @@ impl AddressResolutionProtocolPacket
 		let is_gratuitous_arp_reply = sender_and_target_protocol_addresses_are_the_same && (target_hardware_address.is_broadcast() || target_hardware_address.is_zero());
 		if is_gratuitous_arp_reply
 		{
-			let protocol_address = sender_protocol_address;
-			
-			if unlikely!(protocol_address.is_not_valid_unicast())
+			if unlikely!(sender_protocol_address.is_not_valid_unicast())
 			{
-				finish!(packet)
+				drop!(AddressResolutionProtocolGratuitousReplyIsNotValidUnicast, packet_processing_configuration, packet)
 			}
-			
-			packet_processing_configuration.add_to_address_resolution_cache(sender_hardware_address, protocol_address);
 		}
 		else
 		{
 			if unlikely!(source_ethernet_address != sender_hardware_address)
 			{
-				finish!(packet)
+				drop!(AddressResolutionProtocolHardwareAndPacketSourceEthernetAddressMismatch, packet_processing_configuration, packet)
 			}
 			
 			if unlikely!(destination_ethernet_address != target_hardware_address)
 			{
-				finish!(packet)
+				drop!(AddressResolutionProtocolHardwareAndPacketDestinationEthernetAddressMismatch, packet_processing_configuration, packet)
 			}
 			
 			if unlikely!(target_hardware_address.is_not_valid_unicast())
 			{
-				finish!(packet)
+				drop!(AddressResolutionProtocolReplyTargetHardwareAddressIsNotValidUnicast, packet_processing_configuration, packet)
 			}
 			
 			if unlikely!(sender_and_target_protocol_addresses_are_the_same)
 			{
-				finish!(packet)
+				drop!(AddressResolutionProtocolReplySourceAndTargetProtocolAddressesAreTheSame, packet_processing_configuration, packet)
 			}
 			
 			if unlikely!(sender_protocol_address.is_not_valid_unicast())
 			{
-				finish!(packet)
+				drop!(AddressResolutionProtocolReplySenderProtocolAddressIsNotValidUnicast, packet_processing_configuration, packet)
 			}
 			
 			if unlikely!(target_protocol_address.is_not_valid_unicast())
 			{
-				finish!(packet)
+				drop!(AddressResolutionProtocolReplyTargetProtocolAddressIsNotValidUnicast, packet_processing_configuration, packet)
 			}
-			
-			packet_processing_configuration.add_to_address_resolution_cache(sender_hardware_address, sender_protocol_address);
 		}
 		
-		finish!(packet)
+		packet_processing_configuration.add_to_address_resolution_cache(sender_hardware_address, sender_protocol_address, packet);
 	}
 	
 	#[inline(always)]

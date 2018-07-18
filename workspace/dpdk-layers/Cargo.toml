@@ -36,7 +36,14 @@ syscall-alt = "0.0.14"
 
 
 [features]
-default = ["drop-packets-with-ipv4-options", "drop-ipv4-packets-with-do-not-fragment-and-non-zero-identification"]
+default = ["drop-arp-requests-with-non-zero-target-hardware-address", "drop-packets-with-ipv4-options", "drop-ipv4-packets-with-do-not-fragment-and-non-zero-identification"]
+
+# Drops ARP requests with a non-zero target hardware address.
+#
+# Enabled bvy default.
+#
+# Violates RFC 5227.
+drop-arp-requests-with-non-zero-target-hardware-address = []
 
 # Drops internet protocol (IP) version 4 packets with IP options.
 #
