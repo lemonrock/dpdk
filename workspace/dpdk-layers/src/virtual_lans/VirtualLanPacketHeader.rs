@@ -28,4 +28,10 @@ impl VirtualLanPacketHeader
 	
 	/// An IEEE802.1Q virtual LAN header size.
 	pub const VirtualLanPacketHeaderSizeU16: u16 = Self::VirtualLanPacketHeaderSize as u16;
+	
+	#[inline(always)]
+	pub(crate) fn potentially_invalid_ether_type(&self) -> EtherType
+	{
+		unsafe { self.ether_type_or_legacy_ethernet_frame_size.ether_type }
+	}
 }

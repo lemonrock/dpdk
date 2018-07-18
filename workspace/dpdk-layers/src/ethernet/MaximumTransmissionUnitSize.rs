@@ -50,7 +50,7 @@ impl MaximumTransmissionUnitSize
 	#[inline(always)]
 	pub const fn from_ethernet_frame_length(ethernet_frame_length: EthernetFrameLength) -> Self
 	{
-		ethernet_frame_length.to_u16() - EthernetPacketHeader::SizeU16WithFrameCheckSequence
+		MaximumTransmissionUnitSize(ethernet_frame_length.to_u16() - EthernetPacketHeader::SizeU16WithFrameCheckSequence)
 	}
 	
 	/// Value of `data_room_size` passed to `rte_pktmbuf_pool_create()` to ensure that segmentation of receive packets is not needed and packet drops do not occur.
@@ -154,7 +154,7 @@ impl MaximumTransmissionUnitSize
 	#[inline(always)]
 	pub fn requires_jumbo_frames(&self) -> bool
 	{
-		self > Self::EthernetV2
+		self > &Self::EthernetV2
 	}
 	
 	/// Packet fragment size for Internet Protocol version 6 packets.

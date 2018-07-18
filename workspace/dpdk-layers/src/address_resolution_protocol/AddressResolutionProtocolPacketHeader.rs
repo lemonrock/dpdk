@@ -6,13 +6,54 @@
 #[repr(C, packed)]
 pub struct AddressResolutionProtocolPacketHeader
 {
-	hardware_type: HardwareType,
+	#[allow(missing_docs)]
+	pub hardware_type: HardwareType,
 	
-	protocol_type: EtherType,
+	#[allow(missing_docs)]
+	pub protocol_type: EtherType,
 	
-	hardware_address_length: u8,
+	#[allow(missing_docs)]
+	pub hardware_address_length: u8,
 	
-	protocol_address_length: u8,
+	#[allow(missing_docs)]
+	pub protocol_address_length: u8,
 	
-	operation: Operation,
+	#[allow(missing_docs)]
+	pub operation: Operation,
+}
+
+impl AddressResolutionProtocolPacketHeader
+{
+	pub(crate) const HeaderSizeU16: u16 = size_of::<AddressResolutionProtocolPacketHeader>() as u16;
+	
+	/// Use this to eliminate unwanted or invalid ARP traffic.
+	#[inline(always)]
+	pub(crate) fn is_header_invalid_for_internet_protocol_version_4(&self) -> bool
+	{
+		self.is_hardware_type_not_ethernet2() || self.is_protocol_type_not_internet_protocol_version_4() || self.is_hardware_address_length_not_valid_for_internet_protocol_version_4() || self.is_protocol_address_length_not_valid_for_internet_protocol_version_4()
+	}
+	
+	#[inline(always)]
+	fn is_hardware_type_not_ethernet2(&self) -> bool
+	{
+		self.hardware_type.is_not_ethernet2()
+	}
+	
+	#[inline(always)]
+	fn is_protocol_type_not_internet_protocol_version_4(&self) -> bool
+	{
+		self.protocol_type.is_not_internet_protocol_version_4()
+	}
+	
+	#[inline(always)]
+	fn is_hardware_address_length_not_valid_for_internet_protocol_version_4(&self) -> bool
+	{
+		self.hardware_address_length != MediaAccessControlAddress::SizeU8
+	}
+	
+	#[inline(always)]
+	fn is_protocol_address_length_not_valid_for_internet_protocol_version_4(&self) -> bool
+	{
+		self.protocol_address_length != InternetProtocolVersion4HostAddress::SizeU8
+	}
 }

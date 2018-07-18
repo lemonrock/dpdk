@@ -2,8 +2,36 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// Wraps a non-null DPDK packet buffer, `rte_mbuf`.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct PacketBuffer(NonNull<rte_mbuf>);
+
+impl From<NonNull<rte_mbuf>> for PacketBuffer
+{
+	#[inline(always)]
+	fn from(value: NonNull<rte_mbuf>) -> Self
+	{
+		PacketBuffer(value)
+	}
+}
+
+impl Into<NonNull<rte_mbuf>> for PacketBuffer
+{
+	#[inline(always)]
+	fn into(self) -> NonNull<rte_mbuf>
+	{
+		self.0
+	}
+}
+
+impl Into<*mut rte_mbuf> for PacketBuffer
+{
+	#[inline(always)]
+	fn into(self) -> *mut rte_mbuf
+	{
+		self.as_ptr()
+	}
+}
 
 impl PacketBuffer
 {
@@ -29,6 +57,20 @@ impl PacketBuffer
 	
 	/// Maximum number of segment buffers in a packet buffer.
 	pub(crate) const MaximumNumberOfSegmentBuffers: u16 = RTE_MBUF_MAX_NB_SEGS as u16;
+	
+	/// Creates a new wrapper.
+	#[inline(always)]
+	pub(crate) fn from_possibly_null_rte_mbuf(value: *mut rte_mbuf) -> Option<Self>
+	{
+		if value.is_null()
+		{
+			None
+		}
+		else
+		{
+			Some(PacketBuffer(unsafe { NonNull::new_unchecked(value) }))
+		}
+	}
 	
 	/// Packet length if contiguous.
 	///
@@ -90,6 +132,34 @@ impl PacketBuffer
 		self.raw_free()
 	}
 	
+	/// Was VLAN tag control information (TCI) stripped (ie did the hardware pull it out of the received packet and put it into this structure)?
+	#[inline(always)]
+	pub(crate) fn was_vlan_tag_control_information_stripped(self) -> bool
+	{
+		self.has_offload_flags(PKT_RX_VLAN_STRIPPED)
+	}
+	
+	/// Stripped VLAN tag control information (TCI).
+	#[inline(always)]
+	pub(crate) fn stripped_vlan_tag_control_information(self) -> VirtualLanPacketTagControlInformation
+	{
+		VirtualLanPacketTagControlInformation(NetworkByteOrderEndianU16::from_network_byte_order_value(self.reference().vlan_tci))
+	}
+	
+	/// Was VLAN QinQ tag control information (TCI) stripped (ie did the hardware pull it out of the received packet and put it into this structure)?
+	#[inline(always)]
+	pub(crate) fn was_vlan_qinq_tag_control_information_stripped(self) -> bool
+	{
+		self.has_offload_flags(PKT_RX_QINQ_STRIPPED)
+	}
+	
+	/// Stripped VLAN QinQ tag control information (TCI) (outer and inner).
+	#[inline(always)]
+	pub(crate) fn stripped_vlan_qinq_tag_control_information(self) -> (VirtualLanPacketTagControlInformation, VirtualLanPacketTagControlInformation)
+	{
+		(VirtualLanPacketTagControlInformation(NetworkByteOrderEndianU16::from_network_byte_order_value(self.reference().vlan_tci_outer)), self.stripped_vlan_tag_control_information())
+	}
+	
 	/// Checks if this packet is contiguous.
 	#[inline(always)]
 	fn debug_assert_is_contiguous(self)
@@ -122,6 +192,18 @@ impl PacketBuffer
 		let number_of_segments = self.reference().nb_segs;
 		debug_assert_ne!(number_of_segments, 0, "No segments!");
 		number_of_segments
+	}
+	
+	#[inline(always)]
+	fn has_offload_flags(self, flags: u64) -> bool
+	{
+		(self.offload_flags() & flags) != 0
+	}
+	
+	#[inline(always)]
+	fn offload_flags(self) -> u64
+	{
+		self.reference().ol_flags
 	}
 	
 	/// Data length.
@@ -226,19 +308,7 @@ impl PacketBuffer
 //	}
 //
 //
-//	#[doc(hidden)]
-//	#[inline(always)]
-//	fn has_offload_flag(self, flag: u64) -> bool
-//	{
-//		(self.offload_flags() & flag) == flag
-//	}
-//
-//	#[doc(hidden)]
-//	#[inline(always)]
-//	fn offload_flags(self) -> u64
-//	{
-//		self.reference().offload_flags
-//	}
+
 //
 //	/// Set this packet to be ignored.
 //	#[inline(always)]
@@ -463,33 +533,7 @@ impl PacketBuffer
 //		unsafe { rust_rte_pktmbuf_free(self.as_ptr()) };
 //	}
 //
-//	/// Was VLAN QinQ tag control information (TCI) stripped (ie did the hardware pull it out of the received packet and put it into this structure)?
-//	#[inline(always)]
-//	fn was_vlan_qinq_tag_control_information_stripped(self) -> bool
-//	{
-//		self.has_offload_flag(PKT_RX_QINQ_STRIPPED)
-//	}
 //
-//	/// Stripped VLAN QinQ tag control information (TCI) (outer and inner).
-//	#[inline(always)]
-//	fn stripped_vlan_qinq_tag_control_information(self) -> (VirtualLanPacketTagControlInformation, VirtualLanPacketTagControlInformation)
-//	{
-//		(VirtualLanPacketTagControlInformation(NetworkByteOrderEndianU16::from_network_byte_order_value(self.reference().vlan_tci_outer)), self.stripped_vlan_tag_control_information())
-//	}
-//
-//	/// Was VLAN tag control information (TCI) stripped (ie did the hardware pull it out of the received packet and put it into this structure)?
-//	#[inline(always)]
-//	fn was_vlan_tag_control_information_stripped(self) -> bool
-//	{
-//		self.has_offload_flag(PKT_RX_VLAN_STRIPPED)
-//	}
-//
-//	/// Stripped VLAN tag control information (TCI).
-//	#[inline(always)]
-//	fn stripped_vlan_tag_control_information(self) -> VirtualLanPacketTagControlInformation
-//	{
-//		VirtualLanPacketTagControlInformation(NetworkByteOrderEndianU16::from_network_byte_order_value(self.reference().vlan_tci))
-//	}
 //
 //	/// Was IEEE1588 (802.1AS) timestamp stripped (ie did the hardware pull it out of the received packet and put it into this structure)?
 //	///

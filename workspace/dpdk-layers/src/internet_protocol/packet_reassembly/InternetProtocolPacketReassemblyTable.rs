@@ -32,7 +32,7 @@ impl PrintInformation for InternetProtocolPacketReassemblyTable
 	#[inline(always)]
 	fn print_information_to_stream(&self, stream: *mut FILE)
 	{
-		unsafe { rte_ip_frag_table_statistics_dump(stream, self.handle() as *const _) }
+		unsafe { rte_ip_frag_table_statistics_dump(stream, self.fragmentation_table_pointer() as *const _) }
 	}
 }
 
@@ -56,84 +56,41 @@ impl InternetProtocolPacketReassemblyTable
 	/// Please see the IMPORTANT NOTICE above which explains why this language has been used.
 	const DeathRowPreFetchFactor: u32 = 3;
 	
-	/// Checks if an internet protocol (IP) version 4 packet is fragmented.
+	/// * `maximum_number_of_packets_being_reassembled_at_any_one_time` can not be zero. A typical value is 4094.
+	/// * `reassembly_timeout` can not be zero. RFC 1122 states it should be between 60 seconds and 120 seconds; Linux defaults to 30 seconds.
+	/// * `entries_per_bucket` can not be zero and should be a power of 2; it is rounded up if not. A typical value is 8 or 16.
 	#[inline(always)]
-	pub fn is_internet_protocol_version_4_packet_fragmented(header: NonNull<ipv4_hdr>) -> bool
+	pub fn create(maximum_number_of_packets_being_reassembled_at_any_one_time: u16, entries_per_bucket: u16, reassembly_timeout: Seconds, numa_node_choice: NumaNodeChoice) -> Result<Self, ()>
 	{
-		match unsafe { rust_rte_ipv4_frag_pkt_is_fragmented(header.as_ptr() as *const _) }
-		{
-			0 => false,
-			1 => true,
-			illegal @ _ => panic!("rust_rte_ipv4_frag_pkt_is_fragmented() returned illegal value '{}'", illegal),
-		}
-	}
-	
-	/// If an internet protocol (IP) version 6 packet is fragmented, gets the fragmentation header.
-	///
-	/// Current implementation is naive and only checks first extension header.
-	///
-	/// Returns null if no header is present.
-	#[inline(always)]
-	pub fn is_internet_protocol_version_6_packet_fragmented(header: NonNull<ipv6_hdr>) -> *mut ipv6_extension_fragment
-	{
-		unsafe { rust_rte_ipv6_frag_get_ipv6_fragment_header(header.as_ptr()) }
-	}
-	
-	/// Number of Buckets:-
-	///
-	/// * `librte_port/rte_port_ras.c` uses `RTE_PORT_RAS_N_BUCKETS`, 4094.
-	/// * `main.c` in the DPDK ip_reassembly example uses maximumFlowNumber, 1 - 65535, default value is 4096.
-	/// * Documentation uses maximumFlowNumber + maximumFlowNumber / 4.
-	/// * We use 4094.
-	///
-	/// Entries per Bucket:-
-	///
-	/// * `librte_port/rte_port_ras.c` uses `RTE_PORT_RAS_N_ENTRIES_PER_BUCKET`, 8.
-	/// * `main.c` in the DPDK ip_reassembly example uses `IP_FRAG_TBL_BUCKET_ENTRIES`, 16.
-	/// * We use 16.
-	///
-	/// MaximumFlowTimeToLive is calculated from maximum_time_to_live_in_cycles_for_each_fragmented_packet in all examples using the same calculation.
-	///
-	/// * `librte_port/rte_port_ras.c` uses maximum_flow_time_to_live of `MS_PER_S * 100`, ie 100 seconds.
-	/// * `main.c` in the DPDK ip_reassembly example uses 1 second.
-	/// * We use 100 seconds.
-	#[inline(always)]
-	pub fn defaultish(numa_node_choice: NumaNodeChoice) -> Self
-	{
-		const NumberOfBuckets: u16 = 4094;
-		const EntriesPerBucket: PowerOfTwoSixteenBit = PowerOfTwoSixteenBit::_16;
-		const MaximumFlowTimeToLive: Seconds = Seconds::from(100u64);
-		Self::create(NumberOfBuckets, EntriesPerBucket, MaximumFlowTimeToLive, numa_node_choice)
-	}
-	
-	/// `number_of_buckets` is really the maximum number of active flows, ie, of sets of fragmented packets.
-	#[inline(always)]
-	pub fn create(number_of_buckets: u16, entries_per_bucket: PowerOfTwoSixteenBit, maximum_flow_time_to_live: Seconds, numa_node_choice: NumaNodeChoice) -> Option<Self>
-	{
-		let number_of_cycles_in_one_second_for_the_tsc_timer = Hertz::number_of_cycles_in_one_second_for_the_tsc_timer().into();
-		let number_of_buckets = number_of_buckets as u32;
-		let entries_per_bucket = (entries_per_bucket as u16) as u32;
-		// * `librte_port/rte_port_ras.c` uses `RTE_PORT_RAS_N_ENTRIES = RTE_PORT_RAS_N_BUCKETS * RTE_PORT_RAS_N_ENTRIES_PER_BUCKET`.
-		// * `main.c` in the DPDK ip_reassembly example uses `maximumFlowNumber, 1 - 65535`, default value is `4096`.
+		debug_assert_ne!(maximum_number_of_packets_being_reassembled_at_any_one_time, 0, "maximum_number_of_packets_being_reassembled_at_any_one_time can not be zero");
+		
+		let number_of_buckets = maximum_number_of_packets_being_reassembled_at_any_one_time as u32;
+		let entries_per_bucket = (entries_per_bucket.checked_next_power_of_two().expect("entries_per_bucket is too large; it can not exceed 2^15")) as u32;
+		
 		let maximum_entries = number_of_buckets * entries_per_bucket;
 		let death_row = rte_ip_frag_death_row::default();
 		
-		debug_assert_ne!(number_of_buckets, 0, "number_of_buckets can not be zero");
-		debug_assert!(!maximum_flow_time_to_live.is_zero(), "maximum_flow_time_to_live can not be zero");
-		debug_assert_ne!(number_of_cycles_in_one_second_for_the_tsc_timer, 0, "number_of_cycles_in_one_second_for_the_tsc_timer can not be zero");
-		debug_assert!(maximum_entries <= (number_of_buckets * entries_per_bucket), "maximum_entries should be less than or equal to number_of_buckets * entries_per_bucket");
+		debug_assert!(maximum_entries <= (number_of_buckets * entries_per_bucket), "maximum_entries should be less than or equal to maximum_number_of_packets_being_reassembled_at_any_one_time * entries_per_bucket");
 		debug_assert!(Self::DeathRowPreFetchFactor as usize <= death_row.row.len(), "The DeathRowPreFetchFactor '{}' exceeds the maximum size of death_row.row.len() '{}'.");
 		
-		let maximum_time_to_live_in_cycles_for_each_fragmented_packet = number_of_cycles_in_one_second_for_the_tsc_timer * maximum_flow_time_to_live.into();
-
-		let result = unsafe { rte_ip_frag_table_create(number_of_buckets, entries_per_bucket, maximum_entries, maximum_time_to_live_in_cycles_for_each_fragmented_packet, numa_node_choice.into()) };
+		let reassembly_timeout_cycles =
+		{
+			debug_assert_ne!(reassembly_timeout, Seconds::Zero, "reassembly_timeout can not be zero");
+			debug_assert!(reassembly_timeout <= Seconds::TwoMinutes, "reassembly_timeout can not exceed 2 minutes");
+			
+			let number_of_cycles_in_one_second_for_the_tsc_timer = Hertz::number_of_cycles_in_one_second_for_the_tsc_timer().into();
+			debug_assert_ne!(number_of_cycles_in_one_second_for_the_tsc_timer, 0, "number_of_cycles_in_one_second_for_the_tsc_timer can not be zero");
+			number_of_cycles_in_one_second_for_the_tsc_timer * reassembly_timeout.into()
+		};
+		
+		let result = unsafe { rte_ip_frag_table_create(number_of_buckets, entries_per_bucket, maximum_entries, reassembly_timeout_cycles, numa_node_choice.into()) };
 		if unlikely!(result.is_null())
 		{
-			None
+			Err(())
 		}
 		else
 		{
-			Some
+			Ok
 			(
 				Self
 				{
@@ -146,36 +103,61 @@ impl InternetProtocolPacketReassemblyTable
 	
 	/// Reassembles an internet protocol (IP) version 4 packet.
 	///
+	/// The packet does not have to be fragmented; unfragmented packets are passed back.
+	///
 	/// At point of entry, `l2_len` and `l3_len` need to be set correctly.
 	///
-	/// `header_inside_incoming_fragmented_packet` must be be pointers into `incoming_fragmented_packet`.
+	/// `header_inside_incoming_packet` must point into `incoming_packet`.
 	///
-	/// Result may be null, the same packet or a different packet as `incoming_fragmented_packet`.
+	/// Result may be none, the same packet or a different packet as `incoming_packet`.
 	///
-	/// A null result implies that the `incoming_fragmented_packet` was a fragment and that not all fragments have been received.
+	/// A none result implies that the `incoming_packet` was a fragment and that not all fragments have been received.
 	///
-	/// `fragment_arrival_time_stamp_from_rdtsc` is expensive to compute. Use `Cycles::current_rdtsc_cycles_since_boot().into()`.
+	/// `incoming_packet_arrival_timestamp` is expensive to compute.
+	///
+	/// Use `Cycles::current_rdtsc_cycles_since_boot()` or a cached value.
 	#[inline(always)]
-	pub fn reassemble_fragmented_internet_protocol_version_4_packet(&mut self, incoming_fragmented_packet: NonNull<rte_mbuf>, fragment_arrival_time_stamp_from_rdtsc: u64, header_inside_incoming_fragmented_packet: NonNull<ipv4_hdr>) -> *mut rte_mbuf
+	pub fn reassemble_fragmented_internet_protocol_version_4_packet(&mut self, incoming_packet: PacketBuffer, incoming_packet_arrival_timestamp: Cycles, header_inside_incoming_packet: &InternetProtocolVersion4PacketHeader) -> Option<PacketBuffer>
 	{
-		unsafe { rte_ipv4_frag_reassemble_packet(self.fragmentation_table.as_ptr(), &mut self.death_row, incoming_fragmented_packet, fragment_arrival_time_stamp_from_rdtsc, header_inside_incoming_fragmented_packet) }
+		if header_inside_incoming_packet.is_fragmented()
+		{
+			let result = unsafe { rte_ipv4_frag_reassemble_packet(self.fragmentation_table_pointer(), self.death_row(), incoming_packet.as_ptr(), incoming_packet_arrival_timestamp.into(), header_inside_incoming_packet.to_dpdk().as_ptr()) };
+			
+			PacketBuffer::from_possibly_null_rte_mbuf(result)
+		}
+		else
+		{
+			Some(incoming_packet)
+		}
 	}
 	
 	/// Reassembles an internet protocol (IP) version 6 packet.
 	///
+	/// The packet does not have to be fragmented; unfragmented packets are passed back.
+	///
 	/// At point of entry, `l2_len` and `l3_len` need to be set correctly.
 	///
-	/// `header_inside_incoming_fragmented_packet` and `extension_header_fragment_inside_incoming_fragmented_packet` must be pointers into `incoming_fragmented_packet`.
+	/// `header_inside_incoming_packet` and `extension_header_fragment_inside_incoming_packet` must be pointers into `incoming_packet`.
 	///
-	/// Result may be null, the same packet or a different packet as `incoming_fragmented_packet`.
+	/// Result may be none, the same packet or a different packet as `incoming_packet`.
 	///
-	/// A null result implies that the `incoming_fragmented_packet` was a fragment and that not all fragments have been received.
+	/// A none result implies that the `incoming_packet` was a fragment and that not all fragments have been received.
 	///
-	/// `fragment_arrival_time_stamp_from_rdtsc` is expensive to compute. Use `Cycles::current_rdtsc_cycles_since_boot().into()`.
+	/// `incoming_packet_arrival_timestamp` is expensive to compute.
+	///
+	/// Use `Cycles::current_rdtsc_cycles_since_boot()` or a cached value.
 	#[inline(always)]
-	pub fn reassemble_fragmented_internet_protocol_version_6_packet(&mut self, incoming_fragmented_packet: NonNull<rte_mbuf>, fragment_arrival_time_stamp_from_rdtsc: u64, header_inside_incoming_fragmented_packet: NonNull<ipv6_hdr>, extension_header_fragment_inside_incoming_fragmented_packet: NonNull<ipv6_extension_fragment>) -> *mut rte_mbuf
+	pub fn reassemble_fragmented_internet_protocol_version_6_packet(&mut self, incoming_packet: PacketBuffer, incoming_packet_arrival_timestamp: Cycles, header_inside_incoming_packet: &InternetProtocolVersion6PacketHeader, extension_header_fragment_inside_incoming_packet: NonNull<ipv6_extension_fragment>) -> Option<PacketBuffer>
 	{
-		unsafe { rte_ipv6_frag_reassemble_packet(self.fragmentation_table.as_ptr(), &mut self.death_row, incoming_fragmented_packet, fragment_arrival_time_stamp_from_rdtsc, header_inside_incoming_fragmented_packet.as_ptr(), extension_header_fragment_inside_incoming_fragmented_packet.as_ptr()) }
+		let extension_header_fragment_inside_incoming_packet = header_inside_incoming_packet.is_fragmented();
+		if extension_header_fragment_inside_incoming_packet.is_null()
+		{
+			return Some(incoming_packet)
+		}
+		
+		let result = unsafe { rte_ipv6_frag_reassemble_packet(self.fragmentation_table_pointer(), self.death_row(), incoming_packet.as_ptr(), incoming_packet_arrival_timestamp.into(), header_inside_incoming_packet.to_dpdk().as_ptr(), extension_header_fragment_inside_incoming_packet as *mut _) };
+		
+		PacketBuffer::from_possibly_null_rte_mbuf(result)
 	}
 	
 	/// Call this once after adding all fragments with either `reassemble_fragmented_internet_protocol_version_4_packet` or `reassemble_fragmented_internet_protocol_version_6_packet`.
@@ -203,5 +185,16 @@ impl InternetProtocolPacketReassemblyTable
 	{
 		unsafe { rte_ip_frag_free_death_row(&mut self.death_row, Self::DeathRowPreFetchFactor) };
 	}
+	
+	#[inline(always)]
+	fn fragmentation_table_pointer(&self) -> *mut rte_ip_frag_tbl
+	{
+		self.fragmentation_table.as_ptr()
+	}
+	
+	/// Please see the IMPORTANT NOTICE above which explains why this language has been used
+	fn death_row(&mut self) -> &mut rte_ip_frag_death_row
+	{
+		&mut self.death_row
+	}
 }
-

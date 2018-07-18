@@ -20,6 +20,6 @@ impl VirtualLanPacket
 	#[inline(always)]
 	pub(crate) fn potentially_invalid_ether_type(&self) -> EtherType
 	{
-		unsafe { self.header.ether_type_or_legacy_ethernet_frame_size.ether_type }
+		self.header.potentially_invalid_ether_type()
 	}
 }

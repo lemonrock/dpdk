@@ -29,7 +29,7 @@ impl Debug for MediaAccessControlAddress
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		let bytes = &self.0.addr_bytes;
+		let bytes = &self.0;
 		write!(f, "{:02X}-{:02X}-{:02X}-{:02X}-{:02X}-{:02X}", bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5])
 	}
 }
@@ -48,9 +48,9 @@ impl<'deserialize> Deserialize<'deserialize> for MediaAccessControlAddress
 	#[inline(always)]
 	fn deserialize<D: Deserializer<'deserialize>>(deserializer: D) -> Result<Self, D::Error>
 	{
-		struct FromString;
+		struct FromStr;
 		
-		impl<'deserialize> Visitor<'deserialize> for FromString
+		impl<'deserialize> Visitor<'deserialize> for FromStr
 		{
 			type Value = MediaAccessControlAddress;
 			
@@ -103,7 +103,7 @@ impl<'deserialize> Deserialize<'deserialize> for MediaAccessControlAddress
 			}
 		}
 		
-		deserializer.deserialize(FromString)
+		deserializer.deserialize_str(FromStr)
 	}
 }
 
@@ -132,7 +132,7 @@ impl MediaAccessControlAddress
 	#[inline(always)]
 	pub fn ibm_token_ring_bit_reversed_format(&self, f: &mut Formatter) -> fmt::Result
 	{
-		let bytes = &self.0.addr_bytes;
+		let bytes = &self.0;
 		write!(f, "{:02X}:{:02X}:{:02X}:{:02X}:{:02X}:{:02X}", bytes[5].reverse_bits(), bytes[4].reverse_bits(), bytes[3].reverse_bits(), bytes[2].reverse_bits(), bytes[1].reverse_bits(), bytes[0].reverse_bits())
 	}
 	
@@ -178,21 +178,21 @@ impl MediaAccessControlAddress
 	#[inline(always)]
 	pub fn to_octets(self) -> [u8; Self::Size]
 	{
-		self.0.addr_bytes
+		self.0
 	}
 	
 	/// To octets.
 	#[inline(always)]
 	pub fn to_octets_reference(&self) -> &[u8; Self::Size]
 	{
-		&self.0.addr_bytes
+		&self.0
 	}
 	
 	/// To octets.
 	#[inline(always)]
 	pub fn to_octets_mutable_reference(&mut self) -> &mut [u8; Self::Size]
 	{
-		&mut self.0.addr_bytes
+		&mut self.0
 	}
 	
 	/// Size (in bytes) of an Organizationally Unique Identifier (OUI).
@@ -517,24 +517,24 @@ impl MediaAccessControlAddress
 	#[inline(always)]
 	fn get_first_byte(&self) -> u8
 	{
-		*unsafe { self.0.addr_bytes.get_unchecked(0) }
+		*unsafe { self.0.get_unchecked(0) }
 	}
 	
 	#[inline(always)]
 	fn get_first_two_bytes_network_endian(&self) -> u16
 	{
-		unsafe { *(self.0.addr_bytes.get_unchecked(0) as *const u16) }
+		unsafe { *(self.0.get_unchecked(0) as *const u16) }
 	}
 	
 	#[inline(always)]
 	fn get_first_four_bytes_network_endian(&self) -> u32
 	{
-		unsafe { *(self.0.addr_bytes.get_unchecked(0) as *const u32) }
+		unsafe { *(self.0.get_unchecked(0) as *const u32) }
 	}
 	
 	#[inline(always)]
 	fn get_last_two_bytes_network_endian(&self) -> u16
 	{
-		unsafe { *(self.0.addr_bytes.get_unchecked(3) as *const u16) }
+		unsafe { *(self.0.get_unchecked(3) as *const u16) }
 	}
 }

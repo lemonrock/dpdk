@@ -87,4 +87,19 @@ impl PacketProcessingConfiguration
 		
 		!self.is_internet_protocol_version_4_host_address_one_of_ours(internet_protocol_version_4_host_address)
 	}
+	
+	#[inline(always)]
+	pub(crate) fn internet_protocol_version_4_host_address_conflict(&self, packet: PacketBuffer)
+	{
+		// TODO: Handle ARP host address conflicts.
+		eprintln!("ARP is not supported");
+		finish!(packet)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn add_to_address_resolution_cache(&self, sender_hardware_address: &MediaAccessControlAddress, sender_protocol_address: InternetProtocolVersion4HostAddress)
+	{
+		// TODO: Manage an ARP cache.
+		eprintln!("ARP is not supported");
+	}
 }

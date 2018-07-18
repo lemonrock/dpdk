@@ -11,10 +11,26 @@
 /// For all unicast addresses, except those that start with the binary value 000, Interface IDs are required to be 64 bits long. If derived from an IEEE MAC-layer address, they must be constructed in Modified EUI-64 format (see RFC 4291 Appendix A (Creating Modified EUI-64 Format Interface Identifiers) updated by RFC 7136 section 5).
 ///
 /// Currently globally routable address assignments are at <https://www.iana.org/assignments/ipv6-unicast-address-assignments/ipv6-unicast-address-assignments.xhtml>.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Serialize, Deserialize)]
 #[repr(packed)]
 pub struct InternetProtocolVersion6HostAddress(pub [u8; InternetProtocolVersion6HostAddress::Size]);
+
+impl Display for InternetProtocolVersion6HostAddress
+{
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}", self.to_rust_address())
+	}
+}
+
+impl Debug for InternetProtocolVersion6HostAddress
+{
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{:?}", self.to_rust_address())
+	}
+}
 
 impl Default for InternetProtocolVersion6HostAddress
 {
@@ -38,7 +54,7 @@ impl InternetProtocolHostAddress for InternetProtocolVersion6HostAddress
 	
 	const Size: usize = 16;
 	
-	const SizeU8: usize = 16;
+	const SizeU8: u8 = 16;
 	
 	type MaskBits = InternetProtocolVersion6MaskBits;
 	

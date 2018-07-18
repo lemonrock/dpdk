@@ -9,3 +9,13 @@ pub struct InternetProtocolVersion6Packet
 	/// Header.
 	pub header: InternetProtocolVersion6PacketHeader,
 }
+
+impl InternetProtocolVersion6Packet
+{
+	/// Use this to eliminate invalid traffic.
+	#[inline(always)]
+	pub(crate) fn is_packet_length_too_short(layer_3_length: u16) -> bool
+	{
+		layer_3_length < InternetProtocolVersion6PacketHeader::HeaderSizeU16
+	}
+}

@@ -6,10 +6,17 @@
 #[repr(C, packed)]
 pub struct AddressResolutionProtocolPacketInternetProtocolVersion4Payload
 {
-	sender_hardware_address: MediaAccessControlAddress,
-	sender_protocol_address: InternetProtocolVersion4HostAddress,
-	target_hardware_address: MediaAccessControlAddress,
-	target_protocol_address: InternetProtocolVersion4HostAddress,
+	#[allow(missing_docs)]
+	pub sender_hardware_address: MediaAccessControlAddress,
+	
+	#[allow(missing_docs)]
+	pub sender_protocol_address: InternetProtocolVersion4HostAddress,
+	
+	#[allow(missing_docs)]
+	pub target_hardware_address: MediaAccessControlAddress,
+	
+	#[allow(missing_docs)]
+	pub target_protocol_address: InternetProtocolVersion4HostAddress,
 }
 
 impl AddressResolutionProtocolPacketInternetProtocolVersion4Payload

@@ -66,7 +66,7 @@ impl LongestPrefixMatchTable for InternetProtocolVersion4LongestPrefixMatchTable
 	{
 		let mut routing_table_key = unsafe { uninitialized() };
 
-		let result = unsafe { rust_rte_lpm_lookup(self.pointer(), *internet_protocol_address, &mut routing_table_key) };
+		let result = unsafe { rust_rte_lpm_lookup(self.pointer(), internet_protocol_address.as_network_endian(), &mut routing_table_key) };
 		
 		if likely!(result == 0)
 		{
@@ -93,7 +93,7 @@ impl LongestPrefixMatchTable for InternetProtocolVersion4LongestPrefixMatchTable
 		let internet_protocol_address = network_address.network();
 		let depth = network_address.mask_bits_as_depth();
 
-		let result = unsafe { rte_lpm_add(self.pointer(), *internet_protocol_address, depth, routing_table_key) };
+		let result = unsafe { rte_lpm_add(self.pointer(), internet_protocol_address.as_network_endian(), depth, routing_table_key) };
 		if likely!(result == 0)
 		{
 			true
@@ -116,7 +116,7 @@ impl LongestPrefixMatchTable for InternetProtocolVersion4LongestPrefixMatchTable
 
 		let mut routing_table_key = unsafe { uninitialized() };
 
-		let result = unsafe { rte_lpm_is_rule_present(self.pointer(), *internet_protocol_address, depth, &mut routing_table_key) };
+		let result = unsafe { rte_lpm_is_rule_present(self.pointer(), internet_protocol_address.as_network_endian(), depth, &mut routing_table_key) };
 
 		match result
 		{
@@ -133,7 +133,7 @@ impl LongestPrefixMatchTable for InternetProtocolVersion4LongestPrefixMatchTable
 		let internet_protocol_address = network_address.network();
 		let depth = network_address.mask_bits_as_depth();
 
-		let result = unsafe { rte_lpm_delete(self.pointer(), *internet_protocol_address, depth) };
+		let result = unsafe { rte_lpm_delete(self.pointer(), internet_protocol_address.as_network_endian(), depth) };
 		if likely!(result == 0)
 		{
 			true

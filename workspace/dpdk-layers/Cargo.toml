@@ -28,8 +28,26 @@ dpdk-time = { path = "../dpdk-time", version = "0.0.6" }
 dpdk-unix = { path = "../dpdk-unix", version = "0.0.6" }
 hyper-thread-random = "^0.4"
 libc = "^0.2"
-rust-extra = "0.0.13"
 serde = "1.0"
 serde_derive = "1.0"
 syscall-alt = "0.0.14"
 treebitmap = "^0.3"
+
+
+[features]
+default = ["drop-packets-with-ipv4-options", "drop-ipv4-packets-with-do-not-fragment-and-non-zero-identification"]
+
+# Drops internet protocol (IP) version 4 packets with IP options.
+#
+# Enabled by default.
+#
+# Violates RFC 791 but IP options are very rarely used, the few that are used have potential to be used as attack vectors and none have any meaning to this library.
+drop-packets-with-ipv4-options = []
+
+# Drops internet protocol (IP) version 4 packets with the Do Not Fragment (DF) flag set and a non-zero (fragment) identification.
+#
+# Enabled by default.
+#
+# Violates RFC 6864 section 4.1 paragraph 5 but there is no good reason to send IP packets with DF set and a non-zero (fragment) identification.
+# In particular, the identification field in these cases can be used as a covert channel and to infer the number of devices behind a NAT proxy.
+drop-ipv4-packets-with-do-not-fragment-and-non-zero-identification = []

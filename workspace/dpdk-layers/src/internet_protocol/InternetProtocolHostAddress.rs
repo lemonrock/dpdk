@@ -3,13 +3,13 @@
 
 
 /// A trait abstracting the similarities between internet protocol (IP) version 4 and version 6 host addresses.
-pub trait InternetProtocolHostAddress: Sized + Default + Eq + Hash + Serialize
+pub trait InternetProtocolHostAddress: Sized + Display + Debug + Default + Eq + Hash + Serialize
 {
 	/// eg `u128`.
-	type BigEndianValue;
+	type BigEndianValue: Debug;
 	
 	/// eg `Ipv6Addr`.
-	type RustAddress;
+	type RustAddress: Debug;
 	
 	/// eg `in6_addr`.
 	type LibCAddress;
@@ -23,8 +23,8 @@ pub trait InternetProtocolHostAddress: Sized + Default + Eq + Hash + Serialize
 	/// Size of an Internet Protocol (IP) host address.
 	const Size: usize;
 	
-	/// Size of an Internet Protocol (IP) host address. (as an u8).
-	const SizeU8: usize;
+	/// Size of an Internet Protocol (IP) host address, as an u8.
+	const SizeU8: u8;
 	
 	/// From a network (big) endian u32 or u128.
 	#[inline(always)]

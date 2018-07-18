@@ -3,8 +3,8 @@
 
 
 /// Mask bits.
-pub trait InternetProtocolMaskBits
+pub trait InternetProtocolMaskBits: Sized + Debug
 {
 	/// Internet Protocol (IP) version 4 or 6.
-	type InternetProtocolHostAddress: Sized;
+	type HostAddress: InternetProtocolHostAddress;
 }

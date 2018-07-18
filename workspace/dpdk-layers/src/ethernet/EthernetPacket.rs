@@ -113,7 +113,7 @@ macro_rules! process_802_1ad_virtual_lan_tagging
 
 			let packet_processing_configuration = parse_802_1ad_virtual_lan_tag_control_information!(outer_tag_control_information, inner_tag_control_information, $packet, $packet_processing_configuration_by_virtual_lan);
 
-			let layer_3_length = $packet.packet_length_if_contiguous_less_ethernet_packet_header() - (VirtualLanPacketHeader::VirtualLanPacketHeader::QinQVirtualLanPacketHeaderSizeU16 + VirtualLanPacketHeader::VirtualLanPacketHeaderSizeU16);
+			let layer_3_length = $packet.packet_length_if_contiguous_less_ethernet_packet_header() - (VirtualLanPacketHeader::QinQVirtualLanPacketHeaderSizeU16 + VirtualLanPacketHeader::VirtualLanPacketHeaderSizeU16);
 			let layer_3_packet = unsafe { &mut inner_virtual_lan_packet.layer_3_packet };
 			Self::process_layer_3(layer_3_packet, $packet, packet_processing_configuration, layer_3_length, inner_virtual_lan_packet.header.potentially_invalid_ether_type())
 		}
@@ -141,7 +141,7 @@ macro_rules! guard_ethernet_addresses
 	{
 		{
 			let source_ethernet_address = &$self.header.source_address;
-			let destination_ethernet_address = &$self.destination.source_address;
+			let destination_ethernet_address = &$self.header.destination_address;
 			
 			if unlikely!(source_ethernet_address.is_not_valid_unicast())
 			{
@@ -183,7 +183,7 @@ macro_rules! guard_ethernet_addresses_and_compute_packet_length
 	($self: ident, $packet: ident, $packet_processing_configuration_by_virtual_lan: ident) =>
 	{
 		{
-			let packet_processing_configuration = $packet_processing_configuration_by_virtual_lan.none;
+			let packet_processing_configuration = &$packet_processing_configuration_by_virtual_lan.none;
 
 			let (source_ethernet_address, destination_ethernet_address) = guard_ethernet_addresses!($self, $packet, packet_processing_configuration);
 
@@ -205,13 +205,13 @@ impl EthernetPacket
 
 		let packet_processing_configuration = if packet.was_vlan_tag_control_information_stripped()
 		{
-			let tag_control_information = packet.stripped_vlan_qinq_tag_control_information();
-			parse_802_1q_virtual_lan_tag_control_information!(tag_control_information, packet, packet_processing_configuration_by_virtual_lan);
+			let tag_control_information = packet.stripped_vlan_tag_control_information();
+			parse_802_1q_virtual_lan_tag_control_information!(tag_control_information, packet, packet_processing_configuration_by_virtual_lan)
 		}
 		else if unlikely!(packet.was_vlan_qinq_tag_control_information_stripped())
 		{
 			let (outer_tag_control_information, inner_tag_control_information) = packet.stripped_vlan_qinq_tag_control_information();
-			parse_802_1ad_virtual_lan_tag_control_information!(outer_tag_control_information, inner_tag_control_information, packet, packet_processing_configuration_by_virtual_lan);
+			parse_802_1ad_virtual_lan_tag_control_information!(outer_tag_control_information, inner_tag_control_information, packet, packet_processing_configuration_by_virtual_lan)
 		}
 		else
 		{
@@ -229,11 +229,11 @@ impl EthernetPacket
 
 		if packet.was_vlan_tag_control_information_stripped()
 		{
-			let tag_control_information = packet.stripped_vlan_qinq_tag_control_information();
+			let tag_control_information = packet.stripped_vlan_tag_control_information();
 			let packet_processing_configuration = parse_802_1q_virtual_lan_tag_control_information!(tag_control_information, packet, packet_processing_configuration_by_virtual_lan);
 
 			let layer_3_length = packet.packet_length_if_contiguous_less_ethernet_packet_header();
-			self.layer_3_packet().process(packet, packet_processing_configuration, layer_3_length, self.potentially_invalid_ether_type())
+			self.process(packet, packet_processing_configuration, layer_3_length, self.potentially_invalid_ether_type())
 		}
 		else
 		{

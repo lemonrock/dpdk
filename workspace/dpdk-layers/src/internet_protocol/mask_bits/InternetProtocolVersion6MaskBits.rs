@@ -550,5 +550,5 @@ pub enum InternetProtocolVersion6MaskBits
 
 impl InternetProtocolMaskBits for InternetProtocolVersion6MaskBits
 {
-	type InternetProtocolHostAddress = InternetProtocolVersion6HostAddress;
+	type HostAddress = InternetProtocolVersion6HostAddress;
 }

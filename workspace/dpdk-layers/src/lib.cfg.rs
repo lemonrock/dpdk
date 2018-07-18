@@ -10,7 +10,6 @@ extern crate dpdk_sys;
 extern crate dpdk_time;
 extern crate hyper_thread_random;
 extern crate libc;
-extern crate rust_extra;
 extern crate serde;
 #[macro_use] extern crate serde_derive;
 extern crate syscall_alt;
@@ -18,6 +17,7 @@ extern crate treebitmap;
 
 
 use self::ethernet::*;
+use self::address_resolution_protocol::*;
 use self::internet_protocol::*;
 use self::internet_protocol::longest_prefix_matching::*;
 use self::internet_protocol::mask_bits::*;
@@ -29,13 +29,13 @@ use ::arrayvec::ArrayVec;
 use ::dpdk_core::*;
 use ::dpdk_core::print_information::*;
 use ::dpdk_sys::*;
-use ::dpdk_time::Seconds;
+use ::dpdk_time::Cycles;
 use ::dpdk_time::Hertz;
+use ::dpdk_time::Seconds;
 use ::libc::*;
-use ::rust_extra::arrays::*;
-use ::rust_extra::powersOfTwo::*;
 use serde::de;
 use serde::de::Deserialize;
+use serde::de::DeserializeOwned;
 use serde::de::Deserializer;
 use serde::de::Visitor;
 use serde::ser::Serialize;
@@ -58,6 +58,7 @@ use ::std::mem::zeroed;
 use ::std::net::Ipv4Addr;
 use ::std::net::Ipv6Addr;
 use ::std::ptr::copy_nonoverlapping;
+use ::std::ptr::null;
 use ::std::ptr::null_mut;
 use ::std::ptr::NonNull;
 use ::std::str::SplitN;
@@ -78,9 +79,8 @@ macro_rules! finish
 }
 
 
-// Currently not compiling and not yet required.
-// /// Address Resolution Protocol (ARP).
-// pub mod address_resolution_protocol;
+/// Address Resolution Protocol (ARP).
+pub mod address_resolution_protocol;
 
 
 /// Ethernet.

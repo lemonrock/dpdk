@@ -5,7 +5,7 @@
 use super::*;
 
 
-include!("AddressResolutionProtocolAddressConflictState.rs");
+//include!("AddressResolutionProtocolAddressConflictState.rs");
 include!("AddressResolutionProtocolPacket.rs");
 include!("AddressResolutionProtocolPacketHeader.rs");
 include!("AddressResolutionProtocolPacketInternetProtocolVersion4Payload.rs");

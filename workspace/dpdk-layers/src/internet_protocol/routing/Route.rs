@@ -38,7 +38,7 @@ impl<HostAddress: InternetProtocolHostAddress> Route<HostAddress>
 {
 	/// Next hop internet protocol host address.
 	#[inline(always)]
-	pub fn next_hop_internet_protocol_host_address(&self, destination_internet_protocol_host_address: &HostAddress) -> &HostAddress
+	pub fn next_hop_internet_protocol_host_address<'a>(&'a self, destination_internet_protocol_host_address: &'a HostAddress) -> &'a HostAddress
 	{
 		match self.router
 		{
@@ -55,7 +55,7 @@ impl<HostAddress: InternetProtocolHostAddress> Route<HostAddress>
 	{
 		match self.media_access_control_address
 		{
-			Some(media_access_control_address) => media_access_control_address,
+			Some(media_access_control_address) => Ok(media_access_control_address),
 			None => next_hop_internet_protocol_host_address.to_media_access_control_address(),
 		}
 	}

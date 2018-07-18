@@ -21,6 +21,8 @@ pub mod routing;
 
 include!("DifferentiatedServiceCodePoint.rs");
 include!("ExplicitCongestionNotification.rs");
+include!("ExtensionHeaderType.rs");
+include!("ExtensionHeaderTypeOrLayer4ProtocolNumber.rs");
 include!("InternetHeaderLength.rs");
 include!("InternetProtocolHostAddress.rs");
 include!("InternetProtocolNetworkAddress.rs");
@@ -36,4 +38,5 @@ include!("InternetProtocolVersion6MulticastAddressScope.rs");
 include!("InternetProtocolVersion6NetworkAddress.rs");
 include!("InternetProtocolVersion6Packet.rs");
 include!("InternetProtocolVersion6PacketHeader.rs");
+include!("Layer4ProtocolNumber.rs");
 include!("TrafficClass.rs");

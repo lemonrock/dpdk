@@ -68,4 +68,10 @@ impl Seconds
 	{
 		self.0 == 0
 	}
+	
+	/// Zero.
+	pub const Zero: Self = Seconds(0);
+	
+	/// Two minutes.
+	pub const TwoMinutes: Self = Seconds(120);
 }

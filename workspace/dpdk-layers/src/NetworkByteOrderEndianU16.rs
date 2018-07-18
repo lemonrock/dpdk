@@ -51,6 +51,12 @@ impl NetworkByteOrderEndianU16
 		self.0 = 0;
 	}
 	
+	#[inline(always)]
+	pub fn is_not_zero(self) -> bool
+	{
+		self.0 != 0
+	}
+	
 	/// High order bits
 	///
 	/// Returns the top 8-bits.

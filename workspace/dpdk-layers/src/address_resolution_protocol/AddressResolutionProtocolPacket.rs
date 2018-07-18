@@ -15,24 +15,27 @@ pub struct AddressResolutionProtocolPacket
 
 impl AddressResolutionProtocolPacket
 {
-	/// Use this to eliminate unwanted or invalid ARP traffic.
+	/// Use this to eliminate invalid traffic.
 	#[inline(always)]
-	pub(crate) fn is_header_invalid_for_internet_protocol_version_4(&self, layer_3_packet_length: u16) -> bool
+	pub(crate) fn is_packet_length_too_short(layer_3_length: u16) -> bool
 	{
-		self.header.hardware_type.is_not_ethernet2() || self.header.protocol_type.is_not_internet_protocol_version_4() || self.header.hardware_address_length != MediaAccessControlAddress::SizeU8 || self.header.protocol_address_length != InternetProtocolVersion4HostAddress::SizeU8 || (layer_3_packet_length) != ((size_of::<AddressResolutionProtocolPacketHeader>() + size_of::<AddressResolutionProtocolPacketInternetProtocolVersion4Payload>) as u16)
+		layer_3_length < AddressResolutionProtocolPacketHeader::HeaderSizeU16
 	}
 	
-	
-	pub(crate) fn send_probe()
+	/// Use this to eliminate obsolete ARP traffic.
+	#[inline(always)]
+	pub(crate) fn is_invalid_for_internet_protocol_version_4(&self, layer_3_length: u16) -> bool
 	{
-	
+		self.is_layer_3_length_invalid_for_internet_protocol_version_4(layer_3_length) || self.header.is_header_invalid_for_internet_protocol_version_4()
 	}
 	
-	pub(crate) fn send_announcement(packet: PacketBuffer, something_to_receive_tx_packets: &XXXXX)
+	#[inline(always)]
+	fn is_layer_3_length_invalid_for_internet_protocol_version_4(&self, layer_3_length: u16) -> bool
 	{
-	
+		const PayloadSizeU16: u16 = size_of::<AddressResolutionProtocolPacketInternetProtocolVersion4Payload>() as u16;
+		
+		layer_3_length != AddressResolutionProtocolPacketHeader::HeaderSizeU16 + PayloadSizeU16
 	}
-	
 	
 	#[inline(always)]
 	pub(crate) fn process(&mut self, packet: PacketBuffer, packet_processing_configuration: &PacketProcessingConfiguration, source_ethernet_address: &MediaAccessControlAddress, destination_ethernet_address: &MediaAccessControlAddress)
@@ -64,6 +67,8 @@ impl AddressResolutionProtocolPacket
 		// Aside from RFC 1122 § 2.3.2.1, which is a minor feature to re-validate cached ARP entries, there is no good reason to receive unicast (or indeed multicast, or anything other than broadcast) ARP requests.
 		// See first answer at [StackOverflow|https://security.stackexchange.com/questions/58131/unicast-arp-requests-considered-harmful] for a longer discussion.
 		// Consequently we consider anything other than ARP requests with a broadcast as invalid.
+		//
+		// TODO: Note, however, that not supporting this caused a problem for Mac OS Mavericks: <https://www.reddit.com/r/sysadmin/comments/1yc6n1/packet_losses_with_new_os_x_mavericks_make_sure/>.
 		if destination_ethernet_address.is_not_broadcast()
 		{
 			finish!(packet)
@@ -91,8 +96,6 @@ impl AddressResolutionProtocolPacket
 		
 		let sender_protocol_address = payload.sender_protocol_address;
 		
-		
-		
 		// sender_hardware_address: MUST be valid source ethernet address.
 		// sender_protocol_address: MUST be all zeros (unspecified).
 		// target_hardware_address: SHOULD be zeros; it is ignored.
@@ -104,15 +107,9 @@ impl AddressResolutionProtocolPacket
 			if unlikely!(we_own_the_target_protocol_address_so_reply)
 			{
 				// TODO: REPLY
-				
-				// Note: This is going to be interesting!
 				// Mutate the ethernet packet and arp packet, then add to an outbound queue.
-				// Would be nice if we can send a burst without needing to lock the ethernet card.
-				xxxx;
-				
-				
-				// TODO: Use __rte_raw_cksum to improve implementation in ICMP packet.
-				
+				eprintln!("ARP is not supported");
+				finish!(packet)
 			}
 			else
 			{
@@ -146,8 +143,8 @@ impl AddressResolutionProtocolPacket
 				if we_own_the_target_protocol_address_so_reply
 				{
 					// TODO: REPLY
-					
-					xxxx;
+					eprintln!("ARP is not supported");
+					finish!(packet)
 				}
 			}
 		}
@@ -172,7 +169,7 @@ impl AddressResolutionProtocolPacket
 		let sender_and_target_protocol_addresses_are_the_same = sender_protocol_address == target_protocol_address;
 		
 		// A gratuitous ARP reply is a reply to which no request has been made.
-		// These are less common than a gratuitous ARP request, and not preferred (see https://tools.ietf.org/html/rfc5227#section-3).
+		// These are less common than a gratuitous ARP request, and not preferred, see RFC 5227 Section 3.
 		let is_gratuitous_arp_reply = sender_and_target_protocol_addresses_are_the_same && (target_hardware_address.is_broadcast() || target_hardware_address.is_zero());
 		if is_gratuitous_arp_reply
 		{

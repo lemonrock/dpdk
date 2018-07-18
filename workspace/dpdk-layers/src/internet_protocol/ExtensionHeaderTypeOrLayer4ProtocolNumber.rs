@@ -2,26 +2,16 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// This is a specialized structure designed to represent a buffer of packet data.
+/// Extension header type or Layer 4 protocol number (the range overlaps; yuck).
 #[repr(C, packed)]
-pub struct InternetProtocolVersion4Packet
+pub union ExtensionHeaderTypeOrLayer4ProtocolNumber
 {
-	/// Header.
-	pub header: InternetProtocolVersion4PacketHeader,
+	/// A known extension header type.
+	pub extension_header_type: ExtensionHeaderType,
 	
-	/// Options.
-	pub options: PhantomData<u8>,
+	/// A known layer 4 protocol number.
+	pub layer_4_protocol_number: Layer4ProtocolNumber,
 	
-	/// Payload.
-	pub payload: Layer4Packet,
-}
-
-impl InternetProtocolVersion4Packet
-{
-	/// Use this to eliminate invalid traffic.
-	#[inline(always)]
-	pub(crate) fn is_packet_length_too_short(layer_3_length: u16) -> bool
-	{
-		layer_3_length < InternetProtocolVersion4PacketHeader::HeaderSizeU16
-	}
+	/// An unknown extension header type or layer 4 protocol number.
+	pub unknown: u8,
 }

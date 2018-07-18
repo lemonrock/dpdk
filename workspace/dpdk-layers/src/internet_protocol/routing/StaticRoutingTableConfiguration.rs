@@ -6,6 +6,7 @@
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
 pub struct StaticRoutingTableConfiguration<NetworkAddress: InternetProtocolNetworkAddress>
+where <NetworkAddress as InternetProtocolNetworkAddress>::HostAddress: DeserializeOwned
 {
 	/// These are the static routes.
 	pub static_routes: HashMap<NetworkAddress, Route<NetworkAddress::HostAddress>>,
@@ -15,6 +16,7 @@ pub struct StaticRoutingTableConfiguration<NetworkAddress: InternetProtocolNetwo
 }
 
 impl<NetworkAddress: InternetProtocolNetworkAddress> StaticRoutingTableConfiguration<NetworkAddress>
+where <NetworkAddress as InternetProtocolNetworkAddress>::HostAddress: DeserializeOwned
 {
 	/// Next hop Ethernet (Layer 2) information.
 	#[inline(always)]

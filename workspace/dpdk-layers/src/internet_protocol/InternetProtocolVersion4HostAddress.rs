@@ -7,10 +7,26 @@
 /// Stored internally in network byte order.
 ///
 /// Defaults to `Unspecified` (which is the same as `Any`).
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Serialize, Deserialize)]
 #[repr(packed)]
 pub struct InternetProtocolVersion4HostAddress(pub [u8; InternetProtocolVersion4HostAddress::Size]);
+
+impl Display for InternetProtocolVersion4HostAddress
+{
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}.{}.{}.{}", self.get_first_byte(), self.get_second_byte(), self.get_third_byte(), self.get_fourth_byte())
+	}
+}
+
+impl Debug for InternetProtocolVersion4HostAddress
+{
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}.{}.{}.{}", self.get_first_byte(), self.get_second_byte(), self.get_third_byte(), self.get_fourth_byte())
+	}
+}
 
 impl Default for InternetProtocolVersion4HostAddress
 {
@@ -36,7 +52,7 @@ impl InternetProtocolHostAddress for InternetProtocolVersion4HostAddress
 	
 	const Size: usize = 4;
 	
-	const SizeU8: usize = 4;
+	const SizeU8: u8 = 4;
 	
 	#[inline(always)]
 	fn from_octets(octets: Self::Octets) -> Self

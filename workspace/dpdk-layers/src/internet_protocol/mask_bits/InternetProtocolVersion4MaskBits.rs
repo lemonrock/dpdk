@@ -167,5 +167,5 @@ pub enum InternetProtocolVersion4MaskBits
 
 impl InternetProtocolMaskBits for InternetProtocolVersion4MaskBits
 {
-	type InternetProtocolHostAddress = InternetProtocolVersion4HostAddress;
+	type HostAddress = InternetProtocolVersion4HostAddress;
 }
