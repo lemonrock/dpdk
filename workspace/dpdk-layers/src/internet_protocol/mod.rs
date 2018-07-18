@@ -26,7 +26,6 @@ include!("ExtensionHeaderTypeOrLayer4ProtocolNumber.rs");
 include!("InternetHeaderLength.rs");
 include!("InternetProtocolHostAddress.rs");
 include!("InternetProtocolNetworkAddress.rs");
-include!("InternetProtocolVersion.rs");
 include!("InternetProtocolVersion4HostAddress.rs");
 include!("InternetProtocolVersion4NetworkAddress.rs");
 include!("InternetProtocolVersion4OrVersion6OrBoth.rs");

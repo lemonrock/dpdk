@@ -8,10 +8,9 @@ pub struct InternetControlMessageProtocolPacket
 {
 	/// Header.
 	pub header: InternetControlMessageProtocolPacketHeader,
-	
-	// 4-bytes rest of header.
-	pub ident: NetworkByteOrderEndianU16,
-	pub sequence_number: NetworkByteOrderEndianU16,
+
+	/// Payload.
+	pub payload: InternetControlMessageProtocolPacketPayload,
 }
 
 impl InternetControlMessageProtocolPacket
@@ -32,7 +31,7 @@ impl InternetControlMessageProtocolPacket
 			// (Destination Unreachable for Path MTU Discovery, Fragmentation required, and DF flag set)
 			(InternetControlMessageProtocolType::DestinationUnreachable, 4) =>
 			{
-				if internet_control_message_protocol_packet_length != internet_header_length.destination_unreachable_payload_length()
+				if internet_control_message_protocol_packet_length != internet_header_length.internet_control_message_protocol_destination_unreachable_packet_length()
 				{
 					return
 				}
@@ -51,7 +50,7 @@ impl InternetControlMessageProtocolPacket
 	
 	/// After this has executed, the checksum field will be zero.
 	#[inline(always)]
-	fn is_internet_checksum_incorrect(&mut self, internet_control_message_protocol_packet_length: usize)
+	fn is_internet_checksum_incorrect(&mut self, internet_control_message_protocol_packet_length: usize) -> bool
 	{
 		let provided_checksum = self.header.checksum.to_native_byte_order_value();
 		let calculated_checksum =
@@ -84,10 +83,10 @@ impl InternetControlMessageProtocolPacket
 			
 			if count > 0
 			{
-				sum += * (next as *const u8);
+				sum += (* (next as *const u8)) as u16;
 			}
 		
-			sum
+			sum as u32
 		}
 		
 		let sum = initial_sum + unsafe { sum_every_16bits(network_byte_order_bytes)};
@@ -102,14 +101,3 @@ impl InternetControlMessageProtocolPacket
 		!(folded_to_16_bits as u16)
 	}
 }
-
-/// This is a specialized structure designed to represent a buffer of packet data.
-///
-/// See RFC 792.
-#[repr(C, packed)]
-pub union InternetControlMessageProtocolPacketPayload
-{
-	pub other: PhantomData<u8>,
-}
-
-// Destination Unreachable: Internet Header + 64 bits of Original Data Datagram

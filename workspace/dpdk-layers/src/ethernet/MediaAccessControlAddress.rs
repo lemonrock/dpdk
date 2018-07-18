@@ -257,18 +257,18 @@ impl MediaAccessControlAddress
 	#[inline(always)]
 	pub fn to_private_internet_protocol_version_4_host_address(&self) -> Result<InternetProtocolVersion4HostAddress, ()>
 	{
-		let first_octet = match array_ref!(self.0, 0, Self::OrganizationallyUniqueIdentifierSize)
+		let first_octet = match array_ref!(self.0, 0, MediaAccessControlAddress::OrganizationallyUniqueIdentifierSize)
 		{
-			Self::PrivateInternetProtocolVersion4AddressOrganizationallyUniqueIdentifier_10_0_0_0 => 10,
-			Self::PrivateInternetProtocolVersion4AddressOrganizationallyUniqueIdentifier_172_16_0_0 => 172,
-			Self::PrivateInternetProtocolVersion4AddressOrganizationallyUniqueIdentifier_192_168_0_0 => 192,
+			&Self::PrivateInternetProtocolVersion4AddressOrganizationallyUniqueIdentifier_10_0_0_0 => 10,
+			&Self::PrivateInternetProtocolVersion4AddressOrganizationallyUniqueIdentifier_172_16_0_0 => 172,
+			&Self::PrivateInternetProtocolVersion4AddressOrganizationallyUniqueIdentifier_192_168_0_0 => 192,
 			_ => return Err(()),
 		};
 		
 		let mut internet_protocol_version_4_host_address: InternetProtocolVersion4HostAddress = unsafe { uninitialized() };
 		let mut octets = &mut internet_protocol_version_4_host_address.0;
 		* unsafe { octets.get_unchecked_mut(0) } = first_octet;
-		unsafe { copy_nonoverlapping(&self.0[Self::OrganizationallyUniqueIdentifierSize .. 6].as_ptr(), &mut octets[1 .. ].as_mut_ptr(), Self::OrganizationallyUniqueIdentifierSize) };
+		unsafe { copy_nonoverlapping((&self.0[Self::OrganizationallyUniqueIdentifierSize .. 6]).as_ptr(), (&mut octets[1 .. ]).as_mut_ptr(), Self::OrganizationallyUniqueIdentifierSize) };
 		Ok(internet_protocol_version_4_host_address)
 	}
 	
@@ -334,15 +334,15 @@ impl MediaAccessControlAddress
 	#[inline(always)]
 	pub fn random_unicast_address() -> Self
 	{
-		let mut this = unsafe { uninitialized() };
+		let mut this: Self = unsafe { uninitialized() };
 		
-		let rand: [u8; 8] = unsafe { transmute(generate_hyper_thread_safe_random_u64()) };
+		let rand: [u8; 6] = unsafe { transmute(generate_hyper_thread_safe_random_u64()) };
 		unsafe { copy_nonoverlapping(&rand, &mut this.0, Self::Size) };
 		
-		let first_byte = unsafe { this.get_unchecked_mut(0) };
+		let first_byte = unsafe { this.0.get_unchecked_mut(0) };
 		let mut first_byte_copy = *first_byte;
 		first_byte_copy &= !Self::GroupAddressBitFlag;
-		first_byte_copy |= Self::LocallyAdministeredAddressBitFlag
+		first_byte_copy |= Self::LocallyAdministeredAddressBitFlag;
 		*first_byte = first_byte_copy;
 		
 		this
@@ -450,7 +450,7 @@ impl MediaAccessControlAddress
 	///
 	/// Same as `is_unicast()`.
 	#[inline(always)]
-	pub fn is_internet_protocol_version_6_multicast(&self)
+	pub fn is_internet_protocol_version_6_multicast(&self) -> bool
 	{
 		self.get_first_two_bytes_network_endian() == 0x3333
 	}
@@ -463,7 +463,7 @@ impl MediaAccessControlAddress
 	{
 		if self.is_internet_protocol_version_6_multicast()
 		{
-			Some(&self.0[2..6])
+			Some(array_ref!(self.0, 2, 4))
 		}
 		else
 		{
@@ -511,7 +511,11 @@ impl MediaAccessControlAddress
 	{
 		if self.is_universally_administered()
 		{
-			Some((&self.0[0 .. Self::OrganizationallyUniqueIdentifierSize], &self.0[Self::OrganizationallyUniqueIdentifierSize .. 6]))
+			Some((array_ref!(self.0, 0, MediaAccessControlAddress::OrganizationallyUniqueIdentifierSize), array_ref!(self.0, 3, 3)))
+		}
+		else
+		{
+			None
 		}
 	}
 	

@@ -5,5 +5,8 @@
 use super::*;
 
 
+include!("InternetControlMessageProtocolPacket.rs");
 include!("InternetControlMessageProtocolPacketHeader.rs");
+include!("InternetControlMessageProtocolPacketPayload.rs");
 include!("InternetControlMessageProtocolType.rs");
+include!("RestOfHeader.rs");

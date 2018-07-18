@@ -2,21 +2,13 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// This is a specialized structure designed to represent a buffer of packet data.
+/// Represents rest of header.
 #[repr(C, packed)]
-pub struct InternetControlMessageProtocolPacketHeader
+pub struct RestOfHeader
 {
-	/// Type.
-	pub type_: InternetControlMessageProtocolType,
+	// Ident.
+	pub ident: NetworkByteOrderEndianU16,
 	
-	/// The meaning of code depends on type.
-	pub code: u8,
-	
-	/// The checksum includes the payload.
-	///
-	/// This is a RFC 1071 internet checksum.
-	pub checksum: NetworkByteOrderEndianU16,
-	
-	/// Rest-of-header.
-	pub rest_of_header: RestOfHeader,
+	/// Sequence number.
+	pub sequence_number: NetworkByteOrderEndianU16,
 }

@@ -3,20 +3,12 @@
 
 
 /// This is a specialized structure designed to represent a buffer of packet data.
+///
+/// See RFC 792.
+///
+/// Example: Destination Unreachable: Internet Header + 64 bits of Original Data Datagram
 #[repr(C, packed)]
-pub struct InternetControlMessageProtocolPacketHeader
+pub union InternetControlMessageProtocolPacketPayload
 {
-	/// Type.
-	pub type_: InternetControlMessageProtocolType,
-	
-	/// The meaning of code depends on type.
-	pub code: u8,
-	
-	/// The checksum includes the payload.
-	///
-	/// This is a RFC 1071 internet checksum.
-	pub checksum: NetworkByteOrderEndianU16,
-	
-	/// Rest-of-header.
-	pub rest_of_header: RestOfHeader,
+	pub other: PhantomData<u8>,
 }

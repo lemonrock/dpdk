@@ -7,11 +7,11 @@
 pub union Layer4Packet
 {
 	/// Internet Control Message Protocol (ICMP).
-	pub icmp: InternetControlMessageProtocolType,
+	pub internet_control_message_protocol: InternetControlMessageProtocolType,
 	
 	/// Transmission Control Protocol (TCP).
-	pub tcp: (),
+	pub transmission_control_protocol: (),
 	
-	/// Unreliable Datagram Protocol (UDP).
-	pub udp: (),
+	/// User Datagram Protocol (UDP).
+	pub user_datagram_protocol: (),
 }
