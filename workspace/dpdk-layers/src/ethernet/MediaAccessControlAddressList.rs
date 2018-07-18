@@ -64,7 +64,7 @@ impl MediaAccessControlAddressList
 	{
 		use self::MediaAccessControlAddressList::*;
 		
-		if let Some(organizationally_unique_identifier, _) = media_access_control_address.universally_administered_organizationally_unique_identifier()
+		if let Some((organizationally_unique_identifier, _)) = media_access_control_address.universally_administered_organizationally_unique_identifier()
 		{
 			match *self
 			{

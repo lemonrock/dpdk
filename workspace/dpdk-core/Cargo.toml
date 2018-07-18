@@ -22,7 +22,7 @@ version = "0.0.6"
 arrayvec = "^0.4"
 const-cstr-fork = "^0.2"
 dpdk-likely = { path = "../dpdk-likely", version = "0.0.6" }
-dpdk-sys = { path = "../dpdk-sys", version = "0.0.5" }
+dpdk-sys = { path = "../dpdk-sys", version = "0.0.6" }
 dpdk-unix = { path = "../dpdk-unix", version = "0.0.6" }
 indexmap = "^1.0"
 lazy_static = "^1.0"

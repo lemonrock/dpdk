@@ -227,6 +227,7 @@ impl MediaAccessControlAddress
 	{
 		let mut this: MediaAccessControlAddress = unsafe { uninitialized() };
 		let mut bytes = &mut this.0;
+		let internet_protocol_version_4_host_address = *internet_protocol_version_4_host_address;
 		
 		let organizationally_unique_identifier = if InternetProtocolVersion4NetworkAddress::Private1.contains(internet_protocol_version_4_host_address)
 		{
@@ -256,11 +257,11 @@ impl MediaAccessControlAddress
 	#[inline(always)]
 	pub fn to_private_internet_protocol_version_4_host_address(&self) -> Result<InternetProtocolVersion4HostAddress, ()>
 	{
-		let first_octet = match &self.0[0 .. Self::OrganizationallyUniqueIdentifierSize]
+		let first_octet = match array_ref!(self.0, 0, Self::OrganizationallyUniqueIdentifierSize)
 		{
-			&Self::PrivateInternetProtocolVersion4AddressOrganizationallyUniqueIdentifier_10_0_0_0 => 10,
-			&Self::PrivateInternetProtocolVersion4AddressOrganizationallyUniqueIdentifier_172_16_0_0 => 172,
-			&Self::PrivateInternetProtocolVersion4AddressOrganizationallyUniqueIdentifier_192_168_0_0 => 192,
+			Self::PrivateInternetProtocolVersion4AddressOrganizationallyUniqueIdentifier_10_0_0_0 => 10,
+			Self::PrivateInternetProtocolVersion4AddressOrganizationallyUniqueIdentifier_172_16_0_0 => 172,
+			Self::PrivateInternetProtocolVersion4AddressOrganizationallyUniqueIdentifier_192_168_0_0 => 192,
 			_ => return Err(()),
 		};
 		
@@ -523,18 +524,18 @@ impl MediaAccessControlAddress
 	#[inline(always)]
 	fn get_first_two_bytes_network_endian(&self) -> u16
 	{
-		unsafe { *(self.0.get_unchecked(0) as *const u16) }
+		unsafe { *(self.0.get_unchecked(0) as *const u8 as *const u16) }
 	}
 	
 	#[inline(always)]
 	fn get_first_four_bytes_network_endian(&self) -> u32
 	{
-		unsafe { *(self.0.get_unchecked(0) as *const u32) }
+		unsafe { *(self.0.get_unchecked(0) as *const u8 as *const u32) }
 	}
 	
 	#[inline(always)]
 	fn get_last_two_bytes_network_endian(&self) -> u16
 	{
-		unsafe { *(self.0.get_unchecked(3) as *const u16) }
+		unsafe { *(self.0.get_unchecked(3) as *const u8 as *const u16) }
 	}
 }

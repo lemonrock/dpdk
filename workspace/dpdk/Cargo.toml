@@ -24,8 +24,8 @@ bitflags = "1.0"
 const-cstr-fork = "^0.2"
 dpdk-bus = { path = "../dpdk-bus", version = "0.0.6" }
 dpdk-core = { path = "../dpdk-core", version = "0.0.6" }
-dpdk-serde = { path = "../dpdk-serde", version = "0.0.5" }
-dpdk-sys = { path = "../dpdk-sys", version = "0.0.5" }
+dpdk-serde = { path = "../dpdk-serde", version = "0.0.6" }
+dpdk-sys = { path = "../dpdk-sys", version = "0.0.6" }
 dpdk-unix = { path = "../dpdk-unix", version = "0.0.6" }
 hyper-thread-random = "0.4"
 indexmap = "1.0"

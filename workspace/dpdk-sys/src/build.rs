@@ -34,8 +34,9 @@ fn compile_embedded_c_code(cargo_manifest_folder_path: &str, cargo_build_folder_
 	// We use opt_level(3) because DPDK headers won't compile without optimization.
 	Build::new()
 	.file(format!("{}/lib.c", files_path))
-	.warnings(true)
 	.opt_level(3)
+	.warnings(true)
+	.flag("-Wno-deprecated-declarations")
 	.flag("-mssse3")
 	.flag("-msse4.1")
 	.flag("-msse4.2")

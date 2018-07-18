@@ -13,7 +13,7 @@ repository = "https://github.com/lemonrock/dpdk.git"
 exclude = ["compile-dpdk-with-tldk.conf.d/temporary", "tools/bindgen-wrapper/temporary", "lib/dpdk-and-tldk/dpdk/doc/**", "lib/dpdk-and-tldk/dpdk/test/**", "lib/dpdk-and-tldk/tldk/doc/**", "lib/dpdk-and-tldk/tldk/test/**"]
 readme = "README.md"
 publish = true
-version = "0.0.5"
+version = "0.0.6"
 build = "src/build.rs"
 links = "dpdk"
 
@@ -24,14 +24,3 @@ rdma-core-sys = "0.1.10"
 
 [build-dependencies]
 cc = "1.0"
-
-[features]
-default = ["drop-packets-with-ipv4-options"]
-
-# Enable this to drop all packets with IPv4 options.
-#
-# Disable this to process but ignore packets with IPv4 options; such processing will not validate that padding is zeroed or reject duplicated options.
-# Disabling this feature will maximize compatibility.
-#
-# Enabled by default.
-drop-packets-with-ipv4-options = []

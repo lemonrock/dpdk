@@ -24,7 +24,7 @@ const-cstr-fork = "^0.2"
 libc = "^0.2"
 dpdk-core = { path = "../dpdk-core", version = "0.0.6" }
 dpdk-likely = { path = "../dpdk-likely", version = "0.0.6" }
-dpdk-sys = { path = "../dpdk-sys", version = "0.0.5" }
+dpdk-sys = { path = "../dpdk-sys", version = "0.0.6" }
 dpdk-unix = { path = "../dpdk-unix", version = "0.0.6" }
 quick-error = "^1.2"
 serde = "1.0"
