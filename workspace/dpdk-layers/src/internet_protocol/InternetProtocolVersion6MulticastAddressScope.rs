@@ -32,6 +32,62 @@ pub enum InternetProtocolVersion6MulticastAddressScope
 	Global = 0xE,
 }
 
+impl TryFrom<u8> for InternetProtocolVersion6MulticastAddressScope
+{
+	type Error = TryFromIntError;
+	
+	#[inline(always)]
+	fn try_from(value: u8) -> Result<Self, Self::Error>
+	{
+		use self::InternetProtocolVersion6MulticastAddressScope::*;
+		
+		let this = match value
+		{
+			0x1 => InterfaceLocal,
+			
+			0x2 => LinkLocal,
+			
+			0x3 => RealmLocal,
+			
+			0x4 => AdminLocal,
+			
+			0x5 => SiteLocal,
+			
+			0x8 => OrganisationLocal,
+			
+			0xE => Global,
+			
+			_ => return Err(TryFromIntError),
+		};
+		Ok(this)
+	}
+}
+
+impl Display for InternetProtocolVersion6MulticastAddressScope
+{
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		use self::InternetProtocolVersion6MulticastAddressScope::*;
+		
+		match *self
+		{
+			InterfaceLocal => "interface local",
+			
+			LinkLocal => "link local",
+			
+			RealmLocal => "realm local",
+			
+			SiteLocal => "site local",
+			
+			OrganisationLocal => "organisation local",
+			
+			Global => "global",
+		}
+		
+		write!(f, "{}", string)
+	}
+}
+
 impl Default for InternetProtocolVersion6MulticastAddressScope
 {
 	#[inline(always)]

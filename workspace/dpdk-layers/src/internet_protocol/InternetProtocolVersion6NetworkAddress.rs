@@ -11,9 +11,20 @@ pub struct InternetProtocolVersion6NetworkAddress
 	mask_bits: InternetProtocolVersion6MaskBits,
 }
 
+impl Display for InternetProtocolVersion6NetworkAddress
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}/{}", self.network, self.mask_bits)
+	}
+}
+
 impl InternetProtocolNetworkAddress for InternetProtocolVersion6NetworkAddress
 {
 	type HostAddress = InternetProtocolVersion6HostAddress;
+	
+	type MaskBits = InternetProtocolVersion6MaskBits;
 	
 	#[inline(always)]
 	fn network(&self) -> &Self::HostAddress
@@ -22,17 +33,9 @@ impl InternetProtocolNetworkAddress for InternetProtocolVersion6NetworkAddress
 	}
 	
 	#[inline(always)]
-	fn mask_bits_as_depth(&self) -> u8
+	fn mask_bits(&self) -> Self::MaskBits
 	{
-		let mask_bits = self.mask_bits as u128;
-		if cfg!(target_endian = "little")
-		{
-			mask_bits.count_ones() as u8
-		}
-		else
-		{
-			(!mask_bits).trailing_zeros() as u8
-		}
+		self.mask_bits
 	}
 	
 	#[inline(always)]

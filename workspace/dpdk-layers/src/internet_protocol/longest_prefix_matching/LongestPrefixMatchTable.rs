@@ -3,7 +3,7 @@
 
 
 /// A trait for operations on longest prefix match tables for internet protocol version 4 or version 6 host addresses.
-pub trait LongestPrefixMatchTable : Drop + Display + Debug
+pub trait LongestPrefixMatchTable : Drop + Display + Debug + Sized
 {
 	/// Internet Protocol (IP) version 4 or version 4 host address.
 	type HostAddress: InternetProtocolHostAddress;
@@ -22,7 +22,7 @@ pub trait LongestPrefixMatchTable : Drop + Display + Debug
 	///
 	/// Virtual LAN and outgoing port ethernet address should also be considerations.
 	#[inline(always)]
-	fn new(name: &str, maximum_number_of_rules: u32, number_of_table8s_to_allocate: u32, numa_node_choice: NumaNodeChoice) -> Option<Self> where Self: Sized;
+	fn new(name: &str, maximum_number_of_rules: u32, number_of_table8s_to_allocate: u32, numa_node_choice: NumaNodeChoice) -> Self;
 
 	/// Look up a host address to try to find a routing table.
 	///
@@ -34,7 +34,7 @@ pub trait LongestPrefixMatchTable : Drop + Display + Debug
 	
 	/// Add a rule.
 	#[inline(always)]
-	fn add_rule(&mut self, network_address: &Self::NetworkAddress, routing_table_key: RoutingTableKey) -> bool;
+	fn add_rule(&mut self, network_address: &Self::NetworkAddress, routing_table_key: RoutingTableKey) -> Result<(), ()>;
 	
 	/// Does this table have this rule?
 	#[inline(always)]
@@ -42,7 +42,7 @@ pub trait LongestPrefixMatchTable : Drop + Display + Debug
 	
 	/// Delete a rule.
 	#[inline(always)]
-	fn delete_rule(&mut self, network_address: &Self::NetworkAddress) -> bool;
+	fn delete_rule(&mut self, network_address: &Self::NetworkAddress) -> Result<(), ()>;
 
 	/// Delete all rules.
 	#[inline(always)]

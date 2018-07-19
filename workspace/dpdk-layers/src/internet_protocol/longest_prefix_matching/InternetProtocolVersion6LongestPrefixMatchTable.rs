@@ -35,7 +35,7 @@ impl LongestPrefixMatchTable for InternetProtocolVersion6LongestPrefixMatchTable
 	type Underlying = rte_lpm6;
 
 	#[inline(always)]
-	fn new(name: &str, maximum_number_of_rules: u32, number_of_table8s_to_allocate: u32, numa_node_choice: NumaNodeChoice) -> Option<Self>
+	fn new(name: &str, maximum_number_of_rules: u32, number_of_table8s_to_allocate: u32, numa_node_choice: NumaNodeChoice) -> Self
 	{
 		const FlagsAreCurrentlyUnused: c_int = 0;
 
@@ -66,7 +66,7 @@ impl LongestPrefixMatchTable for InternetProtocolVersion6LongestPrefixMatchTable
 		}
 		else
 		{
-			Some(InternetProtocolVersion6LongestPrefixMatchTable(unsafe { NonNull::new_unchecked(result) }))
+			InternetProtocolVersion6LongestPrefixMatchTable(unsafe { NonNull::new_unchecked(result) })
 		}
 	}
 
@@ -97,7 +97,7 @@ impl LongestPrefixMatchTable for InternetProtocolVersion6LongestPrefixMatchTable
 	}
 
 	#[inline(always)]
-	fn add_rule(&mut self, network_address: &Self::NetworkAddress, routing_table_key: RoutingTableKey) -> bool
+	fn add_rule(&mut self, network_address: &Self::NetworkAddress, routing_table_key: RoutingTableKey) -> Result<(), ()>
 	{
 		let internet_protocol_address = network_address.network();
 		let depth = network_address.mask_bits_as_depth();
@@ -105,11 +105,11 @@ impl LongestPrefixMatchTable for InternetProtocolVersion6LongestPrefixMatchTable
 		let result = unsafe { rte_lpm6_add(self.pointer(), internet_protocol_address as *const _ as *mut _, depth, routing_table_key) };
 		if likely!(result == 0)
 		{
-			true
+			Ok(())
 		}
 		else if likely!(result < 0)
 		{
-			false
+			Err(())
 		}
 		else
 		{
@@ -137,7 +137,7 @@ impl LongestPrefixMatchTable for InternetProtocolVersion6LongestPrefixMatchTable
 	}
 
 	#[inline(always)]
-	fn delete_rule(&mut self, network_address: &Self::NetworkAddress) -> bool
+	fn delete_rule(&mut self, network_address: &Self::NetworkAddress) -> Result<(), ()>
 	{
 		let internet_protocol_address = network_address.network();
 		let depth = network_address.mask_bits_as_depth();
@@ -145,11 +145,11 @@ impl LongestPrefixMatchTable for InternetProtocolVersion6LongestPrefixMatchTable
 		let result = unsafe { rte_lpm6_delete(self.pointer(), internet_protocol_address as *const _ as *mut _, depth) };
 		if likely!(result == 0)
 		{
-			true
+			Ok(())
 		}
 		else if likely!(result < 0)
 		{
-			false
+			Err(())
 		}
 		else
 		{

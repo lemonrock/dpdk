@@ -17,6 +17,84 @@ pub enum InternetProtocolVersion6MulticastAddressLifetime
 	Temporary = 0x1,
 }
 
+impl Display for InternetProtocolVersion6MulticastAddressLifetime
+{
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		use self::InternetProtocolVersion6MulticastAddressLifetime::*;
+		
+		match *self
+		{
+			Permanent => "permanent",
+			
+			Temporary => "temporary",
+		}
+		
+		write!(f, "{}", string)
+	}
+}
+
+impl TryFrom<u8> for InternetProtocolVersion6MulticastAddressLifetime
+{
+	type Error = TryFromIntError;
+	
+	#[inline(always)]
+	fn try_from(value: u8) -> Result<Self, Self::Error>
+	{
+		if value > 1
+		{
+			Err(TryFromIntError)
+		}
+		else
+		{
+			Ok(unsafe { transmute(value) })
+		}
+	}
+}
+
+impl From<bool> for InternetProtocolVersion6MulticastAddressLifetime
+{
+	#[inline(always)]
+	fn from(value: bool) -> Self
+	{
+		use self::InternetProtocolVersion6MulticastAddressLifetime::*;
+		
+		if value
+		{
+			Permanent
+		}
+		else
+		{
+			Temporary
+		}
+	}
+}
+
+impl Into<u8> for InternetProtocolVersion6MulticastAddressLifetime
+{
+	#[inline(always)]
+	fn into(self) -> u8
+	{
+		self as u8
+	}
+}
+
+impl Into<bool> for InternetProtocolVersion6MulticastAddressLifetime
+{
+	#[inline(always)]
+	fn into(self) -> bool
+	{
+		use self::InternetProtocolVersion6MulticastAddressLifetime::*;
+		
+		match self
+		{
+			Permanent => true,
+			
+			Temporary => false,
+		}
+	}
+}
+
 impl Default for InternetProtocolVersion6MulticastAddressLifetime
 {
 	#[inline(always)]

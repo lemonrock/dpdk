@@ -123,41 +123,72 @@ impl InternetProtocolVersion4Packet
 			}
 		}
 		
-		// TODO: is_internet_protocol_version_4_host_address_not_one_of_ours();
 		
-		// + is this a banned source address?
 		
 		// TODO: The header checksum is not validated.
 		
 		
 		// TODO: fragmentation
 		
+		let source_address = header.source_address;
+		let destination_address = header.destination_address;
+		
+		if unlikely(source_address.is_not_valid_unicast())
+		{
+			drop!(InternetProtocolVersion4SourceAddressNotValidUnicast { ethernet_addresses, header }, packet_processing, packet)
+		}
+		
+		if unlikely(packet_processing.is_source_internet_protocol_version_4_address_denied(&source_address))
+		{
+			drop!(InternetProtocolVersion4SourceAddressDenied { ethernet_addresses, header }, packet_processing, packet)
+		}
 		
 		let (source_ethernet_address, destination_ethernet_address) = ethernet_addresses.addresses();
 		
 		if destination_ethernet_address.is_valid_unicast()
 		{
+			if unlikely!(packet_processing.is_internet_protocol_version_4_host_address_not_one_of_ours(destination_address))
+			{
+				drop!(InternetProtocolVersion4UnicastDestinationIsNotUs { ethernet_addresses, header }, packet_processing, packet)
+			}
+			
 			xxx;
 		}
 		else if destination_ethernet_address.is_broadcast()
 		{
-			// process a broadcast ipv4 packet (address must be 255.255.255.255)
-			xxx;
+			if unlikely!(header.destination_address.is_not_broadcast())
+			{
+				drop!(InternetProtocolVersion4EthernetBroadcastNotInternetBroadcast { ethernet_addresses, header }, packet_processing, packet)
+			}
+			
+			unsupported!("Broadcast IPv4 packets are not supported");
+			packet.free_direct_contiguous_packet();
+			return
 		}
 		else if let Some(lower_23_bits) = destination_ethernet_address.internet_protocol_version_4_multicast_23_bits()
 		{
-			if packet_processing.is_denied_internet_protocol_version_4_multicast_23_bits(lower_23_bits)
+			if unlikely!(destination_address.is_not_multicast())
+			{
+				drop!(InternetProtocolVersion4MulticastAddressIsNotMulticast { ethernet_addresses, header }, packet_processing, packet)
+			}
+			
+			if unlikely!(destination_address.does_not_have_lower_23_bits(lower_23_bits))
+			{
+				drop!(InternetProtocolVersion4MulticastAddressMismatchesEthernetAddress { ethernet_addresses, header }, packet_processing, packet)
+			}
+			
+			if packet_processing.is_internet_protocol_version_4_multicast_address_not_one_of_ours(destination_address)
 			{
 				drop!(InternetProtocolVersion4MulticastAddressDenied { ethernet_addresses, header }, packet_processing, packet)
 			}
 			
-			// process a multicast ipv4 packet - address must match, slightly ambiguously, the lower 23 bits.
-			
-			xxx;
+			unsupported!("Multicast IPv4 packets are not supported");
+			packet.free_direct_contiguous_packet();
+			return
 		}
 		else
 		{
-			drop!(InternetProtocolVersion4MulticastAddressWrong { ethernet_addresses, header }, packet_processing, packet)
+			drop!(InternetProtocolVersion4DestinationWasLoopbackUnspecifiedOrDocumentationAddress { ethernet_addresses, header }, packet_processing, packet)
 		}
 	}
 }

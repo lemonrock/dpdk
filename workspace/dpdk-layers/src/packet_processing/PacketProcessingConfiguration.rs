@@ -2,6 +2,7 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+/// Packet processing configuration.
 #[derive(Debug, Clone)]
 #[derive(Serialize, Deserialize)]
 pub struct PacketProcessingConfiguration
@@ -19,6 +20,25 @@ pub struct PacketProcessingConfiguration
 	///
 	/// No sender packet should be received from this address; if it was, it implies loopback on this interface, which is daft.
 	#[serde(default)] pub our_valid_internet_protocol_version_4_host_addresses: HashSet<InternetProtocolVersion4HostAddress>,
+	
+	/// Our unicast internet protocol (IP) version 6 host addresses valid for this network interface.
+	///
+	/// No sender packet should be received from this address; if it was, it implies loopback on this interface, which is daft.
+	#[serde(default)] pub our_valid_internet_protocol_version_6_host_addresses: HashSet<InternetProtocolVersion6HostAddress>,
+	
+	/// Our multicast internet protocol (IP) version 4 host addresses valid for this network interface.
+	///
+	/// No sender packet should be received from this address; if it was, it implies loopback on this interface, which is daft.
+	#[serde(default)] pub our_valid_internet_protocol_version_4_multicast_addresses: HashSet<InternetProtocolVersion4HostAddress>,
+	
+	/// Our multicast internet protocol (IP) version 6 host addresses valid for this network interface.
+	///
+	/// No sender packet should be received from this address; if it was, it implies loopback on this interface, which is daft.
+	#[serde(default)] pub our_valid_internet_protocol_version_6_multicast_addresses: HashSet<InternetProtocolVersion6HostAddress>,
+	
+	#[serde(default)] pub denied_source_internet_protocol_version_4_host_addresses: HostAddressesSetConfiguration<InternetProtocolVersion4LongestPrefixMatchTable>,
+	
+	#[serde(default)] pub denied_source_internet_protocol_version_6_host_addresses: HostAddressesSetConfiguration<InternetProtocolVersion6LongestPrefixMatchTable>,
 	
 	/// Packet reassembly configuration for fragmented packets for Internet Protocol (IP) version 4.
 	#[serde(default)] pub internet_protocol_version_4_packet_reassembly_table_configuration: InternetProtocolPacketReassemblyTableConfiguration,
@@ -40,8 +60,13 @@ impl PacketProcessingConfiguration
 			our_valid_unicast_ethernet_address,
 			source_ethernet_address_blacklist_or_whitelist: self.source_ethernet_address_blacklist_or_whitelist,
 			our_valid_internet_protocol_version_4_host_addresses: self.our_valid_internet_protocol_version_4_host_addresses,
-			internet_protocol_version_4_packet_reassembly_table: self.internet_protocol_version_4_packet_reassembly_table_configuration.create_table(numa_node_choice).expect("out of memory"),
-			internet_protocol_version_6_packet_reassembly_table: self.internet_protocol_version_6_packet_reassembly_table_configuration.create_table(numa_node_choice).expect("out of memory"),
+			our_valid_internet_protocol_version_6_host_addresses: self.our_valid_internet_protocol_version_6_host_addresses,
+			our_valid_internet_protocol_version_4_multicast_addresses: self.our_valid_internet_protocol_version_4_multicast_addresses,
+			our_valid_internet_protocol_version_6_multicast_addresses: self.our_valid_internet_protocol_version_6_multicast_addresses,
+			denied_source_internet_protocol_version_4_host_addresses: self.denied_source_internet_protocol_version_4_host_addresses.configure(numa_node_choice),
+			denied_source_internet_protocol_version_6_host_addresses: self.denied_source_internet_protocol_version_6_host_addresses.configure(numa_node_choice),
+			internet_protocol_version_4_packet_reassembly_table: self.denied_source_internet_protocol_version_4_host_addresses.create_table(numa_node_choice).expect("out of memory"),
+			internet_protocol_version_6_packet_reassembly_table: self.denied_source_internet_protocol_version_4_host_addresses.create_table(numa_node_choice).expect("out of memory"),
 			dropped_packet_reporting: dropped_packet_reporting.clone(),
 		}
 	}

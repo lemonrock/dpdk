@@ -451,6 +451,76 @@ pub enum PacketProcessingDropReason<'a>
 	},
 	
 	/// Occurs during Internet Protocol (IP) version 4 packet processing.
+	///
+	/// Received a packet with a source address that was an invalid unicast address.
+	///
+	/// This can include the loopback, unspecified ('any'), broadcast and documentation addresses.
+	InternetProtocolVersion4SourceAddressNotValidUnicast
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 4 packet header.
+		header: &'a InternetProtocolVersion4PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 4 packet processing.
+	///
+	/// Received a packet with a source address that was denied (eg banned, firewalled).
+	InternetProtocolVersion4SourceAddressDenied
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 4 packet header.
+		header: &'a InternetProtocolVersion4PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 4 packet processing.
+	///
+	/// Received a unicast packet to a destination that isn't us.
+	InternetProtocolVersion4UnicastDestinationIsNotUs
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 4 packet header.
+		header: &'a InternetProtocolVersion4PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 4 packet processing.
+	///
+	/// Received an ethernet broadcast but the packet's destination address was not broadcast.
+	InternetProtocolVersion4EthernetBroadcastNotInternetBroadcast
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 4 packet header.
+		header: &'a InternetProtocolVersion4PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 4 packet processing.
+	InternetProtocolVersion4MulticastAddressIsNotMulticast
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 4 packet header.
+		header: &'a InternetProtocolVersion4PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 4 packet processing.
+	InternetProtocolVersion4MulticastAddressMismatchesEthernetAddress
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 4 packet header.
+		header: &'a InternetProtocolVersion4PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 4 packet processing.
 	InternetProtocolVersion4MulticastAddressDenied
 	{
 		/// Dropped packet's ethernet addresses.
@@ -461,7 +531,7 @@ pub enum PacketProcessingDropReason<'a>
 	},
 	
 	/// Occurs during Internet Protocol (IP) version 4 packet processing.
-	InternetProtocolVersion4MulticastAddressWrong
+	InternetProtocolVersion4DestinationWasLoopbackUnspecifiedOrDocumentationAddress
 	{
 		/// Dropped packet's ethernet addresses.
 		ethernet_addresses: &'a EthernetAddresses,
@@ -488,6 +558,64 @@ pub enum PacketProcessingDropReason<'a>
 	},
 	
 	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	///
+	/// Received a packet with a source address that was an invalid unicast address.
+	///
+	/// This can include the loopback, unspecified ('any'), broadcast and documentation addresses.
+	InternetProtocolVersion6SourceAddressNotValidUnicast
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	///
+	/// Received a packet with a source address that was denied (eg banned, firewalled).
+	InternetProtocolVersion6SourceAddressDenied
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 4 packet processing.
+	///
+	/// Received a unicast packet to a destination that isn't us.
+	InternetProtocolVersion6UnicastDestinationIsNotUs
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6MulticastAddressIsNotMulticast
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6MulticastAddressMismatchesEthernetAddress
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
 	InternetProtocolVersion6MulticastAddressDenied
 	{
 		/// Dropped packet's ethernet addresses.
@@ -498,7 +626,7 @@ pub enum PacketProcessingDropReason<'a>
 	},
 	
 	/// Occurs during Internet Protocol (IP) version 6 packet processing.
-	InternetProtocolVersion6MulticastAddressWrong
+	InternetProtocolVersion6DestinationWasLoopbackUnspecifiedOrDocumentationAddress
 	{
 		/// Dropped packet's ethernet addresses.
 		ethernet_addresses: &'a EthernetAddresses,

@@ -3,14 +3,23 @@
 
 
 /// An internet protocol (IP) network address, either version 4 or version 6.
-pub trait InternetProtocolNetworkAddress: Sized + Debug + Eq + Hash + Serialize + Clone
+pub trait InternetProtocolNetworkAddress: Sized + Debug + Display + PartialOrd + Ord + PartialEq + Eq + Hash + Serialize + Clone
 {
 	/// Associated Internet Protocol (IP) host address, either version 4 or 6.
 	type HostAddress: InternetProtocolHostAddress;
 	
+	/// Mask bits.
+	type MaskBits: InternetProtocolMaskBits;
+	
 	/// Network information.
 	#[inline(always)]
 	fn network(&self) -> &Self::HostAddress;
+	
+	/// Number of mask bits, one based.
+	///
+	/// eg `/24` would be `24`.
+	#[inline(always)]
+	fn mask_bits(&self) -> Self::MaskBits;
 	
 	/// Number of mask bits, one based.
 	///
@@ -21,11 +30,14 @@ pub trait InternetProtocolNetworkAddress: Sized + Debug + Eq + Hash + Serialize 
 		self.mask_bits_as_depth() as u32
 	}
 	
-	/// Number of mask bits, one based.
-	///
-	/// eg `/24` would be `24`.
+	/// Mask bits, one based.
+	//	///
+	//	/// eg `/24` would be `24`.
 	#[inline(always)]
-	fn mask_bits_as_depth(&self) -> u8;
+	fn mask_bits_as_depth(&self) -> u8
+	{
+		self.mask_bits().as_depth()
+	}
 	
 	/// Does this network address contain the given `internet_protocol_host_address`?
 	///

@@ -3,8 +3,8 @@
 
 
 /// Mask bits.
-pub trait InternetProtocolMaskBits: Sized + Debug + Display
+pub trait InternetProtocolMaskBits: Sized + Debug + Display + PartialOrd + Ord + PartialEq + Eq + Hash + Serialize + Clone + Copy
 {
-	/// Internet Protocol (IP) version 4 or 6.
-	type HostAddress: InternetProtocolHostAddress;
+	#[inline(always)]
+	fn as_depth(&self) -> u8;
 }

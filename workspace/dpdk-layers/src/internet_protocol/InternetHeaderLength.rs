@@ -23,6 +23,33 @@ impl Display for InternetHeaderLength
 	}
 }
 
+impl TryFrom<u8> for InternetHeaderLength
+{
+	type Error = TryFromIntError;
+	
+	#[inline(always)]
+	fn try_from(value: u8) -> Result<Self, Self::Error>
+	{
+		if value < 5 || value > 15
+		{
+			Err(TryFromIntError)
+		}
+		else
+		{
+			Ok(InternetHeaderLength(value))
+		}
+	}
+}
+
+impl Into<u8> for InternetHeaderLength
+{
+	#[inline(always)]
+	fn into(self) -> u8
+	{
+		self.0
+	}
+}
+
 impl InternetHeaderLength
 {
 	/// Length in bytes.

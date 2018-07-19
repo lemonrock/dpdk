@@ -60,6 +60,7 @@ use ::std::mem::transmute;
 use ::std::mem::transmute_copy;
 use ::std::mem::uninitialized;
 use ::std::mem::zeroed;
+use ::std::num::TryFromIntError;
 use ::std::net::Ipv4Addr;
 use ::std::net::Ipv6Addr;
 use ::std::ptr::copy_nonoverlapping;

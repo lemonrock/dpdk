@@ -11,9 +11,20 @@ pub struct InternetProtocolVersion4NetworkAddress
 	mask_bits: InternetProtocolVersion4MaskBits,
 }
 
+impl Display for InternetProtocolVersion4NetworkAddress
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}/{}", self.network, self.mask_bits)
+	}
+}
+
 impl InternetProtocolNetworkAddress for InternetProtocolVersion4NetworkAddress
 {
 	type HostAddress = InternetProtocolVersion4HostAddress;
+	
+	type MaskBits = InternetProtocolVersion4MaskBits;
 	
 	#[inline(always)]
 	fn network(&self) -> &Self::HostAddress
@@ -22,17 +33,9 @@ impl InternetProtocolNetworkAddress for InternetProtocolVersion4NetworkAddress
 	}
 	
 	#[inline(always)]
-	fn mask_bits_as_depth(&self) -> u8
+	fn mask_bits(&self) -> Self::MaskBits
 	{
-		let mask_bits = self.mask_bits as u32;
-		if cfg!(target_endian = "little")
-		{
-			mask_bits.count_ones() as u8
-		}
-		else
-		{
-			(!mask_bits).trailing_zeros() as u8
-		}
+		self.mask_bits
 	}
 	
 	#[inline(always)]

@@ -32,6 +32,40 @@ pub enum Layer4ProtocolNumber
 	UserDatagramProtocol = 17,
 }
 
+impl TryFrom<u8> for Layer4ProtocolNumber
+{
+	type Error = TryFromIntError;
+	
+	#[inline(always)]
+	fn try_from(value: u8) -> Result<Self, Self::Error>
+	{
+		use self::Layer4ProtocolNumber::*;
+		
+		let this = match value
+		{
+			1 => InternetControlMessageProtocol,
+			
+			2 => InternetGroupManagementProtocol,
+			
+			6 => TransmissionControlProtocol,
+			
+			7 => UserDatagramProtocol,
+			
+			_ => return Err(TryFromIntError),
+		};
+		Ok(this)
+	}
+}
+
+impl Into<u8> for Layer4ProtocolNumber
+{
+	#[inline(always)]
+	fn into(self) -> u8
+	{
+		self as u8
+	}
+}
+
 impl Display for Layer4ProtocolNumber
 {
 	#[inline(always)]

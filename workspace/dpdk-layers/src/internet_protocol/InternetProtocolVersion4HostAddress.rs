@@ -195,6 +195,13 @@ impl InternetProtocolVersion4HostAddress
 		self == Self::Broadcast
 	}
 	
+	/// Is this not the broadcast address?
+	#[inline(always)]
+	pub fn is_not_broadcast(self) -> bool
+	{
+		self != Self::Broadcast
+	}
+	
 	/// Is this a loopback address?
 	#[inline(always)]
 	pub fn is_loopback(self) -> bool
@@ -209,11 +216,36 @@ impl InternetProtocolVersion4HostAddress
 		InternetProtocolVersion4NetworkAddress::Multicast.contains(self)
 	}
 	
+	/// Is this a multicast address?
+	#[inline(always)]
+	pub fn is_not_multicast(self) -> bool
+	{
+		!self.is_multicast()
+	}
+	
 	/// Is this an address used for documentation and in examples?
 	#[inline(always)]
 	pub fn is_documentation(self) -> bool
 	{
 		InternetProtocolVersion4NetworkAddress::TestNet1.contains(self) || InternetProtocolVersion4NetworkAddress::TestNet2.contains(self) || InternetProtocolVersion4NetworkAddress::TestNet3.contains(self)
+	}
+	
+	/// Are the lower 23 bits a match?
+	///
+	/// Used for multicast addresses.
+	#[inline(always)]
+	pub fn has_lower_23_bits(self, lower_23_bits: &[u8; 3]) -> bool
+	{
+		self.get_second_byte() & 0b0111_1111 == lower_23_bits[0] && self.get_third_byte() == lower_23_bits[1] && self.get_fourth_byte() == lower_23_bits[2]
+	}
+	
+	/// Are the lower 23 bits a match?
+	///
+	/// Used for multicast addresses.
+	#[inline(always)]
+	pub fn does_not_have_lower_23_bits(self, lower_23_bits: &[u8; 3]) -> bool
+	{
+		!self.has_lower_23_bits(lower_23_bits)
 	}
 	
 	#[inline(always)]

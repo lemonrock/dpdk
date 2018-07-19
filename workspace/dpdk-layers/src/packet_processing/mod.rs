@@ -5,6 +5,7 @@
 use super::*;
 
 
+include!("HostAddressesSetConfiguration.rs");
 include!("PacketProcessing.rs");
 include!("PacketProcessingByVirtualLan.rs");
 include!("PacketProcessingByVirtualLanConfiguration.rs");

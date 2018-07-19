@@ -48,6 +48,56 @@ pub enum ExtensionHeaderType
 	Experimentation254 = 254,
 }
 
+impl TryFrom<u8> for ExtensionHeaderType
+{
+	type Error = TryFromIntError;
+	
+	#[inline(always)]
+	fn try_from(value: u8) -> Result<Self, Self::Error>
+	{
+		use self::ExtensionHeaderType::*;
+		
+		let this = match value
+		{
+			0 => HopByHopOptions,
+			
+			43 => Routing,
+			
+			44 => Fragment,
+			
+			50 => EncapulatingSecurityPayload,
+			
+			51 => AuthenticationHeader,
+			
+			59 => NoNextHeader,
+			
+			60 => DestinationOptions,
+			
+			135 => Mobility,
+			
+			139 => HostIdentityProtocol,
+			
+			140 => Shim6Protocol,
+			
+			253 => Experimentation253,
+			
+			254 => Experimentation254,
+			
+			_ => return Err(TryFromIntError),
+		};
+		Ok(this)
+	}
+}
+
+impl Into<u8> for ExtensionHeaderType
+{
+	#[inline(always)]
+	fn into(self) -> u8
+	{
+		self as u8
+	}
+}
+
 impl Display for ExtensionHeaderType
 {
 	#[inline(always)]

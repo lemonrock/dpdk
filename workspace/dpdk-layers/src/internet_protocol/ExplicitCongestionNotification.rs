@@ -23,6 +23,40 @@ pub enum ExplicitCongestionNotification
 	CongestionEncountered = 0b11,
 }
 
+impl TryFrom<u8> for ExplicitCongestionNotification
+{
+	type Error = TryFromIntError;
+	
+	#[inline(always)]
+	fn try_from(value: u8) -> Result<Self, Self::Error>
+	{
+		use self::ExplicitCongestionNotification::*;
+		
+		let this = match value
+		{
+			0b00 => NotCapableTransport,
+			
+			0b10 => CapableTransportEctZero,
+			
+			0b01 => CapableTransportEctOne,
+			
+			0b11 => CongestionEncountered,
+			
+			_ => return Err(TryFromIntError),
+		};
+		Ok(this)
+	}
+}
+
+impl Into<u8> for ExplicitCongestionNotification
+{
+	#[inline(always)]
+	fn into(self) -> u8
+	{
+		self as u8
+	}
+}
+
 impl Display for ExplicitCongestionNotification
 {
 	#[inline(always)]
@@ -53,11 +87,39 @@ impl Default for ExplicitCongestionNotification
 	}
 }
 
-impl Into<u8> for ExplicitCongestionNotification
+impl ExplicitCongestionNotification
 {
+	/// Unset?
 	#[inline(always)]
-	fn into(self) -> u8
+	pub fn unset(self) -> bool
 	{
-		self as u8
+		self == ExplicitCongestionNotification::NotCapableTransport
+	}
+	
+	/// Set?
+	#[inline(always)]
+	pub fn set(self) -> bool
+	{
+		self != ExplicitCongestionNotification::NotCapableTransport
+	}
+	
+	/// ECT(0) or ECT(1)?
+	#[inline(always)]
+	pub fn has_code_point(self) -> bool
+	{
+		use self::ExplicitCongestionNotification::*;
+		
+		match self
+		{
+			CapableTransportEctZero | CapableTransportEctOne => true,
+			_ => false,
+		}
+	}
+	
+	/// CE?
+	#[inline(always)]
+	pub fn congestion_encountered(self) -> bool
+	{
+		self == ExplicitCongestionNotification::CongestionEncountered
 	}
 }

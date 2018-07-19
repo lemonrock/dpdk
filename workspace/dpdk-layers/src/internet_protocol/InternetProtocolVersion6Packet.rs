@@ -46,29 +46,53 @@ impl InternetProtocolVersion6Packet
 		
 		// TODO: fragmentation
 		
-		// TODO: Equivalent of packet_processing.our_valid_internet_protocol_version_4_host_addresses and is_internet_protocol_version_4_host_address_one_of_ours/is_internet_protocol_version_4_host_address_not_one_of_ours
-		// TODO Actually use those mthods!
+		
+		let source_address = &header.source_address;
+		let destination_address = &header.destination_address;
+		
+		if unlikely(source_address.is_not_valid_unicast())
+		{
+			drop!(InternetProtocolVersion6SourceAddressNotValidUnicast { ethernet_addresses, header }, packet_processing, packet)
+		}
+		
+		if unlikely(packet_processing.is_source_internet_protocol_version_6_address_denied(source_address))
+		{
+			drop!(InternetProtocolVersion6SourceAddressDenied { ethernet_addresses, header }, packet_processing, packet)
+		}
 		
 		if destination_ethernet_address.is_valid_unicast()
 		{
+			if unlikely!(packet_processing.is_internet_protocol_version_6_host_address_not_one_of_ours(destination_address))
+			{
+				drop!(InternetProtocolVersion6UnicastDestinationIsNotUs { ethernet_addresses, header }, packet_processing, packet)
+			}
+			
 			xxx;
 		}
 		else if let Some(lower_32_bits) = destination_ethernet_address.internet_protocol_version_6_multicast_32_bits()
 		{
-			if packet_processing.is_denied_internet_protocol_version_6_multicast_32_bits(lower_32_bits)
+			if unlikely!(destination_address.does_not_have_multicast_prefix())
+			{
+				drop!(InternetProtocolVersion6MulticastAddressIsNotMulticast { ethernet_addresses, header }, packet_processing, packet)
+			}
+			
+			if unlikely!(destination_address.does_not_have_lower_32_bits(lower_32_bits))
+			{
+				drop!(InternetProtocolVersion6MulticastAddressMismatchesEthernetAddress { ethernet_addresses, header }, packet_processing, packet)
+			}
+			
+			if packet_processing.is_internet_protocol_version_6_multicast_address_not_one_of_ours(destination_address)
 			{
 				drop!(InternetProtocolVersion6MulticastAddressDenied { ethernet_addresses, header }, packet_processing, packet)
 			}
 			
-			// process a multicast ipv4 packet - validate address prefix.
-			
-			// Important if this a neighbour solicitation.
-			
-			xxx;
+			unsupported!("Multicast IPv6 packets are not supported");
+			packet.free_direct_contiguous_packet();
+			return
 		}
 		else
 		{
-			drop!(InternetProtocolVersion6MulticastAddressWrong { ethernet_addresses, header }, packet_processing, packet)
+			drop!(InternetProtocolVersion6DestinationWasLoopbackUnspecifiedOrDocumentationAddress { ethernet_addresses, header }, packet_processing, packet)
 		}
 	}
 }

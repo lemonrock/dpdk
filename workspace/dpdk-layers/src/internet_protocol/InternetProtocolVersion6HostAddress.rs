@@ -589,7 +589,6 @@ impl InternetProtocolVersion6HostAddress
 		}
 	}
 	
-	
 	/// Checks for a multicast prefix but does not validate.
 	///
 	/// Uses prefix `ff::/8`.
@@ -597,6 +596,29 @@ impl InternetProtocolVersion6HostAddress
 	pub fn has_multicast_prefix(&self) -> bool
 	{
 		self.first_byte() == 0xFF
+	}
+	
+	/// Checks for a multicast prefix but does not validate.
+	///
+	/// Uses prefix `ff::/8`.
+	#[inline(always)]
+	pub fn does_not_have_multicast_prefix(&self) -> bool
+	{
+		self.first_byte() != 0xFF
+	}
+	
+	/// Used as part of checking multicast addresses.
+	#[inline(always)]
+	pub fn has_lower_32_bits(&self, lower_32_bits: &[u8; 4]) -> bool
+	{
+		&self.0[12 .. ] == lower_32_bits
+	}
+	
+	/// Used as part of checking multicast addresses.
+	#[inline(always)]
+	pub fn does_not_have_lower_32_bits(&self, lower_32_bits: &[u8; 4]) -> bool
+	{
+		&self.0[12 .. ] != lower_32_bits
 	}
 	
 	/// RFC 4291.

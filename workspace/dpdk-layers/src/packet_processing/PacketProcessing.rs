@@ -24,7 +24,24 @@ pub struct PacketProcessing<PPDO: PacketProcessingDropObserver>
 	///
 	/// No sender packet should be received from this address; if it was, it implies loopback on this interface, which is daft.
 	our_valid_internet_protocol_version_4_host_addresses: HashSet<InternetProtocolVersion4HostAddress>,
-
+	
+	///
+	/// No sender packet should be received from this address; if it was, it implies loopback on this interface, which is daft.
+	our_valid_internet_protocol_version_6_host_addresses: HashSet<InternetProtocolVersion6HostAddress>,
+	
+	/// Our multicast internet protocol (IP) version 4 host addresses valid for this network interface.
+	///
+	/// No sender packet should be received from this address; if it was, it implies loopback on this interface, which is daft.
+	our_valid_internet_protocol_version_4_multicast_addresses: HashSet<InternetProtocolVersion4HostAddress>,
+	
+	///
+	/// No sender packet should be received from this address; if it was, it implies loopback on this interface, which is daft.
+	our_valid_internet_protocol_version_6_multicast_addresses: HashSet<InternetProtocolVersion6HostAddress>,
+	
+	denied_source_internet_protocol_version_4_host_addresses: InternetProtocolVersion4LongestPrefixMatchTable,
+	
+	denied_source_internet_protocol_version_6_host_addresses: InternetProtocolVersion6LongestPrefixMatchTable,
+	
 	/// Packet reassembly state for fragmented packets for Internet Protocol (IP) version 4.
 	internet_protocol_version_4_packet_reassembly_table: InternetProtocolPacketReassemblyTable,
 
@@ -79,7 +96,7 @@ impl<DPO: PacketProcessingDropObserver> PacketProcessing<DPO>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn is_denied_internet_protocol_version_4_multicast_23_bits(&self, lower_23_bits: &[u8; 3]) -> bool
+	pub(crate) fn is_internet_protocol_version_4_multicast_address_not_one_of_ours(&self, internet_protocol_version_4_multicast_address: InternetProtocolVersion4HostAddress) -> bool
 	{
 		const NoMulticastAddressesAreSupportedAtThisTime: bool = false;
 		
@@ -87,7 +104,7 @@ impl<DPO: PacketProcessingDropObserver> PacketProcessing<DPO>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn is_denied_internet_protocol_version_6_multicast_32_bits(&self, lower_32_bits: &[u8; 4]) -> bool
+	pub(crate) fn is_internet_protocol_version_6_multicast_address_not_one_of_ours(&self, internet_protocol_version_6_multicast_address: &InternetProtocolVersion6HostAddress) -> bool
 	{
 		const NoMulticastAddressesAreSupportedAtThisTime: bool = false;
 		
@@ -108,6 +125,38 @@ impl<DPO: PacketProcessingDropObserver> PacketProcessing<DPO>
 		debug_assert!(internet_protocol_version_4_host_address.is_valid_unicast(), "internet_protocol_version_4_host_address '{:?}' is not valid unicast", internet_protocol_version_4_host_address);
 		
 		!self.is_internet_protocol_version_4_host_address_one_of_ours(internet_protocol_version_4_host_address)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn is_internet_protocol_version_6_host_address_one_of_ours(&self, internet_protocol_version_6_host_address: &InternetProtocolVersion6HostAddress) -> bool
+	{
+		debug_assert!(internet_protocol_version_6_host_address.is_valid_unicast(), "internet_protocol_version_6_host_address '{:?}' is not valid unicast", internet_protocol_version_6_host_address);
+		
+		self.our_valid_internet_protocol_version_6_host_addresses.contains(&internet_protocol_version_6_host_address)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn is_internet_protocol_version_6_host_address_not_one_of_ours(&self, internet_protocol_version_6_host_address: &InternetProtocolVersion6HostAddress) -> bool
+	{
+		debug_assert!(internet_protocol_version_6_host_address.is_valid_unicast(), "internet_protocol_version_6_host_address '{:?}' is not valid unicast", internet_protocol_version_6_host_address);
+		
+		!self.is_internet_protocol_version_6_host_address_one_of_ours(internet_protocol_version_6_host_address)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn is_source_internet_protocol_version_4_address_denied(&self, internet_protocol_version_4_host_address: &InternetProtocolVersion4HostAddress) -> bool
+	{
+		debug_assert!(is_source_internet_protocol_version_4_address_denied.is_valid_unicast(), "internet_protocol_version_4_host_address '{:?}' is not valid unicast", internet_protocol_version_4_host_address);
+		
+		self.denied_source_internet_protocol_version_4_host_addresses.look_up(internet_protocol_version_4_host_address).is_some()
+	}
+	
+	#[inline(always)]
+	pub(crate) fn is_source_internet_protocol_version_6_address_denied(&self, internet_protocol_version_6_host_address: &InternetProtocolVersion6HostAddress) -> bool
+	{
+		debug_assert!(is_source_internet_protocol_version_4_address_denied.is_valid_unicast(), "internet_protocol_version_4_host_address '{:?}' is not valid unicast", internet_protocol_version_4_host_address);
+		
+		self.denied_source_internet_protocol_version_4_host_addresses.look_up(internet_protocol_version_4_host_address).is_some()
 	}
 	
 	#[inline(always)]
