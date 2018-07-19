@@ -2,12 +2,12 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Address resolution protocol (ARP) hardware type.
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+/// This is a RFC 1071 internet checksum.
 #[repr(C, packed)]
-pub struct Operation(NetworkByteOrderEndianU16);
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub struct InternetChecksum(NetworkByteOrderEndianU16);
 
-impl Into<NetworkByteOrderEndianU16> for Operation
+impl Into<NetworkByteOrderEndianU16> for InternetChecksum
 {
 	#[inline(always)]
 	fn into(self) -> NetworkByteOrderEndianU16
@@ -16,7 +16,7 @@ impl Into<NetworkByteOrderEndianU16> for Operation
 	}
 }
 
-impl Into<u16> for Operation
+impl Into<u16> for InternetChecksum
 {
 	#[inline(always)]
 	fn into(self) -> u16
@@ -25,25 +25,25 @@ impl Into<u16> for Operation
 	}
 }
 
-impl From<NetworkByteOrderEndianU16> for Operation
+impl From<NetworkByteOrderEndianU16> for InternetChecksum
 {
 	#[inline(always)]
 	fn from(value: NetworkByteOrderEndianU16) -> Self
 	{
-		Operation(value)
+		InternetChecksum(value)
 	}
 }
 
-impl From<u16> for Operation
+impl From<u16> for InternetChecksum
 {
 	#[inline(always)]
 	fn from(value: u16) -> Self
 	{
-		Operation(NetworkByteOrderEndianU16::from_native_byte_order_value(value))
+		InternetChecksum(NetworkByteOrderEndianU16::from_native_byte_order_value(value))
 	}
 }
 
-impl Display for Operation
+impl Display for InternetChecksum
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -52,7 +52,7 @@ impl Display for Operation
 	}
 }
 
-impl Debug for Operation
+impl Debug for InternetChecksum
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -61,17 +61,11 @@ impl Debug for Operation
 	}
 }
 
-impl Operation
+impl Default for InternetChecksum
 {
-	/// Request.
-	#[cfg(target_endian = "big")] pub const Request: Self = Operation(NetworkByteOrderEndianU16::from_network_byte_order_value(0x0001));
-	
-	/// Request.
-	#[cfg(target_endian = "little")] pub const Request: Self = Operation(NetworkByteOrderEndianU16::from_network_byte_order_value(0x0100));
-	
-	/// Reply.
-	#[cfg(target_endian = "big")] pub const Reply: Self = Operation(NetworkByteOrderEndianU16::from_network_byte_order_value(0x0002));
-	
-	/// Reply.
-	#[cfg(target_endian = "little")] pub const Reply: Self = Operation(NetworkByteOrderEndianU16::from_network_byte_order_value(0x0200));
+	#[inline(always)]
+	fn default() -> Self
+	{
+		InternetChecksum(NetworkByteOrderEndianU16::Zero)
+	}
 }

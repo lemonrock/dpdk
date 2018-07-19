@@ -14,6 +14,15 @@
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct InternetHeaderLength(u8);
 
+impl Display for InternetHeaderLength
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}", self.0)
+	}
+}
+
 impl InternetHeaderLength
 {
 	/// Length in bytes.

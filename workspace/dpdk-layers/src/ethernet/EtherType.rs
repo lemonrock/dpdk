@@ -4,8 +4,62 @@
 
 /// Represents an Ether type.
 #[repr(C, packed)]
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct EtherType(pub NetworkByteOrderEndianU16);
+#[derive(Default, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub struct EtherType(NetworkByteOrderEndianU16);
+
+impl Into<NetworkByteOrderEndianU16> for EtherType
+{
+	#[inline(always)]
+	fn into(self) -> NetworkByteOrderEndianU16
+	{
+		self.0
+	}
+}
+
+impl Into<u16> for EtherType
+{
+	#[inline(always)]
+	fn into(self) -> u16
+	{
+		self.0.to_native_byte_order_value()
+	}
+}
+
+impl From<NetworkByteOrderEndianU16> for EtherType
+{
+	#[inline(always)]
+	fn from(value: NetworkByteOrderEndianU16) -> Self
+	{
+		EtherType(value)
+	}
+}
+
+impl From<u16> for EtherType
+{
+	#[inline(always)]
+	fn from(value: u16) -> Self
+	{
+		EtherType(NetworkByteOrderEndianU16::from_native_byte_order_value(value))
+	}
+}
+
+impl Display for EtherType
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "0x{:04X}", self.0.to_native_byte_order_value())
+	}
+}
+
+impl Debug for EtherType
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "0x{:04X}", self.0.to_native_byte_order_value())
+	}
+}
 
 impl EtherType
 {

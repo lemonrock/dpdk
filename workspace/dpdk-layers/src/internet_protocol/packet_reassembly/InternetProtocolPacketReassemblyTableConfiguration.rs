@@ -11,6 +11,15 @@ pub struct InternetProtocolPacketReassemblyTableConfiguration
 	#[serde(default = "InternetProtocolPacketReassemblyTableConfiguration::reassembly_timeout_default")] reassembly_timeout: Seconds,
 }
 
+impl Display for InternetProtocolPacketReassemblyTableConfiguration
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
 impl Default for InternetProtocolPacketReassemblyTableConfiguration
 {
 	#[inline(always)]

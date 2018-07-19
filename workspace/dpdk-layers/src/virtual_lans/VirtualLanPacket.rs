@@ -6,6 +6,7 @@
 ///
 /// This is a specialized structure designed to represent a buffer of packet data.
 #[repr(C, packed)]
+#[derive(Debug)]
 pub struct VirtualLanPacket
 {
 	/// Header.
@@ -15,10 +16,19 @@ pub struct VirtualLanPacket
 	pub layer_3_packet: Layer3Packet,
 }
 
+impl Display for VirtualLanPacket
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
 impl VirtualLanPacket
 {
 	#[inline(always)]
-	pub(crate) fn tag_control_information(&self) -> VirtualLanPacketTagControlInformation
+	pub(crate) fn tag_control_information(&self) -> TagControlInformation
 	{
 		self.header.tag_control_information()
 	}

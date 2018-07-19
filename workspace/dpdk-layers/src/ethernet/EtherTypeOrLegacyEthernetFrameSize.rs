@@ -13,6 +13,80 @@ pub union EtherTypeOrLegacyEthernetFrameSize
 	pub ether_type: EtherType,
 }
 
+impl Clone for EtherTypeOrLegacyEthernetFrameSize
+{
+	#[inline(always)]
+	fn clone(&self) -> Self
+	{
+		Self
+		{
+			legacy_ethernet_frame_size: self.legacy_ethernet_frame_size,
+		}
+	}
+}
+
+impl Copy for EtherTypeOrLegacyEthernetFrameSize
+{
+}
+
+impl PartialOrd for EtherTypeOrLegacyEthernetFrameSize
+{
+	#[inline(always)]
+	fn partial_cmp(&self, other: &Self) -> Option<Ordering>
+	{
+		unsafe { self.legacy_ethernet_frame_size.partial_cmp(&other.legacy_ethernet_frame_size) }
+	}
+}
+
+impl Ord for EtherTypeOrLegacyEthernetFrameSize
+{
+	#[inline(always)]
+	fn cmp(&self, other: &Self) -> Ordering
+	{
+		unsafe { self.legacy_ethernet_frame_size.cmp(&other.legacy_ethernet_frame_size) }
+	}
+}
+
+impl PartialEq for EtherTypeOrLegacyEthernetFrameSize
+{
+	#[inline(always)]
+	fn eq(&self, other: &Self) -> bool
+	{
+		unsafe { self.legacy_ethernet_frame_size == other.legacy_ethernet_frame_size }
+	}
+}
+
+impl Eq for EtherTypeOrLegacyEthernetFrameSize
+{
+}
+
+impl Hash for EtherTypeOrLegacyEthernetFrameSize
+{
+	#[inline(always)]
+	fn hash<H: Hasher>(&self, hasher: &mut H)
+	{
+		unsafe { self.legacy_ethernet_frame_size.hash(hasher) }
+	}
+}
+
+impl Debug for EtherTypeOrLegacyEthernetFrameSize
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "0x{:04X}", unsafe { self.legacy_ethernet_frame_size.0.to_native_byte_order_value() })
+	}
+}
+
+impl Display for EtherTypeOrLegacyEthernetFrameSize
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "0x{:04X}", unsafe { self.legacy_ethernet_frame_size.0.to_native_byte_order_value() })
+	}
+}
+
 impl EtherTypeOrLegacyEthernetFrameSize
 {
 	#[inline(always)]

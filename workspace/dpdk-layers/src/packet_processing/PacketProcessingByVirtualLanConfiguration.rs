@@ -17,19 +17,28 @@ pub struct PacketProcessingByVirtualLanConfiguration
 	pub none: PacketProcessingConfiguration,
 }
 
+impl Display for PacketProcessingByVirtualLanConfiguration
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
 impl PacketProcessingByVirtualLanConfiguration
 {
 	/// Configure.
 	#[inline(always)]
-	pub fn configure<PPDO: PacketProcessingDropOberserver>(mut self, our_valid_unicast_ethernet_address: MediaAccessControlAddress, numa_node_choice: NumaNodeChoice, dropped_packet_reporting: &Rc<PPDO>) -> PacketProcessingByVirtualLan<PPDO>
+	pub fn configure<PPDO: PacketProcessingDropObserver>(mut self, our_valid_unicast_ethernet_address: MediaAccessControlAddress, numa_node_choice: NumaNodeChoice, dropped_packet_reporting: &Rc<PPDO>) -> PacketProcessingByVirtualLan<PPDO>
 	{
 		PacketProcessingByVirtualLan
 		{
 			outer: self.outer.drain().map(|(key, value)| (key, value.configure(our_valid_unicast_ethernet_address, numa_node_choice, dropped_packet_reporting))).collect(),
 			
-			inner: self.outer.drain().map(|(key, value)| (key, value.configure(our_valid_unicast_ethernet_address, numa_node_choice, dropped_packet_reporting))).collect(),
+			inner: self.inner.drain().map(|(key, value)| (key, value.configure(our_valid_unicast_ethernet_address, numa_node_choice, dropped_packet_reporting))).collect(),
 			
-			none: self.none.configure(self.our_valid_unicast_ethernet_address, numa_node_choice, dropped_packet_reporting),
+			none: self.none.configure(our_valid_unicast_ethernet_address, numa_node_choice, dropped_packet_reporting),
 		}
 	}
 }

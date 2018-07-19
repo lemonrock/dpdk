@@ -4,9 +4,9 @@
 
 /// Tag control information.
 #[repr(C, packed)]
-pub struct VirtualLanPacketTagControlInformation(pub NetworkByteOrderEndianU16);
+pub struct TagControlInformation(pub NetworkByteOrderEndianU16);
 
-impl Display for VirtualLanPacketTagControlInformation
+impl Display for TagControlInformation
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -15,7 +15,7 @@ impl Display for VirtualLanPacketTagControlInformation
 	}
 }
 
-impl Debug for VirtualLanPacketTagControlInformation
+impl Debug for TagControlInformation
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -24,7 +24,7 @@ impl Debug for VirtualLanPacketTagControlInformation
 	}
 }
 
-impl VirtualLanPacketTagControlInformation
+impl TagControlInformation
 {
 	/// Parse.
 	#[inline(always)]

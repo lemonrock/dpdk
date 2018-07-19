@@ -7,7 +7,16 @@
 /// Defaults to `DefaultForwarding`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Serialize, Deserialize)]
-pub struct DifferentiatedServiceCodePoint(pub(crate) u8);
+pub struct DifferentiatedServiceCodePoint(u8);
+
+impl Display for DifferentiatedServiceCodePoint
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "0b{:06b}", self.0)
+	}
+}
 
 impl Default for DifferentiatedServiceCodePoint
 {

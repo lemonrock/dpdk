@@ -13,7 +13,10 @@ pub trait PacketProcessingDropObserver
 	/// * Log to standard error.
 	/// * Log to an in-memory ring buffer which can be 'inspected' (this has the advantage of fixing memory usage).
 	/// * Increment a statistic, such as a counter.
+	/// * Use injected Lua
 	/// * Pass to a security monitor which can reactively and automatically adjust configuration (eg ban an IP address).
 	/// * Ignore.
+	///
+	/// One additional possible idea, not yet supported, would to allow the observer to mutate the packet and 're-inject' it or 'reject' the drop. This is fraught with potential pitfalls.
 	fn dropped_packet(&self, reason: PacketProcessingDropReason);
 }

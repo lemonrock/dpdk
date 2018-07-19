@@ -4,6 +4,7 @@
 
 /// This is a specialized structure designed to represent a buffer of packet data.
 #[repr(C, packed)]
+#[derive(Debug, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub struct EthernetPacketHeader
 {
 	/// Source and destination addresses.
@@ -11,6 +12,96 @@ pub struct EthernetPacketHeader
 	
 	/// Ethernet frame size or ether type.
 	pub ether_type_or_legacy_ethernet_frame_size: EtherTypeOrLegacyEthernetFrameSize,
+}
+
+impl Display for EthernetPacketHeader
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
+impl Into<ether_hdr> for EthernetPacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> ether_hdr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl<'a> Into<&'a ether_hdr> for &'a EthernetPacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> &'a ether_hdr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl<'a> Into<&'a mut ether_hdr> for &'a mut EthernetPacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> &'a mut ether_hdr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl<'a> Into<NonNull<ether_hdr>> for &'a mut EthernetPacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> NonNull<ether_hdr>
+	{
+		unsafe { NonNull::new_unchecked(self as *mut EthernetPacketHeader as *mut ether_hdr) }
+	}
+}
+
+impl<'a> Into<*const ether_hdr> for &'a EthernetPacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> *const ether_hdr
+	{
+		self as *const EthernetPacketHeader as *const _
+	}
+}
+
+impl<'a> Into<*mut ether_hdr> for &'a mut EthernetPacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> *mut ether_hdr
+	{
+		self as *mut EthernetPacketHeader as *mut _
+	}
+}
+
+impl From<ether_hdr> for EthernetPacketHeader
+{
+	#[inline(always)]
+	fn from(value: ether_hdr) -> Self
+	{
+		unsafe { transmute(value) }
+	}
+}
+
+impl<'a> From<&'a ether_hdr> for &'a EthernetPacketHeader
+{
+	#[inline(always)]
+	fn from(value: &'a ether_hdr) -> &'a EthernetPacketHeader
+	{
+		unsafe { transmute(value) }
+	}
+}
+
+impl<'a> From<&'a mut ether_hdr> for &'a mut EthernetPacketHeader
+{
+	#[inline(always)]
+	fn from(value: &'a mut ether_hdr) -> &'a mut EthernetPacketHeader
+	{
+		unsafe { transmute(value) }
+	}
 }
 
 impl EthernetPacketHeader
@@ -34,7 +125,7 @@ impl EthernetPacketHeader
 	pub const SizeU16WithFrameCheckSequence: u16 = Self::SizeU16 + SizeU16OfEthernetCyclicRedundancyCheck;
 	
 	#[inline(always)]
-	pub(crate) fn ethernet_addresses(&self) -> EthernetAddresses
+	pub(crate) fn ethernet_addresses(&self) -> &EthernetAddresses
 	{
 		&self.ethernet_addresses
 	}

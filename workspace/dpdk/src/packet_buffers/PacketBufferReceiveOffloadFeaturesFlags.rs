@@ -65,7 +65,7 @@ bitflags!
 	/// The most significant 3-bits are reserved for generic `mbuf` flags.
 	pub struct PacketBufferReceiveOffloadFeaturesFlags: u64
 	{
-		/// The RX packet is a 802.1q VLAN packet.
+		/// The RX packet is a 802.1Q VLAN packet.
 		///
 		/// If the flag `PKT_RX_VLAN_STRIPPED` is also present, the VLAN header (Traffic Control Information, TCI) has been stripped by the hardware and has been saved in `rte_mbuf.vlan_tci`, else it is still present.
 		const PKT_RX_VLAN = 1 << 0;

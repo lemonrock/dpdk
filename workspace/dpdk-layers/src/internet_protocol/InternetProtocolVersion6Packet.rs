@@ -4,10 +4,20 @@
 
 /// This is a specialized structure designed to represent a buffer of packet data.
 #[repr(C, packed)]
+#[derive(Debug)]
 pub struct InternetProtocolVersion6Packet
 {
 	/// Header.
 	pub header: InternetProtocolVersion6PacketHeader,
+}
+
+impl Display for InternetProtocolVersion6Packet
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
 }
 
 impl InternetProtocolVersion6Packet
@@ -20,7 +30,7 @@ impl InternetProtocolVersion6Packet
 	}
 	
 	#[inline(always)]
-	pub(crate) fn process<'a>(&'a mut self, packet: PacketBuffer, packet_processing: &PacketProcessing<&impl PacketProcessingDropObserver>, layer_3_length: u16, ethernet_addresses: &'a EthernetAddresses<'a>)
+	pub(crate) fn process<'a>(&'a mut self, packet: PacketBuffer, packet_processing: &PacketProcessing<impl PacketProcessingDropObserver>, layer_3_length: u16, ethernet_addresses: &'a EthernetAddresses)
 	{
 		let header = &self.header;
 		
@@ -28,6 +38,8 @@ impl InternetProtocolVersion6Packet
 		{
 			drop!(InternetProtocolVersion6HeaderIsNot6 { ethernet_addresses, header }, packet_processing, packet)
 		}
+		
+		let (source_ethernet_address, destination_ethernet_address) = ethernet_addresses.addresses();
 		
 		xxx;
 		// TODO: IPV6 header validation

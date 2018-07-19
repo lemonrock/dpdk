@@ -141,9 +141,9 @@ impl PacketBuffer
 	
 	/// Stripped VLAN tag control information (TCI).
 	#[inline(always)]
-	pub(crate) fn stripped_vlan_tag_control_information(self) -> VirtualLanPacketTagControlInformation
+	pub(crate) fn stripped_vlan_tag_control_information(self) -> TagControlInformation
 	{
-		VirtualLanPacketTagControlInformation(NetworkByteOrderEndianU16::from_network_byte_order_value(self.reference().vlan_tci))
+		TagControlInformation(NetworkByteOrderEndianU16::from_network_byte_order_value(self.reference().vlan_tci))
 	}
 	
 	/// Was VLAN QinQ tag control information (TCI) stripped (ie did the hardware pull it out of the received packet and put it into this structure)?
@@ -155,9 +155,9 @@ impl PacketBuffer
 	
 	/// Stripped VLAN QinQ tag control information (TCI) (outer and inner).
 	#[inline(always)]
-	pub(crate) fn stripped_vlan_qinq_tag_control_information(self) -> (VirtualLanPacketTagControlInformation, VirtualLanPacketTagControlInformation)
+	pub(crate) fn stripped_vlan_qinq_tag_control_information(self) -> (TagControlInformation, TagControlInformation)
 	{
-		(VirtualLanPacketTagControlInformation(NetworkByteOrderEndianU16::from_network_byte_order_value(self.reference().vlan_tci_outer)), self.stripped_vlan_tag_control_information())
+		(TagControlInformation(NetworkByteOrderEndianU16::from_network_byte_order_value(self.reference().vlan_tci_outer)), self.stripped_vlan_tag_control_information())
 	}
 	
 	/// Checks if this packet is contiguous.

@@ -13,3 +13,12 @@ pub struct EthernetDestination
 	/// The destination's ethernet frame length.
 	#[serde(default)] pub ethernet_frame_length: EthernetFrameLength,
 }
+
+impl Display for EthernetDestination
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}, {}", self.media_access_control_address, self.ethernet_frame_length)
+	}
+}

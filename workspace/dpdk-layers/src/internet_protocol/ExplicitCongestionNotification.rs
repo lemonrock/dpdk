@@ -23,11 +23,41 @@ pub enum ExplicitCongestionNotification
 	CongestionEncountered = 0b11,
 }
 
+impl Display for ExplicitCongestionNotification
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		use self::ExplicitCongestionNotification::*;
+		
+		let string = match *self
+		{
+			NotCapableTransport => "None",
+			
+			CapableTransportEctZero => "ECT(0)",
+			
+			CapableTransportEctOne => "ECT(1)",
+			
+			CongestionEncountered => "CE",
+		};
+		write!(f, "{}", string)
+	}
+}
+
 impl Default for ExplicitCongestionNotification
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
 		ExplicitCongestionNotification::NotCapableTransport
+	}
+}
+
+impl Into<u8> for ExplicitCongestionNotification
+{
+	#[inline(always)]
+	fn into(self) -> u8
+	{
+		self as u8
 	}
 }

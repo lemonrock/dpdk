@@ -4,6 +4,7 @@
 
 /// Extension header type or Layer 4 protocol number (the range overlaps; yuck).
 #[repr(C, packed)]
+#[derive(Copy, Clone)]
 pub union ExtensionHeaderTypeOrLayer4ProtocolNumber
 {
 	/// A known extension header type.
@@ -14,4 +15,83 @@ pub union ExtensionHeaderTypeOrLayer4ProtocolNumber
 	
 	/// An unknown extension header type or layer 4 protocol number.
 	pub unknown: u8,
+}
+
+impl From<u8> for ExtensionHeaderTypeOrLayer4ProtocolNumber
+{
+	#[inline(always)]
+	fn from(value: u8) -> Self
+	{
+		Self
+		{
+			unknown: value,
+		}
+	}
+}
+
+impl Into<u8> for ExtensionHeaderTypeOrLayer4ProtocolNumber
+{
+	#[inline(always)]
+	fn into(self) -> u8
+	{
+		unsafe { self.unknown }
+	}
+}
+
+impl Display for ExtensionHeaderTypeOrLayer4ProtocolNumber
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}", unsafe { self.unknown })
+	}
+}
+
+impl Debug for ExtensionHeaderTypeOrLayer4ProtocolNumber
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}", unsafe { self.unknown })
+	}
+}
+
+impl PartialOrd for ExtensionHeaderTypeOrLayer4ProtocolNumber
+{
+	#[inline(always)]
+	fn partial_cmp(&self, other: &Self) -> Option<Ordering>
+	{
+		unsafe { self.unknown.partial_cmp(&other.unknown) }
+	}
+}
+
+impl Ord for ExtensionHeaderTypeOrLayer4ProtocolNumber
+{
+	#[inline(always)]
+	fn cmp(&self, other: &Self) -> Ordering
+	{
+		unsafe { self.unknown.cmp(&other.unknown) }
+	}
+}
+
+impl PartialEq for ExtensionHeaderTypeOrLayer4ProtocolNumber
+{
+	#[inline(always)]
+	fn eq(&self, other: &Self) -> bool
+	{
+		unsafe { self.unknown == other.unknown }
+	}
+}
+
+impl Eq for ExtensionHeaderTypeOrLayer4ProtocolNumber
+{
+}
+
+impl Hash for ExtensionHeaderTypeOrLayer4ProtocolNumber
+{
+	#[inline(always)]
+	fn hash<H: Hasher>(&self, hasher: &mut H)
+	{
+		hasher.write_u8(unsafe { self.unknown })
+	}
 }

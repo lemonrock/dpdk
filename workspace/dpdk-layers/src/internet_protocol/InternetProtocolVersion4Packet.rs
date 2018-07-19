@@ -4,6 +4,7 @@
 
 /// This is a specialized structure designed to represent a buffer of packet data.
 #[repr(C, packed)]
+#[derive(Debug)]
 pub struct InternetProtocolVersion4Packet
 {
 	/// Header.
@@ -16,6 +17,15 @@ pub struct InternetProtocolVersion4Packet
 	pub payload: Layer4Packet,
 }
 
+impl Display for InternetProtocolVersion4Packet
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
 impl InternetProtocolVersion4Packet
 {
 	#[inline(always)]
@@ -25,7 +35,7 @@ impl InternetProtocolVersion4Packet
 	}
 	
 	#[inline(always)]
-	pub(crate) fn process<'a>(&'a mut self, packet: PacketBuffer, packet_processing: &PacketProcessing<&impl PacketProcessingDropObserver>, layer_3_length: u16, ethernet_addresses: &'a EthernetAddresses<'a>)
+	pub(crate) fn process<'a>(&'a mut self, packet: PacketBuffer, packet_processing: &PacketProcessing<impl PacketProcessingDropObserver>, layer_3_length: u16, ethernet_addresses: &'a EthernetAddresses)
 	{
 		let header = &self.header;
 		
@@ -122,6 +132,8 @@ impl InternetProtocolVersion4Packet
 		
 		// TODO: fragmentation
 		
+		
+		let (source_ethernet_address, destination_ethernet_address) = ethernet_addresses.addresses();
 		
 		if destination_ethernet_address.is_valid_unicast()
 		{

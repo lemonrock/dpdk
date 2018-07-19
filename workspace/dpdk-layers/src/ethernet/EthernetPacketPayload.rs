@@ -15,11 +15,29 @@ pub union EthernetPacketPayload
 	///
 	/// Note that some poll-mode drivers will have stripped this.
 	///
-	/// There can be an (infinite) nest of these terminated by a 802.1Q terminator, although conventionally there is just one followed by a 802.1Q terminator.
+	/// There can be an (infinite) nest of these terminated by an IEEE 802.1Q terminator, although conventionally there is just one followed by an IEEE 802.1Q terminator.
 	pub qinq_virtual_lan_packet: QinQVirtualLanPacket,
 	
 	/// A layer 3 packet.
 	pub layer_3_packet: Layer3Packet,
+}
+
+impl Display for EthernetPacketPayload
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
+impl Debug for EthernetPacketPayload
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "(payload)")
+	}
 }
 
 impl EthernetPacketPayload

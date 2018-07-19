@@ -7,10 +7,10 @@
 pub struct PacketProcessingForQinQVirtualLan<PPDO: PacketProcessingDropObserver>
 {
 	/// Outer QinQ Virtual LAN permitted classes of service.
-	outer_packet_processing: PacketProcessing<PPDO>,
+	pub(crate)  outer_packet_processing: PacketProcessing<PPDO>,
 	
 	/// Inner packet processing configuration.
-	inner_packet_processing: PacketProcessing<PPDO>,
+	pub(crate)  inner_packet_processing: PacketProcessing<PPDO>,
 }
 
 impl<PPDO: PacketProcessingDropObserver> PacketProcessingForQinQVirtualLan<PPDO>

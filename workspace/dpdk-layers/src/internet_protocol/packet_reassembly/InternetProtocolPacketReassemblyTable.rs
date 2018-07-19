@@ -27,6 +27,23 @@ pub struct InternetProtocolPacketReassemblyTable
 	death_row: rte_ip_frag_death_row,
 }
 
+impl Display for InternetProtocolPacketReassemblyTable
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
+impl Debug for InternetProtocolPacketReassemblyTable
+{
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "InternetProtocolPacketReassemblyTable")
+	}
+}
+
 impl PrintInformation for InternetProtocolPacketReassemblyTable
 {
 	#[inline(always)]
@@ -117,11 +134,11 @@ impl InternetProtocolPacketReassemblyTable
 	///
 	/// Use `Cycles::current_rdtsc_cycles_since_boot()` or a cached value.
 	#[inline(always)]
-	pub fn reassemble_fragmented_internet_protocol_version_4_packet(&mut self, incoming_packet: PacketBuffer, incoming_packet_arrival_timestamp: Cycles, header_inside_incoming_packet: &InternetProtocolVersion4PacketHeader) -> Option<PacketBuffer>
+	pub fn reassemble_fragmented_internet_protocol_version_4_packet(&mut self, incoming_packet: PacketBuffer, incoming_packet_arrival_timestamp: Cycles, header_inside_incoming_packet: &mut InternetProtocolVersion4PacketHeader) -> Option<PacketBuffer>
 	{
 		if header_inside_incoming_packet.is_fragmented()
 		{
-			let result = unsafe { rte_ipv4_frag_reassemble_packet(self.fragmentation_table_pointer(), self.death_row(), incoming_packet.as_ptr(), incoming_packet_arrival_timestamp.into(), header_inside_incoming_packet.to_dpdk().as_ptr()) };
+			let result = unsafe { rte_ipv4_frag_reassemble_packet(self.fragmentation_table_pointer(), self.death_row(), incoming_packet.as_ptr(), incoming_packet_arrival_timestamp.into(), header_inside_incoming_packet.into()) };
 			
 			PacketBuffer::from_possibly_null_rte_mbuf(result)
 		}
@@ -147,7 +164,7 @@ impl InternetProtocolPacketReassemblyTable
 	///
 	/// Use `Cycles::current_rdtsc_cycles_since_boot()` or a cached value.
 	#[inline(always)]
-	pub fn reassemble_fragmented_internet_protocol_version_6_packet(&mut self, incoming_packet: PacketBuffer, incoming_packet_arrival_timestamp: Cycles, header_inside_incoming_packet: &InternetProtocolVersion6PacketHeader, extension_header_fragment_inside_incoming_packet: NonNull<ipv6_extension_fragment>) -> Option<PacketBuffer>
+	pub fn reassemble_fragmented_internet_protocol_version_6_packet(&mut self, incoming_packet: PacketBuffer, incoming_packet_arrival_timestamp: Cycles, header_inside_incoming_packet: &mut InternetProtocolVersion6PacketHeader, extension_header_fragment_inside_incoming_packet: NonNull<ipv6_extension_fragment>) -> Option<PacketBuffer>
 	{
 		let extension_header_fragment_inside_incoming_packet = header_inside_incoming_packet.is_fragmented();
 		if extension_header_fragment_inside_incoming_packet.is_null()
@@ -155,7 +172,7 @@ impl InternetProtocolPacketReassemblyTable
 			return Some(incoming_packet)
 		}
 		
-		let result = unsafe { rte_ipv6_frag_reassemble_packet(self.fragmentation_table_pointer(), self.death_row(), incoming_packet.as_ptr(), incoming_packet_arrival_timestamp.into(), header_inside_incoming_packet.to_dpdk().as_ptr(), extension_header_fragment_inside_incoming_packet as *mut _) };
+		let result = unsafe { rte_ipv6_frag_reassemble_packet(self.fragmentation_table_pointer(), self.death_row(), incoming_packet.as_ptr(), incoming_packet_arrival_timestamp.into(), header_inside_incoming_packet.into(), extension_header_fragment_inside_incoming_packet as *mut _) };
 		
 		PacketBuffer::from_possibly_null_rte_mbuf(result)
 	}

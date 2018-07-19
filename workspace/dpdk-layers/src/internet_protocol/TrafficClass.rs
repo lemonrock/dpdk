@@ -7,26 +7,40 @@
 #[derive(Serialize, Deserialize)]
 pub struct TrafficClass
 {
+	/// Differentiated service code point.
 	pub differentiated_service_code_point: DifferentiatedServiceCodePoint,
+	
+	/// Explicit congestion notification.
 	pub explicit_congestion_notification: ExplicitCongestionNotification,
 }
 
-impl TrafficClass
+impl Display for TrafficClass
 {
-	/// To an u8 value.
 	#[inline(always)]
-	pub fn as_u8(&self) -> u8
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		self.differentiated_service_code_point.into() << 2 | self.explicit_congestion_notification as u8
+		write!(f, "{}, {}", self.differentiated_service_code_point, self.explicit_congestion_notification)
 	}
-	
-	/// To an u32 value
-	///
-	/// * not bit shifted
-	/// * in native endian order.
+}
+
+impl Into<u8> for TrafficClass
+{
 	#[inline(always)]
-	pub fn as_u32(&self) -> u32
+	fn into(self) -> u8
 	{
-		self.as_u8() as u32
+		self.differentiated_service_code_point.into() << 2 | self.explicit_congestion_notification.into()
+	}
+}
+
+impl From<u8> for TrafficClass
+{
+	#[inline(always)]
+	fn from(value: u8) -> Self
+	{
+		Self
+		{
+			differentiated_service_code_point: DifferentiatedServiceCodePoint::from(value >> 2),
+			explicit_congestion_notification: unsafe { transmute(value & 0b11) },
+		}
 	}
 }

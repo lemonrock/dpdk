@@ -4,6 +4,7 @@
 
 /// This is a specialized structure designed to represent a buffer of packet data.
 #[repr(C, packed)]
+#[derive(Debug)]
 pub struct AddressResolutionProtocolPacket
 {
 	/// Header.
@@ -11,6 +12,96 @@ pub struct AddressResolutionProtocolPacket
 
 	/// Payload.
 	pub payload: AddressResolutionProtocolPacketPayload,
+}
+
+impl Display for AddressResolutionProtocolPacket
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
+impl Into<arp_hdr> for AddressResolutionProtocolPacket
+{
+	#[inline(always)]
+	fn into(self) -> arp_hdr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl<'a> Into<&'a arp_hdr> for &'a AddressResolutionProtocolPacket
+{
+	#[inline(always)]
+	fn into(self) -> &'a arp_hdr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl<'a> Into<&'a mut arp_hdr> for &'a mut AddressResolutionProtocolPacket
+{
+	#[inline(always)]
+	fn into(self) -> &'a mut arp_hdr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl<'a> Into<NonNull<arp_hdr>> for &'a mut AddressResolutionProtocolPacket
+{
+	#[inline(always)]
+	fn into(self) -> NonNull<arp_hdr>
+	{
+		unsafe { NonNull::new_unchecked(self as *mut AddressResolutionProtocolPacket as *mut arp_hdr) }
+	}
+}
+
+impl<'a> Into<*const arp_hdr> for &'a AddressResolutionProtocolPacket
+{
+	#[inline(always)]
+	fn into(self) -> *const arp_hdr
+	{
+		self as *const AddressResolutionProtocolPacket as *const _
+	}
+}
+
+impl<'a> Into<*mut arp_hdr> for &'a mut AddressResolutionProtocolPacket
+{
+	#[inline(always)]
+	fn into(self) -> *mut arp_hdr
+	{
+		self as *mut AddressResolutionProtocolPacket as *mut _
+	}
+}
+
+impl From<arp_hdr> for AddressResolutionProtocolPacket
+{
+	#[inline(always)]
+	fn from(value: arp_hdr) -> Self
+	{
+		unsafe { transmute(value) }
+	}
+}
+
+impl<'a> From<&'a arp_hdr> for &'a AddressResolutionProtocolPacket
+{
+	#[inline(always)]
+	fn from(value: &'a arp_hdr) -> &'a AddressResolutionProtocolPacket
+	{
+		unsafe { transmute(value) }
+	}
+}
+
+impl<'a> From<&'a mut arp_hdr> for &'a mut AddressResolutionProtocolPacket
+{
+	#[inline(always)]
+	fn from(value: &'a mut arp_hdr) -> &'a mut AddressResolutionProtocolPacket
+	{
+		unsafe { transmute(value) }
+	}
 }
 
 impl AddressResolutionProtocolPacket
@@ -30,10 +121,9 @@ impl AddressResolutionProtocolPacket
 	}
 
 	#[inline(always)]
-	pub(crate) fn process<'a>(&'a mut self, packet: PacketBuffer, packet_processing: &PacketProcessing<&impl PacketProcessingDropObserver>, ethernet_addresses: &'a EthernetAddresses<'a>)
+	pub(crate) fn process<'a>(&'a mut self, packet: PacketBuffer, packet_processing: &PacketProcessing<impl PacketProcessingDropObserver>, ethernet_addresses: &'a EthernetAddresses)
 	{
-		let source_ethernet_address = ethernet_addresses.source;
-		let destination_ethernet_address = ethernet_addresses.destination;
+		let (source_ethernet_address, destination_ethernet_address) = ethernet_addresses.addresses();
 		
 		debug_assert!(source_ethernet_address.is_valid_unicast(), "source_ethernet_address '{}' is not valid unicast", source_ethernet_address);
 
@@ -55,10 +145,9 @@ impl AddressResolutionProtocolPacket
 	}
 
 	#[inline(always)]
-	fn process_request<'a>(&'a mut self, packet: PacketBuffer, packet_processing: &PacketProcessing<&impl PacketProcessingDropObserver>, ethernet_addresses: &'a EthernetAddresses<'a>)
+	fn process_request<'a>(&'a mut self, packet: PacketBuffer, packet_processing: &PacketProcessing<impl PacketProcessingDropObserver>, ethernet_addresses: &'a EthernetAddresses)
 	{
-		let source_ethernet_address = ethernet_addresses.source;
-		let destination_ethernet_address = ethernet_addresses.destination;
+		let (source_ethernet_address, destination_ethernet_address) = ethernet_addresses.addresses();
 		
 		// RFC 1122 Section 2.3.2.1: "(2) Unicast Poll -- Actively poll the remote host by periodically sending a point-to-point ARP Request to it, and delete the entry if no ARP Reply is received from N successive polls".
 		//
@@ -154,10 +243,9 @@ impl AddressResolutionProtocolPacket
 	}
 
 	#[inline(always)]
-	fn process_reply<'a>(&'a mut self, packet: PacketBuffer, packet_processing: &PacketProcessing<&impl PacketProcessingDropObserver>, ethernet_addresses: &'a EthernetAddresses<'a>)
+	fn process_reply<'a>(&'a mut self, packet: PacketBuffer, packet_processing: &PacketProcessing<impl PacketProcessingDropObserver>, ethernet_addresses: &'a EthernetAddresses)
 	{
-		let source_ethernet_address = ethernet_addresses.source;
-		let destination_ethernet_address = ethernet_addresses.destination;
+		let (source_ethernet_address, destination_ethernet_address) = ethernet_addresses.addresses();
 		
 		let payload = self.payload();
 		let sender_hardware_address = &payload.sender_hardware_address;

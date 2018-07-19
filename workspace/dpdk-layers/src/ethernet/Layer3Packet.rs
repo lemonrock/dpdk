@@ -21,10 +21,28 @@ pub union Layer3Packet
 	pub other: PhantomData<u8>,
 }
 
+impl Display for Layer3Packet
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
+impl Debug for Layer3Packet
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "(layer 3 packet)")
+	}
+}
+
 impl Layer3Packet
 {
 	#[inline(always)]
-	pub(crate) fn process_internet_protocol_version_4<'a>(&'a mut self, packet: PacketBuffer, packet_processing: &PacketProcessing<&impl PacketProcessingDropObserver>, layer_3_length: u16, ethernet_addresses: &'a EthenetAddresses<'a>)
+	pub(crate) fn process_internet_protocol_version_4<'a>(&'a mut self, packet: PacketBuffer, packet_processing: &PacketProcessing<impl PacketProcessingDropObserver>, layer_3_length: u16, ethernet_addresses: &'a EthernetAddresses)
 	{
 		if unlikely!(InternetProtocolVersion4Packet::is_packet_length_too_short(layer_3_length))
 		{
@@ -37,7 +55,7 @@ impl Layer3Packet
 	}
 	
 	#[inline(always)]
-	pub(crate) fn process_internet_protocol_version_6<'a>(&'a mut self, packet: PacketBuffer, packet_processing: &PacketProcessing<&impl PacketProcessingDropObserver>, layer_3_length: u16, ethernet_addresses: &'a EthenetAddresses<'a>)
+	pub(crate) fn process_internet_protocol_version_6<'a>(&'a mut self, packet: PacketBuffer, packet_processing: &PacketProcessing<impl PacketProcessingDropObserver>, layer_3_length: u16, ethernet_addresses: &'a EthernetAddresses)
 	{
 		if unlikely!(InternetProtocolVersion6Packet::is_packet_length_too_short(layer_3_length))
 		{
@@ -50,7 +68,7 @@ impl Layer3Packet
 	}
 	
 	#[inline(always)]
-	pub(crate) fn process_address_resolution_protocol<'a>(&'a mut self, packet: PacketBuffer, packet_processing: &PacketProcessing<&impl PacketProcessingDropObserver>, layer_3_length: u16, ethernet_addresses: &'a EthenetAddresses<'a>)
+	pub(crate) fn process_address_resolution_protocol<'a>(&'a mut self, packet: PacketBuffer, packet_processing: &PacketProcessing<impl PacketProcessingDropObserver>, layer_3_length: u16, ethernet_addresses: &'a EthernetAddresses)
 	{
 		if unlikely!(AddressResolutionProtocolPacket::is_packet_length_too_short(layer_3_length))
 		{

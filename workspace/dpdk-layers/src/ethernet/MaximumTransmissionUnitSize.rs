@@ -9,6 +9,15 @@
 #[derive(Serialize, Deserialize)]
 pub struct MaximumTransmissionUnitSize(u16);
 
+impl Display for MaximumTransmissionUnitSize
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}", self.0)
+	}
+}
+
 impl MaximumTransmissionUnitSize
 {
 	const Rfc791Minimum: u16 = 68;

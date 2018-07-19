@@ -4,13 +4,14 @@
 
 /// This is a specialized structure designed to represent a buffer of packet data.
 #[repr(C, packed)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct InternetProtocolVersion4PacketHeader
 {
 	/// Version and internet header length bit fields.
 	pub version_and_internet_header_length: u8,
 	
 	/// Type of service.
-	pub type_of_service: u8,
+	pub type_of_service: TrafficClass,
 	
 	/// Total length.
 	pub total_length: NetworkByteOrderEndianU16,
@@ -28,13 +29,103 @@ pub struct InternetProtocolVersion4PacketHeader
 	pub next_proto_id: Layer4ProtocolNumber,
 	
 	/// Check sum.
-	pub check_sum: NetworkByteOrderEndianU16,
+	pub check_sum: InternetChecksum,
 	
 	/// Source address.
 	pub source_address: InternetProtocolVersion4HostAddress,
 	
 	/// Destination address.
 	pub destination_address: InternetProtocolVersion4HostAddress,
+}
+
+impl Display for InternetProtocolVersion4PacketHeader
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
+impl Into<ipv4_hdr> for InternetProtocolVersion4PacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> ipv4_hdr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl<'a> Into<&'a ipv4_hdr> for &'a InternetProtocolVersion4PacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> &'a ipv4_hdr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl<'a> Into<NonNull<ipv4_hdr>> for &'a mut InternetProtocolVersion4PacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> NonNull<ipv4_hdr>
+	{
+		unsafe { NonNull::new_unchecked(self as *mut InternetProtocolVersion4PacketHeader as *mut ipv4_hdr) }
+	}
+}
+
+impl<'a> Into<*const ipv4_hdr> for &'a InternetProtocolVersion4PacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> *const ipv4_hdr
+	{
+		self as *const InternetProtocolVersion4PacketHeader as *const _
+	}
+}
+
+impl<'a> Into<*mut ipv4_hdr> for &'a mut InternetProtocolVersion4PacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> *mut ipv4_hdr
+	{
+		self as *mut InternetProtocolVersion4PacketHeader as *mut _
+	}
+}
+
+impl<'a> Into<&'a mut ipv4_hdr> for &'a mut InternetProtocolVersion4PacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> &'a mut ipv4_hdr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl From<ipv4_hdr> for InternetProtocolVersion4PacketHeader
+{
+	#[inline(always)]
+	fn from(value: ipv4_hdr) -> Self
+	{
+		unsafe { transmute(value) }
+	}
+}
+
+impl<'a> From<&'a ipv4_hdr> for &'a InternetProtocolVersion4PacketHeader
+{
+	#[inline(always)]
+	fn from(value: &'a ipv4_hdr) -> &'a InternetProtocolVersion4PacketHeader
+	{
+		unsafe { transmute(value) }
+	}
+}
+
+impl<'a> From<&'a mut ipv4_hdr> for &'a mut InternetProtocolVersion4PacketHeader
+{
+	#[inline(always)]
+	fn from(value: &'a mut ipv4_hdr) -> &'a mut InternetProtocolVersion4PacketHeader
+	{
+		unsafe { transmute(value) }
+	}
 }
 
 impl InternetProtocolVersion4PacketHeader
@@ -126,15 +217,6 @@ impl InternetProtocolVersion4PacketHeader
 		self.total_length.to_native_byte_order_value() - (self.header_length_including_options() as u16)
 	}
 	
-	/// DifferentiatedServiceCodePoint and ExplicitCongestionNotification.
-	#[inline(always)]
-	pub fn traffic_class(&self) -> (DifferentiatedServiceCodePoint, ExplicitCongestionNotification)
-	{
-		let traffic_class = self.type_of_service;
-		
-		(DifferentiatedServiceCodePoint(traffic_class >> 2), unsafe { transmute(traffic_class & 0b11) })
-	}
-	
 	/// Checks if an internet protocol (IP) version 4 packet is fragmented.
 	#[inline(always)]
 	pub(crate) fn is_fragmented(&self) -> bool
@@ -142,11 +224,5 @@ impl InternetProtocolVersion4PacketHeader
 		const OffsetMask: u16 = InternetProtocolVersion4PacketHeader::MoreFragmentsFlag - 1;
 		
 		self.fragment_offset.to_network_byte_order_value() & (Self::MoreFragmentsFlag | OffsetMask).to_be() != 0
-	}
-	
-	#[inline(always)]
-	pub(crate) fn to_dpdk(&self) -> NonNull<ipv4_hdr>
-	{
-		unsafe { NonNull::new_unchecked(self as *const Self as *mut Self as *mut ipv4_hdr) }
 	}
 }

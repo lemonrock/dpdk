@@ -2,34 +2,35 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// This is a specialized structure designed to represent a buffer of packet data.
+/// The source and destination ethernet addresses (MACs) of a packet.
+///
+/// Depending on the PacketProcessingDropReason, these may be invalid, inappropriate, not for our interface, etc.
 #[repr(C, packed)]
-pub union Layer4Packet
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub struct EthernetAddresses
 {
-	/// Internet Control Message Protocol (ICMP).
-	pub internet_control_message_protocol: InternetControlMessageProtocolType,
+	/// Source ethernet address.
+	pub source: MediaAccessControlAddress,
 	
-	/// Transmission Control Protocol (TCP).
-	pub transmission_control_protocol: (),
-	
-	/// User Datagram Protocol (UDP).
-	pub user_datagram_protocol: (),
+	/// Destination ethernet address.
+	pub destination: MediaAccessControlAddress,
 }
 
-impl Display for Layer4Packet
+impl Display for EthernetAddresses
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		Debug::fmt(self, f)
+		write!(f, "{}, {}", self.source, self.destination)
 	}
 }
 
-impl Debug for Layer4Packet
+impl EthernetAddresses
 {
+	/// Addresses.
 	#[inline(always)]
-	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	pub fn addresses(&self) -> (&MediaAccessControlAddress, &MediaAccessControlAddress)
 	{
-		write!(f, "(layer 4 packet)")
+		(&self.source, &self.destination)
 	}
 }

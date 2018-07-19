@@ -2,7 +2,7 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone)]
 #[derive(Serialize, Deserialize)]
 pub struct PacketProcessingConfiguration
 {
@@ -31,7 +31,7 @@ impl PacketProcessingConfiguration
 {
 	/// Configure.
 	#[inline(always)]
-	pub fn configure<PPDO: PacketProcessingDropOberserver>(mut self, our_valid_unicast_ethernet_address: MediaAccessControlAddress, numa_node_choice: NumaNodeChoice, dropped_packet_reporting: &Rc<PPDO>) -> PacketProcessing<PPDO>
+	pub fn configure<PPDO: PacketProcessingDropObserver>(mut self, our_valid_unicast_ethernet_address: MediaAccessControlAddress, numa_node_choice: NumaNodeChoice, dropped_packet_reporting: &Rc<PPDO>) -> PacketProcessing<PPDO>
 	{
 		PacketProcessing
 		{

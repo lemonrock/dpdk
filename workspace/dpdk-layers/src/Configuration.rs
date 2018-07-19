@@ -20,7 +20,7 @@ impl Configuration
 {
 	/// Configure.
 	#[inline(always)]
-	pub fn configure<PPDO: PacketProcessingDropOberserver>(mut self, numa_node_choice: NumaNodeChoice, dropped_packet_reporting: &Rc<PPDO>) -> PacketProcessingByVirtualLan<PPDO>
+	pub fn configure<PPDO: PacketProcessingDropObserver>(mut self, numa_node_choice: NumaNodeChoice, dropped_packet_reporting: &Rc<PPDO>) -> PacketProcessingByVirtualLan<PPDO>
 	{
 		self.packet_processing_by_virtual_lan_configuration.configure(self.our_valid_unicast_ethernet_address, numa_node_choice, dropped_packet_reporting)
 	}

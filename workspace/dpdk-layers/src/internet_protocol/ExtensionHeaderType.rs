@@ -33,7 +33,7 @@ pub enum ExtensionHeaderType
 	DestinationOptions = 60,
 	
 	/// RFC 6275.
-	MobilityHeader = 135,
+	Mobility = 135,
 	
 	/// RFC 7401.
 	HostIdentityProtocol = 139,
@@ -42,8 +42,55 @@ pub enum ExtensionHeaderType
 	Shim6Protocol = 140,
 	
 	/// RFC 4727.
-	Experimentation1 = 253,
+	Experimentation253 = 253,
 	
 	/// RFC 4727.
-	Experimentation2 = 254,
+	Experimentation254 = 254,
+}
+
+impl Display for ExtensionHeaderType
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		use self::ExtensionHeaderType::*;
+		
+		let string = match *self
+		{
+			HopByHopOptions => "Hop-by-hop options",
+			
+			Routing => "Routing",
+			
+			Fragment => "Fragment",
+			
+			EncapulatingSecurityPayload => "Encapulating Security Payload",
+			
+			AuthenticationHeader => "Authentication Header",
+			
+			NoNextHeader => "(no next header)",
+			
+			DestinationOptions => "Destination Options",
+			
+			Mobility => "Mobility",
+			
+			HostIdentityProtocol => "Host Identity Protocol",
+			
+			Shim6Protocol => "Shim6 Protocol",
+			
+			Experimentation253 => "Experimentation (253)",
+			
+			Experimentation254 => "Experimentation (254)",
+		};
+		
+		write!(f, "{}", string)
+	}
+}
+
+impl Into<u8> for ExtensionHeaderType
+{
+	#[inline(always)]
+	fn into(self) -> u8
+	{
+		self as u8
+	}
 }

@@ -9,7 +9,7 @@ include!("ClassOfService.rs");
 include!("DropEligibleIndicator.rs");
 include!("QinQVirtualLanPacket.rs");
 include!("PermittedClassesOfService.rs");
+include!("TagControlInformation.rs");
 include!("VirtualLanIdentifier.rs");
 include!("VirtualLanPacket.rs");
 include!("VirtualLanPacketHeader.rs");
-include!("VirtualLanPacketTagControlInformation.rs");

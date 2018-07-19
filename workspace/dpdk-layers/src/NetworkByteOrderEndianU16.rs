@@ -5,7 +5,7 @@
 /// This type wraps an u16 such that it is in network byte order (big endian) form.
 ///
 /// Internally, stores an u16 as a big endian bit pattern.
-#[derive(Default,  Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct NetworkByteOrderEndianU16(u16);
 
 impl Display for NetworkByteOrderEndianU16
@@ -26,8 +26,20 @@ impl Debug for NetworkByteOrderEndianU16
 	}
 }
 
+impl Default for NetworkByteOrderEndianU16
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::Zero
+	}
+}
+
 impl NetworkByteOrderEndianU16
 {
+	/// Zero.
+	pub const Zero: Self = NetworkByteOrderEndianU16(0);
+	
 	/// Create from a network byte order value.
 	///
 	/// Assumes the value is already stored as a big endian bit pattern.

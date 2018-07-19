@@ -12,3 +12,21 @@ pub union InternetControlMessageProtocolPacketPayload
 {
 	pub other: PhantomData<u8>,
 }
+
+impl Display for InternetControlMessageProtocolPacketPayload
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
+impl Debug for InternetControlMessageProtocolPacketPayload
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "(ICMP payload)")
+	}
+}

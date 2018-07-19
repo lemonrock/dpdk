@@ -5,6 +5,7 @@
 use super::*;
 
 
+include!("EthernetAddresses.rs");
 include!("EthernetDestination.rs");
 include!("EthernetFrameLength.rs");
 include!("EthernetPacket.rs");

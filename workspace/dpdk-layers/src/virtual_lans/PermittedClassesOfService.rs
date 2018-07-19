@@ -3,7 +3,7 @@
 
 
 /// Permitted classes of service.
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Serialize, Deserialize)]
 pub struct PermittedClassesOfService([bool; 8]);
 

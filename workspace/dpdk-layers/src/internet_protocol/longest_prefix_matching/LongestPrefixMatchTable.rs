@@ -3,7 +3,7 @@
 
 
 /// A trait for operations on longest prefix match tables for internet protocol version 4 or version 6 host addresses.
-pub trait LongestPrefixMatchTable : Drop
+pub trait LongestPrefixMatchTable : Drop + Display + Debug
 {
 	/// Internet Protocol (IP) version 4 or version 4 host address.
 	type HostAddress: InternetProtocolHostAddress;

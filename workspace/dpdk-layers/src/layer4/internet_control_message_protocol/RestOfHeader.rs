@@ -4,6 +4,7 @@
 
 /// Represents rest of header.
 #[repr(C, packed)]
+#[derive(Debug, Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub struct RestOfHeader
 {
 	// Ident.
@@ -11,4 +12,13 @@ pub struct RestOfHeader
 	
 	/// Sequence number.
 	pub sequence_number: NetworkByteOrderEndianU16,
+}
+
+impl Display for RestOfHeader
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
 }

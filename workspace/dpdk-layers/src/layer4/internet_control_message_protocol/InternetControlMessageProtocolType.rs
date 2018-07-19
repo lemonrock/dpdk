@@ -6,7 +6,34 @@
 ///
 /// Deprecated, unassigned, reserved and experimental types are not provided for.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct InternetControlMessageProtocolType(pub u8);
+pub struct InternetControlMessageProtocolType(u8);
+
+impl Display for InternetControlMessageProtocolType
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}", self.into())
+	}
+}
+
+impl Into<u8> for InternetControlMessageProtocolType
+{
+	#[inline(always)]
+	fn into(self) -> u8
+	{
+		self.0
+	}
+}
+
+impl From<u8> for InternetControlMessageProtocolType
+{
+	#[inline(always)]
+	fn from(value: u8) -> Self
+	{
+		InternetControlMessageProtocolType(value)
+	}
+}
 
 impl InternetControlMessageProtocolType
 {

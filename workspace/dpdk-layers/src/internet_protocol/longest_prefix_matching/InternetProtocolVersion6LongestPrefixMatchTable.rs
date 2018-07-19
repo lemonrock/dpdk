@@ -6,6 +6,15 @@
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct InternetProtocolVersion6LongestPrefixMatchTable(NonNull<rte_lpm6>);
 
+impl Display for InternetProtocolVersion6LongestPrefixMatchTable
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "InternetProtocolVersion6LongestPrefixMatchTable")
+	}
+}
+
 impl Drop for InternetProtocolVersion6LongestPrefixMatchTable
 {
 	#[inline(always)]

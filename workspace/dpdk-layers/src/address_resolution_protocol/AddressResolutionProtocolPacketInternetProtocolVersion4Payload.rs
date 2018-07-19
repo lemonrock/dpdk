@@ -4,6 +4,7 @@
 
 /// Internet protocol (IP) version 4 payload of address resolution protocol (ARP) packet.
 #[repr(C, packed)]
+#[derive(Debug, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub struct AddressResolutionProtocolPacketInternetProtocolVersion4Payload
 {
 	#[allow(missing_docs)]
@@ -17,6 +18,96 @@ pub struct AddressResolutionProtocolPacketInternetProtocolVersion4Payload
 	
 	#[allow(missing_docs)]
 	pub target_protocol_address: InternetProtocolVersion4HostAddress,
+}
+
+impl Display for AddressResolutionProtocolPacketInternetProtocolVersion4Payload
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
+impl Into<arp_ipv4> for AddressResolutionProtocolPacketInternetProtocolVersion4Payload
+{
+	#[inline(always)]
+	fn into(self) -> arp_ipv4
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl<'a> Into<&'a arp_ipv4> for &'a AddressResolutionProtocolPacketInternetProtocolVersion4Payload
+{
+	#[inline(always)]
+	fn into(self) -> &'a arp_ipv4
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl<'a> Into<&'a mut arp_ipv4> for &'a mut AddressResolutionProtocolPacketInternetProtocolVersion4Payload
+{
+	#[inline(always)]
+	fn into(self) -> &'a mut arp_ipv4
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl<'a> Into<NonNull<arp_ipv4>> for &'a mut AddressResolutionProtocolPacketInternetProtocolVersion4Payload
+{
+	#[inline(always)]
+	fn into(self) -> NonNull<arp_ipv4>
+	{
+		unsafe { NonNull::new_unchecked(self as *mut AddressResolutionProtocolPacketInternetProtocolVersion4Payload as *mut arp_ipv4) }
+	}
+}
+
+impl<'a> Into<*const arp_ipv4> for &'a AddressResolutionProtocolPacketInternetProtocolVersion4Payload
+{
+	#[inline(always)]
+	fn into(self) -> *const arp_ipv4
+	{
+		self as *const AddressResolutionProtocolPacketInternetProtocolVersion4Payload as *const _
+	}
+}
+
+impl<'a> Into<*mut arp_ipv4> for &'a mut AddressResolutionProtocolPacketInternetProtocolVersion4Payload
+{
+	#[inline(always)]
+	fn into(self) -> *mut arp_ipv4
+	{
+		self as *mut AddressResolutionProtocolPacketInternetProtocolVersion4Payload as *mut _
+	}
+}
+
+impl From<arp_ipv4> for AddressResolutionProtocolPacketInternetProtocolVersion4Payload
+{
+	#[inline(always)]
+	fn from(value: arp_ipv4) -> Self
+	{
+		unsafe { transmute(value) }
+	}
+}
+
+impl<'a> From<&'a arp_ipv4> for &'a AddressResolutionProtocolPacketInternetProtocolVersion4Payload
+{
+	#[inline(always)]
+	fn from(value: &'a arp_ipv4) -> &'a AddressResolutionProtocolPacketInternetProtocolVersion4Payload
+	{
+		unsafe { transmute(value) }
+	}
+}
+
+impl<'a> From<&'a mut arp_ipv4> for &'a mut AddressResolutionProtocolPacketInternetProtocolVersion4Payload
+{
+	#[inline(always)]
+	fn from(value: &'a mut arp_ipv4) -> &'a mut AddressResolutionProtocolPacketInternetProtocolVersion4Payload
+	{
+		unsafe { transmute(value) }
+	}
 }
 
 impl AddressResolutionProtocolPacketInternetProtocolVersion4Payload

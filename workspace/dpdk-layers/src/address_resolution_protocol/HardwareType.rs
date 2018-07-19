@@ -4,7 +4,71 @@
 
 /// Address resolution protocol (ARP) hardware type.
 #[repr(C, packed)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct HardwareType(NetworkByteOrderEndianU16);
+
+impl Into<NetworkByteOrderEndianU16> for HardwareType
+{
+	#[inline(always)]
+	fn into(self) -> NetworkByteOrderEndianU16
+	{
+		self.0
+	}
+}
+
+impl Into<u16> for HardwareType
+{
+	#[inline(always)]
+	fn into(self) -> u16
+	{
+		self.0.to_native_byte_order_value()
+	}
+}
+
+impl From<NetworkByteOrderEndianU16> for HardwareType
+{
+	#[inline(always)]
+	fn from(value: NetworkByteOrderEndianU16) -> Self
+	{
+		HardwareType(value)
+	}
+}
+
+impl From<u16> for HardwareType
+{
+	#[inline(always)]
+	fn from(value: u16) -> Self
+	{
+		HardwareType(NetworkByteOrderEndianU16::from_native_byte_order_value(value))
+	}
+}
+
+impl Display for HardwareType
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "0x{:04X}", self.0.to_native_byte_order_value())
+	}
+}
+
+impl Debug for HardwareType
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "0x{:04X}", self.0.to_native_byte_order_value())
+	}
+}
+
+impl Default for HardwareType
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::Ethernet2
+	}
+}
 
 impl HardwareType
 {
@@ -16,7 +80,7 @@ impl HardwareType
 	
 	/// Use this to eliminate unwanted ARP traffic.
 	#[inline(always)]
-	pub fn is_not_ethernet2(self) -> bool
+	pub fn is_not_ethernet_2(self) -> bool
 	{
 		self.0 != Self::Ethernet2.0
 	}

@@ -6,13 +6,104 @@
 ///
 /// This is a specialized structure designed to represent a buffer of packet data.
 #[repr(C, packed)]
+#[derive(Debug)]
 pub struct VirtualLanPacketHeader
 {
 	/// Tag Control Information.
-	pub tag_control_information: VirtualLanPacketTagControlInformation,
+	pub tag_control_information: TagControlInformation,
 	
 	/// Ethernet frame size or ether type.
 	pub ether_type_or_legacy_ethernet_frame_size: EtherTypeOrLegacyEthernetFrameSize,
+}
+
+impl Display for VirtualLanPacketHeader
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
+impl Into<vlan_hdr> for VirtualLanPacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> vlan_hdr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl<'a> Into<&'a vlan_hdr> for &'a VirtualLanPacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> &'a vlan_hdr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl<'a> Into<&'a mut vlan_hdr> for &'a mut VirtualLanPacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> &'a mut vlan_hdr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl<'a> Into<NonNull<vlan_hdr>> for &'a mut VirtualLanPacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> NonNull<vlan_hdr>
+	{
+		unsafe { NonNull::new_unchecked(self as *mut VirtualLanPacketHeader as *mut vlan_hdr) }
+	}
+}
+
+impl<'a> Into<*const vlan_hdr> for &'a VirtualLanPacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> *const vlan_hdr
+	{
+		self as *const VirtualLanPacketHeader as *const _
+	}
+}
+
+impl<'a> Into<*mut vlan_hdr> for &'a mut VirtualLanPacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> *mut vlan_hdr
+	{
+		self as *mut VirtualLanPacketHeader as *mut _
+	}
+}
+
+impl From<vlan_hdr> for VirtualLanPacketHeader
+{
+	#[inline(always)]
+	fn from(value: vlan_hdr) -> Self
+	{
+		unsafe { transmute(value) }
+	}
+}
+
+impl<'a> From<&'a vlan_hdr> for &'a VirtualLanPacketHeader
+{
+	#[inline(always)]
+	fn from(value: &'a vlan_hdr) -> &'a VirtualLanPacketHeader
+	{
+		unsafe { transmute(value) }
+	}
+}
+
+impl<'a> From<&'a mut vlan_hdr> for &'a mut VirtualLanPacketHeader
+{
+	#[inline(always)]
+	fn from(value: &'a mut vlan_hdr) -> &'a mut VirtualLanPacketHeader
+	{
+		unsafe { transmute(value) }
+	}
 }
 
 impl VirtualLanPacketHeader
@@ -30,7 +121,7 @@ impl VirtualLanPacketHeader
 	pub const VirtualLanPacketHeaderSizeU16: u16 = Self::VirtualLanPacketHeaderSize as u16;
 	
 	#[inline(always)]
-	pub(crate) fn tag_control_information(&self) -> VirtualLanPacketTagControlInformation
+	pub(crate) fn tag_control_information(&self) -> TagControlInformation
 	{
 		self.tag_control_information
 	}

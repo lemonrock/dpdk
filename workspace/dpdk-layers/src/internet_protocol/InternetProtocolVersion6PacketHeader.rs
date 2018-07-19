@@ -4,6 +4,7 @@
 
 /// This is a specialized structure designed to represent a buffer of packet data.
 #[repr(C, packed)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct InternetProtocolVersion6PacketHeader
 {
 	/// Version, traffic class and flow label bit fields.
@@ -26,6 +27,96 @@ pub struct InternetProtocolVersion6PacketHeader
 	
 	/// Extension header or payload pointer.
 	pub extension_header_or_payload: PhantomData<u8>,
+}
+
+impl Display for InternetProtocolVersion6PacketHeader
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
+impl Into<ipv6_hdr> for InternetProtocolVersion6PacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> ipv6_hdr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl<'a> Into<&'a ipv6_hdr> for &'a InternetProtocolVersion6PacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> &'a ipv6_hdr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl<'a> Into<&'a mut ipv6_hdr> for &'a mut InternetProtocolVersion6PacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> &'a mut ipv6_hdr
+	{
+		unsafe { transmute(self) }
+	}
+}
+
+impl<'a> Into<NonNull<ipv6_hdr>> for &'a mut InternetProtocolVersion6PacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> NonNull<ipv6_hdr>
+	{
+		unsafe { NonNull::new_unchecked(self as *mut InternetProtocolVersion6PacketHeader as *mut ipv6_hdr) }
+	}
+}
+
+impl<'a> Into<*const ipv6_hdr> for &'a InternetProtocolVersion6PacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> *const ipv6_hdr
+	{
+		self as *const InternetProtocolVersion6PacketHeader as *const _
+	}
+}
+
+impl<'a> Into<*mut ipv6_hdr> for &'a mut InternetProtocolVersion6PacketHeader
+{
+	#[inline(always)]
+	fn into(self) -> *mut ipv6_hdr
+	{
+		self as *mut InternetProtocolVersion6PacketHeader as *mut _
+	}
+}
+
+impl From<ipv6_hdr> for InternetProtocolVersion6PacketHeader
+{
+	#[inline(always)]
+	fn from(value: ipv6_hdr) -> Self
+	{
+		unsafe { transmute(value) }
+	}
+}
+
+impl<'a> From<&'a ipv6_hdr> for &'a InternetProtocolVersion6PacketHeader
+{
+	#[inline(always)]
+	fn from(value: &'a ipv6_hdr) -> &'a InternetProtocolVersion6PacketHeader
+	{
+		unsafe { transmute(value) }
+	}
+}
+
+impl<'a> From<&'a mut ipv6_hdr> for &'a mut InternetProtocolVersion6PacketHeader
+{
+	#[inline(always)]
+	fn from(value: &'a mut ipv6_hdr) -> &'a mut InternetProtocolVersion6PacketHeader
+	{
+		unsafe { transmute(value) }
+	}
 }
 
 impl InternetProtocolVersion6PacketHeader
@@ -81,11 +172,5 @@ impl InternetProtocolVersion6PacketHeader
 		{
 			null()
 		}
-	}
-	
-	#[inline(always)]
-	pub(crate) fn to_dpdk(&self) -> NonNull<ipv6_hdr>
-	{
-		unsafe { NonNull::new_unchecked(self as *const Self as *mut Self as *mut ipv6_hdr) }
 	}
 }

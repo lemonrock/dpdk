@@ -12,3 +12,21 @@ pub union AddressResolutionProtocolPacketPayload
 	/// Other kinds of payloads, not differentiated.
 	pub other: PhantomData<u8>,
 }
+
+impl Display for AddressResolutionProtocolPacketPayload
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
+impl Debug for AddressResolutionProtocolPacketPayload
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "(arp payload)")
+	}
+}

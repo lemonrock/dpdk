@@ -31,3 +31,21 @@ pub enum Layer4ProtocolNumber
 	/// RFC 768.
 	UserDatagramProtocol = 17,
 }
+
+impl Display for Layer4ProtocolNumber
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}", self.into())
+	}
+}
+
+impl Into<u8> for Layer4ProtocolNumber
+{
+	#[inline(always)]
+	fn into(self) -> u8
+	{
+		self as u8
+	}
+}

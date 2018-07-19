@@ -13,6 +13,15 @@
 #[derive(Deserialize, Serialize)]
 pub struct EthernetFrameLength(u16);
 
+impl Display for EthernetFrameLength
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}", self.0)
+	}
+}
+
 impl Default for EthernetFrameLength
 {
 	#[inline(always)]

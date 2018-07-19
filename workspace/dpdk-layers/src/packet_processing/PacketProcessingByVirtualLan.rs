@@ -7,13 +7,13 @@
 pub struct PacketProcessingByVirtualLan<PPDO: PacketProcessingDropObserver>
 {
 	/// Outer QinQ Virtual LAN.
-	outer: HashMap<(Option<VirtualLanIdentifier>, Option<VirtualLanIdentifier>), PacketProcessingForQinQVirtualLan<PPDO>>,
+	pub(crate) outer: HashMap<(Option<VirtualLanIdentifier>, Option<VirtualLanIdentifier>), PacketProcessingForQinQVirtualLan<PPDO>>,
 	
 	/// Inner 802.1Q Virtual LAN.
-	inner: HashMap<VirtualLanIdentifier, PacketProcessing<PPDO>>,
+	pub(crate) inner: HashMap<VirtualLanIdentifier, PacketProcessing<PPDO>>,
 	
 	/// No virtual LANs.
-	none: PacketProcessing<PPDO>,
+	pub(crate) none: PacketProcessing<PPDO>,
 }
 
 impl<PPDO: PacketProcessingDropObserver> PacketProcessingByVirtualLan<PPDO>

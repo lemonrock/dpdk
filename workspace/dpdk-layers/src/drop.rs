@@ -7,7 +7,8 @@ macro_rules! drop
 	($reason: expr, $packet_processing_or_packet_processing_by_virtual_lan: ident, $packet: ident) =>
 	{
 		{
-			$packet_processing_or_packet_processing_by_virtual_lan.dropped_packet($reason);
+			let reason = $reason;
+			$packet_processing_or_packet_processing_by_virtual_lan.dropped_packet(reason);
 			$packet.free_direct_contiguous_packet();
 			return
 		}

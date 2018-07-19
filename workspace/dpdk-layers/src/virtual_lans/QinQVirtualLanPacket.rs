@@ -6,6 +6,7 @@
 ///
 /// This is a specialized structure designed to represent a buffer of packet data.
 #[repr(C, packed)]
+#[derive(Debug)]
 pub struct QinQVirtualLanPacket
 {
 	/// Header.
@@ -19,6 +20,15 @@ pub struct QinQVirtualLanPacket
 	pub virtual_lan_packet: VirtualLanPacket,
 }
 
+impl Display for QinQVirtualLanPacket
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		Debug::fmt(self, f)
+	}
+}
+
 impl QinQVirtualLanPacket
 {
 	#[inline(always)]
@@ -28,7 +38,7 @@ impl QinQVirtualLanPacket
 	}
 	
 	#[inline(always)]
-	pub(crate) fn tag_control_information(&self) -> VirtualLanPacketTagControlInformation
+	pub(crate) fn tag_control_information(&self) -> TagControlInformation
 	{
 		self.header.tag_control_information()
 	}
