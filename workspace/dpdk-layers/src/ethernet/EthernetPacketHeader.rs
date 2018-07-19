@@ -6,11 +6,8 @@
 #[repr(C, packed)]
 pub struct EthernetPacketHeader
 {
-	/// Ethernet destination address.
-	pub destination_address: MediaAccessControlAddress,
-	
-	/// Ethernet source address.
-	pub source_address: MediaAccessControlAddress,
+	/// Source and destination addresses.
+	pub ethernet_addresses: EthernetAddresses,
 	
 	/// Ethernet frame size or ether type.
 	pub ether_type_or_legacy_ethernet_frame_size: EtherTypeOrLegacyEthernetFrameSize,
@@ -35,4 +32,16 @@ impl EthernetPacketHeader
 	pub const MaximumSizeU32: u32 = 127;
 	
 	pub const SizeU16WithFrameCheckSequence: u16 = Self::SizeU16 + SizeU16OfEthernetCyclicRedundancyCheck;
+	
+	#[inline(always)]
+	pub(crate) fn ethernet_addresses(&self) -> EthernetAddresses
+	{
+		&self.ethernet_addresses
+	}
+	
+	#[inline(always)]
+	pub(crate) fn potentially_invalid_ether_type(&self) -> EtherType
+	{
+		self.ether_type_or_legacy_ethernet_frame_size.potentially_invalid_ether_type()
+	}
 }

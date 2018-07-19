@@ -22,6 +22,18 @@ pub struct QinQVirtualLanPacket
 impl QinQVirtualLanPacket
 {
 	#[inline(always)]
+	pub(crate) fn virtual_lan_packet(&mut self) -> &mut VirtualLanPacket
+	{
+		unsafe { &mut self.virtual_lan_packet }
+	}
+	
+	#[inline(always)]
+	pub(crate) fn tag_control_information(&self) -> VirtualLanPacketTagControlInformation
+	{
+		self.header.tag_control_information()
+	}
+	
+	#[inline(always)]
 	pub(crate) fn potentially_invalid_ether_type(&self) -> EtherType
 	{
 		unsafe { self.header.ether_type_or_legacy_ethernet_frame_size.ether_type }

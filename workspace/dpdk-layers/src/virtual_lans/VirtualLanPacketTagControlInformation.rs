@@ -6,6 +6,24 @@
 #[repr(C, packed)]
 pub struct VirtualLanPacketTagControlInformation(pub NetworkByteOrderEndianU16);
 
+impl Display for VirtualLanPacketTagControlInformation
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "0x{:04X}", self.0.to_native_byte_order_value())
+	}
+}
+
+impl Debug for VirtualLanPacketTagControlInformation
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "0x{:04X}", self.0.to_native_byte_order_value())
+	}
+}
+
 impl VirtualLanPacketTagControlInformation
 {
 	/// Parse.

@@ -23,6 +23,8 @@ use self::internet_protocol::*;
 use self::internet_protocol::mask_bits::*;
 use self::layer4::*;
 use self::layer4::internet_control_message_protocol::*;
+use self::packet_processing::*;
+use self::packet_processing::PacketProcessingDropReason::*;
 use self::virtual_lans::*;
 use ::hyper_thread_random::generate_hyper_thread_safe_random_u64;
 use ::arrayvec::ArrayVec;
@@ -89,14 +91,17 @@ pub mod internet_protocol;
 pub mod layer4;
 
 
+/// Packet processing.
+pub mod packet_processing;
+
+
 /// Virtual LANs (VLANs).
 pub mod virtual_lans;
 
 
+include!("Configuration.rs");
 include!("NetworkByteOrderEndianU16.rs");
 include!("NonNullUnifiedArrayVecAndVec.rs");
 include!("PacketBuffer.rs");
 include!("PacketBufferPool.rs");
-include!("PacketProcessingConfiguration.rs");
-include!("PacketProcessingDropReason.rs");
 include!("UnifiedArrayVecAndVec.rs");

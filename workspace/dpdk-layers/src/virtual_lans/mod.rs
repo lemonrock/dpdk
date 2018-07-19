@@ -8,8 +8,6 @@ use super::*;
 include!("ClassOfService.rs");
 include!("DropEligibleIndicator.rs");
 include!("QinQVirtualLanPacket.rs");
-include!("PacketProcessingConfigurationByVirtualLan.rs");
-include!("PacketProcessingConfigurationForQinQVirtualLan.rs");
 include!("PermittedClassesOfService.rs");
 include!("VirtualLanIdentifier.rs");
 include!("VirtualLanPacket.rs");

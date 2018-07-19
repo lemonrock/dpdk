@@ -4,20 +4,19 @@
 
 /// Packet processing configuration by Virtual LAN.
 #[derive(Debug)]
-#[derive(Serialize, Deserialize)]
-pub struct PacketProcessingConfigurationByVirtualLan
+pub struct PacketProcessingByVirtualLan<PPDO: PacketProcessingDropObserver>
 {
 	/// Outer QinQ Virtual LAN.
-	pub outer: HashMap<(Option<VirtualLanIdentifier>, Option<VirtualLanIdentifier>), PacketProcessingConfigurationForQinQVirtualLan>,
+	outer: HashMap<(Option<VirtualLanIdentifier>, Option<VirtualLanIdentifier>), PacketProcessingForQinQVirtualLan<PPDO>>,
 	
 	/// Inner 802.1Q Virtual LAN.
-	pub inner: HashMap<VirtualLanIdentifier, PacketProcessingConfiguration>,
+	inner: HashMap<VirtualLanIdentifier, PacketProcessing<PPDO>>,
 	
 	/// No virtual LANs.
-	pub none: PacketProcessingConfiguration,
+	none: PacketProcessing<PPDO>,
 }
 
-impl PacketProcessingConfigurationByVirtualLan
+impl<PPDO: PacketProcessingDropObserver> PacketProcessingByVirtualLan<PPDO>
 {
 	#[inline(always)]
 	#[inline(always)]
@@ -27,13 +26,13 @@ impl PacketProcessingConfigurationByVirtualLan
 	}
 	
 	#[inline(always)]
-	pub(crate) fn get_packet_processing_for_outer_virtual_lan(&self, outer_virtual_lan_identifier: Option<VirtualLanIdentifier>, inner_virtual_lan_identifier: Option<VirtualLanIdentifier>) -> Option<&PacketProcessingConfigurationForQinQVirtualLan>
+	pub(crate) fn get_packet_processing_for_outer_virtual_lan(&self, outer_virtual_lan_identifier: Option<VirtualLanIdentifier>, inner_virtual_lan_identifier: Option<VirtualLanIdentifier>) -> Option<&PacketProcessingForQinQVirtualLan<PPDO>>
 	{
 		self.outer.get(&(inner_virtual_lan_identifier, outer_virtual_lan_identifier))
 	}
 	
 	#[inline(always)]
-	pub(crate) fn get_packet_processing_for_inner_virtual_lan(&self, inner_virtual_lan_identifier: Option<VirtualLanIdentifier>) -> Option<&PacketProcessingConfiguration>
+	pub(crate) fn get_packet_processing_for_inner_virtual_lan(&self, inner_virtual_lan_identifier: Option<VirtualLanIdentifier>) -> Option<&PacketProcessing<PPDO>>
 	{
 		match inner_virtual_lan_identifier
 		{

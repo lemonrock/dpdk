@@ -21,3 +21,24 @@ pub union EthernetPacketPayload
 	/// A layer 3 packet.
 	pub layer_3_packet: Layer3Packet,
 }
+
+impl EthernetPacketPayload
+{
+	#[inline(always)]
+	pub(crate) fn layer_3_packet(&mut self) -> &mut Layer3Packet
+	{
+		unsafe { &mut self.layer_3_packet }
+	}
+	
+	#[inline(always)]
+	pub(crate) fn virtual_lan_packet(&mut self) -> &mut VirtualLanPacket
+	{
+		unsafe { &mut self.virtual_lan_packet }
+	}
+	
+	#[inline(always)]
+	pub(crate) fn qinq_virtual_lan_packet(&mut self) -> &mut QinQVirtualLanPacket
+	{
+		unsafe { &mut self.qinq_virtual_lan_packet }
+	}
+}

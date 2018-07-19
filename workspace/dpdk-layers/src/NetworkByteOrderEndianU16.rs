@@ -5,8 +5,26 @@
 /// This type wraps an u16 such that it is in network byte order (big endian) form.
 ///
 /// Internally, stores an u16 as a big endian bit pattern.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Default,  Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct NetworkByteOrderEndianU16(u16);
+
+impl Display for NetworkByteOrderEndianU16
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "0x{:04X}", self.to_native_byte_order_value())
+	}
+}
+
+impl Debug for NetworkByteOrderEndianU16
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "0x{:04X}", self.to_native_byte_order_value())
+	}
+}
 
 impl NetworkByteOrderEndianU16
 {

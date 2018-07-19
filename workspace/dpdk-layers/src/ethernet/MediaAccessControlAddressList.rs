@@ -6,7 +6,7 @@
 /// Blacklisted or Whitelisted MediaAccessControlAddresses.
 ///
 /// Defaults to an empty `Blacklist`.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[derive(Serialize, Deserialize)]
 pub enum MediaAccessControlAddressList
 {

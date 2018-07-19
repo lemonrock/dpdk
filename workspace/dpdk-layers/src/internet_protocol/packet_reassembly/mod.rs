@@ -6,3 +6,4 @@ use super::*;
 
 
 include!("InternetProtocolPacketReassemblyTable.rs");
+include!("InternetProtocolPacketReassemblyTableConfiguration.rs");

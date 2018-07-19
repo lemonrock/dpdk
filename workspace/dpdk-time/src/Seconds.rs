@@ -4,6 +4,7 @@
 
 /// Seconds.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Serialize, Deserialize)]
 pub struct Seconds(u64);
 
 impl From<u8> for Seconds
@@ -71,6 +72,9 @@ impl Seconds
 	
 	/// Zero.
 	pub const Zero: Self = Seconds(0);
+	
+	/// Thirty seconds.
+	pub const ThirtySeconds: Self = Seconds(30);
 	
 	/// Two minutes.
 	pub const TwoMinutes: Self = Seconds(120);

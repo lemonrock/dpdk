@@ -18,6 +18,18 @@ pub struct VirtualLanPacket
 impl VirtualLanPacket
 {
 	#[inline(always)]
+	pub(crate) fn tag_control_information(&self) -> VirtualLanPacketTagControlInformation
+	{
+		self.header.tag_control_information()
+	}
+	
+	#[inline(always)]
+	pub(crate) fn layer_3_packet(&mut self) -> &mut Layer3Packet
+	{
+		unsafe { &mut self.layer_3_packet }
+	}
+	
+	#[inline(always)]
 	pub(crate) fn potentially_invalid_ether_type(&self) -> EtherType
 	{
 		self.header.potentially_invalid_ether_type()

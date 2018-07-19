@@ -30,8 +30,14 @@ impl VirtualLanPacketHeader
 	pub const VirtualLanPacketHeaderSizeU16: u16 = Self::VirtualLanPacketHeaderSize as u16;
 	
 	#[inline(always)]
+	pub(crate) fn tag_control_information(&self) -> VirtualLanPacketTagControlInformation
+	{
+		self.tag_control_information
+	}
+	
+	#[inline(always)]
 	pub(crate) fn potentially_invalid_ether_type(&self) -> EtherType
 	{
-		unsafe { self.ether_type_or_legacy_ethernet_frame_size.ether_type }
+		self.ether_type_or_legacy_ethernet_frame_size.potentially_invalid_ether_type()
 	}
 }

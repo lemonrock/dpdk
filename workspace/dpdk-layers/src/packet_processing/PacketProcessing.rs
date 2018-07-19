@@ -4,33 +4,48 @@
 
 /// Packet processing configuration for a particular combination of Outer Virtual LAN tag, Inner Virtual LAN tag and (our valid unicast) Ethernet Address.
 #[derive(Debug)]
-#[derive(Serialize, Deserialize)]
-pub struct PacketProcessingConfiguration
+pub struct PacketProcessing<PPDO: PacketProcessingDropObserver>
 {
+	/// Inner 802.1Q Virtual LAN honour drop eligible.
+	inner_honour_drop_eligible_indicator: bool,
+	
 	/// Inner 802.1Q Virtual LAN permitted classes of service.
-	pub inner_permitted_classes_of_service: PermittedClassesOfService,
+	inner_permitted_classes_of_service: PermittedClassesOfService,
 	
 	/// Our unicast ethernet addresses valid for this network interface.
 	///
 	/// No sender packet should be received from this address; if it was, it implies loopback on this interface, which is daft.
-	pub our_valid_unicast_ethernet_address: MediaAccessControlAddress,
+	our_valid_unicast_ethernet_address: MediaAccessControlAddress,
 	
 	/// Blacklist or whitelist of ethernet addresses.
-	pub source_ethernet_address_blacklist_or_whitelist: MediaAccessControlAddressList,
+	source_ethernet_address_blacklist_or_whitelist: MediaAccessControlAddressList,
 	
 	/// Our unicast internet protocol (IP) version 4 host addresses valid for this network interface.
 	///
 	/// No sender packet should be received from this address; if it was, it implies loopback on this interface, which is daft.
-	pub our_valid_internet_protocol_version_4_host_addresses: HashSet<InternetProtocolVersion4HostAddress>,
+	our_valid_internet_protocol_version_4_host_addresses: HashSet<InternetProtocolVersion4HostAddress>,
+
+	/// Packet reassembly state for fragmented packets for Internet Protocol (IP) version 4.
+	internet_protocol_version_4_packet_reassembly_table: InternetProtocolPacketReassemblyTable,
+
+	/// Packet reassembly state for fragmented packets for Internet Protocol (IP) version 6.
+	internet_protocol_version_6_packet_reassembly_table: InternetProtocolPacketReassemblyTable,
+
+	dropped_packet_reporting: Rc<PPDO>,
 }
 
-impl PacketProcessingConfiguration
+impl<DPO: PacketProcessingDropObserver> PacketProcessing<DPO>
 {
 	#[inline(always)]
 	pub(crate) fn dropped_packet(&self, reason: PacketProcessingDropReason)
 	{
-		// TODO: Log to syslog, log to a ring buffer or increment a counter.
-		// Or pass to a decision maker which can then adjust configuration - reactive security monitoring.
+		self.dropped_packet_reporting.dropped_packet(reason)
+	}
+	
+	#[inline(always)]
+	pub(crate) fn honour_drop_eligible_indicator(&self, drop_eligible_indicator: bool) -> bool
+	{
+		drop_eligible_indicator && self.inner_honour_drop_eligible_indicator
 	}
 	
 	#[inline(always)]
