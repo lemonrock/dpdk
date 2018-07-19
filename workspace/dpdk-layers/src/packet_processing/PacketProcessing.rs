@@ -43,10 +43,10 @@ pub struct PacketProcessing<PPDO: PacketProcessingDropObserver>
 	denied_source_internet_protocol_version_6_host_addresses: InternetProtocolVersion6LongestPrefixMatchTable,
 	
 	/// Packet reassembly state for fragmented packets for Internet Protocol (IP) version 4.
-	internet_protocol_version_4_packet_reassembly_table: InternetProtocolPacketReassemblyTable,
+	internet_protocol_version_4_packet_reassembly_table: UnsafeCell<InternetProtocolPacketReassemblyTable>,
 
 	/// Packet reassembly state for fragmented packets for Internet Protocol (IP) version 6.
-	internet_protocol_version_6_packet_reassembly_table: InternetProtocolPacketReassemblyTable,
+	internet_protocol_version_6_packet_reassembly_table: UnsafeCell<InternetProtocolPacketReassemblyTable>,
 
 	dropped_packet_reporting: Rc<PPDO>,
 }
@@ -98,17 +98,17 @@ impl<DPO: PacketProcessingDropObserver> PacketProcessing<DPO>
 	#[inline(always)]
 	pub(crate) fn is_internet_protocol_version_4_multicast_address_not_one_of_ours(&self, internet_protocol_version_4_multicast_address: InternetProtocolVersion4HostAddress) -> bool
 	{
-		const NoMulticastAddressesAreSupportedAtThisTime: bool = false;
+		const MulticastIsUnsupportedAtThisTime: bool = false;
 		
-		NoMulticastAddressesAreSupportedAtThisTime
+		MulticastIsUnsupportedAtThisTime
 	}
 	
 	#[inline(always)]
 	pub(crate) fn is_internet_protocol_version_6_multicast_address_not_one_of_ours(&self, internet_protocol_version_6_multicast_address: &InternetProtocolVersion6HostAddress) -> bool
 	{
-		const NoMulticastAddressesAreSupportedAtThisTime: bool = false;
+		const MulticastIsUnsupportedAtThisTime: bool = false;
 		
-		NoMulticastAddressesAreSupportedAtThisTime
+		MulticastIsUnsupportedAtThisTime
 	}
 	
 	#[inline(always)]
@@ -157,6 +157,28 @@ impl<DPO: PacketProcessingDropObserver> PacketProcessing<DPO>
 		debug_assert!(is_source_internet_protocol_version_4_address_denied.is_valid_unicast(), "internet_protocol_version_4_host_address '{:?}' is not valid unicast", internet_protocol_version_4_host_address);
 		
 		self.denied_source_internet_protocol_version_4_host_addresses.look_up(internet_protocol_version_4_host_address).is_some()
+	}
+	
+	#[inline(always)]
+	pub(crate) fn reassemble_fragmented_internet_protocol_version_4_packet(&self, packet: PacketBuffer, recent_timestamp: Cycles, internet_protocol_version_4_packet_header: &mut InternetProtocolVersion4PacketHeader) -> Option<PacketBuffer>
+	{
+		// TODO: Incoming mbufs should have its l2_len/l3_len fields setup correclty.
+		xxx;
+		let table = unsafe { &mut * self.internet_protocol_version_4_packet_reassembly_table.get() };
+		let result = table.reassemble_fragmented_internet_protocol_version_4_packet(packet, recent_timestamp, internet_protocol_version_4_packet_header);
+		table.if_death_row_is_full_free_all_packets_on_death_row();
+		result
+	}
+	
+	#[inline(always)]
+	pub(crate) fn reassemble_fragmented_internet_protocol_version_6_packet(&self, packet: PacketBuffer, recent_timestamp: Cycles, internet_protocol_version_6_packet_header: &mut InternetProtocolVersion6PacketHeader) -> Option<PacketBuffer>
+	{
+		// TODO: Incoming mbufs should have its l2_len/l3_len fields setup correclty.
+		xxx;
+		let table = unsafe { &mut * self.internet_protocol_version_6_packet_reassembly_table.get() };
+		let result = table.reassemble_fragmented_internet_protocol_version_6_packet(packet, recent_timestamp, internet_protocol_version_6_packet_header);
+		table.if_death_row_is_full_free_all_packets_on_death_row();
+		result
 	}
 	
 	#[inline(always)]

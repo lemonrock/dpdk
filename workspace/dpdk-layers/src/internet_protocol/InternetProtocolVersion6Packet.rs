@@ -32,6 +32,7 @@ impl InternetProtocolVersion6Packet
 	#[inline(always)]
 	pub(crate) fn process<'a>(&'a mut self, packet: PacketBuffer, packet_processing: &PacketProcessing<impl PacketProcessingDropObserver>, layer_3_length: u16, ethernet_addresses: &'a EthernetAddresses)
 	{
+		let (source_ethernet_address, destination_ethernet_address) = ethernet_addresses.addresses();
 		let header = &self.header;
 		
 		if unlikely!(header.is_version_not_6())
@@ -39,13 +40,14 @@ impl InternetProtocolVersion6Packet
 			drop!(InternetProtocolVersion6HeaderIsNot6 { ethernet_addresses, header }, packet_processing, packet)
 		}
 		
-		let (source_ethernet_address, destination_ethernet_address) = ethernet_addresses.addresses();
-		
+		// TODO: IPV6 header validation & extended header valiation (which feeds into fragmented packet checks, which is currently very NAIVE).
 		xxx;
-		// TODO: IPV6 header validation
 		
-		// TODO: fragmentation
-		
+		let packet = match packet_processing.reassemble_fragmented_internet_protocol_version_4_packet(packet, recent_timestamp, header)
+		{
+			None => return,
+			Some(packet) => packet,
+		};
 		
 		let source_address = &header.source_address;
 		let destination_address = &header.destination_address;

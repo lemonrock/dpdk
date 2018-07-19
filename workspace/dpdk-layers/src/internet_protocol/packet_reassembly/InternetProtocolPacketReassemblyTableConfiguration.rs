@@ -37,9 +37,9 @@ impl Default for InternetProtocolPacketReassemblyTableConfiguration
 impl InternetProtocolPacketReassemblyTableConfiguration
 {
 	/// Creates a new internet protocol (IP) packet reassembly table.
-	pub fn create_table(&self, numa_node_choice: NumaNodeChoice) -> Result<InternetProtocolPacketReassemblyTable, ()>
+	pub fn create_table(&self, numa_node_choice: NumaNodeChoice) -> Result<UnsafeCell<InternetProtocolPacketReassemblyTable>, ()>
 	{
-		InternetProtocolPacketReassemblyTable::create(self.maximum_number_of_packets_being_reassembled_at_any_one_time, self.entries_per_bucket, self.reassembly_timeout, numa_node_choice)
+		InternetProtocolPacketReassemblyTable::create(self.maximum_number_of_packets_being_reassembled_at_any_one_time, self.entries_per_bucket, self.reassembly_timeout, numa_node_choice).map(|table| UnsafeCell::new(table))
 	}
 	
 	#[inline(always)]

@@ -124,7 +124,7 @@ impl InternetProtocolPacketReassemblyTable
 	///
 	/// At point of entry, `l2_len` and `l3_len` need to be set correctly.
 	///
-	/// `header_inside_incoming_packet` must point into `incoming_packet`.
+	/// `incoming_packet_internet_protocol_version_4_packet_header` must point into `incoming_packet`.
 	///
 	/// Result may be none, the same packet or a different packet as `incoming_packet`.
 	///
@@ -134,11 +134,11 @@ impl InternetProtocolPacketReassemblyTable
 	///
 	/// Use `Cycles::current_rdtsc_cycles_since_boot()` or a cached value.
 	#[inline(always)]
-	pub fn reassemble_fragmented_internet_protocol_version_4_packet(&mut self, incoming_packet: PacketBuffer, incoming_packet_arrival_timestamp: Cycles, header_inside_incoming_packet: &mut InternetProtocolVersion4PacketHeader) -> Option<PacketBuffer>
+	pub fn reassemble_fragmented_internet_protocol_version_4_packet(&mut self, incoming_packet: PacketBuffer, incoming_packet_arrival_timestamp: Cycles, incoming_packet_internet_protocol_version_4_packet_header: &mut InternetProtocolVersion4PacketHeader) -> Option<PacketBuffer>
 	{
-		if header_inside_incoming_packet.is_fragmented()
+		if incoming_packet_internet_protocol_version_4_packet_header.is_fragmented()
 		{
-			let result = unsafe { rte_ipv4_frag_reassemble_packet(self.fragmentation_table_pointer(), self.death_row(), incoming_packet.as_ptr(), incoming_packet_arrival_timestamp.into(), header_inside_incoming_packet.into()) };
+			let result = unsafe { rte_ipv4_frag_reassemble_packet(self.fragmentation_table_pointer(), self.death_row(), incoming_packet.as_ptr(), incoming_packet_arrival_timestamp.into(), incoming_packet_internet_protocol_version_4_packet_header.into()) };
 			
 			PacketBuffer::from_possibly_null_rte_mbuf(result)
 		}
@@ -154,7 +154,7 @@ impl InternetProtocolPacketReassemblyTable
 	///
 	/// At point of entry, `l2_len` and `l3_len` need to be set correctly.
 	///
-	/// `header_inside_incoming_packet` and `extension_header_fragment_inside_incoming_packet` must be pointers into `incoming_packet`.
+	/// `incoming_packet_internet_protocol_version_6_packet_header` and `extension_header_fragment_inside_incoming_packet` must be pointers into `incoming_packet`.
 	///
 	/// Result may be none, the same packet or a different packet as `incoming_packet`.
 	///
@@ -164,20 +164,20 @@ impl InternetProtocolPacketReassemblyTable
 	///
 	/// Use `Cycles::current_rdtsc_cycles_since_boot()` or a cached value.
 	#[inline(always)]
-	pub fn reassemble_fragmented_internet_protocol_version_6_packet(&mut self, incoming_packet: PacketBuffer, incoming_packet_arrival_timestamp: Cycles, header_inside_incoming_packet: &mut InternetProtocolVersion6PacketHeader, extension_header_fragment_inside_incoming_packet: NonNull<ipv6_extension_fragment>) -> Option<PacketBuffer>
+	pub fn reassemble_fragmented_internet_protocol_version_6_packet(&mut self, incoming_packet: PacketBuffer, incoming_packet_arrival_timestamp: Cycles, incoming_packet_internet_protocol_version_6_packet_header: &mut InternetProtocolVersion6PacketHeader) -> Option<PacketBuffer>
 	{
-		let extension_header_fragment_inside_incoming_packet = header_inside_incoming_packet.is_fragmented();
+		let extension_header_fragment_inside_incoming_packet = incoming_packet_internet_protocol_version_6_packet_header.is_fragmented();
 		if extension_header_fragment_inside_incoming_packet.is_null()
 		{
 			return Some(incoming_packet)
 		}
 		
-		let result = unsafe { rte_ipv6_frag_reassemble_packet(self.fragmentation_table_pointer(), self.death_row(), incoming_packet.as_ptr(), incoming_packet_arrival_timestamp.into(), header_inside_incoming_packet.into(), extension_header_fragment_inside_incoming_packet as *mut _) };
+		let result = unsafe { rte_ipv6_frag_reassemble_packet(self.fragmentation_table_pointer(), self.death_row(), incoming_packet.as_ptr(), incoming_packet_arrival_timestamp.into(), incoming_packet_internet_protocol_version_6_packet_header.into(), extension_header_fragment_inside_incoming_packet as *mut _) };
 		
 		PacketBuffer::from_possibly_null_rte_mbuf(result)
 	}
 	
-	/// Call this once after adding all fragments with either `reassemble_fragmented_internet_protocol_version_4_packet` or `reassemble_fragmented_internet_protocol_version_6_packet`.
+	/// Call this once after adding all fragments with either `reassemble_fragmented_internet_protocol_version_6_packet` or `reassemble_fragmented_internet_protocol_version_6_packet`.
 	///
 	/// Please see the IMPORTANT NOTICE above which explains why this language has been used
 	#[inline(always)]

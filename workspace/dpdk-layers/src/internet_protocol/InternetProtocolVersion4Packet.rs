@@ -127,8 +127,11 @@ impl InternetProtocolVersion4Packet
 		
 		// TODO: The header checksum is not validated.
 		
-		
-		// TODO: fragmentation
+		let packet = match packet_processing.reassemble_fragmented_internet_protocol_version_4_packet(packet, recent_timestamp, header)
+		{
+			None => return,
+			Some(packet) => packet,
+		};
 		
 		let source_address = header.source_address;
 		let destination_address = header.destination_address;
