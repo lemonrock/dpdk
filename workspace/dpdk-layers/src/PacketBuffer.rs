@@ -101,7 +101,7 @@ impl PacketBuffer
 	#[inline(always)]
 	pub(crate) fn is_too_short_to_be_a_vlan_ethernet_packet(self) -> bool
 	{
-		const Overhead: u16 = VirtualLanPacketHeader::VirtualLanPacketHeaderSizeU16;
+		const Overhead: u16 = VirtualLanPacketHeader::IEEE_802_1Q_SizeU16;
 		
 		self.packet_length_if_contiguous() < (EthernetPacketHeader::SizeU16 + Overhead)
 	}
@@ -110,9 +110,23 @@ impl PacketBuffer
 	#[inline(always)]
 	pub(crate) fn is_too_short_to_be_a_qinq_vlan_ethernet_packet(self) -> bool
 	{
-		const Overhead: u16 = VirtualLanPacketHeader::QinQVirtualLanPacketHeaderSizeU16 + VirtualLanPacketHeader::VirtualLanPacketHeaderSizeU16;
+		const Overhead: u16 = VirtualLanPacketHeader::IEEE_802_1ad_SizeU16 + VirtualLanPacketHeader::IEEE_802_1Q_SizeU16;
 		
 		self.packet_length_if_contiguous() < (EthernetPacketHeader::SizeU16 + Overhead)
+	}
+	
+	/// Needs to be set so that `reassemble_fragmented_internet_protocol_version_4_packet()` or `reassemble_fragmented_internet_protocol_version_6_packet()` work correctly.
+	#[inline(always)]
+	pub(crate) fn set_layer_2_header_length(self, length: u16)
+	{
+		self.mutable_reference()._5._1.set_l2_len(length as u64)
+	}
+	
+	/// Needs to be set so that `reassemble_fragmented_internet_protocol_version_4_packet()` or `reassemble_fragmented_internet_protocol_version_6_packet()` work correctly.
+	#[inline(always)]
+	pub(crate) fn set_layer_3_header_length(self, length: u16)
+	{
+		self.mutable_reference()._5._1.set_l3_len(length as u64)
 	}
 	
 	/// Ethernet packet.

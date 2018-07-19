@@ -114,14 +114,14 @@ impl MaximumTransmissionUnitSize
 	#[inline(always)]
 	pub const fn decrease_for_virtual_lan_header(self) -> Self
 	{
-		MaximumTransmissionUnitSize(self.0 - VirtualLanPacketHeader::VirtualLanPacketHeaderSizeU16)
+		MaximumTransmissionUnitSize(self.0 - VirtualLanPacketHeader::IEEE_802_1Q_SizeU16)
 	}
 	
 	/// Decrease for QinQ Virtual Lan followed by Virtual Lan header.
 	#[inline(always)]
 	pub const fn decrease_for_qinq_virtual_lan_header(self) -> Self
 	{
-		MaximumTransmissionUnitSize(self.0 - (VirtualLanPacketHeader::QinQVirtualLanPacketHeaderSizeU16 + VirtualLanPacketHeader::VirtualLanPacketHeaderSizeU16))
+		MaximumTransmissionUnitSize(self.0 - (VirtualLanPacketHeader::IEEE_802_1ad_SizeU16 + VirtualLanPacketHeader::IEEE_802_1Q_SizeU16))
 	}
 	
 	/// Decrease by provided size.

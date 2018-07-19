@@ -40,7 +40,7 @@ impl EthernetFrameLength
 	pub const MaximumIncludingCyclicRedundancyCheckWithoutJumboFrames: Self = EthernetFrameLength(1518);
 	
 	/// Maximum frame length including cyclic redundancy check (CRC) if jumbo frames are not possible but 802.1 Virtual LAN tags are allowed in addition.
-	pub const MaximumIncludingCyclicRedundancyCheckWithoutJumboFramesButVirtualLanAdditionAllowed: Self = EthernetFrameLength(Self::MaximumIncludingCyclicRedundancyCheckWithoutJumboFrames.0 + VirtualLanPacketHeader::VirtualLanPacketHeaderSizeU16);
+	pub const MaximumIncludingCyclicRedundancyCheckWithoutJumboFramesButVirtualLanAdditionAllowed: Self = EthernetFrameLength(Self::MaximumIncludingCyclicRedundancyCheckWithoutJumboFrames.0 + VirtualLanPacketHeader::IEEE_802_1Q_SizeU16);
 	
 	pub const MultiTaggedEnvelopFramesCyclicRedundancyCheck: Self = EthernetFrameLength(2000);
 	

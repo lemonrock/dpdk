@@ -160,10 +160,10 @@ impl<DPO: PacketProcessingDropObserver> PacketProcessing<DPO>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn reassemble_fragmented_internet_protocol_version_4_packet(&self, packet: PacketBuffer, recent_timestamp: Cycles, internet_protocol_version_4_packet_header: &mut InternetProtocolVersion4PacketHeader) -> Option<PacketBuffer>
+	pub(crate) fn reassemble_fragmented_internet_protocol_version_4_packet(&self, packet: PacketBuffer, recent_timestamp: Cycles, internet_protocol_version_4_packet_header: &mut InternetProtocolVersion4PacketHeader, header_length_including_options: u16) -> Option<PacketBuffer>
 	{
-		// TODO: Incoming mbufs should have its l2_len/l3_len fields setup correclty.
-		xxx;
+		packet_buffer.set_layer_3_header_length(header_length_including_options);
+		
 		let table = unsafe { &mut * self.internet_protocol_version_4_packet_reassembly_table.get() };
 		let result = table.reassemble_fragmented_internet_protocol_version_4_packet(packet, recent_timestamp, internet_protocol_version_4_packet_header);
 		table.if_death_row_is_full_free_all_packets_on_death_row();
@@ -171,22 +171,14 @@ impl<DPO: PacketProcessingDropObserver> PacketProcessing<DPO>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn reassemble_fragmented_internet_protocol_version_6_packet(&self, packet: PacketBuffer, recent_timestamp: Cycles, internet_protocol_version_6_packet_header: &mut InternetProtocolVersion6PacketHeader) -> Option<PacketBuffer>
+	pub(crate) fn reassemble_fragmented_internet_protocol_version_6_packet(&self, packet: PacketBuffer, recent_timestamp: Cycles, internet_protocol_version_6_packet_header: &mut InternetProtocolVersion6PacketHeader, header_length_including_extension_headers: u16) -> Option<PacketBuffer>
 	{
-		// TODO: Incoming mbufs should have its l2_len/l3_len fields setup correclty.
-		xxx;
+		packet_buffer.set_layer_3_header_length(header_length_including_extension_headers);
+		
 		let table = unsafe { &mut * self.internet_protocol_version_6_packet_reassembly_table.get() };
 		let result = table.reassemble_fragmented_internet_protocol_version_6_packet(packet, recent_timestamp, internet_protocol_version_6_packet_header);
 		table.if_death_row_is_full_free_all_packets_on_death_row();
 		result
-	}
-	
-	#[inline(always)]
-	pub(crate) fn internet_protocol_version_4_host_address_conflict(&self, packet: PacketBuffer)
-	{
-		// TODO: Handle ARP host address conflicts; see AddressResolutionProtocolAddressConflictState.rs.
-		unsupported!("ARP: host address conflict");
-		drop!(ReuseInReply, self, packet)
 	}
 	
 	#[inline(always)]

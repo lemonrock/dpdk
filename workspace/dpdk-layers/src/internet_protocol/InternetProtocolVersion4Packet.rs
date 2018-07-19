@@ -58,6 +58,8 @@ impl InternetProtocolVersion4Packet
 		
 		let header_length_including_options = header.header_length_including_options();
 		
+		let header_length_including_options_as_u16 = header_length_including_options as u16;
+		
 		if unlikely!(total_length < header_length_including_options as u16)
 		{
 			drop!(InternetProtocolVersion4TotalLengthLessThanHeader { ethernet_addresses, header }, packet_processing, packet)
@@ -124,10 +126,16 @@ impl InternetProtocolVersion4Packet
 		}
 		
 		
+		// TODO: Reject fragmentation of anything other than TCP / UDP traffic.
+		xxx;
 		
 		// TODO: The header checksum is not validated.
+		xxx;
 		
-		let packet = match packet_processing.reassemble_fragmented_internet_protocol_version_4_packet(packet, recent_timestamp, header)
+		// TODO: Check layer 4 protocol number matches whether this can be unicast / broadcast / multicast.
+		xxx;
+		
+		let packet = match packet_processing.reassemble_fragmented_internet_protocol_version_4_packet(packet, recent_timestamp, header, header_length_including_options_as_u16)
 		{
 			None => return,
 			Some(packet) => packet,
@@ -136,6 +144,8 @@ impl InternetProtocolVersion4Packet
 		let source_address = header.source_address;
 		let destination_address = header.destination_address;
 		
+		// TODO: Source address may be 0.0.0.0 for DHCPDISCOVER broadcast.
+		xxx;
 		if unlikely(source_address.is_not_valid_unicast())
 		{
 			drop!(InternetProtocolVersion4SourceAddressNotValidUnicast { ethernet_addresses, header }, packet_processing, packet)

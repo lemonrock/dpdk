@@ -217,7 +217,7 @@ impl AddressResolutionProtocolPacket
 			let internet_protocol_version_4_host_address_conflict = packet_processing.is_internet_protocol_version_4_host_address_one_of_ours(sender_protocol_address);
 			if internet_protocol_version_4_host_address_conflict
 			{
-				packet_processing.internet_protocol_version_4_host_address_conflict(packet);
+				self.internet_protocol_version_4_host_address_conflict(packet, packet_processing);
 				return
 			}
 
@@ -256,7 +256,7 @@ impl AddressResolutionProtocolPacket
 		let internet_protocol_version_4_host_address_conflict = packet_processing.is_internet_protocol_version_4_host_address_one_of_ours(sender_protocol_address);
 		if internet_protocol_version_4_host_address_conflict
 		{
-			packet_processing.internet_protocol_version_4_host_address_conflict(packet);
+			self.internet_protocol_version_4_host_address_conflict(packet, packet_processing);
 			return
 		}
 
@@ -306,6 +306,14 @@ impl AddressResolutionProtocolPacket
 		}
 
 		packet_processing.add_to_address_resolution_cache(sender_hardware_address, sender_protocol_address, packet);
+	}
+	
+	#[inline(always)]
+	fn internet_protocol_version_4_host_address_conflict(&self, packet: PacketBuffer, packet_processing: &PacketProcessing<impl PacketProcessingDropObserver>)
+	{
+		// TODO: Handle ARP host address conflicts; see AddressResolutionProtocolAddressConflictState.rs.
+		unsupported!("ARP: host address conflict");
+		drop!(ReuseInReply, self, packet)
 	}
 
 	#[inline(always)]

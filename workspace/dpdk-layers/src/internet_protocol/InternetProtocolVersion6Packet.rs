@@ -40,10 +40,17 @@ impl InternetProtocolVersion6Packet
 			drop!(InternetProtocolVersion6HeaderIsNot6 { ethernet_addresses, header }, packet_processing, packet)
 		}
 		
-		// TODO: IPV6 header validation & extended header valiation (which feeds into fragmented packet checks, which is currently very NAIVE).
+		// TODO: Reject fragmentation of anything other than TCP / UDP traffic.
 		xxx;
 		
-		let packet = match packet_processing.reassemble_fragmented_internet_protocol_version_4_packet(packet, recent_timestamp, header)
+		// TODO: IPV6 header validation & extended header validation (which feeds into fragmented packet checks, which is currently very NAIVE). Look at rte_net.c's rte_net_skip_ip6_ext().
+		xxx;
+		let header_length_including_extension_headers = InternetProtocolVersion6PacketHeader::HeaderSizeU16 + xxxx;
+		
+		// TODO: Check layer 4 protocol number matches whether this can be unicast / broadcast / multicast.
+		xxx;
+		
+		let packet = match packet_processing.reassemble_fragmented_internet_protocol_version_4_packet(packet, recent_timestamp, header, header_length_including_extension_headers)
 		{
 			None => return,
 			Some(packet) => packet,
@@ -52,6 +59,8 @@ impl InternetProtocolVersion6Packet
 		let source_address = &header.source_address;
 		let destination_address = &header.destination_address;
 		
+		// TODO: Source address may be 0.0.0.0 for DHCPDISCOVER broadcast; there might be something analogous in IPv6?
+		xxx;
 		if unlikely(source_address.is_not_valid_unicast())
 		{
 			drop!(InternetProtocolVersion6SourceAddressNotValidUnicast { ethernet_addresses, header }, packet_processing, packet)

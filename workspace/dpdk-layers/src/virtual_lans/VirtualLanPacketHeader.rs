@@ -108,17 +108,17 @@ impl<'a> From<&'a mut vlan_hdr> for &'a mut VirtualLanPacketHeader
 
 impl VirtualLanPacketHeader
 {
-	/// An IEEE802.1ad virtual LAN header (excluding IEEE802.1Q virtual lan header) size.
-	pub const QinQVirtualLanPacketHeaderSize: usize = 4;
+	/// An IEEE 802.1ad virtual LAN header (excluding IEEE 802.1Q virtual lan header) size.
+	pub const IEEE_802_1ad_Size: usize = 4;
 	
-	/// An IEEE802.1ad virtual LAN header (excluding IEEE802.1Q virtual lan header) size.
-	pub const QinQVirtualLanPacketHeaderSizeU16: u16 = Self::QinQVirtualLanPacketHeaderSize as u16;
+	/// An IEEE 802.1ad virtual LAN header (excluding IEEE 802.1Q virtual lan header) size.
+	pub const IEEE_802_1ad_SizeU16: u16 = Self::IEEE_802_1ad_Size as u16;
 	
-	/// An IEEE802.1Q virtual LAN header size.
-	pub const VirtualLanPacketHeaderSize: usize = 4;
+	/// An IEEE 802.1Q virtual LAN header size.
+	pub const IEEE_802_1Q_Size: usize = 4;
 	
-	/// An IEEE802.1Q virtual LAN header size.
-	pub const VirtualLanPacketHeaderSizeU16: u16 = Self::VirtualLanPacketHeaderSize as u16;
+	/// An IEEE 802.1Q virtual LAN header size.
+	pub const IEEE_802_1Q_SizeU16: u16 = Self::IEEE_802_1Q_Size as u16;
 	
 	#[inline(always)]
 	pub(crate) fn tag_control_information(&self) -> TagControlInformation

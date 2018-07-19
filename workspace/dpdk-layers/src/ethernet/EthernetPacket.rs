@@ -168,7 +168,7 @@ macro_rules! process_802_1ad_virtual_lan_tagging
 
 			let packet_processing = parse_802_1ad_virtual_lan_tag_control_information!($self, outer_tag_control_information, inner_tag_control_information, $packet, $packet_processing_by_virtual_lan);
 
-			let layer_3_length = $packet.packet_length_if_contiguous_less_ethernet_packet_header() - (VirtualLanPacketHeader::QinQVirtualLanPacketHeaderSizeU16 + VirtualLanPacketHeader::VirtualLanPacketHeaderSizeU16);
+			let layer_3_length = $packet.packet_length_if_contiguous_less_ethernet_packet_header() - (VirtualLanPacketHeader::IEEE_802_1ad_SizeU16 + VirtualLanPacketHeader::IEEE_802_1Q_SizeU16);
 			
 			let layer_3_packet = inner_virtual_lan_packet.layer_3_packet();
 			
@@ -282,7 +282,9 @@ impl EthernetPacket
 		{
 			&packet_processing_by_virtual_lan.none
 		};
-
+	
+		packet.set_layer_2_header_length(EthernetPacketHeader::SizeU16);
+		
 		let layer_3_length = packet.packet_length_if_contiguous_less_ethernet_packet_header();
 		self.process(packet, packet_processing, layer_3_length, self.potentially_invalid_ether_type())
 	}
@@ -304,13 +306,29 @@ impl EthernetPacket
 		{
 			match self.potentially_invalid_ether_type()
 			{
-				EtherType::InternetProtocolVersion4 => self.process_internet_protocol_version_4(packet, packet_processing_by_virtual_lan),
+				EtherType::InternetProtocolVersion4 =>
+				{
+					packet.set_layer_2_header_length(EthernetPacketHeader::SizeU16);
+					self.process_internet_protocol_version_4(packet, packet_processing_by_virtual_lan)
+				}
 
-				EtherType::InternetProtocolVersion6 => self.process_internet_protocol_version_6(packet, packet_processing_by_virtual_lan),
+				EtherType::InternetProtocolVersion6 =>
+				{
+					packet.set_layer_2_header_length(EthernetPacketHeader::SizeU16);
+					self.process_internet_protocol_version_6(packet, packet_processing_by_virtual_lan)
+				}
 
-				EtherType::AddressResolutionProtocol => self.process_address_resolution_protocol(packet, packet_processing_by_virtual_lan),
+				EtherType::AddressResolutionProtocol =>
+				{
+					packet.set_layer_2_header_length(EthernetPacketHeader::SizeU16);
+					self.process_address_resolution_protocol(packet, packet_processing_by_virtual_lan)
+				}
 
-				EtherType::QinQVlanTagging => process_802_1ad_virtual_lan_tagging!(self, packet, packet_processing_by_virtual_lan),
+				EtherType::QinQVlanTagging =>
+				{
+					packet.set_layer_2_header_length(EthernetPacketHeader::SizeU16 + VirtualLanPacketHeader::IEEE_802_1ad_SizeU16 + VirtualLanPacketHeader::IEEE_802_1Q_SizeU16);
+					process_802_1ad_virtual_lan_tagging!(self, packet, packet_processing_by_virtual_lan)
+				}
 				
 				potentially_invalid_ether_type @ _ => drop!(EthernetPacket::unsupported_ether_type(self.ethernet_addresses(), potentially_invalid_ether_type), packet_processing_by_virtual_lan, packet),
 			}
@@ -324,13 +342,29 @@ impl EthernetPacket
 
 		match self.potentially_invalid_ether_type()
 		{
-			EtherType::InternetProtocolVersion4 => self.process_internet_protocol_version_4(packet, packet_processing_by_virtual_lan),
+			EtherType::InternetProtocolVersion4 =>
+			{
+				packet.set_layer_2_header_length(EthernetPacketHeader::SizeU16);
+				self.process_internet_protocol_version_4(packet, packet_processing_by_virtual_lan)
+			}
 
-			EtherType::InternetProtocolVersion6 => self.process_internet_protocol_version_6(packet, packet_processing_by_virtual_lan),
+			EtherType::InternetProtocolVersion6 =>
+			{
+				packet.set_layer_2_header_length(EthernetPacketHeader::SizeU16);
+				self.process_internet_protocol_version_6(packet, packet_processing_by_virtual_lan)
+			}
 
-			EtherType::AddressResolutionProtocol => self.process_address_resolution_protocol(packet, packet_processing_by_virtual_lan),
+			EtherType::AddressResolutionProtocol =>
+			{
+				packet.set_layer_2_header_length(EthernetPacketHeader::SizeU16);
+				self.process_address_resolution_protocol(packet, packet_processing_by_virtual_lan)
+			}
 
-			EtherType::QinQVlanTagging => process_802_1ad_virtual_lan_tagging!(self, packet, packet_processing_by_virtual_lan),
+			EtherType::QinQVlanTagging =>
+			{
+				packet.set_layer_2_header_length(EthernetPacketHeader::SizeU16 + VirtualLanPacketHeader::IEEE_802_1ad_SizeU16 + VirtualLanPacketHeader::IEEE_802_1Q_SizeU16);
+				process_802_1ad_virtual_lan_tagging!(self, packet, packet_processing_by_virtual_lan)
+			}
 
 			EtherType::VlanTagging =>
 			{
@@ -339,6 +373,8 @@ impl EthernetPacket
 					// TODO: We can address s / d addresses.
 					drop!(IsTooShortToBeA8021QVirtualLanEthernetPacket, packet_processing_by_virtual_lan, packet)
 				}
+				
+				packet.set_layer_2_header_length(EthernetPacketHeader::SizeU16 + VirtualLanPacketHeader::IEEE_802_1Q_SizeU16);
 
 				let virtual_lan_packet = self.virtual_lan_packet();
 
@@ -346,7 +382,7 @@ impl EthernetPacket
 				
 				let packet_processing = parse_802_1q_virtual_lan_tag_control_information!(self, tag_control_information, packet, packet_processing_by_virtual_lan);
 
-				let layer_3_length = packet.packet_length_if_contiguous_less_ethernet_packet_header() - VirtualLanPacketHeader::VirtualLanPacketHeaderSizeU16;
+				let layer_3_length = packet.packet_length_if_contiguous_less_ethernet_packet_header() - VirtualLanPacketHeader::IEEE_802_1Q_SizeU16;
 				
 				let layer_3_packet = virtual_lan_packet.layer_3_packet();
 				
