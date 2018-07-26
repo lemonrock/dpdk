@@ -95,3 +95,7 @@ impl Hash for ExtensionHeaderTypeOrLayer4ProtocolNumber
 		hasher.write_u8(unsafe { self.unknown })
 	}
 }
+
+impl ExtensionHeaderTypeOrLayer4ProtocolNumber
+{
+}

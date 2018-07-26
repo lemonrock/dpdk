@@ -531,7 +531,7 @@ pub enum PacketProcessingDropReason<'a>
 	},
 	
 	/// Occurs during Internet Protocol (IP) version 4 packet processing.
-	InternetProtocolVersion4DestinationWasLoopbackUnspecifiedOrDocumentationAddress
+	InternetProtocolVersion4DestinationWasLoopbackorDocumentationAddress
 	{
 		/// Dropped packet's ethernet addresses.
 		ethernet_addresses: &'a EthernetAddresses,
@@ -558,6 +558,335 @@ pub enum PacketProcessingDropReason<'a>
 	},
 	
 	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6FlowLabelIsNonZero
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6HopByHopOptionsIsNotFirstExtensionHeader
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6HopByHopOptionsUnderflow
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6HopByHopOptionsHeaderExtensionLengthOverflow
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6TypeLengthValueOptionTypeUnderflow
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6TypeLengthValueOptionLengthUnderflow
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6TypeLengthValueOptionDataUnderflow
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6TypeLengthValueOptionDiscardPacket
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+		
+		option_type: u8,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6TypeLengthValueOptionShouldNotBeUsedOnTheInternet
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+		
+		option_type: u8,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6RoutingExtensionHeaderRepeated
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6RoutingExtensionHeaderUnderflow
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	///
+	/// We are not a router.
+	InternetProtocolVersion6RoutingExtensionHeaderHasSegmentsLeft
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+		
+		/// Routing type.
+		routing_type: u8,
+		
+		/// Segments left.
+		segments_left: u8,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	///
+	/// We are not a router.
+	InternetProtocolVersion6RoutingExtensionHeaderRoutingTypeIsDeprecatedExperimentalOrReserved
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+		
+		/// Routing type.
+		routing_type: u8,
+		
+		/// Segments left.
+		segments_left: u8,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6FragmentExtensionHeaderRepeated
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6FragmentExtensionHeaderUnderflow
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6FragmentExtensionHeaderFirstReservedFieldNonZero
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	
+		/// Reserved.
+		reserved: u8,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6FragmentExtensionHeaderSecondReservedFieldNonZero
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	
+		/// Reserved.
+		reserved: u8,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6FragmentExtensionHeaderOnlyOneFragmentOrLastFragmentIsFirst
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6PacketFragmentNotAMultipleOf8
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6PacketFragmentWouldMakeReassembledPacketWouldTooLarge
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6PacketFragmentTooSmall
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6EncapulatingSecurityPayloadExtensionHeaderUnsupported
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6AuthenticationHeaderExtensionHeaderUnsupported
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6NoNextHeaderIsUnsupported
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6MoreThanTwoDestinationOptionsExtensionHeaders
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6MobilityExtensionHeaderUnsupported
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6HostIdentityProtocolExtensionHeaderUnsupported
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6Shim6ProtocolExtensionHeaderUnsupported
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6ExperimentationExtensionHeaderUnsupported
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6UnrecognisedExtensionHeaderOrLayer4Protocol
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	
+		/// Next header (extension header type) or layer 4 protocol number.
+		next_header: u8,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
 	///
 	/// Received a packet with a source address that was an invalid unicast address.
 	///
@@ -575,6 +904,42 @@ pub enum PacketProcessingDropReason<'a>
 	///
 	/// Received a packet with a source address that was denied (eg banned, firewalled).
 	InternetProtocolVersion6SourceAddressDenied
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	///
+	/// Received a packet with a destination address that was reserved for documentation.
+	InternetProtocolVersion6DestinationAddressDocumentation
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	///
+	/// Received a packet with a destination address that was reserved for loopback (ie is should never be received by a network card).
+	InternetProtocolVersion6DestinationAddressLoopback
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	///
+	/// Received a packet with a destination address that was reserved for multicast 'loopback' (interface-local) (ie is should never be received by a network card)..
+	InternetProtocolVersion6DestinationAddressInterfaceLocal
 	{
 		/// Dropped packet's ethernet addresses.
 		ethernet_addresses: &'a EthernetAddresses,
@@ -606,7 +971,30 @@ pub enum PacketProcessingDropReason<'a>
 	},
 	
 	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6MulticastAddressIsNotValidMulticast
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	
+		/// Parsing error.
+		parsing_error: InternetProtocolVersion6MulticastAddressParseError,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
 	InternetProtocolVersion6MulticastAddressMismatchesEthernetAddress
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6EthernetBroadcastShouldNotOccur
 	{
 		/// Dropped packet's ethernet addresses.
 		ethernet_addresses: &'a EthernetAddresses,
@@ -626,11 +1014,41 @@ pub enum PacketProcessingDropReason<'a>
 	},
 	
 	/// Occurs during Internet Protocol (IP) version 6 packet processing.
-	InternetProtocolVersion6DestinationWasLoopbackUnspecifiedOrDocumentationAddress
+	InternetProtocolVersion6DestinationWasLoopbackOrDocumentationAddress
 	{
 		/// Dropped packet's ethernet addresses.
 		ethernet_addresses: &'a EthernetAddresses,
 
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6TransmissionControlProtocolPacketsShouldOnlyBeUnicast
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6UserDatagramProtocolPacketsMustHaveAChecksumSet
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
+		/// Internet Protocol (IP) version 6 packet header.
+		header: &'a InternetProtocolVersion6PacketHeader,
+	},
+	
+	/// Occurs during Internet Protocol (IP) version 6 packet processing.
+	InternetProtocolVersion6InternetControlMessageProtocolPacketsShouldNotBeFragmented
+	{
+		/// Dropped packet's ethernet addresses.
+		ethernet_addresses: &'a EthernetAddresses,
+		
 		/// Internet Protocol (IP) version 6 packet header.
 		header: &'a InternetProtocolVersion6PacketHeader,
 	},

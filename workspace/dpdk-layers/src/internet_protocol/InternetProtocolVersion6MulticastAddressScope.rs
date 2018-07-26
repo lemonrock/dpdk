@@ -96,3 +96,13 @@ impl Default for InternetProtocolVersion6MulticastAddressScope
 		InternetProtocolVersion6MulticastAddressScope::InterfaceLocal
 	}
 }
+
+impl InternetProtocolVersion6MulticastAddressScope
+{
+	/// Is this an interface-local, ie loopback, multicast address?
+	#[inline(always)]
+	pub fn is_interface_local_also_known_as_loopback(self)
+	{
+		self == InternetProtocolVersion6MulticastAddressScope::InterfaceLocal
+	}
+}

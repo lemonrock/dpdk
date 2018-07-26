@@ -47,6 +47,7 @@ use serde::ser::Serializer;
 use ::std::cmp::Ordering;
 use ::std::collections::HashMap;
 use ::std::collections::HashSet;
+use ::std::err;
 use ::std::ffi::CString;
 use ::std::fmt;
 use ::std::fmt::Debug;

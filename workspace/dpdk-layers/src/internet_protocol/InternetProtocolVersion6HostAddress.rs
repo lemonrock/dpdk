@@ -184,7 +184,7 @@ impl InternetProtocolVersion6HostAddress
 			
 			if self.is_unique_local_unicast()
 			{
-				return false
+				return false§
 			}
 			
 			true
@@ -377,6 +377,7 @@ impl InternetProtocolVersion6HostAddress
 	{
 		InternetProtocolVersion6NetworkAddress::DiscardOnlyPrefix.contains(*self)
 	}
+	
 	/// RFC 4193 & RFC 8190.
 	///
 	/// Even though this prefix falls within those that are globally routed, these addresses are not globally routed...
@@ -534,10 +535,11 @@ impl InternetProtocolVersion6HostAddress
 	
 	/// Originally RFC 4291 and RFC 4007, updated by RFC 7346.
 	#[inline(always)]
-	pub fn is_multicast(&self) -> Option<(InternetProtocolVersion6MulticastAddressLifetime, InternetProtocolVersion6MulticastAddressScope)>
+	pub fn is_multicast(&self) -> Option<Result<(InternetProtocolVersion6MulticastAddressLifetime, InternetProtocolVersion6MulticastAddressScope), ()>>
 	{
 		use self::InternetProtocolVersion6MulticastAddressLifetime::*;
 		use self::InternetProtocolVersion6MulticastAddressScope::*;
+		use self::InternetProtocolVersion6MulticastAddressParseError::*;
 		
 		if self.has_multicast_prefix()
 		{
@@ -548,7 +550,7 @@ impl InternetProtocolVersion6HostAddress
 			let reserved_high_order_flag = flags & 0b1000;
 			if reserved_high_order_flag == 0b1000
 			{
-				return None;
+				return Some(Err(ReservedHighOrderFlag));
 			}
 			
 			// P Flag: RFC 3306
@@ -562,21 +564,21 @@ impl InternetProtocolVersion6HostAddress
 			{
 				0x0 => Permanent,
 				0x1 => Temporary,
-				_ => return None,
+				_ => unreachable!(),
 			};
 			
 			// Originally RFC 4291, updated by RFC 7346.
 			// 0x0 is reserved; everything else is unassigned.
 			let scope = match flags_and_scope & 0xF0
 			{
-				0x1 => InterfaceLocal, // Aka Node
+				0x1 => InterfaceLocal,
 				0x2 => LinkLocal,
-				0x3 => RealmLocal, // RFC 7346, 4007.
-				0x4 => AdminLocal, // ?
+				0x3 => RealmLocal,
+				0x4 => AdminLocal,
 				0x5 => SiteLocal,
 				0x8 => OrganisationLocal,
 				0xE => Global,
-				_ => return None,
+				invalid_scope @ _ => return Some(Err(ReservedOrUnassignedScope(invalid_scope))),
 			};
 			
 			// Remaining 112 bits are group ID.

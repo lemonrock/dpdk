@@ -125,6 +125,7 @@ impl InternetProtocolVersion4Packet
 			}
 		}
 		
+		// TODO: Overly small fragments, eg fragments smaller than MSS / MTU minima (eg 1280 for IPv6).
 		
 		// TODO: Reject fragmentation of anything other than TCP / UDP traffic.
 		xxx;
@@ -199,9 +200,13 @@ impl InternetProtocolVersion4Packet
 			packet.free_direct_contiguous_packet();
 			return
 		}
+		else if source_address.is_unspecified()
+		{
+			xxx;
+		}
 		else
 		{
-			drop!(InternetProtocolVersion4DestinationWasLoopbackUnspecifiedOrDocumentationAddress { ethernet_addresses, header }, packet_processing, packet)
+			drop!(InternetProtocolVersion4DestinationWasLoopbackOrDocumentationAddress { ethernet_addresses, header }, packet_processing, packet)
 		}
 	}
 }

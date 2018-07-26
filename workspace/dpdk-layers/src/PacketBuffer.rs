@@ -3,6 +3,8 @@
 
 
 /// Wraps a non-null DPDK packet buffer, `rte_mbuf`.
+///
+/// Note that without segmented (chained) buffers, `pkt_len` is always the same as `data_len`.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub struct PacketBuffer(NonNull<rte_mbuf>);
 
@@ -220,19 +222,6 @@ impl PacketBuffer
 		self.reference().ol_flags
 	}
 	
-	/// Data length.
-	///
-	/// Amount of data 'payload' in segment buffer, always equal to or less than `segment_buffer_length()`.
-	///
-	/// Is equivalent to `self.segment_buffer_length() - self.segment_buffer_reserved_head_room() - self.segment_buffer_tail_room()`.
-	///
-	/// Also known as `data_len`.
-	#[inline(always)]
-	fn data_length(self) -> u16
-	{
-		self.reference().data_len
-	}
-	
 	/// Implementation of DPDK `rte_pktmbuf_mtod` and `rte_pktmbuf_mtod_offset`.
 	///
 	/// Compare with `io_virtual_address_offset()`.
@@ -293,13 +282,78 @@ impl PacketBuffer
 		self.0.as_ptr()
 	}
 	
-	/// Constant function calculates buffer length.
+	/// Constant function calculates buffer length from data room length.
 	#[inline(always)]
 	const fn buffer_length(data_room_length: u16) -> u16
 	{
 		data_room_length + Self::HeadRoom
 	}
-
+	
+	/// Data length.
+	///
+	/// Amount of data 'payload' in segment buffer, always equal to or less than `segment_buffer_length()`.
+	///
+	/// Is equivalent to `self.segment_buffer_length() - self.segment_buffer_reserved_head_room() - self.segment_buffer_tail_room()`.
+	///
+	/// Also known as `data_len`.
+	#[inline(always)]
+	fn data_length(self) -> u16
+	{
+		self.reference().data_len
+	}
+	
+	/// Packet length.
+	///
+	/// Is the sum of the `data_length()` of all segments.
+	///
+	/// Also known as `pkt_len`.
+	#[inline(always)]
+	fn length(self) -> u32
+	{
+		self.reference().pkt_len
+	}
+	
+	/// Segment buffer length.
+	///
+	/// Also known as `buf_len`.
+	///
+	/// Size of this buffer.
+	#[inline(always)]
+	fn segment_buffer_length(self) -> u16
+	{
+		self.reference().buf_len
+	}
+	
+	/// Head room.
+	///
+	/// The length of the part at the start of the segment buffer that is reserved for header data.
+	///
+	/// The actual data 'payload' starts after this offset in the segment buffer.
+	#[inline(always)]
+	fn segment_buffer_reserved_head_room(self) -> u16
+	{
+		self.reference().data_off
+	}
+	
+	/// Tail room.
+	///
+	/// The amount of space (unused bytes) at the end of the segment buffer in this packet that could be used for data 'payload'.
+	#[inline(always)]
+	fn segment_buffer_tail_room(self) -> u16
+	{
+		let packet = self.reference();
+		let tail_offset = self.segment_buffer_reserved_head_room() + self.data_length();
+		self.segment_buffer_length() - tail_offset
+	}
+	
+	/// Size of the application private data.
+	///
+	/// If this is an indirect PacketBuffer, it is the size of the parent direct PacketBuffer's application private data.
+	#[inline(always)]
+	fn private_size(self) -> u16
+	{
+		(self.reference()).priv_size
+	}
 
 
 
@@ -321,8 +375,12 @@ impl PacketBuffer
 //		maximum_transmission_unit_size.to_data_room_size_for_packet_buffer_pool()
 //	}
 //
-//
-
+//	/// Destroy this packet and return the memory it uses to its packet buffer pool (PacketBufferPool).
+//	#[inline(always)]
+//	fn free(self)
+//	{
+//		unsafe { rust_rte_pktmbuf_free(self.as_ptr()) };
+//	}
 //
 //	/// Set this packet to be ignored.
 //	#[inline(always)]
@@ -539,104 +597,4 @@ impl PacketBuffer
 //	{
 //		unsafe { CStr::from_ptr(rte_get_ptype_l4_name(self.hardware_packet_type())) }
 //	}
-//
-//	/// Destroy this packet and return the memory it uses to its packet buffer pool (PacketBufferPool).
-//	#[inline(always)]
-//	fn free(self)
-//	{
-//		unsafe { rust_rte_pktmbuf_free(self.as_ptr()) };
-//	}
-//
-//
-//
-//	/// Was IEEE1588 (802.1AS) timestamp stripped (ie did the hardware pull it out of the received packet and put it into this structure)?
-//	///
-//	/// IEEE1588 timestamps are part of the Precision Time Protocol (PTP) (EtherType 0x88F7).
-//	///
-//	/// For code examples using PTP to adjust the Linux kernel's clock, see in DPDK `examples/ptpclient/ptpclient.c`, particularly `parse_ptp_frames()`.
-//	#[inline(always)]
-//	fn was_ieee1588_timestamp_stripped(self) -> bool
-//	{
-//		self.has_offload_flag(PKT_RX_TIMESTAMP)
-//	}
-//
-//	/// Stripped IEEE1588 (802.1AS) timestamp.
-//	///
-//	/// IEEE1588 timestamps are part of the Precision Time Protocol (PTP) (EtherType 0x88F7).
-//	///
-//	/// The unit and time reference are not normalized but are always the same for a given (ethernet) port.
-//	#[inline(always)]
-//	fn stripped_ieee1588_timestamp_information(self) -> u64
-//	{
-//		self.reference().timestamp
-//	}
-//
-//	/// IEEE1588 (802.1AS) flags.
-//	///
-//	/// Slow to obtain as not likely to be cached.
-//	#[inline(always)]
-//	fn timesync_flags(self) -> u16
-//	{
-//		(self.reference()).timesync
-//	}
-//
-//	/// Is this an indirectly attached packet buffer?
-//	#[inline(always)]
-//	fn is_indirect_attached_packet_buffer(self) -> bool
-//	{
-//		self.has_offload_flag(IND_ATTACHED_MBUF)
-//	}
-//
-	/// Packet length.
-	///
-	/// Is the sum of the `data_length()` of all segments.
-	///
-	/// Also known as `pkt_len`.
-	#[inline(always)]
-	fn length(self) -> u32
-	{
-		self.reference().pkt_len
-	}
-
-	/// Segment buffer length.
-	///
-	/// Also known as `buf_len`.
-	///
-	/// Size of this buffer.
-	#[inline(always)]
-	fn segment_buffer_length(self) -> u16
-	{
-		self.reference().buf_len
-	}
-
-	/// Head room.
-	///
-	/// The length of the part at the start of the segment buffer that is reserved for header data.
-	///
-	/// The actual data 'payload' starts after this offset in the segment buffer.
-	#[inline(always)]
-	fn segment_buffer_reserved_head_room(self) -> u16
-	{
-		(self.reference()).data_off
-	}
-
-	/// Tail room.
-	///
-	/// The amount of space (unused bytes) at the end of the segment buffer in this packet that could be used for data 'payload'.
-	#[inline(always)]
-	fn segment_buffer_tail_room(self) -> u16
-	{
-		let packet = self.reference();
-		let tail_offset = self.segment_buffer_reserved_head_room() + self.data_length();
-		self.segment_buffer_length() - tail_offset
-	}
-
-	/// Size of the application private data.
-	///
-	/// If this is an indirect PacketBuffer, it is the size of the parent direct PacketBuffer's application private data.
-	#[inline(always)]
-	fn private_size(self) -> u16
-	{
-		(self.reference()).priv_size
-	}
 }

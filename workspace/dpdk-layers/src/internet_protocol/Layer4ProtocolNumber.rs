@@ -16,11 +16,6 @@ pub enum Layer4ProtocolNumber
 	/// RFC 792.
 	InternetControlMessageProtocol = 1,
 	
-	/// Internet Group Management Protocol (IGMP).
-	///
-	/// RFC 1122.
-	InternetGroupManagementProtocol = 2,
-	
 	/// Transmission Control Protocol (TCP).
 	///
 	/// RFC 793.
@@ -30,6 +25,9 @@ pub enum Layer4ProtocolNumber
 	///
 	/// RFC 768.
 	UserDatagramProtocol = 17,
+	
+	/// Internet Control Message Protocol IP v6 (ICMPv6).
+	InternetControlMessageProtocolIpV6 = 58,
 }
 
 impl TryFrom<u8> for Layer4ProtocolNumber
@@ -44,8 +42,6 @@ impl TryFrom<u8> for Layer4ProtocolNumber
 		let this = match value
 		{
 			1 => InternetControlMessageProtocol,
-			
-			2 => InternetGroupManagementProtocol,
 			
 			6 => TransmissionControlProtocol,
 			

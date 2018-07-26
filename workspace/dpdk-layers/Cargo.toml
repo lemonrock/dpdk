@@ -36,7 +36,7 @@ syscall-alt = "0.0.14"
 
 
 [features]
-default = ["drop-arp-requests-with-non-zero-target-hardware-address", "drop-packets-with-ipv4-options", "drop-ipv4-packets-with-do-not-fragment-and-non-zero-identification"]
+default = ["drop-arp-requests-with-non-zero-target-hardware-address", "drop-packets-with-ipv4-options", "drop-ipv4-packets-with-do-not-fragment-and-non-zero-identification", "drop-ipv6-packets-with-non-zero-flow-label", "drop-ipv6-fragments-when-first-reserved-field-is-not-zero", "drop-ipv6-fragments-when-second-reserved-field-is-not-zero", "drop-overly-small-ipv6-fragments-aggresively"]
 
 # Drops ARP requests with a non-zero target hardware address.
 #
@@ -56,6 +56,35 @@ drop-packets-with-ipv4-options = []
 #
 # Enabled by default.
 #
-# Violates RFC 6864 section 4.1 paragraph 5 but there is no good reason to send IP packets with DF set and a non-zero (fragment) identification.
+# Violates RFC 6864 Section 4.1 paragraph 5 but there is no good reason to send IP packets with DF set and a non-zero (fragment) identification.
 # In particular, the identification field in these cases can be used as a covert channel and to infer the number of devices behind a NAT proxy.
 drop-ipv4-packets-with-do-not-fragment-and-non-zero-identification = []
+
+# Drop internet protocol (IP) version 6 packets whose flow label is not zero.
+#
+# Enabled by default.
+#
+# There is no good reason to be receiving such packets for ICMP, TCP and UDP flows.
+drop-ipv6-packets-with-non-zero-flow-label = []
+
+# Drop internet protocol (IP) version 6 packets whose fragment extension header has a non-zero first reserved field (8-bits).
+#
+# Enabled by default.
+#
+# Violates RFC 8200 Section 4.5 but there is no good reason to be receiving such packets.
+drop-ipv6-fragments-when-first-reserved-field-is-not-zero = []
+
+# Drop internet protocol (IP) version 6 packets whose fragment extension header has a non-zero second reserved field (2-bits).
+#
+# Enabled by default.
+#
+# Violates RFC 8200 Section 4.5 but there is no good reason to be receiving such packets.
+drop-ipv6-fragments-when-second-reserved-field-is-not-zero = []
+
+# We always drop fragments smaller than they need to be (444 byte MSS).
+# This setting drops fragments (except the last) smaller than that possible using a 1280 byte MSS.
+#
+# Enabled by default.
+#
+# Violates RFC 8200 Section 4.5 but there is no good reason to be receiving such packets.
+drop-overly-small-ipv6-fragments-aggresively = []

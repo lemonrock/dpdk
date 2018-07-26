@@ -370,7 +370,6 @@ impl EthernetPacket
 			{
 				if unlikely!(packet.is_too_short_to_be_a_vlan_ethernet_packet())
 				{
-					// TODO: We can address s / d addresses.
 					drop!(IsTooShortToBeA8021QVirtualLanEthernetPacket, packet_processing_by_virtual_lan, packet)
 				}
 				
