@@ -4,7 +4,6 @@
 
 extern crate arrayvec;
 #[macro_use] extern crate const_cstr_fork;
-#[macro_use] extern crate dpdk_likely;
 extern crate dpdk_sys;
 extern crate dpdk_unix;
 extern crate indexmap;
@@ -12,6 +11,7 @@ extern crate indexmap;
 extern crate libc;
 extern crate libc_extra;
 extern crate libnuma_sys;
+#[macro_use] extern crate likely;
 extern crate serde;
 #[macro_use] extern crate serde_derive;
 extern crate syscall_alt;

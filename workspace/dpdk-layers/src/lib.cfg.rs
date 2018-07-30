@@ -5,11 +5,11 @@
 #[macro_use] extern crate arrayref;
 extern crate arrayvec;
 extern crate dpdk_core;
-#[macro_use] extern crate dpdk_likely;
 extern crate dpdk_sys;
 extern crate dpdk_time;
 extern crate hyper_thread_random;
 extern crate libc;
+#[macro_use] extern crate likely;
 extern crate serde;
 #[macro_use] extern crate serde_derive;
 extern crate syscall_alt;

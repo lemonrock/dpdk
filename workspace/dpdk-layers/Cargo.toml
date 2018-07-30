@@ -22,12 +22,12 @@ version = "0.0.6"
 arrayref = "^0.3"
 arrayvec = "^0.4"
 dpdk-core = { path = "../dpdk-core", version = "0.0.6" }
-dpdk-likely = { path = "../dpdk-likely", version = "0.0.6" }
 dpdk-sys = { path = "../dpdk-sys", version = "0.0.6" }
 dpdk-time = { path = "../dpdk-time", version = "0.0.6" }
 dpdk-unix = { path = "../dpdk-unix", version = "0.0.6" }
 hyper-thread-random = "^0.4"
 libc = "^0.2"
+likely = "0.1"
 serde = "1.0"
 serde_derive = "1.0"
 syscall-alt = "0.0.14"

@@ -20,9 +20,9 @@ version = "0.0.6"
 
 [dependencies]
 const-cstr-fork = "^0.2"
-dpdk-likely = { version = "0.0.6", path = "../dpdk-likely" }
 errno = "0.1"
 libc = "^0.2"
+likely = "0.1"
 quick-error = "1.2"
 rust-extra = "0.0.13"
 serde = "1.0"
