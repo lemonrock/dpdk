@@ -1,4 +1,4 @@
-// This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of predicator, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+// This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
@@ -6,8 +6,10 @@
 ///
 /// Note that without segmented (chained) buffers, `pkt_len` is always the same as `data_len`.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[cfg(feature = "dpdk-sys")]
 pub struct PacketBuffer(NonNull<rte_mbuf>);
 
+#[cfg(feature = "dpdk-sys")]
 impl From<NonNull<rte_mbuf>> for PacketBuffer
 {
 	#[inline(always)]
@@ -17,6 +19,65 @@ impl From<NonNull<rte_mbuf>> for PacketBuffer
 	}
 }
 
+#[cfg(feature = "dpdk-sys")]
+impl TryFrom<*const rte_mbuf> for PacketBuffer
+{
+	type Error = ();
+	
+	#[inline(always)]
+	fn from(value: *const rte_mbuf) -> Result<Self, Self::Error>
+	{
+		if value.is_null()
+		{
+			Err(())
+		}
+		else
+		{
+			Ok(unsafe { NonNull::new_unchecked(value as *mut rte_mbuf) })
+		}
+	}
+}
+
+#[cfg(feature = "dpdk-sys")]
+impl TryFrom<*mut rte_mbuf> for PacketBuffer
+{
+	type Error = ();
+	
+	#[inline(always)]
+	fn from(value: *mut rte_mbuf) -> Result<Self, Self::Error>
+	{
+		if value.is_null()
+		{
+			Err(())
+		}
+		else
+		{
+			Ok(PacketBuffer(unsafe { NonNull::new_unchecked(value) }))
+		}
+	}
+}
+
+#[cfg(feature = "dpdk-sys")]
+impl<'a> Into<&'a rte_mbuf> for PacketBuffer
+{
+	#[inline(always)]
+	fn into(self) -> &'a rte_mbuf
+	{
+		self.0.reference()
+	}
+}
+
+#[cfg(feature = "dpdk-sys")]
+impl<'a> Into<&'a mut2 rte_mbuf> for PacketBuffer
+{
+	#[inline(always)]
+	fn into(self) -> &'a mut rte_mbuf
+	{
+		self.0.mutable_reference()
+	}
+}
+
+#[cfg(feature = "dpdk-sys")]
 impl Into<NonNull<rte_mbuf>> for PacketBuffer
 {
 	#[inline(always)]
@@ -26,6 +87,7 @@ impl Into<NonNull<rte_mbuf>> for PacketBuffer
 	}
 }
 
+#[cfg(feature = "dpdk-sys")]
 impl Into<*mut rte_mbuf> for PacketBuffer
 {
 	#[inline(always)]
@@ -35,6 +97,70 @@ impl Into<*mut rte_mbuf> for PacketBuffer
 	}
 }
 
+#[cfg(feature = "dpdk-sys")]
+impl Into<*const rte_mbuf> for PacketBuffer
+{
+	#[inline(always)]
+	fn into(self) -> *const rte_mbuf
+	{
+		self.as_ptr() as *const _
+	}
+}
+
+#[cfg(feature = "dpdk-sys")]
+impl Packet for PacketBuffer
+{
+	#[inline(always)]
+	fn free_direct_contiguous_packet(self)
+	{
+		self.raw_free()
+	}
+	
+	#[inline(always)]
+	fn packet_length_if_contiguous(self) -> u16
+	{
+		self.debug_assert_is_contiguous();
+		
+		self.data_length()
+	}
+	
+	#[inline(always)]
+	fn was_vlan_tag_control_information_stripped(self) -> bool
+	{
+		self.has_offload_flags(PKT_RX_VLAN_STRIPPED)
+	}
+	
+	#[inline(always)]
+	fn stripped_vlan_tag_control_information(self) -> TagControlInformation
+	{
+		TagControlInformation(NetworkEndianU16::from_network_endian(self.reference().vlan_tci))
+	}
+	
+	#[inline(always)]
+	fn was_vlan_qinq_tag_control_information_stripped(self) -> bool
+	{
+		self.has_offload_flags(PKT_RX_QINQ_STRIPPED)
+	}
+	
+	#[inline(always)]
+	fn stripped_vlan_qinq_tag_control_information(self) -> (TagControlInformation, TagControlInformation)
+	{
+		(TagControlInformation(NetworkEndianU16::from_network_endian(self.reference().vlan_tci_outer)), self.stripped_vlan_tag_control_information())
+	}
+	
+	/// Implementation of DPDK `rte_pktmbuf_mtod` and `rte_pktmbuf_mtod_offset`.
+	///
+	/// Compare with `io_virtual_address_offset()`.
+	#[inline(always)]
+	fn offset_into_data<T>(self, offset: usize) -> NonNull<T>
+	{
+		let packet = { self.reference() };
+		let pointer = ((packet.buf_addr as usize) + (self.segment_buffer_reserved_head_room() as usize) + offset) as *mut T;
+		unsafe { NonNull::new_unchecked(pointer) }
+	}
+}
+
+#[cfg(feature = "dpdk-sys")]
 impl PacketBuffer
 {
 	/// Private data alignment.
@@ -72,108 +198,6 @@ impl PacketBuffer
 		{
 			Some(PacketBuffer(unsafe { NonNull::new_unchecked(value) }))
 		}
-	}
-	
-	/// Packet length if contiguous.
-	///
-	/// Same as `data_length()`.
-	#[inline(always)]
-	pub(crate) fn packet_length_if_contiguous(self) -> u16
-	{
-		self.debug_assert_is_contiguous();
-		
-		self.data_length()
-	}
-	
-	/// Packet length less ethernet header.
-	#[inline(always)]
-	pub(crate) fn packet_length_if_contiguous_less_ethernet_packet_header(self) -> u16
-	{
-		self.packet_length_if_contiguous() - EthernetPacketHeader::SizeU16
-	}
-	
-	/// Is too short to be an ethernet packet?
-	#[inline(always)]
-	pub(crate) fn is_too_short_to_be_an_ethernet_packet(self) -> bool
-	{
-		self.packet_length_if_contiguous() < EthernetPacketHeader::SizeU16
-	}
-	
-	/// Is too short to be an IEEE 802.1Q Virtual LAN packet?
-	#[inline(always)]
-	pub(crate) fn is_too_short_to_be_a_vlan_ethernet_packet(self) -> bool
-	{
-		const Overhead: u16 = VirtualLanPacketHeader::IEEE_802_1Q_SizeU16;
-		
-		self.packet_length_if_contiguous() < (EthernetPacketHeader::SizeU16 + Overhead)
-	}
-	
-	/// Is too short to be an IEEE 802.1ad QinQ Virtual LAN packet?
-	#[inline(always)]
-	pub(crate) fn is_too_short_to_be_a_qinq_vlan_ethernet_packet(self) -> bool
-	{
-		const Overhead: u16 = VirtualLanPacketHeader::IEEE_802_1ad_SizeU16 + VirtualLanPacketHeader::IEEE_802_1Q_SizeU16;
-		
-		self.packet_length_if_contiguous() < (EthernetPacketHeader::SizeU16 + Overhead)
-	}
-	
-	/// Needs to be set so that `reassemble_fragmented_internet_protocol_version_4_packet()` or `reassemble_fragmented_internet_protocol_version_6_packet()` work correctly.
-	#[inline(always)]
-	pub(crate) fn set_layer_2_header_length(self, length: u16)
-	{
-		self.mutable_reference()._5._1.set_l2_len(length as u64)
-	}
-	
-	/// Needs to be set so that `reassemble_fragmented_internet_protocol_version_4_packet()` or `reassemble_fragmented_internet_protocol_version_6_packet()` work correctly.
-	#[inline(always)]
-	pub(crate) fn set_layer_3_header_length(self, length: u16)
-	{
-		self.mutable_reference()._5._1.set_l3_len(length as u64)
-	}
-	
-	/// Ethernet packet.
-	///
-	/// No checking of data length is made; be careful dereferencing this value.
-	/// Call one of `is_too_short_to_be_an_ethernet_packet()`, `is_too_short_to_be_a_vlan_ethernet_packet()` or `is_too_short_to_be_a_qinq_vlan_ethernet_packet()` first.
-	#[inline(always)]
-	pub(crate) fn ethernet_packet<'a>(self) -> &'a EthernetPacket
-	{
-		self.offset_into_data_reference::<'a, EthernetPacket>(0)
-	}
-	
-	/// Optimized routine that only works on direct, contiguous packets with a reference count of 1.
-	#[inline(always)]
-	pub(crate) fn free_direct_contiguous_packet(self)
-	{
-		self.raw_free()
-	}
-	
-	/// Was VLAN tag control information (TCI) stripped (ie did the hardware pull it out of the received packet and put it into this structure)?
-	#[inline(always)]
-	pub(crate) fn was_vlan_tag_control_information_stripped(self) -> bool
-	{
-		self.has_offload_flags(PKT_RX_VLAN_STRIPPED)
-	}
-	
-	/// Stripped VLAN tag control information (TCI).
-	#[inline(always)]
-	pub(crate) fn stripped_vlan_tag_control_information(self) -> TagControlInformation
-	{
-		TagControlInformation(NetworkByteOrderEndianU16::from_network_byte_order_value(self.reference().vlan_tci))
-	}
-	
-	/// Was VLAN QinQ tag control information (TCI) stripped (ie did the hardware pull it out of the received packet and put it into this structure)?
-	#[inline(always)]
-	pub(crate) fn was_vlan_qinq_tag_control_information_stripped(self) -> bool
-	{
-		self.has_offload_flags(PKT_RX_QINQ_STRIPPED)
-	}
-	
-	/// Stripped VLAN QinQ tag control information (TCI) (outer and inner).
-	#[inline(always)]
-	pub(crate) fn stripped_vlan_qinq_tag_control_information(self) -> (TagControlInformation, TagControlInformation)
-	{
-		(TagControlInformation(NetworkByteOrderEndianU16::from_network_byte_order_value(self.reference().vlan_tci_outer)), self.stripped_vlan_tag_control_information())
 	}
 	
 	/// Checks if this packet is contiguous.
@@ -220,26 +244,6 @@ impl PacketBuffer
 	fn offload_flags(self) -> u64
 	{
 		self.reference().ol_flags
-	}
-	
-	/// Implementation of DPDK `rte_pktmbuf_mtod` and `rte_pktmbuf_mtod_offset`.
-	///
-	/// Compare with `io_virtual_address_offset()`.
-	#[inline(always)]
-	fn offset_into_data_reference<'a, T: 'a>(self, offset: usize) -> &'a T
-	{
-		unsafe { & * (self.offset_into_data::<T>(offset).as_ptr() as *const T) }
-	}
-	
-	/// Implementation of DPDK `rte_pktmbuf_mtod` and `rte_pktmbuf_mtod_offset`.
-	///
-	/// Compare with `io_virtual_address_offset()`.
-	#[inline(always)]
-	fn offset_into_data<T>(self, offset: usize) -> NonNull<T>
-	{
-		let packet = { self.reference() };
-		let pointer = ((packet.buf_addr as usize) + (self.segment_buffer_reserved_head_room() as usize) + offset) as *mut T;
-		unsafe { NonNull::new_unchecked(pointer) }
 	}
 	
 	/// Put packet back into its original packet buffer pool.
@@ -355,17 +359,6 @@ impl PacketBuffer
 		(self.reference()).priv_size
 	}
 
-
-
-
-
-
-
-
-
-
-//
-//
 //	/// Value of `data_room_size` passed to `rte_pktmbuf_pool_create()` to ensure that segmentation of receive packets is not needed and packet drops do not occur.
 //	///
 //	/// Use this value to avoid the need to specify `offloads::DEV_RX_OFFLOAD_SCATTER` for poll-mode drivers (PMDs).

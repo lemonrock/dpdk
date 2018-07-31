@@ -19,13 +19,10 @@ publish = true
 version = "0.0.6"
 
 [target.'cfg(any(all(any(target_os = "android", target_os = "linux"), any(target_arch = "aarch64", target_arch = "arm", target_arch = "powerpc64", target_arch = "x86", target_arch = "x86_64")), all(target_os = "freebsd", target_arch = "x86_64")))'.dependencies]
-arrayref = "^0.3"
-arrayvec = "^0.4"
 dpdk-core = { path = "../dpdk-core", version = "0.0.6" }
 dpdk-sys = { path = "../dpdk-sys", version = "0.0.6" }
 dpdk-time = { path = "../dpdk-time", version = "0.0.6" }
 dpdk-unix = { path = "../dpdk-unix", version = "0.0.6" }
-hyper-thread-random = "^0.4"
 libc = "^0.2"
 likely = "0.1"
 serde = "1.0"
@@ -40,7 +37,7 @@ default = ["drop-arp-requests-with-non-zero-target-hardware-address", "drop-pack
 
 # Drops ARP requests with a non-zero target hardware address.
 #
-# Enabled bvy default.
+# Enabled by default.
 #
 # Violates RFC 5227.
 drop-arp-requests-with-non-zero-target-hardware-address = []

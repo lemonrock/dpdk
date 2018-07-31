@@ -1,4 +1,4 @@
-// This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of predicator, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+// This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
@@ -25,7 +25,7 @@ trait EthernetDeviceInformation
 			_ => possibly_buggy_max_rx_queues,
 		};
 		
-		let some_drivers_use_nonsense_values_that_exceed_super_jumbo_frame_sizes = min(self.max_rx_pktlen, EthernetFrameLength::MaximumIncludingCyclicRedundancyCheckWithJumboFrames.to_u16() as u32);
+		let some_drivers_use_nonsense_values_that_exceed_super_jumbo_frame_sizes = min(self.max_rx_pktlen, EthernetFrameLength::MaximumIncludingCyclicRedundancyCheckWithJumboFrames.into());
 		self.max_rx_pktlen = some_drivers_use_nonsense_values_that_exceed_super_jumbo_frame_sizes;
 		
 		driver_name

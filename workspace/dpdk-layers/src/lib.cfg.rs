@@ -2,12 +2,10 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-#[macro_use] extern crate arrayref;
 extern crate arrayvec;
 extern crate dpdk_core;
 extern crate dpdk_sys;
 extern crate dpdk_time;
-extern crate hyper_thread_random;
 extern crate libc;
 #[macro_use] extern crate likely;
 extern crate serde;
@@ -18,7 +16,6 @@ extern crate syscall_alt;
 
 
 use self::ethernet::*;
-use self::address_resolution_protocol::*;
 use self::internet_protocol::*;
 use self::internet_protocol::mask_bits::*;
 use self::internet_protocol::packet_reassembly::*;
@@ -27,7 +24,6 @@ use self::layer4::internet_control_message_protocol::*;
 use self::packet_processing::*;
 use self::packet_processing::PacketProcessingDropReason::*;
 use self::virtual_lans::*;
-use ::hyper_thread_random::generate_hyper_thread_safe_random_u64;
 use ::arrayvec::ArrayVec;
 use ::dpdk_core::*;
 use ::dpdk_core::print_information::*;
@@ -79,34 +75,21 @@ include!("drop.rs");
 include!("unsupported.rs");
 
 
-/// Address Resolution Protocol (ARP).
-pub mod address_resolution_protocol;
-
-
-/// Ethernet.
-pub mod ethernet;
-
-
 /// Internet Protocol (IP) versions 4 and 6.
-pub mod internet_protocol;
-
-
-/// Layer 4 protocols (TCP, UDP).
-pub mod layer4;
+pub mod ip;
 
 
 /// Packet processing.
 pub mod packet_processing;
 
 
-/// Virtual LANs (VLANs).
-pub mod virtual_lans;
-
-
+include!("AddressResolutionProtocolPacketProcessing.rs");
 include!("Configuration.rs");
-include!("InternetChecksum.rs");
-include!("NetworkByteOrderEndianU16.rs");
-include!("NonNullUnifiedArrayVecAndVec.rs");
+include!("EthernetPacketProcessing.rs");
+include!("InternetProtocolVersion4PacketProcessing.rs");
+include!("InternetProtocolVersion6PacketHeaderProcessing.rs");
+include!("InternetProtocolVersion6PacketProcessing.rs");
+include!("Layer3PacketProcessing.rs");
+include!("Packet.rs");
 include!("PacketBuffer.rs");
 include!("PacketBufferPool.rs");
-include!("UnifiedArrayVecAndVec.rs");

@@ -119,10 +119,10 @@ pub trait PacketBufferExt: PrintInformation
 	
 	/// Fragment offset.
 	#[inline(always)]
-	fn internet_protocol_version_4_packet_fragment_offset(self) -> NetworkByteOrderEndianU16
+	fn internet_protocol_version_4_packet_fragment_offset(self) -> NetworkEndianU16
 	{
 		let header = self.internet_protocol_version_4_header();
-		NetworkByteOrderEndianU16::from_network_byte_order_value(unsafe { header.as_ref() }.fragment_offset)
+		NetworkEndianU16::from_network_endian(unsafe { header.as_ref() }.fragment_offset)
 	}
 	
 	/// Is the do not fragment (DF) flag set?

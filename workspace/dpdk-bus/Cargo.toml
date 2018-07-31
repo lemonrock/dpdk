@@ -28,4 +28,4 @@ libc = "^0.2"
 likely = "0.1"
 quick-error = "^1.2"
 serde = "1.0"
-serde_derive = "1.0"^
+serde_derive = "1.0"

@@ -1,4 +1,4 @@
-// This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of predicator, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+// This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
@@ -25,7 +25,6 @@ pub struct PacketProcessing<PPDO: PacketProcessingDropObserver>
 	/// No sender packet should be received from this address; if it was, it implies loopback on this interface, which is daft.
 	our_valid_internet_protocol_version_4_host_addresses: HashSet<InternetProtocolVersion4HostAddress>,
 	
-	///
 	/// No sender packet should be received from this address; if it was, it implies loopback on this interface, which is daft.
 	our_valid_internet_protocol_version_6_host_addresses: HashSet<InternetProtocolVersion6HostAddress>,
 	
@@ -34,19 +33,12 @@ pub struct PacketProcessing<PPDO: PacketProcessingDropObserver>
 	/// No sender packet should be received from this address; if it was, it implies loopback on this interface, which is daft.
 	our_valid_internet_protocol_version_4_multicast_addresses: HashSet<InternetProtocolVersion4HostAddress>,
 	
-	///
 	/// No sender packet should be received from this address; if it was, it implies loopback on this interface, which is daft.
 	our_valid_internet_protocol_version_6_multicast_addresses: HashSet<InternetProtocolVersion6HostAddress>,
 	
 	denied_source_internet_protocol_version_4_host_addresses: InternetProtocolVersion4LongestPrefixMatchTable,
 	
 	denied_source_internet_protocol_version_6_host_addresses: InternetProtocolVersion6LongestPrefixMatchTable,
-	
-	/// Packet reassembly state for fragmented packets for Internet Protocol (IP) version 4.
-	internet_protocol_version_4_packet_reassembly_table: UnsafeCell<InternetProtocolPacketReassemblyTable>,
-
-	/// Packet reassembly state for fragmented packets for Internet Protocol (IP) version 6.
-	internet_protocol_version_6_packet_reassembly_table: UnsafeCell<InternetProtocolPacketReassemblyTable>,
 
 	dropped_packet_reporting: Rc<PPDO>,
 }
@@ -163,10 +155,8 @@ impl<DPO: PacketProcessingDropObserver> PacketProcessing<DPO>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn reassemble_fragmented_internet_protocol_version_4_packet(&self, packet: PacketBuffer, recent_timestamp: Cycles, internet_protocol_version_4_packet_header: &mut InternetProtocolVersion4PacketHeader, header_length_including_options: u16) -> Option<PacketBuffer>
+	pub(crate) fn reassemble_fragmented_internet_protocol_version_4_packet(&self, packet: impl Packet, recent_timestamp: Cycles, internet_protocol_version_4_packet_header: &mut InternetProtocolVersion4PacketHeader, header_length_including_options: u16) -> Option<PacketBuffer>
 	{
-		packet_buffer.set_layer_3_header_length(header_length_including_options);
-		
 		let table = unsafe { &mut * self.internet_protocol_version_4_packet_reassembly_table.get() };
 		let result = table.reassemble_fragmented_internet_protocol_version_4_packet(packet, recent_timestamp, internet_protocol_version_4_packet_header);
 		table.if_death_row_is_full_free_all_packets_on_death_row();
@@ -174,10 +164,8 @@ impl<DPO: PacketProcessingDropObserver> PacketProcessing<DPO>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn reassemble_fragmented_internet_protocol_version_6_packet(&self, packet: PacketBuffer, recent_timestamp: Cycles, internet_protocol_version_6_packet_header: &mut InternetProtocolVersion6PacketHeader, header_length_including_extension_headers: u16) -> Option<PacketBuffer>
+	pub(crate) fn reassemble_fragmented_internet_protocol_version_6_packet(&self, packet: impl Packet, recent_timestamp: Cycles, internet_protocol_version_6_packet_header: &mut InternetProtocolVersion6PacketHeader, header_length_including_extension_headers: u16) -> Option<PacketBuffer>
 	{
-		packet_buffer.set_layer_3_header_length(header_length_including_extension_headers);
-		
 		let table = unsafe { &mut * self.internet_protocol_version_6_packet_reassembly_table.get() };
 		let result = table.reassemble_fragmented_internet_protocol_version_6_packet(packet, recent_timestamp, internet_protocol_version_6_packet_header);
 		table.if_death_row_is_full_free_all_packets_on_death_row();
@@ -185,7 +173,7 @@ impl<DPO: PacketProcessingDropObserver> PacketProcessing<DPO>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn add_to_address_resolution_cache(&self, sender_hardware_address: &MediaAccessControlAddress, sender_protocol_address: InternetProtocolVersion4HostAddress, packet: PacketBuffer)
+	pub(crate) fn add_to_address_resolution_cache(&self, sender_hardware_address: &MediaAccessControlAddress, sender_protocol_address: InternetProtocolVersion4HostAddress, packet: impl Packet)
 	{
 		// TODO: Manage an ARP cache.
 		unsupported!("ARP: adding to resolution cache");
