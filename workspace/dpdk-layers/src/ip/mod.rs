@@ -2,9 +2,6 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Longest prefix matching, typically used to turn a destination internet protocol (IP) address into an index in a routing table.
-pub mod longest_prefix_matching;
-
 /// Packet reassembly from fragments.
 pub mod packet_reassembly;
 

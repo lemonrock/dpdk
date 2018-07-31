@@ -4,7 +4,7 @@
 
 /// Layer 3 packet type.
 ///
-/// If the packet is a tunneled packet, then this is known as the Outer Layer 3 packet type.
+/// If the packet is a tunnelled packet, then this is known as the Outer Layer 3 packet type.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 pub enum Layer3PacketType
 {

@@ -79,8 +79,9 @@ use ::std::sync::atomic::AtomicBool;
 use ::std::sync::atomic::spin_loop_hint;
 use ::std::sync::atomic::Ordering::Relaxed;
 use ::std::sync::atomic::Ordering::SeqCst;
-use ::syscall_alt::PosixErrorNumber;
-use ::syscall_alt::constants::NegativeE;
+pub use ::syscall_alt::PosixErrorNumber;
+pub use ::syscall_alt::constants::E;
+pub use ::syscall_alt::constants::NegativeE;
 
 
 /// CPU power management.

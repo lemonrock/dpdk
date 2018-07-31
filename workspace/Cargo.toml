@@ -8,6 +8,7 @@ members = [
 	"dpdk-bus",
 	"dpdk-core",
 	"dpdk-layers",
+	"dpdk-longest-prefix-matching",
     "dpdk-serde",
     "dpdk-sys",
     "dpdk-time",
