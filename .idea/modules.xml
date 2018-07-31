@@ -7,7 +7,6 @@
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-core/dpdk-core.iml" filepath="$PROJECT_DIR$/workspace/dpdk-core/dpdk-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-layers/dpdk-layers.iml" filepath="$PROJECT_DIR$/workspace/dpdk-layers/dpdk-layers.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-longest-prefix-matching/dpdk-longest-prefix-matching.iml" filepath="$PROJECT_DIR$/workspace/dpdk-longest-prefix-matching/dpdk-longest-prefix-matching.iml" />
-      <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-serde/dpdk-serde.iml" filepath="$PROJECT_DIR$/workspace/dpdk-serde/dpdk-serde.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-sys/dpdk-sys.iml" filepath="$PROJECT_DIR$/workspace/dpdk-sys/dpdk-sys.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-time/dpdk-time.iml" filepath="$PROJECT_DIR$/workspace/dpdk-time/dpdk-time.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-unix/dpdk-unix.iml" filepath="$PROJECT_DIR$/workspace/dpdk-unix/dpdk-unix.iml" />
