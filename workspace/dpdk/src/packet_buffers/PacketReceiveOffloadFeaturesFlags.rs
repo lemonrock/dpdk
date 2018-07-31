@@ -2,65 +2,12 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-impl PacketBufferReceiveOffloadFeaturesFlags
-{
-	//noinspection SpellCheckingInspection
-	/// Determines the internet protocol (IP) checksum status.
-	#[inline(always)]
-	pub fn internet_protocol_checksum_status(self) -> HardwareOffloadCheckSumStatus
-	{
-		use self::HardwareOffloadCheckSumStatus::*;
-		
-		const PKT_RX_IP_CKSUM_UNKNOWN: u64 = 0;
-		const PKT_RX_L4_CKSUM_BAD: u64 = 1 << 4;
-		const PKT_RX_L4_CKSUM_GOOD: u64 = 1 << 7;
-		const PKT_RX_IP_CKSUM_NONE: u64 = PKT_RX_L4_CKSUM_BAD | PKT_RX_L4_CKSUM_GOOD;
-		
-		const PKT_RX_IP_CKSUM_MASK: u64 = PKT_RX_IP_CKSUM_NONE;
-		
-		match self.bits & PKT_RX_IP_CKSUM_MASK
-		{
-			PKT_RX_IP_CKSUM_UNKNOWN => NoInformationKnown,
-			PKT_RX_L4_CKSUM_BAD => Bad,
-			PKT_RX_L4_CKSUM_GOOD => Good,
-			PKT_RX_IP_CKSUM_NONE => IncorrectButInternetProtocolHeaderIntegrityVerified,
-			
-			invalid @ _ => panic!("Invalid checksum flags '{}'", invalid),
-		}
-	}
-	
-	//noinspection SpellCheckingInspection
-	/// Determines the layer 4 (TCP, UDP, SCTP) checksum checksum status.
-	#[inline(always)]
-	pub fn layer_4_checksum_status(self) -> HardwareOffloadCheckSumStatus
-	{
-		use self::HardwareOffloadCheckSumStatus::*;
-		
-		const PKT_RX_L4_CKSUM_UNKNOWN: u64 = 0;
-		const PKT_RX_L4_CKSUM_BAD: u64 = 1 << 3;
-		const PKT_RX_L4_CKSUM_GOOD: u64 = 1 << 8;
-		const PKT_RX_L4_CKSUM_NONE: u64 = PKT_RX_L4_CKSUM_BAD | PKT_RX_L4_CKSUM_GOOD;
-		
-		const PKT_RX_L4_CKSUM_MASK: u64 = PKT_RX_L4_CKSUM_NONE;
-		
-		match self.bits & PKT_RX_L4_CKSUM_MASK
-		{
-			PKT_RX_L4_CKSUM_UNKNOWN => NoInformationKnown,
-			PKT_RX_L4_CKSUM_BAD => Bad,
-			PKT_RX_L4_CKSUM_GOOD => Good,
-			PKT_RX_L4_CKSUM_NONE => IncorrectButLayer4DataIntegrityVerified,
-			
-			invalid @ _ => panic!("Invalid checksum flags '{}'", invalid),
-		}
-	}
-}
-
 bitflags!
 {
 	/// Packet buffer receive offload feature flags.
 	///
 	/// The most significant 3-bits are reserved for generic `mbuf` flags.
-	pub struct PacketBufferReceiveOffloadFeaturesFlags: u64
+	pub struct PacketReceiveOffloadFeaturesFlags: u64
 	{
 		/// The RX packet is a 802.1Q VLAN packet.
 		///
@@ -162,5 +109,58 @@ bitflags!
 		///
 		/// The flag `PKT_RX_SEC_OFFLOAD` should be set.
 		const PKT_RX_SEC_OFFLOAD_FAILED = 1 << 19;
+	}
+}
+
+impl PacketReceiveOffloadFeaturesFlags
+{
+	//noinspection SpellCheckingInspection
+	/// Determines the internet protocol (IP) checksum status.
+	#[inline(always)]
+	pub fn internet_protocol_checksum_status(self) -> HardwareOffloadCheckSumStatus
+	{
+		use self::HardwareOffloadCheckSumStatus::*;
+		
+		const PKT_RX_IP_CKSUM_UNKNOWN: u64 = 0;
+		const PKT_RX_L4_CKSUM_BAD: u64 = 1 << 4;
+		const PKT_RX_L4_CKSUM_GOOD: u64 = 1 << 7;
+		const PKT_RX_IP_CKSUM_NONE: u64 = PKT_RX_L4_CKSUM_BAD | PKT_RX_L4_CKSUM_GOOD;
+		
+		const PKT_RX_IP_CKSUM_MASK: u64 = PKT_RX_IP_CKSUM_NONE;
+		
+		match self.bits & PKT_RX_IP_CKSUM_MASK
+		{
+			PKT_RX_IP_CKSUM_UNKNOWN => NoInformationKnown,
+			PKT_RX_L4_CKSUM_BAD => Bad,
+			PKT_RX_L4_CKSUM_GOOD => Good,
+			PKT_RX_IP_CKSUM_NONE => IncorrectButInternetProtocolHeaderIntegrityVerified,
+			
+			invalid @ _ => panic!("Invalid checksum flags '{}'", invalid),
+		}
+	}
+	
+	//noinspection SpellCheckingInspection
+	/// Determines the layer 4 (TCP, UDP, SCTP) checksum checksum status.
+	#[inline(always)]
+	pub fn layer_4_checksum_status(self) -> HardwareOffloadCheckSumStatus
+	{
+		use self::HardwareOffloadCheckSumStatus::*;
+		
+		const PKT_RX_L4_CKSUM_UNKNOWN: u64 = 0;
+		const PKT_RX_L4_CKSUM_BAD: u64 = 1 << 3;
+		const PKT_RX_L4_CKSUM_GOOD: u64 = 1 << 8;
+		const PKT_RX_L4_CKSUM_NONE: u64 = PKT_RX_L4_CKSUM_BAD | PKT_RX_L4_CKSUM_GOOD;
+		
+		const PKT_RX_L4_CKSUM_MASK: u64 = PKT_RX_L4_CKSUM_NONE;
+		
+		match self.bits & PKT_RX_L4_CKSUM_MASK
+		{
+			PKT_RX_L4_CKSUM_UNKNOWN => NoInformationKnown,
+			PKT_RX_L4_CKSUM_BAD => Bad,
+			PKT_RX_L4_CKSUM_GOOD => Good,
+			PKT_RX_L4_CKSUM_NONE => IncorrectButLayer4DataIntegrityVerified,
+			
+			invalid @ _ => panic!("Invalid checksum flags '{}'", invalid),
+		}
 	}
 }
