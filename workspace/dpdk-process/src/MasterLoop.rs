@@ -136,7 +136,7 @@ impl MasterLoop
 	{
 		master_loop_configuration.start_logging();
 		
-		let exit_code_or_error = catch_unwind(||
+		let exit_code_or_error = catch_unwind(AssertUnwindSafe(||
 		{
 			let reraise_signal = master_loop_configuration.daemonize_if_required(|| self.execute_after_daemonizing(master_loop_configuration));
 			
@@ -147,7 +147,7 @@ impl MasterLoop
 			}
 			
 			Self::EXIT_SUCCESS
-		});
+		}));
 		
 		master_loop_configuration.stop_logging();
 		
@@ -186,7 +186,7 @@ impl MasterLoop
 		
 		let pci_devices_and_original_driver_names = master_loop_configuration.pci_devices_and_original_driver_names();
 		
-		let success_or_failure = catch_unwind(|| self.execute_after_pci_devices_bound_to_drivers(master_loop_configuration, &pci_devices_and_original_driver_names, hugetlbfs_mount_path, memory_limits, master_logical_core, &slave_logical_cores, &service_logical_cores));
+		let success_or_failure = catch_unwind(AssertUnwindSafe(|| self.execute_after_pci_devices_bound_to_drivers(master_loop_configuration, &pci_devices_and_original_driver_names, hugetlbfs_mount_path, memory_limits, master_logical_core, &slave_logical_cores, &service_logical_cores)));
 		
 		PciNetDevicesConfiguration::release_all_from_use_with_dpdk(&master_loop_configuration.path_configuration.sys_path, pci_devices_and_original_driver_names);
 		
@@ -206,7 +206,7 @@ impl MasterLoop
 		
 		let slave_logical_cores_to_uses = master_loop_configuration.slave_logical_cores_to_uses(pci_devices, slave_logical_cores);
 		
-		let success_or_failure = catch_unwind(|| self.execute_after_dpdk_initialized(master_loop_configuration, &slave_logical_cores_to_uses));
+		let success_or_failure = catch_unwind(AssertUnwindSafe(|| self.execute_after_dpdk_initialized(master_loop_configuration, &slave_logical_cores_to_uses)));
 		
 		DpdkConfiguration::dpdk_clean_up();
 		self.hybrid_global_allocator.dpdk_was_cleaned_up();
@@ -225,14 +225,14 @@ impl MasterLoop
 		
 		let logical_core_power_managers = master_loop_configuration.logical_core_power_to_maximum();
 		
-		let success_or_failure = catch_unwind(||
+		let success_or_failure = catch_unwind(AssertUnwindSafe(||
 		{
 			for slave_logical_core in LogicalCore::slave_logical_cores_without_service_cores()
 			{
 				(slave_logical_cores_to_uses.remove(&slave_logical_core).unwrap())(slave_logical_core, &self.should_function_terminate)
 			}
 			self.progress_busy_loop_with_signal_handling(master_loop_configuration)
-		});
+		}));
 		
 		#[inline(always)]
 		fn clean_up(logical_core_power_managers: Vec<LogicalCorePowerManagement>)

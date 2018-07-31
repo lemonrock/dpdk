@@ -85,7 +85,7 @@ impl LoggingConfiguration
 			log_options |= LOG_PERROR;
 		}
 		
-		let identity = CString::new(&self.identity).unwrap();
+		let identity = CString::new(self.identity.as_str()).unwrap();
 		unsafe { openlog(identity.as_ptr(), log_options, self.syslog_facility as i32) }
 	}
 	

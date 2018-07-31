@@ -43,6 +43,7 @@ use ::std::collections::HashSet;
 use ::std::env::current_exe;
 use ::std::env::set_var;
 use ::std::ffi::CString;
+use ::std::panic::AssertUnwindSafe;
 use ::std::panic::catch_unwind;
 use ::std::panic::resume_unwind;
 use ::std::panic::set_hook;

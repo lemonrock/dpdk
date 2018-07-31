@@ -136,10 +136,11 @@ impl KernelCommandLineValidator
 			
 			if huge_page_sizes_option.is_some() && hugepages_option.is_some()
 			{
-				assert_eq!(huge_page_sizes_option.unwrap().len(), hugepages_option.unwrap().len(), "Kernel should have equal numbers of definitions of `hugepagesz` and `hugepages`");
+				let unwrapped = huge_page_sizes_option.unwrap();
+				assert_eq!(unwrapped.len(), hugepages_option.unwrap().len(), "Kernel should have equal numbers of definitions of `hugepagesz` and `hugepages`");
 				
-				assert_eq!(huge_page_sizes_option.unwrap().len(), 1, "This CPU only supports one size of huge page");
-				assert_eq!(huge_page_sizes_option.iter().next().unwrap(), "2M", "This CPU only supports `hugepagesz=2M`");
+				assert_eq!(unwrapped.len(), 1, "This CPU only supports one size of huge page");
+				assert_eq!(*unwrapped.iter().next().unwrap(), "2M", "This CPU only supports `hugepagesz=2M`");
 			}
 		}
 	}

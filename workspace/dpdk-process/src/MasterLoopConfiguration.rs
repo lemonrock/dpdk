@@ -95,7 +95,7 @@ impl MasterLoopConfiguration
 		if let Some(daemonize) = self.daemonize
 		{
 			let daemonize_clean_up_on_exit = daemonize.daemonize();
-			let success_or_failure = catch_unwind(|| execute_after_daemonizing());
+			let success_or_failure = catch_unwind(AssertUnwindSafe(|| execute_after_daemonizing()));
 			daemonize_clean_up_on_exit.clean_up();
 			
 			match success_or_failure
