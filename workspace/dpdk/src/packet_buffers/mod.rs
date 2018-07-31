@@ -5,6 +5,8 @@
 use super::*;
 
 
+pub mod reordering;
+
 /// Packet types.
 pub mod packet_types;
 

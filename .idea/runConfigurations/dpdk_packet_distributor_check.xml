@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="dpdk-packet-distributor check" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+    <option name="channel" value="NIGHTLY" />
+    <option name="command" value="check --target x86_64-unknown-linux-musl" />
+    <option name="nocapture" value="true" />
+    <option name="backtrace" value="SHORT" />
+    <option name="workingDirectory" value="file://$PROJECT_DIR$/workspace/dpdk-packet-distributor" />
+    <envs>
+      <env name="CROSS_COMPILE" value="x86_64-linux-musl-" />
+    </envs>
+    <method />
+  </configuration>
+</component>

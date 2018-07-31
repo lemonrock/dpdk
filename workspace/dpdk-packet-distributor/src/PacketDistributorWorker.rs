@@ -29,20 +29,20 @@ impl PacketDistributorWorker
 	///
 	/// Returns true if packets were received.
 	#[inline(always)]
-	pub fn exchange_packets<A: UnifiedArrayVecAndVec<NonNull<rte_mbuf>>>(&self, transmit_packets_from: &mut A, transmit_packets_start_from_index: usize, receive_packets_into: &mut ArrayVec<[NonNull<rte_mbuf>; Self::MaximumNumberOfPacketsThatCanBeReceivedAtOnce]>) -> bool
+	pub fn exchange_packets<A: NonNullUnifiedArrayVecAndVec<rte_mbuf>>(&self, transmit_packets_from: &mut A, transmit_packets_start_from_index: usize, receive_packets_into: &mut ArrayVec<[NonNull<rte_mbuf>; Self::MaximumNumberOfPacketsThatCanBeReceivedAtOnce]>) -> bool
 	{
 		debug_assert_eq!(receive_packets_into.length(), 0, "received_packets must be empty");
 		let receive_packets_into_pointer = unsafe { transmute(receive_packets_into.as_mut_ptr()) };
 		
 		let (transmit_packets_from_pointer, number_of_packets_to_transmit) = transmit_packets_from.to_ffi_data_u32(transmit_packets_start_from_index);
 		
-		let number_of_packets_distributed_to_us = unsafe { rte_distributor_get_pkt(self.handle(), self.worker_identifier, receive_packets_into_pointer, return_packets_from_pointer, number_of_packets_to_transmit) };
-		if likely(number_of_packets_distributed_to_us >= 0)
+		let number_of_packets_distributed_to_us = unsafe { rte_distributor_get_pkt(self.handle(), self.worker_identifier, receive_packets_into_pointer, transmit_packets_from_pointer, number_of_packets_to_transmit) };
+		if likely!(number_of_packets_distributed_to_us >= 0)
 		{
 			let number_of_packets_distributed_to_us = number_of_packets_distributed_to_us as usize;
 			debug_assert!(number_of_packets_distributed_to_us <= Self::MaximumNumberOfPacketsThatCanBeReceivedAtOnce, "number_of_packets_distributed_to_us '{}' exceeds MaximumNumberOfPacketsThatCanBeReceivedAtOnce '{}'", number_of_packets_distributed_to_us, Self::MaximumNumberOfPacketsThatCanBeReceivedAtOnce);
 			
-			if likely(number_of_packets_distributed_to_us > 0)
+			if likely!(number_of_packets_distributed_to_us > 0)
 			{
 				receive_packets_into.set_length(number_of_packets_distributed_to_us);
 				true
@@ -62,18 +62,18 @@ impl PacketDistributorWorker
 	
 	/// Should be called just before shutdown.
 	#[inline(always)]
-	pub fn transmit_remaining_packets_before_shutdown<A: UnifiedArrayVecAndVec<NonNull<rte_mbuf>>>(&self, transmit_packets_from: &mut A)
+	pub fn transmit_remaining_packets_before_shutdown<A: NonNullUnifiedArrayVecAndVec<rte_mbuf>>(&self, transmit_packets_from: &mut A)
 	{
 		const start_from_index: usize = 0;
 		let (transmit_packets_from_pointer, number_of_packets_to_transmit) = transmit_packets_from.to_ffi_data_u32(start_from_index);
 		
-		let result = unsafe { rte_distributor_return_pkt(self.handle(), self.worker_identifier, transmit_packets_from_pointer, number_of_packets_to_transmit) };
+		let result = unsafe { rte_distributor_return_pkt(self.handle(), self.worker_identifier, transmit_packets_from_pointer, number_of_packets_to_transmit as i32) };
 		debug_assert_eq!(result, 0, "rte_distributor_return_pkt failed");
 	}
 	
 	#[inline(always)]
-	fn handle(self) -> *mut rte_distributor
+	fn handle(&self) -> *mut rte_distributor
 	{
-		self.0.as_ptr()
+		self.distributor.as_ptr()
 	}
 }

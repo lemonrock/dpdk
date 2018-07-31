@@ -151,3 +151,7 @@ pub mod ethernetPorts;
 
 /// Packet buffers.
 #[macro_use] pub mod packet_buffers;
+
+include!("OrganizationallyUniqueIdentifier.rs");
+include!("PacketType.rs");
+include!("PacketTypeMask.rs");

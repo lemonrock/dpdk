@@ -8,6 +8,7 @@
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-global-allocator/dpdk-global-allocator.iml" filepath="$PROJECT_DIR$/workspace/dpdk-global-allocator/dpdk-global-allocator.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-layers/dpdk-layers.iml" filepath="$PROJECT_DIR$/workspace/dpdk-layers/dpdk-layers.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-longest-prefix-matching/dpdk-longest-prefix-matching.iml" filepath="$PROJECT_DIR$/workspace/dpdk-longest-prefix-matching/dpdk-longest-prefix-matching.iml" />
+      <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-packet-distributor/dpdk-packet-distributor.iml" filepath="$PROJECT_DIR$/workspace/dpdk-packet-distributor/dpdk-packet-distributor.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-process/dpdk-process.iml" filepath="$PROJECT_DIR$/workspace/dpdk-process/dpdk-process.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-sys/dpdk-sys.iml" filepath="$PROJECT_DIR$/workspace/dpdk-sys/dpdk-sys.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-time/dpdk-time.iml" filepath="$PROJECT_DIR$/workspace/dpdk-time/dpdk-time.iml" />
