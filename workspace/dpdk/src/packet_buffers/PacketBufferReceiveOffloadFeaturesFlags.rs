@@ -2,17 +2,14 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-// rte_get_rx_ol_flag_name
-
-
 impl PacketBufferReceiveOffloadFeaturesFlags
 {
 	//noinspection SpellCheckingInspection
 	/// Determines the internet protocol (IP) checksum status.
 	#[inline(always)]
-	pub fn internet_protocol_checksum_status(self) -> InternetProtocolChecksumStatus
+	pub fn internet_protocol_checksum_status(self) -> HardwareOffloadCheckSumStatus
 	{
-		use self::InternetProtocolChecksumStatus::*;
+		use self::HardwareOffloadCheckSumStatus::*;
 		
 		const PKT_RX_IP_CKSUM_UNKNOWN: u64 = 0;
 		const PKT_RX_L4_CKSUM_BAD: u64 = 1 << 4;
@@ -35,9 +32,9 @@ impl PacketBufferReceiveOffloadFeaturesFlags
 	//noinspection SpellCheckingInspection
 	/// Determines the layer 4 (TCP, UDP, SCTP) checksum checksum status.
 	#[inline(always)]
-	pub fn layer_4_checksum_status(self) -> Layer4ChecksumStatus
+	pub fn layer_4_checksum_status(self) -> HardwareOffloadCheckSumStatus
 	{
-		use self::Layer4ChecksumStatus::*;
+		use self::HardwareOffloadCheckSumStatus::*;
 		
 		const PKT_RX_L4_CKSUM_UNKNOWN: u64 = 0;
 		const PKT_RX_L4_CKSUM_BAD: u64 = 1 << 3;
@@ -105,7 +102,6 @@ bitflags!
 		/// * `PKT_RX_VLAN_STRIPPED`
 		const PKT_RX_QINQ_STRIPPED = 1 << 15;
 		
-		
 		/// RX packet with Receive Side Scaling ('RSS') hash result.
 		const PKT_RX_RSS_HASH = 1 << 1;
 		
@@ -124,7 +120,6 @@ bitflags!
 		/// Flag `PKT_RX_FDIR` is also set.
 		const PKT_RX_FDIR_FLX = 1 << 14;
 		
-		
 		/// This flag was set when the layer 4 checksum (TCP, UDP, possibly SCTP) of a packet was detected as wrong by the network card hardware.
 		///
 		/// Checking this flag alone is deprecated: instead, check the 2 bits of `PKT_RX_L4_CKSUM_MASK`.
@@ -140,7 +135,6 @@ bitflags!
 		/// External internet protocol (IP) header checksum error.
 		const PKT_RX_EIP_CKSUM_BAD = 1 << 5;
 		
-		
 		/// IEEE1588 (802.1AS) Precision time protocol (PTP) Ethernet Layer 2 'PT' packet.
 		const PKT_RX_IEEE1588_PTP = 1 << 9;
 		
@@ -154,12 +148,10 @@ bitflags!
 		/// When `PKT_RX_TIMESTAMP` is set, `PKT_RX_IEEE1588_TMST` should also be set.
 		const PKT_RX_TIMESTAMP = 1 << 17;
 		
-		
 		/// Large receive offload.
 		///
 		/// When packets are coalesced by a hardware or virtual driver, this flag can be set in the RX mbuf, meaning that the `rte_mbuf.tso_segsz` field is valid and is set to the segment size of the original packets.
 		const PKT_RX_LRO = 1 << 16;
-		
 		
 		/// Indicates that security offload processing (eg IPsec) was applied on the packet.
 		///

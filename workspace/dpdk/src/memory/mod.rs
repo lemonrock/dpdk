@@ -5,15 +5,4 @@
 use super::*;
 
 
-/// Memory zones.
-pub mod zones;
-
-
-include!("AlignmentBitMask.rs");
-include!("FastMemoryCopy.rs");
-include!("FastMemoryCopyDestination.rs");
 include!("HybridGlobalAllocator.rs");
-include!("MemoryChannels.rs");
-include!("MemoryLimits.rs");
-include!("MemoryRanks.rs");
-include!("VirtualAddress.rs");

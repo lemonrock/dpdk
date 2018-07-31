@@ -63,7 +63,7 @@ impl VirtualFunctionIoInterruptMode
 	
 	/// An an initialisation argument.
 	#[inline(always)]
-	pub fn as_initialisation_argument(self) -> ConstCStr
+	pub fn as_initialization_argument(self) -> ConstCStr
 	{
 		use self::VirtualFunctionIoInterruptMode::*;
 		

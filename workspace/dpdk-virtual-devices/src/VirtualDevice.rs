@@ -7,10 +7,10 @@ pub trait VirtualDevice: Debug + Sized
 {
 	/// Device driver name.
 	type V: DeviceDriverName;
-	
+
 	/// Driver name.
 	const DriverName: Self::V;
-	
+
 	/// Name.
 	///
 	/// The index is a 5-bit unsigned integer.
@@ -19,14 +19,14 @@ pub trait VirtualDevice: Debug + Sized
 	{
 		VirtualDeviceName::new(Self::DriverName, index)
 	}
-	
+
 	#[doc(hidden)]
 	#[inline(always)]
-	fn as_initialisation_argument(&self, index: u8) -> String
+	fn as_initialization_argument(&self, index: u8) -> String
 	{
 		format!("{}{}", self.name(index).to_string(), self.formatted_virtual_device_arguments_with_leading_comma())
 	}
-	
+
 	#[doc(hidden)]
 	#[inline(always)]
 	fn formatted_virtual_device_arguments_with_leading_comma(&self) -> String;

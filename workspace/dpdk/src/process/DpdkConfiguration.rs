@@ -174,7 +174,7 @@ impl DpdkConfiguration
 		{
 			for (index, virtual_device) in map.iter()
 			{
-				arguments.variable_argument(Arguments::__vdev, &virtual_device.as_initialisation_argument(*index));
+				arguments.variable_argument(Arguments::__vdev, &virtual_device.as_initialization_argument(*index));
 			}
 		}
 		
@@ -191,7 +191,7 @@ impl DpdkConfiguration
 	{
 		if let Some(process_type) = self.process_type
 		{
-			arguments.constant_argument(Arguments::__proc_type, process_type.as_initialisation_argument());
+			arguments.constant_argument(Arguments::__proc_type, process_type.as_initialization_argument());
 		}
 	}
 	
@@ -305,12 +305,12 @@ impl DpdkConfiguration
 	{
 		if let Some(override_number_of_memory_channels) = self.memory_channels
 		{
-			arguments.constant_argument(Arguments::_n, override_number_of_memory_channels.as_initialisation_argument());
+			arguments.constant_argument(Arguments::_n, override_number_of_memory_channels.as_initialization_argument());
 		}
 		
 		if let Some(override_number_of_memory_ranks) = self.memory_ranks
 		{
-			arguments.constant_argument(Arguments::_r, override_number_of_memory_ranks.as_initialisation_argument());
+			arguments.constant_argument(Arguments::_r, override_number_of_memory_ranks.as_initialization_argument());
 		}
 	}
 	
@@ -329,8 +329,8 @@ impl DpdkConfiguration
 	#[inline(always)]
 	fn initialize_dpdk_log_settings(&self, argument: &mut Arguments, logging_configuration: &LoggingConfiguration)
 	{
-		arguments.constant_argument(Arguments::__syslog, logging_configuration.syslog_facility.as_initialisation_argument());
-		arguments.constant_argument(Arguments::__log_level, logging_configuration.syslog_priority.as_initialisation_argument());
+		arguments.constant_argument(Arguments::__syslog, logging_configuration.syslog_facility.as_initialization_argument());
+		arguments.constant_argument(Arguments::__log_level, logging_configuration.syslog_priority.as_initialization_argument());
 	}
 
 	#[inline(always)]
@@ -347,7 +347,7 @@ impl DpdkConfiguration
 	
 			if let Some(virtual_function_io_interrupt_mode) = self.virtual_function_io_interrupt_mode
 			{
-				arguments.constant_argument(Arguments::__vfio_intr, virtual_function_io_interrupt_mode.as_initialisation_argument());
+				arguments.constant_argument(Arguments::__vfio_intr, virtual_function_io_interrupt_mode.as_initialization_argument());
 			}
 		}
 		

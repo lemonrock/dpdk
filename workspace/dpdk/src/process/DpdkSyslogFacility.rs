@@ -44,7 +44,7 @@ impl Default for DpdkSyslogFacility
 impl DpdkSyslogFacility
 {
 	#[inline(always)]
-	pub(crate) fn as_initialisation_argument(self) -> ConstCStr
+	pub(crate) fn as_initialization_argument(self) -> ConstCStr
 	{
 		use self::DpdkSyslogFacility::*;
 		

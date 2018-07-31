@@ -18,7 +18,7 @@ unsafe impl Sync for PacketDistributorWorker
 {
 }
 
-impl Worker
+impl PacketDistributorWorker
 {
 	/// Maximum number of packets that can be received at once.
 	pub const MaximumNumberOfPacketsThatCanBeReceivedAtOnce: usize = 8;

@@ -3,6 +3,7 @@
 
 
 extern crate arrayvec;
+#[macro_use] extern crate bitflags;
 #[macro_use] extern crate const_cstr_fork;
 extern crate dpdk_sys;
 extern crate dpdk_unix;
@@ -82,6 +83,10 @@ use ::std::sync::atomic::Ordering::SeqCst;
 pub use ::syscall_alt::PosixErrorNumber;
 pub use ::syscall_alt::constants::E;
 pub use ::syscall_alt::constants::NegativeE;
+
+
+/// Memory information and types.
+pub mod memory;
 
 
 /// CPU power management.

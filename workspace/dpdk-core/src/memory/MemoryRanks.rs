@@ -74,11 +74,12 @@ impl MemoryRanks
 		{
 			panic!("Invalid number of memory ranks '{}'", ranks)
 		}
-		Some(unsafe { transmute(ranks) })
+		Some(unsafe { transmute(ranks as u8) })
 	}
 	
+	/// As an initialization argument.
 	#[inline(always)]
-	pub(crate) fn as_initialisation_argument(self) -> ConstCStr
+	pub fn as_initialization_argument(self) -> ConstCStr
 	{
 		use self::MemoryRanks::*;
 		

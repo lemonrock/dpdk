@@ -42,7 +42,7 @@ impl Default for DpdkSyslogPriority
 impl DpdkSyslogPriority
 {
 	#[inline(always)]
-	pub(crate) fn as_initialisation_argument(self) -> ConstCStr
+	pub(crate) fn as_initialization_argument(self) -> ConstCStr
 	{
 		use self::DpdkSyslogPriority::*;
 		

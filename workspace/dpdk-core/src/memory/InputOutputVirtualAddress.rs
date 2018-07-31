@@ -3,7 +3,7 @@
 
 
 /// Memory layout iterator.
-pub trait VirtualAddress
+pub trait InputOutputVirtualAddress
 {
 	/// Returns the IO address of a virtual address; need not have been allocated using `rte_malloc`.
 	///
@@ -41,7 +41,7 @@ pub trait VirtualAddress
 	}
 }
 
-impl VirtualAddress for *const c_void
+impl InputOutputVirtualAddress for *const c_void
 {
 	#[inline(always)]
 	fn io_virtual_address(self) -> Result<rte_iova_t, ()>
@@ -71,5 +71,20 @@ impl VirtualAddress for *const c_void
 			
 			illegal @ _ => panic!("Unexpected result '{}' from rte_mem_lock_page()", illegal),
 		}
+	}
+}
+
+impl InputOutputVirtualAddress for *mut c_void
+{
+	#[inline(always)]
+	fn io_virtual_address(self) -> Result<rte_iova_t, ()>
+	{
+		(self as *const c_void).io_virtual_address()
+	}
+	
+	#[inline(always)]
+	fn lock_page_to_prevent_swapping(self) -> bool
+	{
+		(self as *const c_void).lock_page_to_prevent_swapping()
 	}
 }

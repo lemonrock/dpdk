@@ -13,7 +13,7 @@ pub struct MemoryZone
 	free_on_drop: bool,
 }
 
-impl Drop for Memory
+impl Drop for MemoryZone
 {
 	#[inline(always)]
 	fn drop(&mut self)
@@ -60,7 +60,15 @@ impl MemoryZone
 		}
 		else
 		{
-			Some(MemoryZone(name, result, false))
+			Some
+			(
+				MemoryZone
+				{
+					name,
+					handle: unsafe { NonNull::new_unchecked(result as *mut _) },
+					free_on_drop: false,
+				}
+			)
 		}
 	}
 	
@@ -85,7 +93,7 @@ impl MemoryZone
 	
 	/// Reserve the longest possible memory zone with `alignment` specified.
 	#[inline(always)]
-	pub fn reserve_with_alignment_longest_possible(name: ConstCStr, numa_node_choice: NumaNodeChoice, memory_zone_reservation_page_choice: MemoryZoneReservationPageChoice, alignment: PowerOfTwoThirtyTwoBit) -> Option<MemoryZone>
+	pub fn reserve_with_alignment_longest_possible(name: ConstCStr, numa_node_choice: NumaNodeChoice, memory_zone_reservation_page_choice: MemoryZoneReservationPageChoice, alignment: u32) -> Option<MemoryZone>
 	{
 		Self::reserve_with_alignment(name, numa_node_choice, memory_zone_reservation_page_choice, Self::SpecialLengthSignifyingLongestPossibleReservation, alignment)
 	}
@@ -94,7 +102,7 @@ impl MemoryZone
 	///
 	/// Note: 0 for `length` is special; it allocates the longest possible item of memory: see `Self::SpecialLengthSignifyingLongestPossibleReservation`. Rather than specifying length as `0`, use `Self::reserve_with_alignment_longest_possible` instead as it documents intention better.
 	#[inline(always)]
-	pub fn reserve_with_alignment(name: ConstCStr, numa_node_choice: NumaNodeChoice, memory_zone_reservation_page_choice: MemoryZoneReservationPageChoice, length: usize, alignment: PowerOfTwoThirtyTwoBit) -> Option<Self>
+	pub fn reserve_with_alignment(name: ConstCStr, numa_node_choice: NumaNodeChoice, memory_zone_reservation_page_choice: MemoryZoneReservationPageChoice, length: usize, alignment: u32) -> Option<Self>
 	{
 		Self::assert_memory_zone_name_size(name);
 
@@ -104,7 +112,7 @@ impl MemoryZone
 
 	/// Reserve the longest possible memory zone with `alignment` and `boundary` specified.
 	#[inline(always)]
-	pub fn reserve_with_alignment_and_boundary_longest_possible(name: ConstCStr, numa_node_choice: NumaNodeChoice, memory_zone_reservation_page_choice: MemoryZoneReservationPageChoice, alignment: PowerOfTwoThirtyTwoBit, boundary: PowerOfTwoThirtyTwoBit) -> Option<Self>
+	pub fn reserve_with_alignment_and_boundary_longest_possible(name: ConstCStr, numa_node_choice: NumaNodeChoice, memory_zone_reservation_page_choice: MemoryZoneReservationPageChoice, alignment: u32, boundary: u32) -> Option<Self>
 	{
 		Self::reserve_with_alignment_and_boundary(name, numa_node_choice, memory_zone_reservation_page_choice, Self::SpecialLengthSignifyingLongestPossibleReservation as u32, alignment, boundary)
 	}
@@ -113,13 +121,13 @@ impl MemoryZone
 	///
 	/// Note: 0 for `length` is special; it allocates the longest possible item of memory: see `Self::SpecialLengthSignifyingLongestPossibleReservation`. Rather than specifying length as `0`, use `Self::reserve_with_alignment_and_boundary_longest_possible` instead as it documents intention better.
 	#[inline(always)]
-	pub fn reserve_with_alignment_and_boundary(name: ConstCStr, numa_node_choice: NumaNodeChoice, memory_zone_reservation_page_choice: MemoryZoneReservationPageChoice, length: u32, alignment: PowerOfTwoThirtyTwoBit, boundary: PowerOfTwoThirtyTwoBit) -> Option<Self>
+	pub fn reserve_with_alignment_and_boundary(name: ConstCStr, numa_node_choice: NumaNodeChoice, memory_zone_reservation_page_choice: MemoryZoneReservationPageChoice, length: u32, alignment: u32, boundary: u32) -> Option<Self>
 	{
 		Self::assert_memory_zone_name_size(name);
 
 		debug_assert!(length <= boundary as u32, "length '{}' is greater than the boundary '{:?}'", length, boundary);
 
-		let result = unsafe { rte_memzone_reserve_bounded(name.as_ptr(), length as usize, numa_node_choice.into(), memory_zone_reservation_page_choice.bits(), alignment as u32, boundary as u32) };
+		let result = unsafe { rte_memzone_reserve_bounded(name.as_ptr(), length as usize, numa_node_choice.into(), memory_zone_reservation_page_choice.bits(), alignment, boundary as u32) };
 		Self::process_reservation_result(name, result, "rte_memzone_reserve_bounded")
 	}
 	
@@ -154,7 +162,7 @@ impl MemoryZone
 				Self
 				{
 					name,
-					handle: unsafe { NonNull::new_unchecked(result) },
+					handle: unsafe { NonNull::new_unchecked(result as *mut _) },
 					free_on_drop: true,
 				}
 			)
