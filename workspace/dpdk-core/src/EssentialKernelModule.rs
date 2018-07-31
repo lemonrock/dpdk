@@ -79,11 +79,11 @@ impl EssentialKernelModule
 	
 	/// Load this kernel module if necessary.
 	#[cfg(target_os = "linux")]
-	pub fn load_if_necesary(&self, modules_loaded: &mut LinuxKernelModulesList, dpdk_provided_kernel_modules_path: &Path, essential_kernel_modules_to_unload: &mut EssentialKernelModulesToUnload, dev_path: &Path)
+	pub fn load_if_necesary(&self, modules_loaded: &mut LinuxKernelModulesList, dpdk_provided_kernel_modules_path: &Path, essential_kernel_modules_to_unload: &mut EssentialKernelModulesToUnload)
 	{
 		if self.depends_on_uio
 		{
-			Self::Uio.load_if_necesary(modules_loaded, dpdk_provided_kernel_modules_path, essential_kernel_modules_to_unload, dev_path);
+			Self::Uio.load_if_necesary(modules_loaded, dpdk_provided_kernel_modules_path, essential_kernel_modules_to_unload);
 		}
 		
 		let was_loaded = if self.is_provided_by_dpdk

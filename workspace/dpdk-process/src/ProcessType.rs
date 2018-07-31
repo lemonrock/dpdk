@@ -8,6 +8,7 @@
 ///
 /// Obtain from `process_type()`.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 pub enum ProcessType
 {
 	/// Automatically determined.
@@ -38,27 +39,9 @@ impl ProcessType
 		
 		match self
 		{
-			Auto => const_cstr!("auto"),
-			Primary => const_cstr!("primary"),
-			Secondary => const_cstr!("secondary"),
-		}
-	}
-	
-	/// Is the primary process alive?
-	///
-	/// Only valid after `DpdkConfiguration.initialize_dpdk()` called.
-	#[inline(always)]
-	pub fn is_primary_dpdk_process_alive() -> bool
-	{
-		if let Some(primary_process_configuration_file_path) = primary_process_configuration_file_path
-		{
-			let c_string = primary_process_configuration_file_path.to_c_string();
-			
-			isTrue(unsafe { rte_eal_primary_proc_alive(c_string.as_ptr()) })
-		}
-		else
-		{
-			isTrue(unsafe { rte_eal_primary_proc_alive(null()) })
+			Auto => ConstCStr(b"auto\0"),
+			Primary => ConstCStr(b"primary\0"),
+			Secondary => ConstCStr(b"secondary\0"),
 		}
 	}
 	

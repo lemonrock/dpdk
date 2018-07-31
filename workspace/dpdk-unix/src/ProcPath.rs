@@ -79,7 +79,7 @@ impl ProcPath
 	/// We ignore failures.
 	#[inline(always)]
 	#[cfg(any(target_os = "android", target_os = "linux"))]
-	pub fn write_system_control_values(&self, settings: HashMap<String, u64>) -> io::Result<()>
+	pub fn write_system_control_values(&self, settings: &HashMap<String, u64>) -> io::Result<()>
 	{
 		for (setting_name, setting_value) in settings.iter()
 		{

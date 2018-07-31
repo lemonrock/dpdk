@@ -3,7 +3,7 @@
 
 
 /// CPU and Kernel missing feature warnings to suppress.
-#[derive(Default, Debug, Clone, Default)]
+#[derive(Default, Debug, Clone)]
 #[derive(Deserialize, Serialize)]
 #[serde(default)]
 pub struct WarningsToSuppress
@@ -119,7 +119,7 @@ impl WarningsToSuppress
 	}
 	
 	#[inline(always)]
-	pub(crate) fn performance_warnings_for_new_features(&self, _feature_information: &FeatureInfo, _extended_function_information: &ExtendedFunctionInfo, extended_features: &ExtendedFeatures)
+	pub(crate) fn performance_warnings_for_new_features(&self, feature_information: &FeatureInfo, _extended_function_information: &ExtendedFunctionInfo, extended_features: &ExtendedFeatures)
 	{
 		self.cpu_warn("has_invpcid", "Your CPU does not support the INVPCID instruction, which is important for efficient mitigation of the Meltdown and Spectre security vulnerabilities", || feature_information.has_xsave() && extended_features.has_invpcid());
 	}

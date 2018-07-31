@@ -37,6 +37,7 @@
 pub struct MasterLoop
 {
 	should_function_terminate: Arc<ShouldFunctionTerminate>,
+	hybrid_global_allocator: &'static HybridGlobalAllocator,
 }
 
 macro_rules! wait_for_signals
@@ -70,7 +71,7 @@ macro_rules! wait_for_signals
 							SIGINT => Some(SIGINT),
 							SIGQUIT => Some(SIGQUIT),
 							
-							_ => panic!("Blocked signal '{}' received", signal),
+							_ => panic!("Blocked signal '{}' received", signal_number),
 						}
 					}
 					else
@@ -79,7 +80,7 @@ macro_rules! wait_for_signals
 						{
 							SIGTERM => None,
 							
-							_ => panic!("Blocked signal '{}' received", signal),
+							_ => panic!("Blocked signal '{}' received", signal_number),
 						}
 					}
 				}
@@ -97,18 +98,19 @@ impl MasterLoop
 	pub const EX_SOFTWARE: i32 = 70;
 	
 	/// Creates a new instance.
+	///
+	/// The `hybrid_global_allocator` should be declared globally in `main.rs` as `#[global_allocator] static ALLOCATOR: HybridGlobalAllocator = HybridGlobalAllocator::new();`.
 	#[cold]
-	pub fn new(hybrid_global_allocator: &HybridGlobalAllocator) -> Self
+	pub fn new(hybrid_global_allocator: &'static HybridGlobalAllocator) -> Self
 	{
 		Self
 		{
-			should_function_terminate: ShouldFunctionTerminate::new()
+			should_function_terminate: ShouldFunctionTerminate::new(),
+			hybrid_global_allocator
 		}
 	}
 	
 	/// Executes a program which uses DPDK.
-	///
-	/// The `hybrid_global_allocator` should be declared globally in `main.rs` as `#[global_allocator] static ALLOCATOR: HybridGlobalAllocator = HybridGlobalAllocator::new();`.
 	///
 	/// The number of logical cores used is calculated by examining the Linux command line kernel parameters.
 	///
@@ -136,7 +138,7 @@ impl MasterLoop
 		
 		let exit_code_or_error = catch_unwind(||
 		{
-			let reraise_signal = master_loop_configuration.daemonize_if_required(|| self.execute_after_daemonizing(master_loop_configuration, hybrid_global_allocator));
+			let reraise_signal = master_loop_configuration.daemonize_if_required(|| self.execute_after_daemonizing(master_loop_configuration));
 			
 			if let Some(reraise_signal_number) = reraise_signal
 			{
@@ -162,7 +164,7 @@ impl MasterLoop
 	}
 	
 	#[inline(always)]
-	fn execute_after_daemonizing(&self, master_loop_configuration: &MasterLoopConfiguration, hybrid_global_allocator: &HybridGlobalAllocator) -> Option<SignalNumber>
+	fn execute_after_daemonizing(&self, master_loop_configuration: &MasterLoopConfiguration) -> Option<SignalNumber>
 	{
 		master_loop_configuration.set_maximum_resource_limits();
 		
@@ -184,35 +186,35 @@ impl MasterLoop
 		
 		let pci_devices_and_original_driver_names = master_loop_configuration.pci_devices_and_original_driver_names();
 		
-		let success_or_failure = catch_unwind(|| self.execute_after_pci_devices_bound_to_drivers(master_loop_configuration, hybrid_global_allocator, &pci_devices_and_original_driver_names, hugetlbfs_mount_path, memory_limits, master_logical_core, &slave_logical_cores, &service_logical_cores));
+		let success_or_failure = catch_unwind(|| self.execute_after_pci_devices_bound_to_drivers(master_loop_configuration, &pci_devices_and_original_driver_names, hugetlbfs_mount_path, memory_limits, master_logical_core, &slave_logical_cores, &service_logical_cores));
 		
 		PciNetDevicesConfiguration::release_all_from_use_with_dpdk(&master_loop_configuration.path_configuration.sys_path, pci_devices_and_original_driver_names);
 		
 		match success_or_failure
 		{
 			Err(failure) => resume_unwind(failure),
-			Ok(reraise_signal) => reraise_signal,
+			Ok(reraise_signal) => return reraise_signal,
 		}
 	}
 	
 	#[inline(always)]
-	fn execute_after_pci_devices_bound_to_drivers(&self, master_loop_configuration: &MasterLoopConfiguration, hybrid_global_allocator: &HybridGlobalAllocator, pci_devices: &HashMap<PciDevice, Option<String>>, hugetlbfs_mount_path: PathBuf, memory_limits: MachineOrNumaNodes<MegaBytes>, master_logical_core: HyperThread, slave_logical_cores: &BTreeSet<HyperThread>, service_logical_cores: &BTreeSet<HyperThread>)
+	fn execute_after_pci_devices_bound_to_drivers(&self, master_loop_configuration: &MasterLoopConfiguration, pci_devices: &HashMap<PciDevice, Option<String>>, hugetlbfs_mount_path: PathBuf, memory_limits: Option<MachineOrNumaNodes<MegaBytes>>, master_logical_core: HyperThread, slave_logical_cores: &BTreeSet<HyperThread>, service_logical_cores: &BTreeSet<HyperThread>) -> Option<SignalNumber>
 	{
 		MasterLoopConfiguration::block_all_signals_before_initializing_dpdk_so_that_slave_logical_cores_do_not_handle_signals();
 		
-		master_loop_configuration.initialize_dpdk(hybrid_global_allocator, pci_devices, &hugetlbfs_mount_path, memory_limits, master_logical_core, slave_logical_cores, service_logical_cores);
+		master_loop_configuration.initialize_dpdk(self.hybrid_global_allocator, pci_devices, &hugetlbfs_mount_path, memory_limits, master_logical_core, slave_logical_cores, service_logical_cores);
 		
 		let slave_logical_cores_to_uses = master_loop_configuration.slave_logical_cores_to_uses(pci_devices, slave_logical_cores);
 		
 		let success_or_failure = catch_unwind(|| self.execute_after_dpdk_initialized(master_loop_configuration, &slave_logical_cores_to_uses));
 		
 		DpdkConfiguration::dpdk_clean_up();
-		hybrid_global_allocator.dpdk_was_cleaned_up();
+		self.hybrid_global_allocator.dpdk_was_cleaned_up();
 		
 		match success_or_failure
 		{
 			Err(failure) => resume_unwind(failure),
-			Ok(reraise_signal) => reraise_signal,
+			Ok(reraise_signal) => return reraise_signal,
 		}
 	}
 	
@@ -294,5 +296,7 @@ impl MasterLoop
 			
 			wait_for_signals!(self, signals_to_wait_for, running_interactively)
 		}
+		
+		None
 	}
 }

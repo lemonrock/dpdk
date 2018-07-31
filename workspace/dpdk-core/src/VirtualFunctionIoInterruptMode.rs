@@ -4,6 +4,7 @@
 
 /// Virtual Function IO ('vfio') interrupt mode.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 pub enum VirtualFunctionIoInterruptMode
 {
 	/// Interrupts are delivered to a physically signalled pin by the Advanced Programmable Interrupt Controller (APIC).
@@ -67,18 +68,11 @@ impl VirtualFunctionIoInterruptMode
 	{
 		use self::VirtualFunctionIoInterruptMode::*;
 		
-		const_cstr!
-		{
-			legacy = "legacy";
-			msi = "msi";
-			msix = "msix";
-		}
-		
 		match self
 		{
-			Legacy => legacy,
-			Msi => msi,
-			MsiX => msix,
+			Legacy => ConstCStr(b"legacy\0"),
+			Msi => ConstCStr(b"msi\0"),
+			MsiX => ConstCStr(b"msix\0"),
 		}
 	}
 }

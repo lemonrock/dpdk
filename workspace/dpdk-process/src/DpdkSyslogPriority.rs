@@ -48,14 +48,14 @@ impl DpdkSyslogPriority
 		
 		match self
 		{
-			emergency => const_cstr!("emergency"),
-			alert => const_cstr!("alert"),
-			critical => const_cstr!("critical"),
-			error => const_cstr!("error"),
-			warning => const_cstr!("warning"),
-			notice => const_cstr!("notice"),
-			info => const_cstr!("info"),
-			debug => const_cstr!("debug"),
+			emergency => ConstCStr(b"emergency\0"),
+			alert => ConstCStr(b"alert\0"),
+			critical => ConstCStr(b"critical\0"),
+			error => ConstCStr(b"error\0"),
+			warning => ConstCStr(b"warning\0"),
+			notice => ConstCStr(b"notice\0"),
+			info => ConstCStr(b"info\0"),
+			debug => ConstCStr(b"debug\0"),
 		}
 	}
 	

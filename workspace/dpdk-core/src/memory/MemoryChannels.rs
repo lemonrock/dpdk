@@ -47,20 +47,12 @@ impl MemoryChannels
 	{
 		use self::MemoryChannels::*;
 		
-		const_cstr!
-		{
-			_1 = "1";
-			_2 = "2";
-			_3 = "3";
-			_4 = "4";
-		}
-		
 		match self
 		{
-			One => _1,
-			Two => _2,
-			Three => _3,
-			Four => _4,
+			One => ConstCStr(b"1\0"),
+			Two => ConstCStr(b"2\0"),
+			Three => ConstCStr(b"3\0"),
+			Four => ConstCStr(b"4\0"),
 		}
 	}
 }

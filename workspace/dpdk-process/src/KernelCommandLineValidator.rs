@@ -92,7 +92,7 @@ impl KernelCommandLineValidator
 			panic!("Kernel parameters `isolcpus`, `rcu_nocbs` and `nohz_full` should all match")
 		}
 		
-		isolated_cpus.iter().map(|value| HyperThread(value)).collect()
+		isolated_cpus.iter().map(|value| HyperThread::from(*value)).collect()
 	}
 	
 	#[inline(always)]
@@ -114,7 +114,7 @@ impl KernelCommandLineValidator
 			
 			for huge_page_size in huge_page_sizes.iter()
 			{
-				match huge_page_size
+				match *huge_page_size
 				{
 					"1G" | "2M" => (),
 					_ => panic!("Invalid Kernel 'hugepagesz={}'", huge_page_size),
@@ -167,7 +167,7 @@ impl KernelCommandLineValidator
 			panic!("Kernel has `nosmp` enabled; this disables support for parallel CPUs")
 		}
 		
-		if self.0.maxcpus() == 0
+		if self.0.maxcpus() == Some(0)
 		{
 			panic!("Kernel has `maxcpus=0`; this disables support for parallel CPUs")
 		}
@@ -240,11 +240,11 @@ impl KernelCommandLineValidator
 			{
 				None => (),
 				
-				Some("off", None) => panic!("Kernel should not have NUMA disabled; we need it to work correctly"),
+				Some(("off", None)) => panic!("Kernel should not have NUMA disabled; we need it to work correctly"),
 				
-				Some("noacpi", None) => panic!("Kernel should not have NUMA 'acpi' disabled; we need it to work correctly"),
+				Some(("noacpi", None)) => panic!("Kernel should not have NUMA 'acpi' disabled; we need it to work correctly"),
 				
-				Some("fake", Some(_)) => panic!("Kernel should not have fake NUMA nodes; they do not have correctly assigned CPUs"),
+				Some(("fake", Some(_))) => panic!("Kernel should not have fake NUMA nodes; they do not have correctly assigned CPUs"),
 				
 				unrecognised @ _ => panic!("Unrecognised Kernel NUMA options '{:?}", unrecognised),
 			}
@@ -341,7 +341,7 @@ impl KernelCommandLineValidator
 				
 				Some("native") => panic!("vKernel syscall mitigration has been disabled; this is wrong and also useless, as DPDK-based applications do not use vsyscall"),
 				
-				unknown @ _ => panic!("Kernel vsyscall mitigation '{}' not recognised; double-check this is intended", unknown),
+				unknown @ _ => panic!("Kernel vsyscall mitigation '{}' not recognised; double-check this is intended", unknown.unwrap()),
 			}
 			
 			if self.0.nopcid()

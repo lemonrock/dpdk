@@ -3,7 +3,7 @@
 
 
 /// PCI network devices configuration.
-#[derive(Debug)]
+#[derive(Default, Debug)]
 #[derive(Deserialize)]
 #[serde(default)]
 pub struct PciNetDevicesConfiguration
@@ -12,7 +12,7 @@ pub struct PciNetDevicesConfiguration
 	pub pci_net_devices: HashMap<IndirectPciDeviceIdentifier, (PciKernelDriver, Option<u8>)>,
 }
 
-impl PciNetDeviceConfiguration
+impl PciNetDevicesConfiguration
 {
 	#[inline(always)]
 	pub(crate) fn uses_ugb_uio_or_pci_vfio(&self) -> (bool, bool)
@@ -47,7 +47,25 @@ impl PciNetDeviceConfiguration
 	{
 		for pci_kernel_driver in self.pci_kernel_drivers()
 		{
-			essential_kernel_modules.insert(*pci_kernel_driver);
+			match pci_kernel_driver
+			{
+				#[cfg(target_os = "linux")] IgbUio =>
+				{
+					essential_kernel_modules.insert(EssentialKernelModule::IgbUio);
+				}
+				
+				#[cfg(target_os = "linux")] UioPciGeneric =>
+				{
+					essential_kernel_modules.insert(EssentialKernelModule::UioPciGeneric);
+				}
+				
+				#[cfg(target_os = "linux")] VfioPci =>
+				{
+					essential_kernel_modules.insert(EssentialKernelModule::VfioPci);
+				}
+				
+				_ => (),
+			}
 		}
 	}
 	
@@ -67,14 +85,14 @@ impl PciNetDeviceConfiguration
 				
 				if let Some((_pci_kernel_driver, alias)) = aliases.insert(pci_device.clone(), (*pci_kernel_driver, indirect_pci_device_identifier.clone()))
 				{
-					panic!("ethernet_pci_device '{}' is an alias of '{}'", ethernet_pci_device, alias);
+					panic!("pci_device '{:?}' is an alias of '{:?}'", pci_device, alias);
 				}
 				
 				if is_a_numa_machine
 				{
 					if let Some(numa_node_fix) = numa_node_fix
 					{
-						pci_device.set_numa_node_swallowing_errors_as_this_is_brittle(sys_path, numa_node_fix);
+						pci_device.set_numa_node_swallowing_errors_as_this_is_brittle(sys_path, *numa_node_fix);
 					}
 				}
 				
@@ -93,7 +111,7 @@ impl PciNetDeviceConfiguration
 	}
 	
 	#[inline(always)]
-	pub(crate) fn release_all_from_use_with_dpdk(sys_path: &SysPath, pci_devices_and_original_driver_names: HashMap<Self, Option<String>>)
+	pub(crate) fn release_all_from_use_with_dpdk(sys_path: &SysPath, pci_devices_and_original_driver_names: HashMap<PciDevice, Option<String>>)
 	{
 		for (pci_device, original_drive_name) in pci_devices_and_original_driver_names.drain()
 		{
@@ -102,7 +120,7 @@ impl PciNetDeviceConfiguration
 	}
 	
 	#[inline(always)]
-	fn pci_kernel_drivers(&self) -> impl Interator<Item=&PciKernelDriver>
+	fn pci_kernel_drivers(&self) -> impl Iterator<Item=&PciKernelDriver>
 	{
 		self.pci_net_devices.values().map(|(ref pci_kernel_driver, ref _numa_node_fix)| pci_kernel_driver)
 	}

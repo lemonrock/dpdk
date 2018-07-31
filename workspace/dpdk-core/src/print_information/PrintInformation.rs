@@ -25,7 +25,7 @@ pub trait PrintInformation
 	{
 		let file_descriptor = file.into_raw_fd();
 		
-		let open_flags = const_cstr!("a");
+		const open_flags: ConstCStr = ConstCStr(b"a\0");
 		let stream = unsafe { fdopen(file_descriptor, open_flags.as_ptr()) };
 		if stream.is_null()
 		{

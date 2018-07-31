@@ -5,7 +5,7 @@
 name = "dpdk-sys"
 description = "dpdk-sys"
 keywords = ["dpdk-sys"]
-categories = ["network-programming", "external-ffi-bindings"]
+categories = ["network-programming", "external-ffi-bindings", "hardware-support", "memory-management"]
 license = "MIT"
 authors = ["Raphael Cohn <raphael.cohn@stormmq.com>"]
 homepage = "https://github.com/lemonrock/dpdk"
@@ -13,7 +13,7 @@ repository = "https://github.com/lemonrock/dpdk.git"
 exclude = ["tools/bindgen-wrapper/temporary", "lib/dpdk/doc/**", "lib/dpdk/test/**"]
 readme = "README.md"
 publish = true
-version = "0.1.0"
+version = "0.1.1"
 build = "src/build.rs"
 links = "dpdk"
 

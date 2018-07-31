@@ -4,7 +4,6 @@
 
 extern crate arrayvec;
 #[macro_use] extern crate bitflags;
-#[macro_use] extern crate const_cstr_fork;
 extern crate dpdk_sys;
 extern crate dpdk_unix;
 extern crate indexmap;
@@ -21,7 +20,6 @@ extern crate syscall_alt;
 use self::power::*;
 use self::print_information::*;
 use ::arrayvec::ArrayVec;
-use ::const_cstr_fork::ConstCStr;
 use ::dpdk_sys::*;
 use ::dpdk_unix::*;
 use ::dpdk_unix::android_linux::linux_kernel_modules::LinuxKernelModulesList;
@@ -105,6 +103,7 @@ pub mod print_information;
 include!("AllLogicalCoreIterator.rs");
 include!("BusyPollBehaviour.rs");
 include!("BusyPollingLogicalCoreFunction.rs");
+include!("ConstCStr.rs");
 include!("DeviceDriverName.rs");
 include!("DeviceName.rs");
 include!("DpdkAllocatedMemory.rs");

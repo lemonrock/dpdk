@@ -26,37 +26,6 @@ extern crate syscall_alt;
 extern crate treebitmap;
 
 
-use self::*;
-use self::bus::*;
-use self::bus::pci::*;
-use self::bus::pci::subclasses::*;
-use self::devices::*;
-use self::devices::ethernet::*;
-use self::devices::virtual_devices::*;
-use self::devices::virtual_devices::net_virtual_devices::*;
-use self::domain::*;
-use self::domain::address_resolution_protocol::*;
-use self::domain::ethernet::*;
-use self::domain::internet_protocol::*;
-use self::domain::internet_protocol::longest_prefix_matching::*;
-use self::domain::internet_protocol::mask_bits::*;
-use self::domain::internet_protocol::packet_fragmentation::*;
-use self::domain::internet_protocol::routing::*;
-use self::domain::layer4::*;
-use self::domain::layer4::internet_control_message_protocol::*;
-use self::domain::virtual_lans::*;
-use self::E_RTE::*;
-use self::ethernetPorts::*;
-use self::memory::*;
-use self::memory::zones::*;
-use self::packet_buffers::*;
-use self::packet_buffers::packet_types::*;
-use self::power::*;
-use self::print_information::*;
-use self::process::*;
-use self::time::*;
-use self::tldk::*;
-use self::tldk::devices::*;
 use ::arrayvec::ArrayVec;
 use ::const_cstr_fork::ConstCStr;
 use ::dpdk_unix::*;
@@ -137,7 +106,7 @@ use ::std::os::unix::io::IntoRawFd;
 use ::std::panic::AssertUnwindSafe;
 use ::std::panic::catch_unwind;
 use ::std::panic::resume_unwind;
-use ::std::panic::set_panic_hook;
+use ::std::panic::as_initialization_argument_hook;
 use ::std::path::Path;
 use ::std::path::PathBuf;
 use ::std::process::exit;
@@ -182,28 +151,3 @@ pub mod ethernetPorts;
 
 /// Packet buffers.
 #[macro_use] pub mod packet_buffers;
-
-
-/// Process and configuration helpers.
-pub mod process;
-
-
-include!("finish.rs");
-
-
-include!("AllLogicalCoreIterator.rs");
-include!("BusyPollBehaviour.rs");
-include!("BusyPollingLogicalCoreFunction.rs");
-include!("EssentialKernelModule.rs");
-include!("LogicalCore.rs");
-include!("LogicalCoreChoice.rs");
-include!("MachineOrNumaNodes.rs");
-include!("NetworkInterfaceName.rs");
-include!("NumaNode.rs");
-include!("NumaNodeChoice.rs");
-include!("PointerExt.rs");
-include!("Service.rs");
-include!("ServiceFunction.rs");
-include!("ShouldFunctionTerminate.rs");
-include!("SlaveLogicalCoreFunction.rs");
-include!("SlaveLogicalCoreIterator.rs");

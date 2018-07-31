@@ -83,44 +83,24 @@ impl MemoryRanks
 	{
 		use self::MemoryRanks::*;
 		
-		const_cstr!
-		{
-			_1 = "1";
-			_2 = "2";
-			_3 = "3";
-			_4 = "4";
-			_5 = "5";
-			_6 = "6";
-			_7 = "7";
-			_8 = "8";
-			_9 = "9";
-			_10 = "10";
-			_11 = "11";
-			_12 = "12";
-			_13 = "13";
-			_14 = "14";
-			_15 = "15";
-			_16 = "16";
-		}
-		
 		match self
 		{
-			One => _1,
-			Two => _2,
-			Three => _3,
-			Four => _4,
-			Five => _5,
-			Six => _6,
-			Seven => _7,
-			Eight => _8,
-			Nine => _9,
-			Ten => _10,
-			Eleven => _11,
-			Twelve => _12,
-			Thirteen => _13,
-			Fourteen => _14,
-			Fifteen => _15,
-			Sixteen => _16,
+			One => ConstCStr(b"1\0"),
+			Two => ConstCStr(b"2\0"),
+			Three => ConstCStr(b"3\0"),
+			Four => ConstCStr(b"4\0"),
+			Five => ConstCStr(b"5\0"),
+			Six => ConstCStr(b"6\0"),
+			Seven => ConstCStr(b"7\0"),
+			Eight => ConstCStr(b"8\0"),
+			Nine => ConstCStr(b"9\0"),
+			Ten => ConstCStr(b"10\0"),
+			Eleven => ConstCStr(b"11\0"),
+			Twelve => ConstCStr(b"12\0"),
+			Thirteen => ConstCStr(b"13\0"),
+			Fourteen => ConstCStr(b"14\0"),
+			Fifteen => ConstCStr(b"15\0"),
+			Sixteen => ConstCStr(b"16\0"),
 		}
 	}
 }

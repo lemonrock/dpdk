@@ -6,7 +6,7 @@
 name = "dpdk-virtual-devices"
 description = "A wrapper around DPDK's virtual devices framework"
 keywords = ["DPDK", "TCP", "UDP", "Networking"]
-categories = ["network-programming", "external-ffi-bindings"]
+categories = ["network-programming", "external-ffi-bindings", "hardware-support"]
 license = "AGPL-3.0"
 authors = ["Raphael Cohn <raphael.cohn@stormmq.com>"]
 homepage = "https://github.com/lemonrock/dpdk"

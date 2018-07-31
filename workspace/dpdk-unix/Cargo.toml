@@ -6,7 +6,7 @@
 name = "dpdk-unix"
 description = "An internal crate to make it easier to iterate on unix requirements"
 keywords = ["unix"]
-categories = ["external-ffi-bindings"]
+categories = ["external-ffi-bindings", "hardware-support", "memory-management", "command-line-interface"]
 license = "AGPL-3.0"
 authors = ["Raphael Cohn <raphael.cohn@stormmq.com>"]
 homepage = "https://github.com/lemonrock/dpdk"
@@ -16,7 +16,7 @@ include = ["README.md", "src/**/*.rs", "benches/**/*.rs", "examples/**/*.rs", "t
 # Relative to Cargo.toml
 readme = "README.md"
 publish = true
-version = "0.1.1"
+version = "0.1.2"
 
 [dependencies]
 const-cstr-fork = "^0.2"

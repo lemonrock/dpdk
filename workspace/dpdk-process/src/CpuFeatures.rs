@@ -18,7 +18,7 @@ impl CpuFeatures
 	#[inline(always)]
 	fn validate_minimal_cpu_features(warnings_to_suppress: &WarningsToSuppress, uses_dpdk_power_management: bool) -> Self
 	{
-		#[cfg(target_arch = "x86_64")]
+		if cfg!(target_arch = "x86_64")
 		{
 			let cpu_id = CpuId::new();
 			
@@ -28,7 +28,7 @@ impl CpuFeatures
 			
 			// Development on Mac Pro `trash cans` at this time assumes at least Intel Ivy Bridge CPUs.
 			#[inline(always)]
-			fn instructions_modes_and_features_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(feature_information: &FeatureInfo, extended_function_information: &ExtendedFunctionInfo, extended_features: &ExtendedFeatures)
+			fn instructions_modes_and_features_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(feature_information: &FeatureInfo, extended_function_information: &ExtendedFunctionInfo, extended_features: &ExtendedFeatures, uses_dpdk_power_management: bool)
 			{
 				assert!(extended_function_information.has_64bit_mode(), "CPU architecture does not support 64-bit");
 				assert!(feature_information.has_cmpxchg8b(), "CPU architecture does not support 64-bit CAS");
@@ -162,15 +162,15 @@ impl CpuFeatures
 				}
 			}
 			
-			instructions_modes_and_features_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(&feature_information, &extended_function_information, &extended_features);
+			instructions_modes_and_features_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(&feature_information, &extended_function_information, &extended_features, uses_dpdk_power_management);
 			
 			compiled_target_features_are_available_at_runtime(&feature_information, &extended_function_information, &extended_features);
 			
-			performance_warnings_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(&feature_information, &extended_function_information, &extended_features);
+			warnings_to_suppress.performance_warnings_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(&feature_information, &extended_function_information, &extended_features);
 			
-			performance_warnings_for_new_features(&feature_information, &extended_function_information, &extended_features);
+			warnings_to_suppress.performance_warnings_for_new_features(&feature_information, &extended_function_information, &extended_features);
 			
-			security_warnings_for_new_features(&feature_information, &extended_function_information, &extended_features);
+			warnings_to_suppress.security_warnings_for_new_features(&feature_information, &extended_function_information, &extended_features);
 			
 			Self
 			{
@@ -179,7 +179,9 @@ impl CpuFeatures
 				has_1gb_huge_pages: extended_function_information.has_1gib_pages()
 			}
 		}
-		
-		panic!("Unsupported CPU architecture")
+		else
+		{
+			panic!("Unsupported CPU architecture")
+		}
 	}
 }

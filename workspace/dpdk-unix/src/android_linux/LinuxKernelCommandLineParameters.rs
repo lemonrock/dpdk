@@ -314,6 +314,15 @@ impl LinuxKernelCommandLineParameters
 		})
 	}
 	
+	/// `acpi`.
+	///
+	/// Do not confuse this with `noapic`, which is something different entirely.
+	#[inline(always)]
+	pub fn acpi(&self) -> Option<&str>
+	{
+		self.get_value("acpi")
+	}
+	
 	/// `iommu`.
 	#[inline(always)]
 	pub fn iommu(&self) -> Option<&str>

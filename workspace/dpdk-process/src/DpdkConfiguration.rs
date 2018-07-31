@@ -9,26 +9,38 @@
 pub struct DpdkConfiguration
 {
 	/// Linux `AFPACKET` virtual network devices by index.
-	pub af_packet_net_virtual_devices: BTreeMap<u5, AfPacketNetVirtualDevice>,
+	///
+	/// Only 2^8 - 1 entries are supported.
+	pub af_packet_net_virtual_devices: BTreeMap<u8, AfPacketNetVirtualDevice>,
 	
 	/// Bonded virtual network devices by index.
-	pub bonding_net_virtual_devices: BTreeMap<u5, BondingNetVirtualDevice>,
+	///
+	/// Only 2^8 - 1 entries are supported.
+	pub bonding_net_virtual_devices: BTreeMap<u8, BondingNetVirtualDevice>,
 	
 	/// Linux Kernel Native Interface (KNI) virtual network devices by index.
 	///
 	/// Internally a `ctrl` thread may be created for these (see `rte_ctrl_thread_create`).
-	pub kernel_native_interface_net_virtual_devices: BTreeMap<u5, KniNetVirtualDevice>,
+	///
+	/// Only 2^8 - 1 entries are supported.
+	pub kernel_native_interface_net_virtual_devices: BTreeMap<u8, KernelNativeInterfaceNetVirtualDevice>,
 	
 	/// Packet capture (`pcap`) virtual network devices by index.
-	pub packet_capture_net_virtual_devices: BTreeMap<u5, PacketCaptureNetVirtualDevice>,
+	///
+	/// Only 2^8 - 1 entries are supported.
+	pub packet_capture_net_virtual_devices: BTreeMap<u8, PacketCaptureNetVirtualDevice>,
 	
 	/// `VirtIO` virtual network devices by index.
-	pub virt_io_net_virtual_devices: BTreeMap<u5, VirtIoNetVirtualDevice>,
+	///
+	/// Only 2^8 - 1 entries are supported.
+	pub virt_io_net_virtual_devices: BTreeMap<u8, VirtIoNetVirtualDevice>,
 	
 	/// `vhost` host virtual network devices by index.
 	///
+	/// Only 2^8 - 1 entries are supported.
+	///
 	/// Internally several `ctrl` threads may be created for these (see `rte_ctrl_thread_create`).
-	pub virtual_host_net_virtual_devices: BTreeMap<u5, VirtualHostNetVirtualDevice>,
+	pub virtual_host_net_virtual_devices: BTreeMap<u8, VirtualHostNetVirtualDevice>,
 	
 	/// Can be changed from default (`None`).
 	pub memory_channels: Option<MemoryChannels>,
@@ -86,6 +98,7 @@ impl Default for DpdkConfiguration
 		{
 			af_packet_net_virtual_devices: Default::default(),
 			bonding_net_virtual_devices: Default::default(),
+			kernel_native_interface_net_virtual_devices: Default::default(),
 			packet_capture_net_virtual_devices: Default::default(),
 			virt_io_net_virtual_devices: Default::default(),
 			virtual_host_net_virtual_devices: Default::default(),
@@ -141,26 +154,26 @@ impl DpdkConfiguration
 	#[inline(always)]
 	pub fn initialize_dpdk<V>(&self, logging_configuration: &LoggingConfiguration, pci_devices: &HashMap<PciDevice, V>, hugetlbfs_mount_path: &Path, memory_limits: Option<MachineOrNumaNodes<MegaBytes>>, master_logical_core: HyperThread, slave_logical_cores: &BTreeSet<HyperThread>, service_logical_cores: &BTreeSet<HyperThread>)
 	{
-		let arguments = Arguments::new();
+		let mut arguments = Arguments::new();
 
-		Self::initialize_dpdk_pci_device_settings(&arguments, pci_devices);
-		self.initialize_dpdk_virtual_device_settings(&arguments);
-		self.initialize_dpdk_process_type_settings(&arguments);
-		Self::initialize_dpdk_logical_core_settings(&arguments, master_logical_core, slave_logical_cores, service_logical_cores);
-		self.initialize_dpdk_memory_limits_settings(&arguments, memory_limits);
-		self.initialize_dpdk_huge_page_settings(&arguments, hugetlbfs_mount_path);
-		self.initialize_dpdk_memory_rank_and_memory_channel_settings(&arguments);
-		self.initialize_dpdk_optional_settings(&arguments, pci_devices);
-		self.initialize_dpdk_log_settings(&arguments, logging_configuration);
-		self.initialize_dpdk_os_specific_settings(&arguments);
+		Self::initialize_dpdk_pci_device_settings(&mut arguments, pci_devices);
+		self.initialize_dpdk_virtual_device_settings(&mut arguments);
+		self.initialize_dpdk_process_type_settings(&mut arguments);
+		Self::initialize_dpdk_logical_core_settings(&mut arguments, master_logical_core, slave_logical_cores, service_logical_cores);
+		self.initialize_dpdk_memory_limits_settings(&mut arguments, memory_limits);
+		self.initialize_dpdk_huge_page_settings(&mut arguments, hugetlbfs_mount_path);
+		self.initialize_dpdk_memory_rank_and_memory_channel_settings(&mut arguments);
+		self.initialize_dpdk_optional_settings(&mut arguments, pci_devices);
+		self.initialize_dpdk_log_settings(&mut arguments, logging_configuration);
+		self.initialize_dpdk_os_specific_settings(&mut arguments);
 
 		Self::call_rte_eal_init(arguments)
 	}
 	
 	#[inline(always)]
-	pub(crate) fn initialize_dpdk_pci_device_settings<V>(argument: &mut Arguments, pci_devices: &HashMap<PciDevice, V>)
+	pub(crate) fn initialize_dpdk_pci_device_settings<V>(arguments: &mut Arguments, pci_devices: &HashMap<PciDevice, V>)
 	{
-		for pci_device in pci_devices.iter_keys()
+		for pci_device in pci_devices.keys()
 		{
 			arguments.variable_argument(Arguments::__pci_whitelist, &pci_device.to_address_string());
 		}
@@ -170,7 +183,7 @@ impl DpdkConfiguration
 	fn initialize_dpdk_virtual_device_settings(&self, arguments: &mut Arguments)
 	{
 		#[inline(always)]
-		fn add_virtual_devices<V: VirtualDevice>(argument: &mut Arguments, map: &BTreeMap<u8, V>)
+		fn add_virtual_devices<V: VirtualDevice>(arguments: &mut Arguments, map: &BTreeMap<u8, V>)
 		{
 			for (index, virtual_device) in map.iter()
 			{
@@ -223,14 +236,16 @@ impl DpdkConfiguration
 				{
 					logical_core_list.push(',');
 				}
-				logical_core_list.push_str(&format!("{}", hyper_thread.into::<u16>()))
+				let into: u16 = (*hyper_thread).into();
+				logical_core_list.push_str(&format!("{}", into))
 			}
 			logical_core_list
 		}
 		
 		arguments.variable_argument(Arguments::_l, &to_logical_core_list(&logical_cores));
 		arguments.variable_argument(Arguments::_S, &to_logical_core_list(service_logical_cores));
-		arguments.variable_argument(Arguments::__master_lcore, &format!("{}", master_hyper_thread.into::<u16>()));
+		let into: u16 = master_hyper_thread.into();
+		arguments.variable_argument(Arguments::__master_lcore, &format!("{}", into));
 	}
 	
 	#[inline(always)]
@@ -315,7 +330,7 @@ impl DpdkConfiguration
 	}
 	
 	#[inline(always)]
-	fn initialize_dpdk_optional_settings(&self, arguments: &mut Arguments, pci_devices: &HashMap<PciDevice, V>)
+	fn initialize_dpdk_optional_settings<V>(&self, arguments: &mut Arguments, pci_devices: &HashMap<PciDevice, V>)
 	{
 		arguments.option_argument(Arguments::__no_hpet, !self.use_high_precision_event_timer);
 
@@ -327,7 +342,7 @@ impl DpdkConfiguration
 	}
 	
 	#[inline(always)]
-	fn initialize_dpdk_log_settings(&self, argument: &mut Arguments, logging_configuration: &LoggingConfiguration)
+	fn initialize_dpdk_log_settings(&self, arguments: &mut Arguments, logging_configuration: &LoggingConfiguration)
 	{
 		arguments.constant_argument(Arguments::__syslog, logging_configuration.syslog_facility.as_initialization_argument());
 		arguments.constant_argument(Arguments::__log_level, logging_configuration.syslog_priority.as_initialization_argument());
@@ -368,7 +383,7 @@ impl DpdkConfiguration
 					assert_eq!(number_of_parsed_arguments, argc, "Did not return correct number of parsed arguments");
 				},
 				
-				-1 => match unsafe { rte_errno() }
+				-1 => match LogicalCore::current_logical_core_error_number()
 				{
 					E::EACCES => panic!("Could not initialise DPDK Environment Abstraction Layer: permissions issue"),
 					E::EAGAIN => panic!("Could not initialise DPDK Environment Abstraction Layer: either a bus or system resource was not available; try again"),

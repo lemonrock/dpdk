@@ -21,7 +21,7 @@ impl SysLog
 		
 		let cause = Self::to_c_string_robustly(Self::panic_payload_to_cause(panic_payload));
 		
-		unsafe { syslog(LOG_ERR, const_cstr!("LogicalCore:%s:Cause:%s").as_ptr(), logical_core_choice, cause) }
+		unsafe { syslog(LOG_ERR, ConstCStr(b"LogicalCore:%s:Cause:%s\0").as_ptr(), logical_core_choice, cause) }
 	}
 	
 	#[inline(always)]
@@ -29,8 +29,8 @@ impl SysLog
 	{
 		match signal_number
 		{
-			None => unsafe { syslog(LOG_NOTICE, const_cstr!("ExitSignalled:Other").as_ptr()) },
-			Some(signal_number) => unsafe { syslog(LOG_NOTICE, const_cstr!("ExitSignalled:%s").as_ptr(), strsignal(signal_number)) },
+			None => unsafe { syslog(LOG_NOTICE, ConstCStr(b"ExitSignalled:Other\0").as_ptr()) },
+			Some(signal_number) => unsafe { syslog(LOG_NOTICE, ConstCStr(b"ExitSignalled:%s\0").as_ptr(), strsignal(signal_number)) },
 		}
 	}
 	

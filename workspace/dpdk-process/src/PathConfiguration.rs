@@ -8,9 +8,6 @@
 #[serde(default)]
 pub struct PathConfiguration
 {
-	/// `/dev`.
-	pub dev_path: PathBuf,
-	
 	/// `/proc`.
 	pub proc_path: ProcPath,
 	
@@ -30,7 +27,6 @@ impl Default for PathConfiguration
 	{
 		Self
 		{
-			dev_path: PathBuf::from("/dev"),
 			proc_path: ProcPath::default(),
 			sys_path: SysPath::default(),
 			dpdk_provided_kernel_modules_path: Self::append_dpdk_relative_modules_path(Self::parent_folder_path()),
@@ -57,7 +53,7 @@ impl PathConfiguration
 	}
 	
 	#[inline(always)]
-	fn append_dpdk_relative_modules_path(mut parent_folder_path: PathBuf)
+	fn append_dpdk_relative_modules_path(mut parent_folder_path: PathBuf) -> PathBuf
 	{
 		if parent_folder_path.to_str().map(|path| path.ends_with("/bin") || path.ends_with("/sbin")).unwrap_or(false)
 		{
@@ -68,5 +64,6 @@ impl PathConfiguration
 			parent_folder_path.push("lib");
 		}
 		parent_folder_path.push("modules/dpdk");
+		parent_folder_path
 	}
 }

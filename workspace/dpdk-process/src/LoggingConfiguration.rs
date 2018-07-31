@@ -35,7 +35,7 @@ impl Default for LoggingConfiguration
 			syslog_facility: Default::default(),
 			syslog_priority: Default::default(),
 			identity: get_program_name(),
-			enable_rust_backtraces: true,
+			enable_full_rust_stack_back_traces: true,
 		}
 	}
 }
@@ -48,7 +48,7 @@ impl LoggingConfiguration
 	{
 		let name = SysLog::to_c_string_robustly(name);
 		let message = SysLog::to_c_string_robustly(message);
-		unsafe { syslog(LOG_WARNING, const_cstr!("%s:%s").as_ptr(), name.as_ptr(), message.as_ptr()) };
+		unsafe { syslog(LOG_WARNING, ConstCStr(b"%s:%s\0").as_ptr(), name.as_ptr(), message.as_ptr()) };
 	}
 	
 	#[inline(always)]
@@ -56,7 +56,7 @@ impl LoggingConfiguration
 	{
 		let source_file = SysLog::to_c_string_robustly(source_file);
 		let cause = SysLog::to_c_string_robustly(cause);
-		unsafe { syslog(LOG_CRIT, const_cstr!("File:%s:Line:%u:Column:%u:Cause:%s").as_ptr(), source_file, line_number, column_number, cause) }
+		unsafe { syslog(LOG_CRIT, ConstCStr(b"File:%s:Line:%u:Column:%u:Cause:%s\0").as_ptr(), source_file, line_number, column_number, cause) }
 	}
 	
 	#[inline(always)]
@@ -85,14 +85,14 @@ impl LoggingConfiguration
 			log_options |= LOG_PERROR;
 		}
 		
-		let identity = CString::from(&self.identity).unwrap();
+		let identity = CString::new(&self.identity).unwrap();
 		unsafe { openlog(identity.as_ptr(), log_options, self.syslog_facility as i32) }
 	}
 	
 	#[inline(always)]
 	pub(crate) fn configure_panic_hook(&self)
 	{
-		set_panic_hook(Box::new(|panic_info|
+		set_hook(Box::new(|panic_info|
 		{
 			let (source_file, line_number, column_number) = match panic_info.location()
 			{
@@ -102,7 +102,7 @@ impl LoggingConfiguration
 			
 			let cause = SysLog::panic_payload_to_cause(panic_info.payload());
 			
-			Self::caught_panic(source_file, line_number, column_number, cause)
+			Self::caught_panic(source_file, line_number, column_number, &cause)
 		}));
 	}
 	

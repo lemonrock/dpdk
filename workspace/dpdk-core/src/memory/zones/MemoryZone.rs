@@ -134,7 +134,7 @@ impl MemoryZone
 	#[inline(always)]
 	fn assert_memory_zone_name_size(name: ConstCStr)
 	{
-		debug_assert!(name.to_bytes().len() < RTE_MEMZONE_NAMESIZE, "name '{}' is equal to or greater than RTE_MEMZONE_NAMESIZE, '{}'", name.rustValue, RTE_MEMZONE_NAMESIZE);
+		debug_assert!(name.length_excluding_trailing_nul() < RTE_MEMZONE_NAMESIZE, "name '{}' is equal to or greater than RTE_MEMZONE_NAMESIZE, '{}'", name, RTE_MEMZONE_NAMESIZE);
 	}
 	
 	#[inline(always)]
@@ -148,7 +148,7 @@ impl MemoryZone
 				E::ENOMEM => None,
 				
 				E::EINVAL => panic!("Bad parameters passed to {}()", function_name),
-				E::EEXIST => panic!("Memory zone named '{}' already exists", name.to_str()),
+				E::EEXIST => panic!("Memory zone named '{}' already exists", name),
 				E_RTE::NO_CONFIG => panic!("Could not get a pointer to rte_config in function {}()", function_name),
 				E_RTE::SECONDARY => panic!("Function {}() was called from a secondary process instance", function_name),
 				

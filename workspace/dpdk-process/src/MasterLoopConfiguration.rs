@@ -62,10 +62,10 @@ impl Default for MasterLoopConfiguration
 			
 			system_control_settings: hashmap!
 			{
-				"vm.swappiness" => 0
-				"vm.zone_reclaim_mode" => 0
-				"vm.dirty_ratio" => 10
-				"vm.dirty_background_ratio" => 5,
+				"vm.swappiness".to_string() => 0,
+				"vm.zone_reclaim_mode".to_string() => 0,
+				"vm.dirty_ratio".to_string() => 10,
+				"vm.dirty_background_ratio".to_string() => 5,
 			},
 			
 			warnings_to_suppress: WarningsToSuppress::default(),
@@ -89,12 +89,13 @@ impl MasterLoopConfiguration
 		self.logging_configuration.configure_panic_hook()
 	}
 	
-	pub(crate) fn daemonize_if_required<F: Fn() -> Option<SignalNumber>>(&self, callback: F)
+	#[inline(always)]
+	pub(crate) fn daemonize_if_required<F: Fn() -> Option<SignalNumber>>(&self, execute_after_daemonizing: F) -> Option<SignalNumber>
 	{
-		let reraise_signal = if let Some(daemonize) = daemonize
+		if let Some(daemonize) = self.daemonize
 		{
 			let daemonize_clean_up_on_exit = daemonize.daemonize();
-			let success_or_failure = catch_unwind(|| self.execute_after_daemonizing(master_loop_configuration, hybrid_global_allocator));
+			let success_or_failure = catch_unwind(|| execute_after_daemonizing());
 			daemonize_clean_up_on_exit.clean_up();
 			
 			match success_or_failure
@@ -110,8 +111,8 @@ impl MasterLoopConfiguration
 		}
 		else
 		{
-			self.execute_after_daemonizing(master_loop_configuration, hybrid_global_allocator)
-		};
+			execute_after_daemonizing()
+		}
 	}
 	
 	#[inline(always)]
@@ -138,13 +139,13 @@ impl MasterLoopConfiguration
 	{
 		assert_ne!(isolated_hyper_threads_including_those_offline.len(), 0, "There must be at least one hyper thread in `isolated_hyper_threads_including_those_offline`");
 		
-		let shared_hyper_threads_including_those_offline = HyperThread::complement(isolated_hyper_threads_including_those_offline);
+		let shared_hyper_threads_including_those_offline = HyperThread::complement(&isolated_hyper_threads_including_those_offline, self.sys_path());
 		assert_ne!(shared_hyper_threads_including_those_offline.len(), 0, "There must be at least one hyper thread in `shared_hyper_threads_including_those_offline`");
 		
-		let online_isolated_hyper_threads = HyperThread::remove_those_offline(&isolated_hyper_threads_including_those_offline);
+		let online_isolated_hyper_threads = HyperThread::remove_those_offline(&isolated_hyper_threads_including_those_offline, self.sys_path());
 		assert_ne!(online_isolated_hyper_threads.len(), 0, "There must be at least one hyper thread in `online_isolated_hyper_threads`");
 		
-		let online_shared_hyper_threads = HyperThread::remove_those_offline(&shared_hyper_threads_including_those_offline);
+		let online_shared_hyper_threads = HyperThread::remove_those_offline(&shared_hyper_threads_including_those_offline, self.sys_path());
 		assert_ne!(online_shared_hyper_threads.len(), 0, "There must be at least one hyper thread in `online_shared_hyper_threads`");
 		
 		self.warnings_to_suppress.miscellany_warn("too_many_shared_hyper_threads", "There are more than 2 shared hyper threads", || online_shared_hyper_threads.len() <= 2);
@@ -156,21 +157,20 @@ impl MasterLoopConfiguration
 			{
 				for online_shared_hyper_thread in online_shared_hyper_threads.iter()
 				{
-					numa_nodes.insert((*online_shared_hyper_thread).numa_node().unwrap());
+					let insert = (*online_shared_hyper_thread).numa_node(self.sys_path()).unwrap();
+					numa_nodes.insert(insert);
 				}
 				self.warnings_to_suppress.miscellany_warn("too_many_numa_nodes_shared_hyper_threads", &format!("More than one (actually, {:?}) NUMA nodes are present in the shared hyper threads", numa_nodes), || numa_nodes.len() == 1);
 			}
 		}
 		
 		{
-			HyperThread::hyper_thread_groups(&online_shared_hyper_threads);
-			
-			for hyper_thread_group in HyperThread::hyper_thread_groups(&online_shared_hyper_threads).iter()
+			for hyper_thread_group in HyperThread::hyper_thread_groups(&online_shared_hyper_threads, self.sys_path()).iter()
 			{
 				let mut hits = 0;
 				for hyper_thread in hyper_thread_group.iter()
 				{
-					if online_shared_hyper_threads.contains(*hyper_thread)
+					if online_shared_hyper_threads.contains(hyper_thread)
 					{
 						hits += 1;
 					}
@@ -193,13 +193,13 @@ impl MasterLoopConfiguration
 		
 		HyperThread::force_watchdog_to_just_these_hyper_threads(online_shared_hyper_threads, self.proc_path());
 		
-		master_logical_core
+		*master_logical_core
 	}
 	
 	#[inline(always)]
 	pub(crate) fn divide_logical_cores_into_slave_logical_cores_and_service_logical_cores(&self, isolated_hyper_threads: BTreeSet<HyperThread>) -> (BTreeSet<HyperThread>, BTreeSet<HyperThread>)
 	{
-		assert!(isolated_hyper_threads.len() > self.service_cores, "There must be more isolated hyper threads '{}' than number of service cores '{}'", isolated_hyper_threads.len(), self.service_cores);
+		assert!(isolated_hyper_threads.len() > self.service_cores(), "There must be more isolated hyper threads '{}' than number of service cores '{}'", isolated_hyper_threads.len(), self.service_cores());
 		
 		// TODO: It's very difficult to decide on a good strategy for service cores, but they should not be hyper thread siblings; possibly they should come from a different NUMA node to master.
 		
@@ -245,13 +245,13 @@ impl MasterLoopConfiguration
 		
 		self.disable_transparent_huge_pages();
 		
-		path_configuration.proc_path.filesystems().unwrap().verify_hugetlbfs_is_supported();
+		self.path_configuration.proc_path.filesystems().unwrap().verify_hugetlbfs_is_supported();
 		
 		let mounts = self.path_configuration.proc_path.mounts().unwrap();
 		let (unmount, hugetlbfs_mount_path) = match mounts.existing_hugetlbfs_mount()
 		{
-			Some(hugetlbfs_mount_path) => (None, hugetlbfs_mount_path.to_owned()),
-			None(_) => (Some(huge_page_mount_settings.mount(self.sys_path())), huge_page_mount_settings.mount_point.to_owned())
+			None => (Some(huge_page_mount_settings.mount(self.sys_path())), huge_page_mount_settings.mount_point.to_owned()),
+			Some(hugetlbfs_mount_path) => (None, hugetlbfs_mount_path.to_owned())
 		};
 		
 		let machine_or_numa_nodes = MachineOrNumaNodes::new(self.sys_path());
@@ -260,7 +260,7 @@ impl MasterLoopConfiguration
 		let memory_limits = match self.dpdk_configuration.huge_page_allocation_strategy
 		{
 			None => None,
-			Some(ref huge_page_allocation_strategy) => Some(MachineOrNumaNodes::reserve_huge_page_memory(self.sys_path(), self.proc_path(), huge_page_allocation_strategy))
+			Some(ref huge_page_allocation_strategy) => Some(machine_or_numa_nodes.reserve_huge_page_memory(self.sys_path(), self.proc_path(), huge_page_allocation_strategy).unwrap())
 		};
 		
 		(hugetlbfs_mount_path, memory_limits)
@@ -270,18 +270,18 @@ impl MasterLoopConfiguration
 	#[inline(always)]
 	pub(crate) fn load_kernel_modules(&self) -> EssentialKernelModulesToUnload
 	{
-		let mut essential_kernel_modules = Vec::new();
+		let mut essential_kernel_modules = HashSet::new();
 		if self.dpdk_configuration.has_kernel_native_interface_virtual_devices()
 		{
-			essential_kernel_modules.push(EssentialKernelModule::RteKni);
+			essential_kernel_modules.insert(EssentialKernelModule::RteKni);
 		}
 		self.pci_net_devices_configuration.add_essential_kernel_modules(&mut essential_kernel_modules);
 		
-		let mut modules_loaded = self.path_configuration.proc_path.modules();
+		let mut modules_loaded = self.path_configuration.proc_path.modules().unwrap();
 		let mut essential_kernel_modules_to_unload = EssentialKernelModulesToUnload::new();
 		for essential_kernel_module in essential_kernel_modules.iter()
 		{
-			essential_kernel_module.load_if_necesary(modules_loaded, &self.path_configuration.dpdk_provided_kernel_modules_path, &mut essential_kernel_modules_to_unload, &self.path_configuration.dev_path);
+			essential_kernel_module.load_if_necesary(&mut modules_loaded, &self.path_configuration.dpdk_provided_kernel_modules_path, &mut essential_kernel_modules_to_unload);
 		}
 		
 		essential_kernel_modules_to_unload
@@ -290,7 +290,7 @@ impl MasterLoopConfiguration
 	#[inline(always)]
 	pub(crate) fn write_system_control_values(&self)
 	{
-		self.proc_path().write_system_control_values(&self.system_control_settings)
+		self.proc_path().write_system_control_values(&self.system_control_settings).unwrap()
 	}
 	
 	#[inline(always)]
@@ -308,7 +308,7 @@ impl MasterLoopConfiguration
 	}
 	
 	#[inline(always)]
-	pub(crate) fn initialize_dpdk<V>(&self, hybrid_global_allocator: &HybridGlobalAllocator, pci_devices: &HashMap<PciDevice, V>, hugetlbfs_mount_path: &Path, memory_limits: Option<MachineOrNumaNodes<MegaBytes>>, master_logical_core: HyperThread, slave_logical_cores: &BTreeSet<HyperThread>, service_logical_cores: &BTreeSet<HyperThread>)
+	pub(crate) fn initialize_dpdk<V>(&self, hybrid_global_allocator: &'static HybridGlobalAllocator, pci_devices: &HashMap<PciDevice, V>, hugetlbfs_mount_path: &Path, memory_limits: Option<MachineOrNumaNodes<MegaBytes>>, master_logical_core: HyperThread, slave_logical_cores: &BTreeSet<HyperThread>, service_logical_cores: &BTreeSet<HyperThread>)
 	{
 		self.dpdk_configuration.initialize_dpdk(&self.logging_configuration, pci_devices, &hugetlbfs_mount_path, memory_limits, master_logical_core, slave_logical_cores, service_logical_cores);
 		
@@ -333,7 +333,7 @@ impl MasterLoopConfiguration
 			
 			for logical_core in LogicalCore::all_logical_cores()
 			{
-				if let Some(logical_core_power_management) = logical_core.start_power_management()
+				if let Ok(logical_core_power_management) = logical_core.start_power_management()
 				{
 					logical_core_power_management.enable_turbo_boost();
 					logical_core_power_management.set_to_maximum_frequency();
@@ -428,21 +428,27 @@ impl MasterLoopConfiguration
 	#[inline(always)]
 	fn disable_transparent_huge_pages(&self)
 	{
-		self.sys_path().change_transparent_huge_pages_defragmentation(TransparentHugePageDefragmentation::never, 4096, 60_000, 10_000, 511, 64);
-		self.sys_path().change_transparent_huge_pages_usage(TransparentHugePageRegularMemoryChoice::never, TransparentHugePageSharedMemoryChoice::never, true);
+		self.sys_path().change_transparent_huge_pages_defragmentation(TransparentHugePageDefragmentationChoice::Never, 4096, 60_000, 10_000, 511, 64);
+		self.sys_path().change_transparent_huge_pages_usage(TransparentHugePageRegularMemoryChoice::Never, TransparentHugePageSharedMemoryChoice::Never, true);
 		
 		const EnableHugeTransparentPages: bool = false;
 		adjust_transparent_huge_pages(EnableHugeTransparentPages);
 	}
 	
 	#[inline(always)]
-	fn proc_path(&self) -> &Path
+	fn service_cores(&self) -> usize
+	{
+		self.service_cores as usize
+	}
+	
+	#[inline(always)]
+	fn proc_path(&self) -> &ProcPath
 	{
 		&self.path_configuration.proc_path
 	}
 	
 	#[inline(always)]
-	fn sys_path(&self) -> &Path
+	fn sys_path(&self) -> &SysPath
 	{
 		&self.path_configuration.sys_path
 	}
