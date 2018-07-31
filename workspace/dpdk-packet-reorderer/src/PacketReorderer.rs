@@ -4,13 +4,13 @@
 
 /// Represents a packet reordering buffer.
 #[derive(Debug)]
-pub struct ReorderBuffer
+pub struct PacketReorderer
 {
 	reorder_buffer: NonNull<rte_reorder_buffer>,
 	we_should_destroy_the_reorder_buffer_on_drop: bool,
 }
 
-impl Drop for ReorderBuffer
+impl Drop for PacketReorderer
 {
 	#[inline(always)]
 	fn drop(&mut self)
@@ -22,7 +22,7 @@ impl Drop for ReorderBuffer
 	}
 }
 
-impl ReorderBuffer
+impl PacketReorderer
 {
 	/// Find an existing instance.
 	#[inline(always)]
@@ -81,13 +81,14 @@ impl ReorderBuffer
 	/// The `packet_buffer` must contain a sequence number which is then used to place it in the correct position in the reorder buffer.
 	/// Reordered packets can later be taken from the reorder buffer using `self.drain()`.
 	#[inline(always)]
-	pub fn insert(&self, packet_buffer: PacketBuffer) -> Result<(), CouldNotInsertPacketBufferForReordering>
+	pub fn insert(&self, packet_buffer: NonNull<rte_mbuf>) -> Result<(), CouldNotInsertPacketBufferForReordering>
 	{
 		let result = unsafe { rte_reorder_insert(self.handle(), packet_buffer.as_ptr()) };
 		if likely!(result == 0)
 		{
-			Ok(())
+			return Ok(())
 		}
+		
 		debug_assert_eq!(result, -1, "result '{}' was not 0 or -1", result);
 		
 		use self::CouldNotInsertPacketBufferForReordering::*;
@@ -106,13 +107,11 @@ impl ReorderBuffer
 	/// Returns a set of in-order buffers from the reorder buffer structure.
 	/// Gaps may be present in the sequence numbers of the packet buffers if packets have been delayed too long before reaching the reorder window, or have been previously dropped by the system.
 	#[inline(always)]
-	pub fn drain(&self, into: &mut Vec<PacketBuffer>)
+	pub fn drain<A: NonNullUnifiedArrayVecAndVec<rte_mbuf>>(&self, packets_into: &mut A)
 	{
-		let original_length = into.len();
-		let mbufs = unsafe { into.get_unchecked_mut(original_length) } as *mut *mut rte_mbuf;
-		let max_bufs = (into.capacity() - original_length) as u32;
-		let number_written = unsafe { rte_reorder_drain(self.handle(), mbufs, max_bufs) };
-		unsafe { into.set_len(number_written) }
+		let (pointer, number_of_packets) = packets_into.from_ffi_data_u32();
+		let number_written = unsafe { rte_reorder_drain(self.handle(), pointer, number_of_packets) };
+		packets_into.set_length(number_written as usize)
 	}
 	
 	#[inline(always)]

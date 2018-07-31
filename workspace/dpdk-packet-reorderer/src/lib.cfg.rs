@@ -2,13 +2,19 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use super::*;
+extern crate dpdk_core;
+extern crate dpdk_sys;
+#[macro_use] extern crate likely;
+#[macro_use] extern crate quick_error;
+extern crate network_collections;
 
 
-/// Packet types.
-pub mod packet_types;
+use ::dpdk_core::*;
+use ::dpdk_sys::*;
+use ::network_collections::NonNullUnifiedArrayVecAndVec;
+use ::std::ffi::CStr;
+use ::std::ptr::NonNull;
 
 
-
-include!("PacketBufferReceiveOffloadFeaturesFlags.rs");
-include!("PacketBufferPool.rs");
+include!("CouldNotInsertPacketBufferForReordering.rs");
+include!("PacketReorderer.rs");
