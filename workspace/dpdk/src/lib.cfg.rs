@@ -172,27 +172,16 @@ use ::syscall_alt::constants::E;
 use ::treebitmap::*;
 
 
-/// DPDK devices.
-pub mod devices;
-
-
-/// Domain-like structs for ARP, Ethernet, Internet Protocol, Layer 2 and virtual LANs.
-pub mod domain;
-
-
+/// Ethernet.
+pub mod ethernet;
 
 
 /// Ethernet ports.
 pub mod ethernetPorts;
 
 
-/// DPDK memory management.
-pub mod memory;
-
-
 /// Packet buffers.
 #[macro_use] pub mod packet_buffers;
-
 
 
 /// Process and configuration helpers.

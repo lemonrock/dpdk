@@ -8,7 +8,12 @@
 #[derive(Serialize, Deserialize)]
 pub enum BalanceBondingModeTransmitPolicy
 {
+	/// Layer 2 only.
 	Layer2Only = 0,
+	
+	/// Layers 2 and 3.
 	Layers2And3 = 1,
+	
+	/// Layers 3 and 4.
 	Layers3And4 = 2,
 }

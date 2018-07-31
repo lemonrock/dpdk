@@ -17,8 +17,6 @@ include!("InternetProtocolVersion6ReassemblyKey.rs");
 include!("TimestampReusedAsFields.rs");
 
 
-
-
 pub(crate) struct InternetProtocolVersion6Reassembly
 {
 	// TODO: Use our tcp-engine collections here.

@@ -4,7 +4,7 @@
 
 extern crate dpdk_bus;
 extern crate dpdk_core;
-extern crate dpdk_layers;
+extern crate network_ethernet;
 extern crate serde;
 #[macro_use] extern crate serde_derive;
 
@@ -12,7 +12,7 @@ extern crate serde;
 use ::dpdk_bus::NetworkInterfaceName;
 use ::dpdk_bus::pci::DpdkPciDeviceAddress;
 use ::dpdk_core::*;
-use ::dpdk_layers::ethernet::MediaAccessControlAddress;
+use ::network_ethernet::MediaAccessControlAddress;
 use ::std::collections::HashSet;
 use ::std::fmt::Debug;
 use ::std::path::Path;
