@@ -207,7 +207,8 @@ impl MasterLoopConfiguration
 		
 		// See also `sw_event_timer_adapter_service_func` which takes in messages to arm or cancel using `rte_timer_reset`.
 		
-		xxxxxx
+		xxxx;
+		unimplemented!()
 	}
 	
 	#[inline(always)]
@@ -228,7 +229,8 @@ impl MasterLoopConfiguration
 				create_some_busy_poll_behaviour_type_a().execute_code_on_slave(slave_logical_core, should_function_terminate)
 			}
 		*/
-		
+		xxxx;
+		unimplemented!()
 	}
 	
 	#[inline(always)]

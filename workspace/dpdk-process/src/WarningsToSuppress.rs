@@ -107,11 +107,11 @@ impl WarningsToSuppress
 	
 	// Development on Mac Pro `trash cans` at this time assumes at least Intel Ivy Bridge CPUs.
 	#[inline(always)]
-	pub(crate) fn performance_warnings_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(&self, feature_information: &FeatureInfo, _extended_function_information: &ExtendedFunctionInfo, extended_features: &ExtendedFeatures)
+	pub(crate) fn performance_warnings_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(&self, feature_information: &FeatureInfo, extended_function_information: &ExtendedFunctionInfo, extended_feature_information: &ExtendedFeatures)
 	{
-		self.cpu_warn("has_rep_movsb_stosb", "Your CPU does not support the REP MOVSB and REP STOSB instructions, which are optimal for some memory moves and copies", || extended_features.has_rep_movsb_stosb());
+		self.cpu_warn("has_rep_movsb_stosb", "Your CPU does not support the REP MOVSB and REP STOSB instructions, which are optimal for some memory moves and copies", || extended_feature_information.has_rep_movsb_stosb());
 		
-		self.cpu_warn("has_prefetchw", "Your CPU does not support the PRETFCHW instruction, which is optimal for some memory moves and copies", || extended_features.has_prefetchw());
+		self.cpu_warn("has_prefetchw", "Your CPU does not support the PRETFCHW instruction, which is optimal for some memory moves and copies", || extended_function_information.has_prefetchw());
 		
 		self.cpu_warn("has_ss", "Your CPU does not support self-snoop of the cache (which nearly all should), which is important for efficient cache mamangement in this application", || feature_information.has_ss());
 		
@@ -119,14 +119,14 @@ impl WarningsToSuppress
 	}
 	
 	#[inline(always)]
-	pub(crate) fn performance_warnings_for_new_features(&self, feature_information: &FeatureInfo, _extended_function_information: &ExtendedFunctionInfo, extended_features: &ExtendedFeatures)
+	pub(crate) fn performance_warnings_for_new_features(&self, feature_information: &FeatureInfo, _extended_function_information: &ExtendedFunctionInfo, extended_feature_information: &ExtendedFeatures)
 	{
-		self.cpu_warn("has_invpcid", "Your CPU does not support the INVPCID instruction, which is important for efficient mitigation of the Meltdown and Spectre security vulnerabilities", || feature_information.has_xsave() && extended_features.has_invpcid());
+		self.cpu_warn("has_invpcid", "Your CPU does not support the INVPCID instruction, which is important for efficient mitigation of the Meltdown and Spectre security vulnerabilities", || feature_information.has_xsave() && extended_feature_information.has_invpcid());
 	}
 	
 	#[inline(always)]
-	pub(crate) fn security_warnings_for_new_features(&self, _feature_information: &FeatureInfo, _extended_function_information: &ExtendedFunctionInfo, extended_features: &ExtendedFeatures)
+	pub(crate) fn security_warnings_for_new_features(&self, _feature_information: &FeatureInfo, _extended_function_information: &ExtendedFunctionInfo, extended_feature_information: &ExtendedFeatures)
 	{
-		self.cpu_warn("has_smap", "Your CPU does not support the Supervisor-Mode Access Prevention (SMAP) instructions CLAC and STAC, which are important for securing modern Linux systems", || extended_features.has_smap());
+		self.cpu_warn("has_smap", "Your CPU does not support the Supervisor-Mode Access Prevention (SMAP) instructions CLAC and STAC, which are important for securing modern Linux systems", || extended_feature_information.has_smap());
 	}
 }

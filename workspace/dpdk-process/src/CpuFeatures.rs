@@ -24,7 +24,7 @@ impl CpuFeatures
 			
 			let feature_information = cpu_id.get_feature_info().expect("CPU architecture does not support feature information");
 			let extended_function_information = cpu_id.get_extended_function_info().expect("CPU architecture does not support extended function information");
-			let extended_features = cpu_id.get_extended_features().expect("CPU architecture does not support extended features");
+			let extended_feature_information = cpu_id.get_extended_feature_info().expect("CPU architecture does not support extended features");
 			
 			// Development on Mac Pro `trash cans` at this time assumes at least Intel Ivy Bridge CPUs.
 			#[inline(always)]
@@ -38,7 +38,7 @@ impl CpuFeatures
 				assert!(feature_information.has_pclmulqdq(), "CPU architecture does not support the PCLMULQDQ instruction");
 				assert!(feature_information.has_msr(), "CPU architecture does not have Read Model Specific Register (RDMSR) and Write Model Specific Register WRMSR");
 				assert!(extended_features.has_fsgsbase(), "CPU architecture does not have 'fsgsbase' instructions RDFSBASE, RDGSBASE, WRFSBASE and WRGSBASE");
-				assert!(extended_features.has_dca(), "CPU architecture does not have Direct Cache Access (DCA) for DMA writes");
+				assert!(feature_information.has_dca(), "CPU architecture does not have Direct Cache Access (DCA) for DMA writes");
 				
 				// Security-related.
 				assert!(feature_information.has_pcid(), "CPU architecture does not support PCID (Essential for Meltdown vulnerability protection)");
@@ -75,7 +75,7 @@ impl CpuFeatures
 				assert!(feature_information.has_tsc_deadline(), "CPU architecture does not support Time Stamp Counter (TSC) deadline timer");
 				assert!(extended_function_information.has_rdtscp(), "CPU architecture does not support (or does not have enabled) Read Time Stamp Counter and Processor ID (RDTSCP)");
 				assert!(extended_function_information.has_invariant_tsc(), "CPU architecture does not support (or does not have enabled) invariant Time Stamp Counter (TSC)");
-				//assert!(extended_features.has_tsc_adjust_msr(), "CPU architecture does not support Time Stamp Counter (TSC) adjust Model Specific Registers (MSR)");
+				//assert!(extended_feature_information.has_tsc_adjust_msr(), "CPU architecture does not support Time Stamp Counter (TSC) adjust Model Specific Registers (MSR)");
 				
 				// Power management.
 				if uses_dpdk_power_management
@@ -85,7 +85,7 @@ impl CpuFeatures
 			}
 			
 			#[inline(always)]
-			fn compiled_target_features_are_available_at_runtime(feature_information: &FeatureInfo, extended_function_information: &ExtendedFunctionInfo, extended_features: &ExtendedFeatures)
+			fn compiled_target_features_are_available_at_runtime(feature_information: &FeatureInfo, extended_function_information: &ExtendedFunctionInfo, extended_feature_information: &ExtendedFeatures)
 			{
 				// Atom and similar processors do not usually support AVX, although it is common in most other CPUs.
 				#[cfg(target_feature = "avx")]
@@ -100,7 +100,7 @@ impl CpuFeatures
 				
 				#[cfg(target_feature = "avx2")]
 				{
-					assert!(extended_features.has_avx2(), "CPU architecture does not support compilation options: the AVX2 instructions not supported by currently executing CPU");
+					assert!(extended_feature_information.has_avx2(), "CPU architecture does not support compilation options: the AVX2 instructions not supported by currently executing CPU");
 				}
 				
 				#[cfg(target_feature = "has_fma")]
@@ -130,7 +130,7 @@ impl CpuFeatures
 				
 				#[cfg(target_feature = "adx")]
 				{
-					assert!(extended_features.has_adx(), "CPU architecture does not support compilation options: ADX instructions not supported by currently executing CPU");
+					assert!(extended_feature_information.has_adx(), "CPU architecture does not support compilation options: ADX instructions not supported by currently executing CPU");
 				}
 				
 				// Properly `rdrnd`, but not correctly encoded by Rust.
@@ -158,19 +158,19 @@ impl CpuFeatures
 				
 				#[cfg(target_feature = "clflushopt")]
 				{
-					assert!(extended_features.has_clflushopt(), "CPU architecture does not support compilation options: CLFLUSHOPT instruction not supported by currently executing CPU");
+					assert!(extended_feature_information.has_clflushopt(), "CPU architecture does not support compilation options: CLFLUSHOPT instruction not supported by currently executing CPU");
 				}
 			}
 			
-			instructions_modes_and_features_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(&feature_information, &extended_function_information, &extended_features, uses_dpdk_power_management);
+			instructions_modes_and_features_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(&feature_information, &extended_function_information, &extended_feature_information, uses_dpdk_power_management);
 			
-			compiled_target_features_are_available_at_runtime(&feature_information, &extended_function_information, &extended_features);
+			compiled_target_features_are_available_at_runtime(&feature_information, &extended_function_information, &extended_feature_information);
 			
-			warnings_to_suppress.performance_warnings_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(&feature_information, &extended_function_information, &extended_features);
+			warnings_to_suppress.performance_warnings_it_is_safe_to_assume_for_all_x86_64_cpu_architectures_as_of_q2_2018(&feature_information, &extended_function_information, &extended_feature_information);
 			
-			warnings_to_suppress.performance_warnings_for_new_features(&feature_information, &extended_function_information, &extended_features);
+			warnings_to_suppress.performance_warnings_for_new_features(&feature_information, &extended_function_information, &extended_feature_information);
 			
-			warnings_to_suppress.security_warnings_for_new_features(&feature_information, &extended_function_information, &extended_features);
+			warnings_to_suppress.security_warnings_for_new_features(&feature_information, &extended_function_information, &extended_feature_information);
 			
 			Self
 			{
