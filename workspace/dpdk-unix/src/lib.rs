@@ -21,7 +21,7 @@
 extern crate errno;
 extern crate libc;
 extern crate libc_extra;
-#[macro_use] extern crate likely;
+#[cfg(any(target_os = "android", target_os = "linux"))] #[macro_use] extern crate likely;
 #[cfg(unix)] #[macro_use] extern crate maplit;
 #[macro_use] extern crate quick_error;
 #[macro_use] extern crate serde_derive;

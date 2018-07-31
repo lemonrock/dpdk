@@ -16,13 +16,12 @@ include = ["README.md", "src/**/*.rs", "benches/**/*.rs", "examples/**/*.rs", "t
 # Relative to Cargo.toml
 readme = "README.md"
 publish = true
-version = "0.1.0"
+version = "0.1.1"
 
 [dependencies]
 const-cstr-fork = "^0.2"
 errno = "0.1"
 libc = "^0.2"
-likely = "0.1"
 quick-error = "1.2"
 rust-extra = "0.0.13"
 serde = "1.0"
@@ -35,3 +34,4 @@ syscall-alt = "0.0.14"
 
 [target.'cfg(any(target_os = "android", target_os = "linux"))'.dependencies]
 bitflags = "1.0"
+likely = "0.1"
