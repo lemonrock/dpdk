@@ -16,9 +16,12 @@
 ///
 /// #[global_allocator] static ALLOCATOR: HybridGlobalAllocator = HybridGlobalAllocator::new();
 /// ```
+///
+/// Then, when DPDK has been initialized and configured, switch over to it using `ALLOCATOR.dpdk_is_now_configured()`.
+///
+/// Before exiting, switch back to the original using `ALLOCATOR.dpdk_was_cleaned_up()`.
 pub struct HybridGlobalAllocator
 {
-	next: AtomicUsize,
 	dpdk_configured: AtomicBool,
 	heap_memory: [u8; HybridGlobalAllocator::MemoryLimitInBytes],
 	heap_manager: LockedHeap,
@@ -31,17 +34,17 @@ macro_rules! dpdk_alignment
 		{
 			const DpdkCacheLineSize: usize = 64;
 			
-			if alignment < DpdkCacheLineSize
+			if $alignment < DpdkCacheLineSize
 			{
 				DpdkCacheLineSize as u32
 			}
-			else if unlikely(alignment > ::std::u32::MAX as usize)
+			else if unlikely!($alignment > ::std::u32::MAX as usize)
 			{
 				return Self::out_of_memory()
 			}
 			else
 			{
-				alignment as u32
+				$alignment as u32
 			}
 		}
 	}
@@ -54,26 +57,31 @@ macro_rules! allocate
 		{
 			let size = $layout.size();
 			
-			if unlikely(size == 0)
+			if unlikely!(size == 0)
 			{
-				return $self.allocate_zero_sized()
+				$self.allocate_zero_sized()
 			}
-			
-			if likely(self.dpdk_configured.load(Relaxed))
+			else if likely!($self.dpdk_configured.load(Relaxed))
 			{
-				let dpdk_alignment = dpdk_alignment!($layout.align());
-				let result = unsafe { $dpdk_allocate_function(null(), size, dpdk_alignment, Self::current_numa_node()) };
-				if unlikely(result.is_null())
+				let alignment = $layout.align();
+				let dpdk_alignment = dpdk_alignment!(alignment);
+				let result = $dpdk_allocate_function(null(), size, dpdk_alignment, Self::current_numa_node());
+				if unlikely!(result.is_null())
 				{
 					Self::out_of_memory()
 				}
 				else
 				{
-					result as _
+					result as *mut u8
 				}
 			}
-		
-			$zero_heap_allocated_memory($self.heap_memory_allocate(layout))
+			else
+			{
+				let layout_size = $layout.size();
+				let pointer = $self.heap_memory_allocate($layout);
+				$zero_heap_allocated_memory(layout_size, pointer);
+				pointer
+			}
 		}
 	}
 }
@@ -81,37 +89,37 @@ macro_rules! allocate
 unsafe impl GlobalAlloc for HybridGlobalAllocator
 {
 	#[inline(always)]
-	unsafe fn alloc(&self, layout: Layout) -> *mut Opaque
+	unsafe fn alloc(&self, layout: Layout) -> *mut u8
 	{
 		#[inline(always)]
-		fn do_not_zero_heap_allocated_memory(pointer: *mut Opaque) -> *mut Opaque
+		fn do_not_zero_heap_allocated_memory(_layout_size: usize, _pointer: *mut u8)
 		{
-			pointer
 		}
+		
 		allocate!(self, layout, rte_malloc_socket, do_not_zero_heap_allocated_memory)
 	}
 	
 	#[inline(always)]
-	unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut Opaque
+	unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8
 	{
 		#[inline(always)]
-		fn zero_heap_allocated_memory(pointer: *mut Opaque) -> *mut Opaque
+		fn zero_heap_allocated_memory(layout_size: usize, pointer: *mut u8)
 		{
 			if !pointer.is_null()
 			{
-				unsafe { (pointer as *mut u8).write_bytes(0, layout.size()) }
+				unsafe { (pointer as *mut u8).write_bytes(0, layout_size) }
 			}
-			pointer
 		}
+		
 		allocate!(self, layout, rte_zmalloc_socket, zero_heap_allocated_memory)
 	}
 	
 	#[inline(always)]
-	unsafe fn realloc(&self, ptr: *mut Opaque, layout: Layout, new_size: usize) -> *mut Opaque
+	unsafe fn realloc(&self, ptr: *mut u8, layout: Layout, new_size: usize) -> *mut u8
 	{
 		let alignment = layout.align();
 		
-		if unlikely(self.is_zero_size_or_fixed_memory_pointer(ptr, layout))
+		if unlikely!(self.is_zero_size_or_fixed_memory_pointer(ptr, layout))
 		{
 			let new_layout = Layout::from_size_align_unchecked(new_size, alignment);
 			let new_pointer = self.alloc(new_layout);
@@ -128,7 +136,7 @@ unsafe impl GlobalAlloc for HybridGlobalAllocator
 		}
 		else
 		{
-			if unlikely(new_size == 0)
+			if unlikely!(new_size == 0)
 			{
 				self.dpdk_free(ptr);
 				self.allocate_zero_sized()
@@ -136,17 +144,17 @@ unsafe impl GlobalAlloc for HybridGlobalAllocator
 			else
 			{
 				let dpdk_alignment = dpdk_alignment!(alignment);
-				unsafe { rte_realloc(ptr as *mut _, new_size, dpdk_alignment) }
+				rte_realloc(ptr as *mut _, new_size, dpdk_alignment) as *mut u8
 			}
 		}
 	}
 	
 	#[inline(always)]
-	unsafe fn dealloc(&self, ptr: *mut Opaque, layout: Layout)
+	unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout)
 	{
-		if unlikely(self.is_zero_size_or_fixed_memory_pointer(ptr, layout))
+		if unlikely!(self.is_zero_size_or_fixed_memory_pointer(ptr, layout))
 		{
-			if likely(layout.size() != 0)
+			if likely!(layout.size() != 0)
 			{
 				self.heap_memory_free(ptr, layout)
 			}
@@ -162,62 +170,79 @@ impl HybridGlobalAllocator
 {
 	const MemoryLimitInBytes: usize = 1024 * 1024;
 	
+	/// Creates a new instance.
 	#[inline(always)]
 	pub const fn new() -> Self
 	{
 		Self
 		{
-			next: AtomicUsize::new(0),
 			dpdk_configured: AtomicBool::new(false),
 			heap_memory: [0; Self::MemoryLimitInBytes],
 			heap_manager: LockedHeap::empty(),
 		}
 	}
 	
+	/// Set DPDK is now configured.
+	///
+	/// Use this to switch over to the DPDK allocator.
 	#[inline(always)]
-	pub(crate) fn dpdk_is_now_configured(&self)
+	pub fn dpdk_is_now_configured(&self)
 	{
 		self.dpdk_configured.store(true, SeqCst);
 	}
 	
+	/// Set DPDK was cleaned up.
+	///
+	/// Use this to switch back from the DPDK allocator.
 	#[inline(always)]
-	pub(crate) fn dpdk_was_cleaned_up(&self)
+	pub fn dpdk_was_cleaned_up(&self)
 	{
 		self.dpdk_configured.store(false, SeqCst);
 	}
 	
 	#[inline(always)]
-	fn heap_memory_allocate(&self, layout: Layout) -> *mut Opaque
+	fn heap_memory_allocate(&self, layout: Layout) -> *mut u8
 	{
-		let locked_heap_manager = self.heap_manager.lock();
+		let mut locked_heap_manager = self.heap_manager.lock();
 		if locked_heap_manager.bottom() == 0
 		{
 			unsafe { locked_heap_manager.init(self.heap_memory.as_ptr() as usize, Self::MemoryLimitInBytes) };
 		}
 		
-		locked_heap_manager.allocate_first_fit(layout)
+		if let Ok(non_null) = locked_heap_manager.allocate_first_fit(layout)
+		{
+			non_null.as_ptr()
+		}
+		else
+		{
+			null_mut()
+		}
 	}
 	
 	#[inline(always)]
-	fn heap_memory_free(&self, pointer: *mut Opaque, layout: Layout)
+	unsafe fn heap_memory_free(&self, pointer: *mut u8, layout: Layout)
 	{
-		self.heap_manager.lock().deallocate(pointer, layout);
+		debug_assert!(!pointer.is_null(), "Can not deallocate a null pointer from the heap");
+		
+		let mut lock = self.heap_manager.lock();
+		
+		lock.deallocate(NonNull::new_unchecked(pointer), layout);
 	}
 	
 	#[inline(always)]
-	fn dpdk_free(&self, pointer: *mut Opaque)
+	fn dpdk_free(&self, pointer: *mut u8)
 	{
 		unsafe { rte_free(pointer as *mut _) }
 	}
 	
 	#[inline(always)]
-	fn is_zero_size_or_fixed_memory_pointer(&self, ptr: *mut Opaque, layout: Layout) -> bool
+	fn is_zero_size_or_fixed_memory_pointer(&self, ptr: *mut u8, layout: Layout) -> bool
 	{
 		layout.size() == 0 || self.is_fixed_memory_pointer(ptr)
 	}
 	
 	#[inline(always)]
-	fn is_fixed_memory_pointer(&self, ptr: *mut Opaque) -> bool
+	fn is_fixed_memory_pointer(&self, ptr: *mut u8) -> bool
 	{
 		let pointer = ptr as usize;
 		let fixed_memory_inclusive_start = self.heap_memory.as_ptr() as usize;
@@ -228,18 +253,19 @@ impl HybridGlobalAllocator
 	#[inline(always)]
 	fn current_numa_node() -> i32
 	{
-		NumaNode::numa_node_and_hyper_thread().0 as i32
+		let numa_node = NumaNode::numa_node_and_hyper_thread().0;
+		numa_node.into()
 	}
 	
 	#[inline(always)]
-	const fn out_of_memory() -> *mut Opaque
+	const fn out_of_memory() -> *mut u8
 	{
 		0 as _
 	}
 	
 	#[inline(always)]
-	fn allocate_zero_sized(&self)
+	fn allocate_zero_sized(&self) -> *mut u8
 	{
-		self.heap_memory.as_ptr() as *mut Opaque
+		self.heap_memory.as_ptr() as *mut u8
 	}
 }

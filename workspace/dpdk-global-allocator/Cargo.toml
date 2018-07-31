@@ -1,0 +1,25 @@
+# This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+# Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
+
+
+[package]
+name = "dpdk-global-allocator"
+description = "A wrapper around DPDK's global, NUMA-aware memory allocator that can replace malloc."
+keywords = ["DPDK", "networking", "malloc", "global", "allocator"]
+categories = ["network-programming", "external-ffi-bindings", "memory-management"]
+license = "AGPL-3.0"
+authors = ["Raphael Cohn <raphael.cohn@stormmq.com>"]
+homepage = "https://github.com/lemonrock/dpdk"
+repository = "https://github.com/lemonrock/dpdk.git"
+exclude = ["*"]
+include = ["README.md", "LICENSE", "COPYRIGHT", "src/**/*.rs", "Cargo.toml", "rustfmt.toml", "clippy.toml"]
+# Relative to Cargo.toml
+readme = "README.md"
+publish = true
+version = "0.1.0"
+
+[target.'cfg(any(all(any(target_os = "android", target_os = "linux"), any(target_arch = "aarch64", target_arch = "arm", target_arch = "powerpc64", target_arch = "x86", target_arch = "x86_64")), all(target_os = "freebsd", target_arch = "x86_64")))'.dependencies]
+dpdk-core = { path = "../dpdk-core", version = "^0.1" }
+dpdk-sys = { path = "../dpdk-sys", version = "^0.1" }
+likely = "^0.1"
+linked_list_allocator = "^0.6"
