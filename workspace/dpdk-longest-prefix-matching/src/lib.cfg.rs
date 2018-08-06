@@ -24,6 +24,7 @@ use ::std::mem::uninitialized;
 use ::std::ptr::NonNull;
 
 
+include!("HostAddressesSetConfiguration.rs");
 include!("InternetProtocolVersion4LongestPrefixMatchTable.rs");
 include!("InternetProtocolVersion6LongestPrefixMatchTable.rs");
 include!("LongestPrefixMatchTable.rs");

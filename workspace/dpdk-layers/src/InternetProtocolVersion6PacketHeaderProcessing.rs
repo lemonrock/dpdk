@@ -202,7 +202,7 @@ impl InternetProtocolVersion6PacketHeaderProcessing for InternetProtocolVersion6
 						if $layer_4_length % 8 != 0
 						{
 							// We do not send an ICMP Parameter Problem, Code 0 message.
-							drop!(InternetProtocolVersion6PacketFragmentNotAMultipleOf8 { ethernet_addresses: $ethernet_addresses, header: $self }, $packet_processing, $packet)
+							drop!(InternetProtocolVersion6PacketFragmentNotAMultipleOfEight { ethernet_addresses: $ethernet_addresses, header: $self }, $packet_processing, $packet)
 						}
 						
 						// RFC 8220 Section 4.5: "If the length and offset of a fragment are such that the Payload Length of the packet reassembled from that fragment would exceed 65,535 octets, then that fragment must be discarded and an ICMP Parameter Problem, Code 0, message should be sent to the source of the fragment, pointing to the Fragment Offset field of the fragment packet".
@@ -437,7 +437,7 @@ impl InternetProtocolVersion6PacketHeaderProcessing for InternetProtocolVersion6
 					let udp_hdr = unsafe { & * (end_layer3_pointer as *const udp_hdr) };
 					if udp_hdr.dgram_cksum == 0x0000
 					{
-						drop!(InternetProtocolVersion6UserDatagramProtocolPacketsMustHaveAChecksumSet { ethernet_addresses, header }, packet_processing, packet)
+						drop!(InternetProtocolVersion6UserDatagramProtocolPacketsMustHaveACheckSumSet { ethernet_addresses, header }, packet_processing, packet)
 					}
 					
 					// udp_hdr

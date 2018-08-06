@@ -156,6 +156,8 @@ impl InternetProtocolPacketReassemblyTable
 	///
 	/// `incoming_packet_internet_protocol_version_6_packet_header` and `extension_header_fragment_inside_incoming_packet` must be pointers into `incoming_packet`.
 	///
+	/// Reassembly ***DOES NOT SUPPORT*** ECN merging, validation of ECNs, packets with anything other than fragment headers, and also creates packet chains which may cause downstream problems.
+	///
 	/// Result may be none, the same packet or a different packet as `incoming_packet`.
 	///
 	/// A none result implies that the `incoming_packet` was a fragment and that not all fragments have been received.

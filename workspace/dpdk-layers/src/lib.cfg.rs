@@ -82,13 +82,7 @@ pub mod ip;
 pub mod packet_processing;
 
 
-include!("AddressResolutionProtocolPacketProcessing.rs");
 include!("Configuration.rs");
-include!("EthernetPacketProcessing.rs");
 include!("InternetProtocolVersion4PacketProcessing.rs");
 include!("InternetProtocolVersion6PacketHeaderProcessing.rs");
 include!("InternetProtocolVersion6PacketProcessing.rs");
-include!("Layer3PacketProcessing.rs");
-include!("Packet.rs");
-include!("PacketBuffer.rs");
-include!("PacketBufferPool.rs");
