@@ -56,6 +56,11 @@ impl InternetProtocolVersion6PacketHeaderProcessing for InternetProtocolVersion6
 			drop!(InternetProtocolVersion6DestinationAddressLoopback { ethernet_addresses, header }, packet_processing, packet)
 		}
 		
+		if unlikely!(header.source_address_is_same_as_destination_address())
+		{
+			drop!(InternetProtocolVersion6IncomingNetworkPacketDropReason::SourceAndDestinationAddressAreTheSame { header: $header.non_null() }, $ethernet_addresses, $packet_processing, $packet)
+		}
+		
 		let destination_ethernet_address = &ethernet_addresses.destination;
 		
 		let address_support = if destination_ethernet_address.is_valid_unicast()
