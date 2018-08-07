@@ -5,7 +5,7 @@
 /// A trait that values that fit in a HashTable need to implement.
 ///
 /// Implementations are also possible for `Option<u16>` and `Option<u8>`, various tuples and the `::std::num::NonZero*` types, although these will need newtype wrappers.
-pub trait UsizeHashTableValue
+pub trait UsizeHashTableValue: Sized
 {
 	/// Converts into a HashTable data-sized type.
 	#[inline(always)]

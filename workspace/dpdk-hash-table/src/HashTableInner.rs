@@ -184,8 +184,8 @@ impl<Key: Copy + Sized + Hash, HasherType: Hasher + Default> HashTableInner<Key,
 		{
 			match result
 			{
-				E::ENOENT => None,
-				E::EINVAL => panic!("Incorrect parameters to rte_hash_del_key"),
+				NegativeE::ENOENT => None,
+				NegativeE::EINVAL => panic!("Incorrect parameters to rte_hash_del_key"),
 				
 				unknown @ _ => panic!("rte_hash_del_key failed with unknown error '{}'", unknown)
 			}
@@ -204,8 +204,8 @@ impl<Key: Copy + Sized + Hash, HasherType: Hasher + Default> HashTableInner<Key,
 		{
 			match result
 			{
-				E::ENOENT => None,
-				E::EINVAL => panic!("Incorrect parameters to rte_hash_del_key"),
+				NegativeE::ENOENT => None,
+				NegativeE::EINVAL => panic!("Incorrect parameters to rte_hash_del_key"),
 				
 				unknown @ _ => panic!("rte_hash_del_key failed with unknown error '{}'", unknown)
 			}

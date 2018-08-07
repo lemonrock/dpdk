@@ -18,6 +18,7 @@ use ::std::hash::Hash;
 use ::std::hash::Hasher;
 use ::std::marker::PhantomData;
 use ::std::mem::size_of;
+use ::std::mem::uninitialized;
 use ::std::ptr::NonNull;
 use ::std::rc::Rc;
 use ::std::sync::Arc;
@@ -25,6 +26,8 @@ use ::std::sync::Arc;
 
 include!("ArrayIndexHashTable.rs");
 include!("HashTableInner.rs");
+include!("LookUpBulkMaximum.rs");
+include!("LookUpBulkResultHandler.rs");
 include!("PrecomputedKeyHash.rs");
 include!("UsizeHashTable.rs");
 include!("UsizeHashTableValue.rs");

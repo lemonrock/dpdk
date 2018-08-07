@@ -2,5 +2,14 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Maximum (exclusive) keys that can be looked up in bulk at once.
-pub const LookUpBulkMaximum: usize = RTE_HASH_LOOKUP_BULK_MAX as usize;
+/// Handles results of a bulk look up.
+pub trait LookUpBulkResultHandler<Key: Copy + Sized + Hash, Value: Sized>
+{
+	/// Key found.
+	#[inline(always)]
+	fn key_found(&mut self, keys: &ArrayVec<[&Key; LookUpBulkMaximum]>, index: usize, value: Value);
+	
+	/// Key not present.
+	#[inline(always)]
+	fn key_not_present(&mut self, keys: &ArrayVec<[&Key; LookUpBulkMaximum]>, index: usize);
+}

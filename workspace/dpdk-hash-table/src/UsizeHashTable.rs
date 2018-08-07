@@ -8,6 +8,10 @@
 ///
 /// Values may be no bigger than `usize`.
 ///
+/// If storing `Box` or similar smart pointers as values in this hash table, then you'll need to `forget()` them when using `look_up()`, `look_up_with_precomputed_key_hash()` and `look_up_bulk()`, otherwise a double-free or use of previously freed memory is possible.
+///
+/// Values are ***not*** dropped when an instance of this struct is dropped.
+///
 /// Insertions may be thread unsafe or thread safe, depending on how the hash table was constructed.
 /// The hash table does not resize in use.
 /// The hash table is NUMA-aware, and is best used within one NUMA node.
@@ -82,8 +86,8 @@ impl<Key: Copy + Sized + Hash, Value: UsizeHashTableValue, HasherType: Hasher + 
 		{
 			match result
 			{
-				E::ENOSPC => Err(()),
-				E::EINVAL => panic!("Parameters are invalid for rte_hash_add_key_data"),
+				NegativeE::ENOSPC => Err(()),
+				NegativeE::EINVAL => panic!("Parameters are invalid for rte_hash_add_key_data"),
 				unknown @ _ => panic!("Unknown error '{}' from rte_hash_add_key_data", unknown)
 			}
 		}
@@ -108,8 +112,8 @@ impl<Key: Copy + Sized + Hash, Value: UsizeHashTableValue, HasherType: Hasher + 
 		{
 			match result
 			{
-				E::ENOSPC => Err(()),
-				E::EINVAL => panic!("Parameters are invalid for rte_hash_add_key_data"),
+				NegativeE::ENOSPC => Err(()),
+				NegativeE::EINVAL => panic!("Parameters are invalid for rte_hash_add_key_data"),
 				unknown @ _ => panic!("Unknown error '{}' from rte_hash_add_key_data", unknown)
 			}
 		}
@@ -135,6 +139,102 @@ impl<Key: Copy + Sized + Hash, Value: UsizeHashTableValue, HasherType: Hasher + 
 	pub fn remove_with_precomputed_key_hash(&self, key: &Key, precomputed_key_hash: PrecomputedKeyHash<Key, HasherType>) -> bool
 	{
 		self.0.remove_with_precomputed_key_hash(key, precomputed_key_hash).is_some()
+	}
+	
+	/// Finds an entry.
+	///
+	/// Always thread safe.
+	///
+	/// Be very careful to use `forget()` if working with `Box` and similar smart pointers.
+	#[inline(always)]
+	pub fn look_up(&self, key: &Key) -> Option<Value>
+	{
+		let mut data: usize = unsafe { uninitialized() };
+		
+		let result = unsafe { rte_hash_lookup_data(self.handle(), key as *const Key as *const _, &mut data as *mut usize as *mut *mut _) };
+		if likely!(result == 0)
+		{
+			Some(Value::from_usize(data))
+		}
+		else
+		{
+			match result
+			{
+				NegativeE::ENOENT => None,
+				NegativeE::EINVAL => panic!("Parameters are invalid for rte_hash_lookup_data"),
+				unknown @ _ => panic!("Unknown error '{}' from rte_hash_lookup_data", unknown)
+			}
+		}
+	}
+	
+	/// Finds an entry, using a precomputed hash (might be occasionally more optimal).
+	///
+	/// Always thread safe.
+	///
+	/// Be very careful to use `forget()` if working with `Box` and similar smart pointers.
+	#[inline(always)]
+	pub fn look_up_with_precomputed_key_hash(&self, key: &Key, precomputed_key_hash: PrecomputedKeyHash<Key, HasherType>) -> Option<Value>
+	{
+		let mut data: usize = unsafe { uninitialized() };
+		
+		let result = unsafe { rte_hash_lookup_with_hash_data(self.handle(), key as *const Key as *const _, precomputed_key_hash.0, &mut data as *mut usize as *mut *mut _) };
+		if likely!(result == 0)
+		{
+			Some(Value::from_usize(data))
+		}
+		else
+		{
+			match result
+			{
+				NegativeE::ENOENT => None,
+				NegativeE::EINVAL => panic!("Parameters are invalid for rte_hash_lookup_data"),
+				unknown @ _ => panic!("Unknown error '{}' from rte_hash_lookup_data", unknown)
+			}
+		}
+	}
+	
+	/// Finds entries.
+	///
+	/// Always thread safe.
+	///
+	/// Be very careful to use `forget()` if working with `Box` and similar smart pointers.
+	#[inline(always)]
+	pub fn look_up_bulk(&self, keys: &ArrayVec<[&Key; LookUpBulkMaximum]>, mut result_handler: impl LookUpBulkResultHandler<Key, Value>)
+	{
+		let mut hit_mask = unsafe { uninitialized() };
+		let mut data: ArrayVec<[usize; LookUpBulkMaximum]> = ArrayVec::new();
+
+		let length = keys.len();
+	
+		let result = unsafe { rte_hash_lookup_bulk_data(self.handle(), keys.as_ptr() as *const &Key as *const *const Key as *const *const _ as *mut *const _, length as u32, &mut hit_mask, data.as_mut_ptr() as *mut *mut _) };
+		if likely!(result >= 0)
+		{
+			unsafe { data.set_len(length) };
+			
+			let mut index = 0;
+			while index < length
+			{
+				if hit_mask & (1 << index) != 0
+				{
+					let value = *unsafe { data.get_unchecked(index) };
+					result_handler.key_found(keys, index, Value::from_usize(value))
+				}
+				else
+				{
+					result_handler.key_not_present(keys, index)
+				}
+				
+				index += 1;
+			}
+		}
+		else
+		{
+			match result
+			{
+				NegativeE::EINVAL => panic!("Parameters are invalid for rte_hash_lookup_bulk_data"),
+				unknown @ _ => panic!("Unknown error '{}' from rte_hash_lookup_bulk_data", unknown)
+			}
+		}
 	}
 	
 	#[inline(always)]

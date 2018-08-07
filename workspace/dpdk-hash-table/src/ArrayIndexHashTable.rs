@@ -84,8 +84,8 @@ impl<Key: Copy + Sized + Hash, HasherType: Hasher + Default> ArrayIndexHashTable
 		{
 			match result
 			{
-				E::ENOSPC => Err(()),
-				E::EINVAL => panic!("Parameters are invalid for rte_hash_add_key_data"),
+				NegativeE::ENOSPC => Err(()),
+				NegativeE::EINVAL => panic!("Parameters are invalid for rte_hash_add_key_data"),
 				unknown @ _ => panic!("Unknown error '{}' from rte_hash_add_key_data", unknown)
 			}
 		}
@@ -110,8 +110,8 @@ impl<Key: Copy + Sized + Hash, HasherType: Hasher + Default> ArrayIndexHashTable
 		{
 			match result
 			{
-				E::ENOSPC => Err(()),
-				E::EINVAL => panic!("Parameters are invalid for rte_hash_add_key_data"),
+				NegativeE::ENOSPC => Err(()),
+				NegativeE::EINVAL => panic!("Parameters are invalid for rte_hash_add_key_data"),
 				unknown @ _ => panic!("Unknown error '{}' from rte_hash_add_key_data", unknown)
 			}
 		}
@@ -141,6 +141,125 @@ impl<Key: Copy + Sized + Hash, HasherType: Hasher + Default> ArrayIndexHashTable
 	pub fn remove_with_precomputed_key_hash(&self, key: &Key, precomputed_key_hash: PrecomputedKeyHash<Key, HasherType>) -> Option<usize>
 	{
 		self.0.remove_with_precomputed_key_hash(key, precomputed_key_hash)
+	}
+	
+	/// Finds an entry.
+	///
+	/// Always thread safe.
+	///
+	/// Returns `None` if the key was not present.
+	///
+	/// Returns `Some(index)` if the key was present.
+	#[inline(always)]
+	pub fn look_up(&self, key: &Key) -> Option<usize>
+	{
+		let result = unsafe { rte_hash_lookup(self.handle(), key as *const Key as *const _) };
+		if likely!(result >= 0)
+		{
+			Some(result as usize)
+		}
+		else
+		{
+			match result
+			{
+				NegativeE::ENOENT => None,
+				NegativeE::EINVAL => panic!("Parameters are invalid for rte_hash_lookup_data"),
+				unknown @ _ => panic!("Unknown error '{}' from rte_hash_lookup_data", unknown)
+			}
+		}
+	}
+	
+	/// Finds an entry, using a precomputed hash (might be occasionally more optimal).
+	///
+	/// Always thread safe.
+	///
+	/// Returns `None` if the key was not present.
+	///
+	/// Returns `Some(index)` if the key was present.
+	#[inline(always)]
+	pub fn look_up_with_precomputed_key_hash(&self, key: &Key, precomputed_key_hash: PrecomputedKeyHash<Key, HasherType>) -> Option<usize>
+	{
+		let result = unsafe { rte_hash_lookup_with_hash(self.handle(), key as *const Key as *const _, precomputed_key_hash.0) };
+		if likely!(result >= 0)
+		{
+			Some(result as usize)
+		}
+		else
+		{
+			match result
+			{
+				NegativeE::ENOENT => None,
+				NegativeE::EINVAL => panic!("Parameters are invalid for rte_hash_lookup_data"),
+				unknown @ _ => panic!("Unknown error '{}' from rte_hash_lookup_data", unknown)
+			}
+		}
+	}
+	
+	/// Finds entries.
+	///
+	/// Always thread safe.
+	#[inline(always)]
+	pub fn look_up_bulk(&self, keys: &ArrayVec<[&Key; LookUpBulkMaximum]>, mut result_handler: impl LookUpBulkResultHandler<Key, usize>)
+	{
+		let mut positions: ArrayVec<[i32; LookUpBulkMaximum]> = ArrayVec::new();
+		
+		let length = keys.len();
+		let result = unsafe { rte_hash_lookup_bulk(self.handle(), keys.as_ptr() as *const &Key as *const *const Key as *const *const _ as *mut *const _, length as u32, positions.as_mut_ptr()) };
+		if likely!(result >= 0)
+		{
+			unsafe { positions.set_len(length) };
+			
+			let mut index = 0;
+			while index < length
+			{
+				let position = unsafe { * positions.get_unchecked(index) };
+				if likely!(position >= 0)
+				{
+					result_handler.key_found(keys, index, position as usize)
+				}
+				else
+				{
+					match position
+					{
+						NegativeE::ENOENT => result_handler.key_not_present(keys, index),
+						unknown @ _ => panic!("Unknown error '{}' at index '{}' from rte_hash_lookup_bulk", unknown, index)
+					}
+				}
+				
+				index += 1;
+			}
+		}
+		else
+		{
+			match result
+			{
+				NegativeE::EINVAL => panic!("Parameters are invalid for rte_hash_lookup_bulk"),
+				unknown @ _ => panic!("Unknown error '{}' from rte_hash_lookup_bulk", unknown)
+			}
+		}
+	}
+	
+	/// Given an index, find the associated key.
+	#[inline(always)]
+	pub fn index_to_key(&self, index: usize) -> Option<&Key>
+	{
+		debug_assert!(index <= ::std::i32::MAX as usize, "index '{}' is larger than ::std::i32::MAX '{}'", index, ::std::i32::MAX);
+		
+		let mut key: &Key = unsafe { uninitialized() };
+		let result = unsafe { rte_hash_get_key_with_position(self.handle(), index as i32, &mut key as *mut &Key as *mut *const Key as *mut *mut Key as *mut *mut _) };
+		if likely!(result == 0)
+		{
+			Some(key)
+		}
+		else
+		{
+			match result
+			{
+				E::ENOENT => None,
+				E::EINVAL => panic!("Parameters are invalid for rte_hash_get_key_with_position"),
+				unknown @ _ => panic!("Unknown error '{}' from rte_hash_get_key_with_position", unknown)
+			}
+		}
 	}
 	
 	#[inline(always)]
