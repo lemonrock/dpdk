@@ -38,6 +38,8 @@ impl<T: Copy + Sized> ElasticFlowDistributorTable<T>
 	#[inline(always)]
 	pub fn new(name: &CStr, capacity: usize, usable_on_numa_nodes: IndexSet<NumaNode>) -> Result<Arc<Self>, ()>
 	{
+		debug_assert!(name.to_bytes().len() <= RTE_EFD_NAMESIZE as usize, "name without trailing NUL '{:?}' exceeds maximum length of RTE_EFD_NAMESIZE '{}'", name, RTE_EFD_NAMESIZE);
+		
 		debug_assert_ne!(capacity, 0, "capacity can not be zero");
 		debug_assert!(capacity <= ::std::u32::MAX as usize, "capacity '{}' exceeds ::std::u32::MAX '{}'", capacity, ::std::u32::MAX);
 		
@@ -87,6 +89,8 @@ impl<T: Copy + Sized> ElasticFlowDistributorTable<T>
 	#[inline(always)]
 	pub fn find_existing(name: &CStr) -> Option<Self>
 	{
+		debug_assert!(name.to_bytes().len() <= RTE_EFD_NAMESIZE as usize, "name without trailing NUL '{:?}' exceeds maximum length of RTE_EFD_NAMESIZE '{}'", name, RTE_EFD_NAMESIZE);
+		
 		let result = unsafe { rte_efd_find_existing(name.as_ptr()) };
 		if result.is_null()
 		{
