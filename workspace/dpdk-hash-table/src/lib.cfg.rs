@@ -24,9 +24,10 @@ use ::std::rc::Rc;
 use ::std::sync::Arc;
 
 
-include!("ArrayIndexHashTable.rs");
-include!("ArrayIndexHashTableIterator.rs");
 include!("HashTableInner.rs");
+include!("KeyToIndexHashTable.rs");
+include!("KeyToIndexHashTableIterator.rs");
+include!("KeyToIndexHashTableWithVecStorage.rs");
 include!("LookUpBulkMaximum.rs");
 include!("LookUpBulkResultHandler.rs");
 include!("PrecomputedKeyHash.rs");

@@ -2,15 +2,15 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// An iterator over a ArrayIndexHashTable.
+/// An iterator over a KeyToIndexHashTable.
 #[derive(Debug)]
-pub struct ArrayIndexHashTableIterator<'a, Key: 'a + Copy + Sized + Hash, HasherType: 'a + Hasher + Default>
+pub struct KeyToIndexHashTableIterator<'a, Key: 'a + Copy + Sized + Hash, HasherType: 'a + Hasher + Default>
 {
-	table: &'a ArrayIndexHashTable<Key, HasherType>,
+	table: &'a KeyToIndexHashTable<Key, HasherType>,
 	next: u32,
 }
 
-impl<'a, Key: 'a + Copy + Sized + Hash, HasherType: 'a + Hasher + Default> Iterator for ArrayIndexHashTableIterator<'a, Key, HasherType>
+impl<'a, Key: 'a + Copy + Sized + Hash, HasherType: 'a + Hasher + Default> Iterator for KeyToIndexHashTableIterator<'a, Key, HasherType>
 {
 	type Item = (&'a Key, usize);
 	
@@ -38,10 +38,10 @@ impl<'a, Key: 'a + Copy + Sized + Hash, HasherType: 'a + Hasher + Default> Itera
 	}
 }
 
-impl<'a, Key: Copy + Sized + Hash, HasherType: Hasher + Default> ArrayIndexHashTableIterator<'a, Key, HasherType>
+impl<'a, Key: Copy + Sized + Hash, HasherType: Hasher + Default> KeyToIndexHashTableIterator<'a, Key, HasherType>
 {
 	#[inline(always)]
-	pub(crate) fn new(table: &'a ArrayIndexHashTable<Key, HasherType>) -> Self
+	pub(crate) fn new(table: &'a KeyToIndexHashTable<Key, HasherType>) -> Self
 	{
 		Self
 		{

@@ -19,9 +19,9 @@
 ///
 /// Key equality can be either byte-wise or using the implementation of the trait `Eq`. In the latter case, insertion is thread unsafe.
 #[derive(Debug)]
-pub struct ArrayIndexHashTable<Key: Copy + Sized + Hash, HasherType: Hasher + Default>(HashTableInner<Key, HasherType>);
+pub struct KeyToIndexHashTable<Key: Copy + Sized + Hash, HasherType: Hasher + Default>(HashTableInner<Key, HasherType>);
 
-impl<Key: Copy + Sized + Hash + PartialEq, HasherType: Hasher + Default> ArrayIndexHashTable<Key, HasherType>
+impl<Key: Copy + Sized + Hash + PartialEq, HasherType: Hasher + Default> KeyToIndexHashTable<Key, HasherType>
 {
 	/// Create a new instance, using Key's implementation of the `PartialEq` trait.
 	///
@@ -32,11 +32,11 @@ impl<Key: Copy + Sized + Hash + PartialEq, HasherType: Hasher + Default> ArrayIn
 	#[inline(always)]
 	pub fn new(name: &CStr, capacity: usize, allocate_on: NumaNode, enable_hardware_transactional_memory_support: bool) -> Result<Self, ()>
 	{
-		HashTableInner::new(name, capacity, allocate_on, enable_hardware_transactional_memory_support).map(|inner| ArrayIndexHashTable(inner))
+		HashTableInner::new(name, capacity, allocate_on, enable_hardware_transactional_memory_support).map(|inner| KeyToIndexHashTable(inner))
 	}
 }
 
-impl<Key: Copy + Sized + Hash, HasherType: Hasher + Default> ArrayIndexHashTable<Key, HasherType>
+impl<Key: Copy + Sized + Hash, HasherType: Hasher + Default> KeyToIndexHashTable<Key, HasherType>
 {
 	/// Create a new instance, with Key equality being byte-wise.
 	///
@@ -47,7 +47,7 @@ impl<Key: Copy + Sized + Hash, HasherType: Hasher + Default> ArrayIndexHashTable
 	#[inline(always)]
 	pub fn new_with_byte_wise_key_equality(name: &CStr, capacity: usize, allocate_on: NumaNode, enable_hardware_transactional_memory_support: bool, enable_thread_safe_insert: bool) -> Result<Self, ()>
 	{
-		HashTableInner::new_with_byte_wise_key_equality(name, capacity, allocate_on, enable_hardware_transactional_memory_support, enable_thread_safe_insert).map(|inner| ArrayIndexHashTable(inner))
+		HashTableInner::new_with_byte_wise_key_equality(name, capacity, allocate_on, enable_hardware_transactional_memory_support, enable_thread_safe_insert).map(|inner| KeyToIndexHashTable(inner))
 	}
 	
 	/// Find an existing instance.
@@ -56,7 +56,7 @@ impl<Key: Copy + Sized + Hash, HasherType: Hasher + Default> ArrayIndexHashTable
 	#[inline(always)]
 	pub fn find_existing(name: &CStr) -> Option<Self>
 	{
-		HashTableInner::find_existing(name).map(|inner| ArrayIndexHashTable(inner))
+		HashTableInner::find_existing(name).map(|inner| KeyToIndexHashTable(inner))
 	}
 	
 	/// Clears (resets) this this instance with initial values.
@@ -242,9 +242,9 @@ impl<Key: Copy + Sized + Hash, HasherType: Hasher + Default> ArrayIndexHashTable
 	
 	/// Iterate over key-value pairs.
 	#[inline(always)]
-	pub fn iterate<'a>(&'a self) -> ArrayIndexHashTableIterator<'a, Key, HasherType>
+	pub fn iterate<'a>(&'a self) -> KeyToIndexHashTableIterator<'a, Key, HasherType>
 	{
-		ArrayIndexHashTableIterator::new(self)
+		KeyToIndexHashTableIterator::new(self)
 	}
 	
 	/// Given an index, find the associated key.
