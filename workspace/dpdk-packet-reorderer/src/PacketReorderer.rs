@@ -68,9 +68,9 @@ impl PacketReorderer
 		}
 	}
 	
-	/// Resets this this instance with initial values.
+	/// Clears (resets) this this instance with initial values.
 	#[inline(always)]
-	pub fn reset(&self)
+	pub fn clear(&self)
 	{
 		unsafe { rte_reorder_reset(self.handle()) }
 	}
