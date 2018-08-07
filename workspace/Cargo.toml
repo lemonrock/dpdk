@@ -9,6 +9,7 @@ members = [
 	"dpdk-core",
 	"dpdk-elastic-flow-distributor",
 	"dpdk-global-allocator",
+	"dpdk-hash-table",
 	"dpdk-layers",
 	"dpdk-longest-prefix-matching",
     "dpdk-packet-distributor",
