@@ -169,6 +169,7 @@ final_chance_to_tweak()
 		rte_bus_scan_t \
 		rte_eal_alarm_callback \
 		rte_eth_dev_cb_fn \
+		rte_hash_function \
 		rte_power_freq_change_t \
 		rte_power_freqs_t \
 		rte_power_get_freq_t \
