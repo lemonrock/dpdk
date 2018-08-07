@@ -2,4 +2,4 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-pub type rte_hash_cmp_eq_t = Option<unsafe extern "C" fn(key1: *const c_void, key2: *const c_void, key_len: usize) -> c_int>;
+pub type rte_hash_cmp_eq_t = unsafe extern "C" fn(key1: *const c_void, key2: *const c_void, key_len: usize) -> c_int;
