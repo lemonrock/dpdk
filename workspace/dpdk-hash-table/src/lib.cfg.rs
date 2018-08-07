@@ -25,9 +25,11 @@ use ::std::sync::Arc;
 
 
 include!("ArrayIndexHashTable.rs");
+include!("ArrayIndexHashTableIterator.rs");
 include!("HashTableInner.rs");
 include!("LookUpBulkMaximum.rs");
 include!("LookUpBulkResultHandler.rs");
 include!("PrecomputedKeyHash.rs");
 include!("UsizeHashTable.rs");
+include!("UsizeHashTableIterator.rs");
 include!("UsizeHashTableValue.rs");

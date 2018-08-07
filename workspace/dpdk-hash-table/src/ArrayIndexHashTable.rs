@@ -18,6 +18,7 @@
 /// A limitation in the DPDK API means it is not possible to use Rust's `BuildHasher` trait, however, it can use the same default as Rust's hash map if `HasherType` is `std::collections::hash_map::DefaultHasher`.
 ///
 /// Key equality can be either byte-wise or using the implementation of the trait `Eq`. In the latter case, insertion is thread unsafe.
+#[derive(Debug)]
 pub struct ArrayIndexHashTable<Key: Copy + Sized + Hash, HasherType: Hasher + Default>(HashTableInner<Key, HasherType>);
 
 impl<Key: Copy + Sized + Hash + PartialEq, HasherType: Hasher + Default> ArrayIndexHashTable<Key, HasherType>
@@ -237,6 +238,13 @@ impl<Key: Copy + Sized + Hash, HasherType: Hasher + Default> ArrayIndexHashTable
 				unknown @ _ => panic!("Unknown error '{}' from rte_hash_lookup_bulk", unknown)
 			}
 		}
+	}
+	
+	/// Iterate over key-value pairs.
+	#[inline(always)]
+	pub fn iterate<'a>(&'a self) -> ArrayIndexHashTableIterator<'a, Key, HasherType>
+	{
+		ArrayIndexHashTableIterator::new(self)
 	}
 	
 	/// Given an index, find the associated key.
