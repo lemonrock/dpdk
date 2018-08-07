@@ -11,14 +11,14 @@
 ///
 /// Per-thread structures may be easier to work with; look at `NumaNodeLocalElasticFlowDistributorTable`.
 #[derive(Debug)]
-pub struct ElasticFlowDistributorTable<T: Copy + Sized>
+pub struct ElasticFlowDistributorTable<Key: Copy + Sized>
 {
 	table: NonNull<rte_efd_table>,
 	we_should_destroy_the_table_on_drop: bool,
-	marker: PhantomData<T>,
+	marker: PhantomData<Key>,
 }
 
-impl<T: Copy + Sized> Drop for ElasticFlowDistributorTable<T>
+impl<Key: Copy + Sized> Drop for ElasticFlowDistributorTable<Key>
 {
 	#[inline(always)]
 	fn drop(&mut self)
@@ -30,10 +30,12 @@ impl<T: Copy + Sized> Drop for ElasticFlowDistributorTable<T>
 	}
 }
 
-impl<T: Copy + Sized> ElasticFlowDistributorTable<T>
+impl<Key: Copy + Sized> ElasticFlowDistributorTable<Key>
 {
 	/// Create a new instance.
 	///
+	/// * `name` must be 32 characters or less.
+	/// * `capacity` can not exceed 2^32 - 1.
 	/// The first entry in `usable_on_numa_nodes` is used to store the 'offline' data of the table, ie is used for most memory allocation.
 	#[inline(always)]
 	pub fn new(name: &CStr, capacity: usize, usable_on_numa_nodes: IndexSet<NumaNode>) -> Result<Arc<Self>, ()>
@@ -43,7 +45,7 @@ impl<T: Copy + Sized> ElasticFlowDistributorTable<T>
 		debug_assert_ne!(capacity, 0, "capacity can not be zero");
 		debug_assert!(capacity <= ::std::u32::MAX as usize, "capacity '{}' exceeds ::std::u32::MAX '{}'", capacity, ::std::u32::MAX);
 		
-		let key_size = size_of::<T>();
+		let key_size = size_of::<Key>();
 		debug_assert!(key_size <= ::std::u32::MAX as usize, "key_size '{}' exceeds ::std::u32::MAX '{}'", key_size, ::std::u32::MAX);
 		
 		debug_assert_ne!(usable_on_numa_nodes.len(), 0, "usable_on_numa_nodes can not be empty");
@@ -57,7 +59,7 @@ impl<T: Copy + Sized> ElasticFlowDistributorTable<T>
 		let offline_cpu_socket: u8 = (*usable_on_numa_nodes.get_index(0).unwrap()).into();
 		
 		let result = unsafe { rte_efd_create(name.as_ptr(), capacity as u32, key_size as u32, online_cpu_socket_bitmask, offline_cpu_socket) };
-		if result.is_null()
+		if unlikely!(result.is_null())
 		{
 			Err(())
 		}
@@ -80,12 +82,14 @@ impl<T: Copy + Sized> ElasticFlowDistributorTable<T>
 	
 	/// Creates an instance suitable for the current hyper thread (actually, the current NUMA node).
 	#[inline(always)]
-	pub fn for_current_hyper_thread(this: &Arc<Self>) -> NumaNodeLocalElasticFlowDistributorTable<T>
+	pub fn for_current_hyper_thread(this: &Arc<Self>) -> NumaNodeLocalElasticFlowDistributorTable<Key>
 	{
 		NumaNodeLocalElasticFlowDistributorTable::for_current_hyper_thread(this)
 	}
 	
 	/// Find an existing instance.
+	///
+	/// * `name` must be 32 characters or less.
 	#[inline(always)]
 	pub fn find_existing(name: &CStr) -> Option<Self>
 	{
@@ -121,9 +125,9 @@ impl<T: Copy + Sized> ElasticFlowDistributorTable<T>
 	///
 	/// Since this can be a touch expensive in some circumstances, a caller may want to use an NumaNodeLocalElasticFlowDistributorTable instead.
 	#[inline(always)]
-	pub fn look_up(&self, look_up_on_numa_node: NumaNode, key: &T) -> u8
+	pub fn look_up(&self, look_up_on_numa_node: NumaNode, key: &Key) -> u8
 	{
-		unsafe { rte_efd_lookup(self.handle(), look_up_on_numa_node.into(), key as *const T as *const _) }
+		unsafe { rte_efd_lookup(self.handle(), look_up_on_numa_node.into(), key as *const Key as *const _) }
 	}
 	
 	/// Looks up several keys and finds their value (u8).
@@ -137,10 +141,10 @@ impl<T: Copy + Sized> ElasticFlowDistributorTable<T>
 	///
 	/// Since this can be a touch expensive in some circumstances, a caller may want to use an NumaNodeLocalElasticFlowDistributorTable instead.
 	#[inline(always)]
-	pub fn look_up_bulk(&self, look_up_on_numa_node: NumaNode, keys: ArrayVec<[&T; LookUpBulkMaximum]>) -> ArrayVec<[u8; LookUpBulkMaximum]>
+	pub fn look_up_bulk(&self, look_up_on_numa_node: NumaNode, keys: ArrayVec<[&Key; LookUpBulkMaximum]>) -> ArrayVec<[u8; LookUpBulkMaximum]>
 	{
 		let mut values = ArrayVec::new();
-		unsafe { rte_efd_lookup_bulk(self.handle(), look_up_on_numa_node.into(), keys.len() as i32, keys.as_ptr() as *const &T as *const *const T as *const *const _ as *mut *const _, values.as_mut_ptr()) }
+		unsafe { rte_efd_lookup_bulk(self.handle(), look_up_on_numa_node.into(), keys.len() as i32, keys.as_ptr() as *const &Key as *const *const Key as *const *const _ as *mut *const _, values.as_mut_ptr()) }
 		unsafe { values.set_len(keys.len()) };
 		values
 	}
@@ -153,9 +157,9 @@ impl<T: Copy + Sized> ElasticFlowDistributorTable<T>
 	///
 	/// Since this can be a touch expensive in some circumstances, a caller may want to use an NumaNodeLocalElasticFlowDistributorTable instead.
 	#[inline(always)]
-	pub fn insert_or_update(&self, look_up_on_numa_node: NumaNode, key: &T, value: u8) -> Result<InsertionOutcome, ()>
+	pub fn insert_or_update(&self, look_up_on_numa_node: NumaNode, key: &Key, value: u8) -> Result<InsertionOutcome, ()>
 	{
-		let result = unsafe { rte_efd_update(self.handle(), look_up_on_numa_node.into(), key as *const T as *const _, value) };
+		let result = unsafe { rte_efd_update(self.handle(), look_up_on_numa_node.into(), key as *const Key as *const _, value) };
 		
 		use self::InsertionOutcome::*;
 		
@@ -181,9 +185,9 @@ impl<T: Copy + Sized> ElasticFlowDistributorTable<T>
 	///
 	/// Since this can be a touch expensive in some circumstances, a caller may want to use an NumaNodeLocalElasticFlowDistributorTable instead.
 	#[inline(always)]
-	pub fn remove(&self, look_up_on_numa_node: NumaNode, key: &T) -> Result<(), ()>
+	pub fn remove(&self, look_up_on_numa_node: NumaNode, key: &Key) -> Result<(), ()>
 	{
-		let result = unsafe { rte_efd_delete(self.handle(), look_up_on_numa_node.into(), key as *const T as *const _, null_mut()) };
+		let result = unsafe { rte_efd_delete(self.handle(), look_up_on_numa_node.into(), key as *const Key as *const _, null_mut()) };
 		if likely!(result == 0)
 		{
 			Ok(())
@@ -202,11 +206,11 @@ impl<T: Copy + Sized> ElasticFlowDistributorTable<T>
 	///
 	/// Since this can be a touch expensive in some circumstances, a caller may want to use an NumaNodeLocalElasticFlowDistributorTable instead.
 	#[inline(always)]
-	pub fn remove_returning_value(&self, look_up_on_numa_node: NumaNode, key: &T) -> Result<u8, ()>
+	pub fn remove_returning_value(&self, look_up_on_numa_node: NumaNode, key: &Key) -> Result<u8, ()>
 	{
 		let mut value = unsafe { uninitialized() };
 		
-		let result = unsafe { rte_efd_delete(self.handle(), look_up_on_numa_node.into(), key as *const T as *const _, &mut value) };
+		let result = unsafe { rte_efd_delete(self.handle(), look_up_on_numa_node.into(), key as *const Key as *const _, &mut value) };
 		if likely!(result == 0)
 		{
 			Ok(value)
