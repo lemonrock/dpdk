@@ -49,7 +49,7 @@ impl<T: Copy + Sized> NumaNodeLocalElasticFlowDistributorTable<T>
 	/// ***Always succeeds***, returning pseudo-random rubbish if the keys were never inserted.
 	/// This is because the underlying implementation is a perfect hash table which can not track whether a key has actually been inserted.
 	#[inline(always)]
-	pub fn look_up_bulk(&self, keys: ArrayVec<[&T; LookUpBulkMaximum]>) -> ArrayVec<[u8; LookUpBulkMaximum]>
+	pub fn look_up_bulk(&self, keys: &ArrayVec<[&T; LookUpBulkMaximum]>) -> ArrayVec<[u8; LookUpBulkMaximum]>
 	{
 		self.table.look_up_bulk(self.look_up_on_numa_node, keys)
 	}

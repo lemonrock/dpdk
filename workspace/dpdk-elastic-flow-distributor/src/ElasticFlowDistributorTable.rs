@@ -141,7 +141,7 @@ impl<Key: Copy + Sized> ElasticFlowDistributorTable<Key>
 	///
 	/// Since this can be a touch expensive in some circumstances, a caller may want to use an NumaNodeLocalElasticFlowDistributorTable instead.
 	#[inline(always)]
-	pub fn look_up_bulk(&self, look_up_on_numa_node: NumaNode, keys: ArrayVec<[&Key; LookUpBulkMaximum]>) -> ArrayVec<[u8; LookUpBulkMaximum]>
+	pub fn look_up_bulk(&self, look_up_on_numa_node: NumaNode, keys: &ArrayVec<[&Key; LookUpBulkMaximum]>) -> ArrayVec<[u8; LookUpBulkMaximum]>
 	{
 		let mut values = ArrayVec::new();
 		unsafe { rte_efd_lookup_bulk(self.handle(), look_up_on_numa_node.into(), keys.len() as i32, keys.as_ptr() as *const &Key as *const *const Key as *const *const _ as *mut *const _, values.as_mut_ptr()) }
