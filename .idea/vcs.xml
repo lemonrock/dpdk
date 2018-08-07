@@ -3,6 +3,7 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/.cargo" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/workspace/dpdk-elastic-flow-distributor/.cargo" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/workspace/dpdk-packet-distributor/.cargo" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/workspace/dpdk-packet-reorderer/.cargo" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/workspace/dpdk-sys/lib/dpdk" vcs="Git" />
