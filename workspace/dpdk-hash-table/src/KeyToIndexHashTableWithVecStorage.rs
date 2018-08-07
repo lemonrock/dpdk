@@ -218,7 +218,7 @@ impl<Key: Copy + Sized + Hash, Value, HasherType: Hasher + Default> KeyToIndexHa
 	///
 	/// Returns `Some(index)` if the key was present.
 	#[inline(always)]
-	pub fn look_up(&self, key: &Key) -> Option<&Value>
+	pub fn look_up<'a>(&'a self, key: &Key) -> Option<&'a Value>
 	{
 		match self.table.look_up(key)
 		{
@@ -235,7 +235,7 @@ impl<Key: Copy + Sized + Hash, Value, HasherType: Hasher + Default> KeyToIndexHa
 	///
 	/// Returns `Some(index)` if the key was present.
 	#[inline(always)]
-	pub fn look_up_with_precomputed_key_hash(&self, key: &Key, precomputed_key_hash: PrecomputedKeyHash<Key, HasherType>) -> Option<&Value>
+	pub fn look_up_with_precomputed_key_hash<'a>(&'a self, key: &Key, precomputed_key_hash: PrecomputedKeyHash<Key, HasherType>) -> Option<&'a Value>
 	{
 		match self.table.look_up_with_precomputed_key_hash(key, precomputed_key_hash)
 		{
@@ -244,17 +244,86 @@ impl<Key: Copy + Sized + Hash, Value, HasherType: Hasher + Default> KeyToIndexHa
 		}
 	}
 	
-//	/// Finds entries.
-//	///
-//	/// Always thread safe.
-//	#[inline(always)]
-//	pub fn look_up_bulk(&self, keys: &ArrayVec<[&Key; LookUpBulkMaximum]>, mut result_handler: impl LookUpBulkResultHandler<Key, usize>)
-//	{
-//	}
-//
-//	/// Iterate over key-value pairs.
-//	#[inline(always)]
-//	pub fn iterate<'a>(&'a self) -> KeyToIndexHashTableIterator<'a, Key, HasherType>
-//	{
-//	}
+	/// Finds an entry.
+	///
+	/// Always thread safe.
+	///
+	/// Returns `None` if the key was not present.
+	///
+	/// Returns `Some(index)` if the key was present.
+	#[inline(always)]
+	pub fn look_up_mutably<'a>(&'a mut self, key: &Key) -> Option<&'a mut Value>
+	{
+		match self.table.look_up(key)
+		{
+			None => None,
+			Some(index) => unsafe { self.storage.get_unchecked_mut(index).as_mut() }
+		}
+	}
+	
+	/// Finds an entry, using a precomputed hash (might be occasionally more optimal).
+	///
+	/// Always thread safe.
+	///
+	/// Returns `None` if the key was not present.
+	///
+	/// Returns `Some(index)` if the key was present.
+	#[inline(always)]
+	pub fn look_up_mutably_with_precomputed_key_hash<'a>(&'a mut self, key: &Key, precomputed_key_hash: PrecomputedKeyHash<Key, HasherType>) -> Option<&'a mut Value>
+	{
+		match self.table.look_up_with_precomputed_key_hash(key, precomputed_key_hash)
+		{
+			None => None,
+			Some(index) => unsafe { self.storage.get_unchecked_mut(index).as_mut() }
+		}
+	}
+	
+	/// Finds entries.
+	///
+	/// Always thread safe.
+	#[inline(always)]
+	pub fn look_up_bulk<'a, ResultHandler: 'a + LookUpBulkResultHandler<Key, &'a Value>>(&'a self, keys: &ArrayVec<[&Key; LookUpBulkMaximum]>, result_handler: ResultHandler)
+	{
+		struct LookUpBulkResultHandlerAdaptor<'a, Key: 'a + Copy + Sized + Hash, Value: 'a, HasherType: 'a + Hasher + Default, ResultHandler: 'a + LookUpBulkResultHandler<Key, &'a Value>>
+		{
+			result_handler: ResultHandler,
+			table: &'a KeyToIndexHashTableWithVecStorage<Key, Value, HasherType>,
+		}
+		
+		impl<'a, Key: 'a + Copy + Sized + Hash, Value: 'a, HasherType: 'a + Hasher + Default, ResultHandler: 'a + LookUpBulkResultHandler<Key, &'a Value>> LookUpBulkResultHandler<Key, usize> for LookUpBulkResultHandlerAdaptor<'a, Key, Value, HasherType, ResultHandler>
+		{
+			/// Key found.
+			#[inline(always)]
+			fn key_found<'aa>(&'aa mut self, keys: &ArrayVec<[&Key; LookUpBulkMaximum]>, index: usize, value: usize)
+			{
+				self.result_handler.key_found(keys, index, unsafe { self.table.storage.get_unchecked(value).as_ref().unwrap() })
+			}
+			
+			/// Key not present.
+			#[inline(always)]
+			fn key_not_present<'aa>(&'aa mut self, keys: &ArrayVec<[&Key; LookUpBulkMaximum]>, index: usize)
+			{
+				self.result_handler.key_not_present(keys, index)
+			}
+		}
+		
+		self.table.look_up_bulk(keys, LookUpBulkResultHandlerAdaptor
+		{
+			result_handler,
+			table: self,
+		})
+	}
+
+	/// Iterate over key-value pairs.
+	#[inline(always)]
+	pub fn iterate<'a>(&'a self) -> KeyToIndexHashTableWithVecStorageIterator<'a, Key, Value, HasherType>
+	{
+		KeyToIndexHashTableWithVecStorageIterator::new(self)
+	}
+	
+	#[inline(always)]
+	fn handle(&self) -> *mut rte_hash
+	{
+		self.table.handle()
+	}
 }

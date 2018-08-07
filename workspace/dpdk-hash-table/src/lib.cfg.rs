@@ -28,6 +28,7 @@ include!("HashTableInner.rs");
 include!("KeyToIndexHashTable.rs");
 include!("KeyToIndexHashTableIterator.rs");
 include!("KeyToIndexHashTableWithVecStorage.rs");
+include!("KeyToIndexHashTableWithVecStorageIterator.rs");
 include!("LookUpBulkMaximum.rs");
 include!("LookUpBulkResultHandler.rs");
 include!("PrecomputedKeyHash.rs");

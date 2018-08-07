@@ -7,9 +7,9 @@ pub trait LookUpBulkResultHandler<Key: Copy + Sized + Hash, Value: Sized>
 {
 	/// Key found.
 	#[inline(always)]
-	fn key_found(&mut self, keys: &ArrayVec<[&Key; LookUpBulkMaximum]>, index: usize, value: Value);
+	fn key_found<'a>(&'a mut self, keys: &ArrayVec<[&Key; LookUpBulkMaximum]>, index: usize, value: Value);
 	
 	/// Key not present.
 	#[inline(always)]
-	fn key_not_present(&mut self, keys: &ArrayVec<[&Key; LookUpBulkMaximum]>, index: usize);
+	fn key_not_present<'a>(&'a mut self, keys: &ArrayVec<[&Key; LookUpBulkMaximum]>, index: usize);
 }
