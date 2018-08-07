@@ -8,6 +8,8 @@
 ///
 /// ***Look ups always succeed***, returning pseudo-random rubbish if the key was never inserted.
 /// This is because the underlying implementation can not track whether a key has actually been inserted.
+///
+/// Per-thread structures may be easier to work with; look at `NumaNodeLocalElasticFlowDistributorTable`.
 #[derive(Debug)]
 pub struct ElasticFlowDistributorTable<T: Copy + Sized>
 {
@@ -34,7 +36,7 @@ impl<T: Copy + Sized> ElasticFlowDistributorTable<T>
 	///
 	/// The first entry in `usable_on_numa_nodes` is used to store the 'offline' data of the table, ie is used for most memory allocation.
 	#[inline(always)]
-	pub fn new(name: &CStr, capacity: usize, usable_on_numa_nodes: IndexSet<NumaNode>) -> Result<Self, ()>
+	pub fn new(name: &CStr, capacity: usize, usable_on_numa_nodes: IndexSet<NumaNode>) -> Result<Arc<Self>, ()>
 	{
 		debug_assert_ne!(capacity, 0, "capacity can not be zero");
 		debug_assert!(capacity <= ::std::u32::MAX as usize, "capacity '{}' exceeds ::std::u32::MAX '{}'", capacity, ::std::u32::MAX);
@@ -61,14 +63,24 @@ impl<T: Copy + Sized> ElasticFlowDistributorTable<T>
 		{
 			Ok
 			(
-				Self
-				{
-					table: unsafe { NonNull::new_unchecked(result) },
-					we_should_destroy_the_table_on_drop: true,
-					marker: PhantomData,
-				}
+				Arc::new
+				(
+					Self
+					{
+						table: unsafe { NonNull::new_unchecked(result) },
+						we_should_destroy_the_table_on_drop: true,
+						marker: PhantomData,
+					}
+				)
 			)
 		}
+	}
+	
+	/// Creates an instance suitable for the current hyper thread (actually, the current NUMA node).
+	#[inline(always)]
+	pub fn for_current_hyper_thread(this: &Arc<Self>) -> NumaNodeLocalElasticFlowDistributorTable<T>
+	{
+		NumaNodeLocalElasticFlowDistributorTable::for_current_hyper_thread(this)
 	}
 	
 	/// Find an existing instance.
@@ -104,6 +116,7 @@ impl<T: Copy + Sized> ElasticFlowDistributorTable<T>
 	/// `look_up_on_numa_node` should ideally be the caller's current NumaNode, viz `NumaNode::numa_node_and_hyper_thread().0`.
 	///
 	/// Since this can be a touch expensive in some circumstances, a caller may want to use an NumaNodeLocalElasticFlowDistributorTable instead.
+	#[inline(always)]
 	pub fn look_up(&self, look_up_on_numa_node: NumaNode, key: &T) -> u8
 	{
 		unsafe { rte_efd_lookup(self.handle(), look_up_on_numa_node.into(), key as *const T as *const _) }
@@ -119,6 +132,7 @@ impl<T: Copy + Sized> ElasticFlowDistributorTable<T>
 	/// `look_up_on_numa_node` should ideally be the caller's current NumaNode, viz `NumaNode::numa_node_and_hyper_thread().0`.
 	///
 	/// Since this can be a touch expensive in some circumstances, a caller may want to use an NumaNodeLocalElasticFlowDistributorTable instead.
+	#[inline(always)]
 	pub fn look_up_bulk(&self, look_up_on_numa_node: NumaNode, keys: ArrayVec<[&T; LookUpBulkMaximum]>) -> ArrayVec<[u8; LookUpBulkMaximum]>
 	{
 		let mut values = ArrayVec::new();
@@ -203,5 +217,16 @@ impl<T: Copy + Sized> ElasticFlowDistributorTable<T>
 	fn handle(&self) -> *mut rte_efd_table
 	{
 		self.table.as_ptr()
+	}
+	
+	#[inline(always)]
+	fn drop_unsafe_clone(&self) -> Self
+	{
+		Self
+		{
+			table: self.table,
+			we_should_destroy_the_table_on_drop: false,
+			marker: PhantomData,
+		}
 	}
 }

@@ -19,8 +19,10 @@ use ::std::mem::size_of;
 use ::std::mem::uninitialized;
 use ::std::ptr::null_mut;
 use ::std::ptr::NonNull;
+use ::std::sync::Arc;
 
 
 include!("ElasticFlowDistributorTable.rs");
 include!("InsertionOutcome.rs");
 include!("LookUpBulkMaximum.rs");
+include!("NumaNodeLocalElasticFlowDistributorTable.rs");
