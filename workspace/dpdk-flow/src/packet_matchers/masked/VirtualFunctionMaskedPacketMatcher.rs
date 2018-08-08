@@ -81,10 +81,10 @@ impl PacketMatcher for VirtualFunctionMaskedPacketMatcher
 
 impl MaskedPacketMatcher for VirtualFunctionMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_vf;
+	type Mask = rte_flow_item_vf;
 	
 	#[inline(always)]
-	fn mask() -> &'static Self::DpdkType
+	fn default_mask() -> &'static Self::Mask
 	{
 		unsafe { &rte_flow_item_vf_mask }
 	}

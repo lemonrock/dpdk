@@ -5,10 +5,13 @@
 /// A pattern matcher which uses a mask.
 pub trait MaskedPacketMatcher: PacketMatcher
 {
-	/// DPDK type.
-	type DpdkType;
+	/// DPDK mask type.
+	type Mask;
+	
+	/// Specification, used for concrete values for `spec` and `last`.
+	type Specification;
 	
 	/// Default mask.
 	#[inline(always)]
-	fn mask() -> &'static Self::DpdkType;
+	fn default_mask() -> &'static Self::Mask;
 }

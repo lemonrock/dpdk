@@ -70,10 +70,10 @@ impl PacketMatcher for InternetProtocolVersion6HeaderMaskedPacketMatcher
 
 impl MaskedPacketMatcher for InternetProtocolVersion6HeaderMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_ipv6;
+	type Mask = rte_flow_item_ipv6;
 	
 	#[inline(always)]
-	fn mask() -> &'static Self::DpdkType
+	fn default_mask() -> &'static Self::Mask
 	{
 		unsafe { &rte_flow_item_ipv6_mask }
 	}

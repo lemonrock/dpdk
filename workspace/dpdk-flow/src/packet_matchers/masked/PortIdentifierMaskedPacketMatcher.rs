@@ -78,10 +78,10 @@ impl PacketMatcher for PortIdentifierMaskedPacketMatcher
 
 impl MaskedPacketMatcher for PortIdentifierMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_port_id;
+	type Mask = rte_flow_item_port_id;
 	
 	#[inline(always)]
-	fn mask() -> &'static Self::DpdkType
+	fn default_mask() -> &'static Self::Mask
 	{
 		unsafe { &rte_flow_item_port_id_mask }
 	}

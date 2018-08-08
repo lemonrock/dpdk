@@ -80,10 +80,10 @@ impl PacketMatcher for MarkMaskedPacketMatcher
 
 impl MaskedPacketMatcher for MarkMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_mark;
+	type Mask = rte_flow_item_mark;
 	
 	#[inline(always)]
-	fn mask() -> &'static Self::DpdkType
+	fn default_mask() -> &'static Self::Mask
 	{
 		static Mask: rte_flow_item_mark = rte_flow_item_mark
 		{

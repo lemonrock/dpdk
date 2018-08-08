@@ -76,10 +76,12 @@ impl PacketMatcher for AnyMaskedPacketMatcher
 
 impl MaskedPacketMatcher for AnyMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_any;
+	type Mask = rte_flow_item_any;
+	
+	type Specification = u32;
 	
 	#[inline(always)]
-	fn mask() -> &'static Self::DpdkType
+	fn default_mask() -> &'static Self::Mask
 	{
 		unsafe { &rte_flow_item_any_mask }
 	}

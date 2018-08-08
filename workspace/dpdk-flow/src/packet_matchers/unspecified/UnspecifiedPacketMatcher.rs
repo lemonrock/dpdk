@@ -2,15 +2,7 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use super::*;
-
-
 /// Packet matchers which do not have a specification.
-pub mod unspecified;
-
-
-/// Packet matchers which use a specification and mask.
-pub mod masked;
-
-
-include!("PacketMatcher.rs");
+pub trait UnspecifiedPacketMatcher: PacketMatcher
+{
+}

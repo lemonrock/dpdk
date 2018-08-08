@@ -8,13 +8,10 @@ extern crate network_address_resolution_protocol;
 extern crate network_endian;
 extern crate network_ethernet;
 extern crate network_internet_protocol;
+extern crate serde;
+#[macro_use] extern crate serde_derive;
 
 
-/// Packet matchers, called, confusingly, flow items, by DPDK.
-pub mod packet_matchers;
-
-
-use self::packet_matchers::*;
 use ::dpdk_sys::*;
 use ::libc::memcmp;
 use ::network_address_resolution_protocol::*;
@@ -24,9 +21,17 @@ use ::network_ethernet::virtual_lans::*;
 #[allow(unused_imports)] use ::network_internet_protocol::InternetProtocolHostAddress;
 use ::network_internet_protocol::version_4::*;
 use ::network_internet_protocol::version_6::*;
+use ::serde::Deserialize;
+use ::serde::Deserializer;
+use ::serde::de::Error as DeserializerError;
+use ::serde::de::MapAccess;
+use ::serde::de::SeqAccess;
+use ::serde::de::Visitor;
 use ::std::cmp::Ordering;
+use ::std::fmt;
 use ::std::hash::Hash;
 use ::std::hash::Hasher;
+use ::std::marker::PhantomData;
 use ::std::mem::forget;
 use ::std::mem::size_of;
 use ::std::mem::transmute;
@@ -37,8 +42,9 @@ use ::std::slice::from_raw_parts_mut;
 
 
 include!("EthernetAddress.rs");
-include!("generic_clone.rs");
-include!("generic_compare.rs");
-include!("generic_equals.rs");
-include!("generic_hash.rs");
-include!("PatternItem.rs");
+//include!("generic_clone.rs");
+//include!("generic_compare.rs");
+//include!("generic_equals.rs");
+//include!("generic_hash.rs");
+//include!("PatternItem.rs");
+include!("AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification.rs");

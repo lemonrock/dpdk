@@ -70,10 +70,10 @@ impl PacketMatcher for VirtualLanHeaderMaskedPacketMatcher
 
 impl MaskedPacketMatcher for VirtualLanHeaderMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_vlan;
+	type Mask = rte_flow_item_vlan;
 	
 	#[inline(always)]
-	fn mask() -> &'static Self::DpdkType
+	fn default_mask() -> &'static Self::Mask
 	{
 		unsafe { &rte_flow_item_vlan_mask }
 	}

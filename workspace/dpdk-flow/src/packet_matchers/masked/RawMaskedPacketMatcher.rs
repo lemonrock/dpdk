@@ -90,10 +90,10 @@ impl PacketMatcher for RawMaskedPacketMatcher
 
 impl MaskedPacketMatcher for RawMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_raw;
+	type Mask = rte_flow_item_raw;
 	
 	#[inline(always)]
-	fn mask() -> &'static Self::DpdkType
+	fn default_mask() -> &'static Self::Mask
 	{
 		unsafe { &rte_flow_item_raw_mask }
 	}

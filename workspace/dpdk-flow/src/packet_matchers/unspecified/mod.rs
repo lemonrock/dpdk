@@ -5,12 +5,6 @@
 use super::*;
 
 
-/// Packet matchers which do not have a specification.
-pub mod unspecified;
-
-
-/// Packet matchers which use a specification and mask.
-pub mod masked;
-
-
-include!("PacketMatcher.rs");
+include!("EndUnspecifiedPacketMatcher.rs");
+include!("UnspecifiedPacketMatcher.rs");
+include!("VoidUnspecifiedPacketMatcher.rs");

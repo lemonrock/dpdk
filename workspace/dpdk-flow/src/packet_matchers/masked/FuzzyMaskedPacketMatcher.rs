@@ -82,10 +82,10 @@ impl PacketMatcher for FuzzyMaskedPacketMatcher
 
 impl MaskedPacketMatcher for FuzzyMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_fuzzy;
+	type Mask = rte_flow_item_fuzzy;
 	
 	#[inline(always)]
-	fn mask() -> &'static Self::DpdkType
+	fn default_mask() -> &'static Self::Mask
 	{
 		unsafe { &rte_flow_item_fuzzy_mask }
 	}

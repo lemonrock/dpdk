@@ -68,10 +68,10 @@ impl PacketMatcher for InternetProtocolVersion4HeaderMaskedPacketMatcher
 
 impl MaskedPacketMatcher for InternetProtocolVersion4HeaderMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_ipv4;
+	type Mask = rte_flow_item_ipv4;
 	
 	#[inline(always)]
-	fn mask() -> &'static Self::DpdkType
+	fn default_mask() -> &'static Self::Mask
 	{
 		unsafe { &rte_flow_item_ipv4_mask }
 	}

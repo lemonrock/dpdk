@@ -2,9 +2,6 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// A matcher that matches an Address Resolution Protocol (ARP) Internet Protocol (IP) version 4 packet over Etherenet.
-///
-/// The underlying DPDK functionality supports other kinds of ARP packets but these are very rare in practice.
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct AddressResolutionInternetProtocolVersion4OverEthernetMaskedPacketMatcher
@@ -70,10 +67,12 @@ impl PacketMatcher for AddressResolutionInternetProtocolVersion4OverEthernetMask
 
 impl MaskedPacketMatcher for AddressResolutionInternetProtocolVersion4OverEthernetMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_arp_eth_ipv4;
+	type Mask = rte_flow_item_arp_eth_ipv4;
+	
+	type Specification = AddressResolutionInternetProtocolVersion4OverEthernetMaskedPacketMatcherSpecification;
 	
 	#[inline(always)]
-	fn mask() -> &'static Self::DpdkType
+	fn default_mask() -> &'static Self::Mask
 	{
 		unsafe { &rte_flow_item_arp_eth_ipv4_mask }
 	}

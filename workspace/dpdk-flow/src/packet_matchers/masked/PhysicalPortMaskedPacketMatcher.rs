@@ -82,10 +82,10 @@ impl PacketMatcher for PhysicalPortMaskedPacketMatcher
 
 impl MaskedPacketMatcher for PhysicalPortMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_phy_port;
+	type Mask = rte_flow_item_phy_port;
 	
 	#[inline(always)]
-	fn mask() -> &'static Self::DpdkType
+	fn default_mask() -> &'static Self::Mask
 	{
 		unsafe { &rte_flow_item_phy_port_mask }
 	}

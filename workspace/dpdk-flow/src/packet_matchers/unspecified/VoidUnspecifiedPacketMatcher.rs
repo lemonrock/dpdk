@@ -6,11 +6,15 @@
 ///
 /// This is usually specified as the first pattern item when looking for a protocol anywhere in a packet.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct EndPacketMatcher;
+pub struct VoidUnspecifiedPacketMatcher;
 
-impl PacketMatcher for EndPacketMatcher
+impl PacketMatcher for VoidUnspecifiedPacketMatcher
 {
-	const Type: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_END;
+	const Type: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_VOID;
 	
 	const IsMeta: bool = true;
+}
+
+impl UnspecifiedPacketMatcher for VoidUnspecifiedPacketMatcher
+{
 }

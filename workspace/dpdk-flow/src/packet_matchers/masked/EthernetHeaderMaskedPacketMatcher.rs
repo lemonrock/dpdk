@@ -71,10 +71,10 @@ impl PacketMatcher for EthernetHeaderMaskedPacketMatcher
 
 impl MaskedPacketMatcher for EthernetHeaderMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_eth;
+	type Mask = rte_flow_item_eth;
 	
 	#[inline(always)]
-	fn mask() -> &'static Self::DpdkType
+	fn default_mask() -> &'static Self::Mask
 	{
 		unsafe { &rte_flow_item_eth_mask }
 	}
