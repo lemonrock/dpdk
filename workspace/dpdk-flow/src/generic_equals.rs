@@ -2,11 +2,9 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// This method exists because bindgen does not alway generate Copy or Clone implementations when asked to do so.
+/// This method exists because bindgen does not alway generate PartialEq and Eq implementations when asked to do so.
 #[inline(always)]
-pub(crate) fn generic_clone<T>(original: &T) -> T
+pub(crate) fn generic_equals<T>(left: &T, right: &T) -> bool
 {
-	let mut clone: T = unsafe { uninitialized() };
-	unsafe { copy_nonoverlapping(original as *const T as *const u8, (&mut clone) as *mut T as *mut u8, size_of::<T>()) };
-	clone
+	(unsafe { memcmp(left as *const T as *const _, right as *const T as *const _, size_of::<T>()) }) == 0
 }

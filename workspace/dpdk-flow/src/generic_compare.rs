@@ -2,9 +2,23 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// This method exists because bindgen does not alway generate PartialEq and Eq implementations when asked to do so.
+/// This method exists because bindgen does not always generate PartialOrd and Ord implementations when asked to do so.
 #[inline(always)]
-pub(crate) fn generic_equals<T>(left: &T, right: &T) -> bool
+pub(crate) fn generic_compare<T>(left: &T, right: &T) -> Ordering
 {
-	(unsafe { memcmp(left, right, size_of::<T>()) }) == 0
+	use self::Ordering::*;
+	
+	let result = unsafe { memcmp(left as *const T as *const _, right as *const T as *const _, size_of::<T>()) };
+	if result < 0
+	{
+		Less
+	}
+	else if result > 0
+	{
+		Greater
+	}
+	else
+	{
+		Equal
+	}
 }

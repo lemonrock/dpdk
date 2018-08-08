@@ -16,16 +16,85 @@ pub trait FlowItem
 	
 	/// DPDK static mask.
 	#[inline(always)]
-	fn mask() -> NonNull<Self::DpdkType>;
+	fn mask() -> &'static Self::DpdkType;
 }
 
-pub struct Raw(rte_flow_item_raw, );
-
-impl Default for Raw
+/// A flow item that matches raw data using a pattern.
+#[derive(Debug)]
+#[repr(transparent)]
+pub struct Raw
 {
-	fn default() -> Self
+	underlying: rte_flow_item_raw,
+}
+
+impl Drop for Raw
+{
+	#[inline(always)]
+	fn drop(&mut self)
 	{
-		Raw(Self::mask().as_ref())
+		if self.pattern_is_not_null()
+		{
+			drop(self.pattern_as_boxed_slice())
+		}
+	}
+}
+
+impl Clone for Raw
+{
+	#[inline(always)]
+	fn clone(&self) -> Self
+	{
+		let mut clone = Raw
+		{
+			underlying: generic_clone(&self.underlying),
+		};
+		
+		if clone.pattern_is_not_null()
+		{
+			clone.underlying.pattern = Self::pattern_to_raw(self.pattern_cloned())
+		}
+		
+		clone
+	}
+}
+
+impl PartialEq for Raw
+{
+	#[inline(always)]
+	fn eq(&self, rhs: &Self) -> bool
+	{
+		generic_equals(&self.underlying, &rhs.underlying)
+	}
+}
+
+impl Eq for Raw
+{
+}
+
+impl PartialOrd for Raw
+{
+	#[inline(always)]
+	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
+	{
+		Some(self.cmp(rhs))
+	}
+}
+
+impl Ord for Raw
+{
+	#[inline(always)]
+	fn cmp(&self, rhs: &Self) -> Ordering
+	{
+		generic_compare(&self.underlying, &rhs.underlying)
+	}
+}
+
+impl Hash for Raw
+{
+	#[inline(always)]
+	fn hash<H: Hasher>(&self, hasher: &mut H)
+	{
+		generic_hash::<H, _>(self, hasher)
 	}
 }
 
@@ -38,50 +107,87 @@ impl FlowItem for Raw
 	const IsMeta: bool = false;
 	
 	#[inline(always)]
-	fn mask() -> NonNull<Self::DpdkType>
+	fn mask() -> &'static Self::DpdkType
 	{
-		unsafe { NonNull::new_unchecked(rte_flow_item_raw_mask) }
+		unsafe { &rte_flow_item_raw_mask }
 	}
 }
 
-
-
-/**
- * RTE_FLOW_ITEM_TYPE_RAW
- *
- * Matches a byte string of a given length at a given offset.
- *
- * Offset is either absolute (using the start of the packet) or relative to
- * the end of the previous matched item in the stack, in which case negative
- * values are allowed.
- *
- * If search is enabled, offset is used as the starting point. The search
- * area can be delimited by setting limit to a nonzero value, which is the
- * maximum number of bytes after offset where the pattern may start.
- *
- * Matching a zero-length pattern is allowed, doing so resets the relative
- * offset for subsequent items.
- *
- * This type does not support ranges (struct rte_flow_item.last).
- */
-struct rte_flow_item_raw {
-	uint32_t relative:1; /**< Look for pattern after the previous item. */
-	uint32_t search:1; /**< Search pattern from offset (see also limit). */
-	uint32_t reserved:30; /**< Reserved, must be set to zero. */
-	int32_t offset; /**< Absolute or relative offset for pattern. */
-	uint16_t limit; /**< Search area limit for start of pattern. */
-	uint16_t length; /**< Pattern length. */
-	const uint8_t *pattern; /**< Byte string to look for. */
-};
-
-/** Default mask for RTE_FLOW_ITEM_TYPE_RAW. */
-#ifndef __cplusplus
-static const struct rte_flow_item_raw rte_flow_item_raw_mask = {
-.relative = 1,
-.search = 1,
-.reserved = 0x3fffffff,
-.offset = 0xffffffff,
-.limit = 0xffff,
-.length = 0xffff,
-.pattern = NULL,
-};
+impl Raw
+{
+	/// * `offset` can be absolute or relative; DPDK documentation is a little difficult to flow.
+	/// * `pattern` can not be longer than 65,535 bytes and must not be empty (zero, 0).
+	#[inline(always)]
+	pub fn new(look_for_pattern_after_the_previous_item_offset: bool, search_pattern_from_offset: bool, offset: i32, search_area_limit_for_start_of_pattern: u16, pattern: Box<[u8]>) -> Self
+	{
+		debug_assert_ne!(pattern.len(), 0, "empty patterns are useless");
+		debug_assert!(pattern.len() <= ::std::u16::MAX as usize, "pattern length '{}' exceeds ::std::u16::MAX '{}'", pattern.len(), ::std::u16::MAX);
+		
+		const Reserved: u32 = 0;
+		
+		let relative = if look_for_pattern_after_the_previous_item_offset
+		{
+			1
+		}
+		else
+		{
+			0
+		};
+		
+		let search = if search_pattern_from_offset
+		{
+			1
+		}
+		else
+		{
+			0
+		};
+		
+		let this = Self
+		{
+			underlying: rte_flow_item_raw
+			{
+				bitfield_1: rte_flow_item_raw::newbitfield_1(relative, search, Reserved),
+				offset,
+				limit: search_area_limit_for_start_of_pattern,
+				length: pattern.len() as u16,
+				pattern: Self::pattern_to_raw(pattern),
+			}
+		};
+		
+		this
+	}
+	
+	#[inline(always)]
+	fn pattern_is_not_null(&self) -> bool
+	{
+		!self.underlying.pattern.is_null()
+	}
+	
+	#[inline(always)]
+	fn pattern_to_raw(mut pattern: Box<[u8]>) -> *const u8
+	{
+		let pointer = pattern.as_mut_ptr();
+		forget(pattern);
+		pointer as *const _
+	}
+	
+	#[inline(always)]
+	fn pattern_as_boxed_slice(&self) -> Box<[u8]>
+	{
+		unsafe
+		{
+			let slice = from_raw_parts_mut(self.underlying.pattern as *mut _, self.underlying.length as usize);
+			Box::from_raw(slice)
+		}
+	}
+	
+	#[inline(always)]
+	fn pattern_cloned(&self) -> Box<[u8]>
+	{
+		let pattern = self.pattern_as_boxed_slice();
+		let clone = pattern.clone();
+		forget(pattern);
+		clone
+	}
+}
