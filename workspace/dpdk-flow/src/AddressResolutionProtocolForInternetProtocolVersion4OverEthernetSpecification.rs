@@ -171,56 +171,72 @@ macro_rules! visit
 	}
 }
 
-impl<'deserialize> Deserialize<'deserialize> for AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification
+macro_rules! custom_deserialize
 {
-	#[inline(always)]
-	fn deserialize<D: Deserializer<'deserialize>>(deserializer: D) -> Result<Self, D::Error>
+	(
+		$type: tt,
+		$(
+			$field_name: tt,
+		)*
+	) =>
 	{
-		struct DeserializingVisitor;
-		
-		impl<'deserialize> Visitor<'deserialize> for DeserializingVisitor
+		impl<'deserialize> Deserialize<'deserialize> for $type
 		{
-			type Value = AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification;
-			
 			#[inline(always)]
-			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result
+			fn deserialize<D: Deserializer<'deserialize>>(deserializer: D) -> Result<Self, D::Error>
 			{
-				expecting!(formatter, AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification)
-			}
-			
-			#[inline(always)]
-			fn visit_seq<V: SeqAccess<'deserialize>>(self, mut access: V) -> Result<Self::Value, V::Error>
-			{
-				decode_from_sequence!(self, access, AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification, 0, 1, 2, 3, 4)
-			}
-			
-			#[inline(always)]
-			fn visit_map<V: MapAccess<'deserialize>>(self, mut access: V) -> Result<Self::Value, V::Error>
-			{
-				decode_from_map!
+				struct DeserializingVisitor;
+				
+				impl<'deserialize> Visitor<'deserialize> for DeserializingVisitor
+				{
+					type Value = $type;
+					
+					#[inline(always)]
+					fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result
+					{
+						expecting!(formatter, AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification)
+					}
+					
+					#[inline(always)]
+					fn visit_seq<V: SeqAccess<'deserialize>>(self, mut access: V) -> Result<Self::Value, V::Error>
+					{
+						//TODO: replace 0 - 4 range somehow...
+						xxxx;
+					
+						decode_from_sequence!(self, access, $type, 0, 1, 2, 3, 4)
+					}
+					
+					#[inline(always)]
+					fn visit_map<V: MapAccess<'deserialize>>(self, mut access: V) -> Result<Self::Value, V::Error>
+					{
+						decode_from_map!
+						(
+							access,
+							$type,
+							$($field_name,)*
+						)
+					}
+				}
+				
+				visit!
 				(
-					access,
-					AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification,
-					source_ethernet_address,
-					destination_ethernet_address,
-					source_internet_protocol_version_4_address,
-					destination_internet_protocol_version_4_address,
-					operation,
+					deserializer,
+					$type,
+					$($field_name,)*
 				)
 			}
 		}
-		
-		visit!
-		(
-			deserializer,
-			AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification,
-			source_ethernet_address,
-			destination_ethernet_address,
-			source_internet_protocol_version_4_address,
-			destination_internet_protocol_version_4_address,
-			operation,
-		)
 	}
+}
+
+custom_deserialize!
+{
+	AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification,
+	source_ethernet_address,
+	destination_ethernet_address,
+	source_internet_protocol_version_4_address,
+	destination_internet_protocol_version_4_address,
+	operation,
 }
 
 impl AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification
