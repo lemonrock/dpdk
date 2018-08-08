@@ -28,7 +28,7 @@ pub struct AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpeci
 
 macro_rules! expecting
 {
-	($type: tt, $formatter: ident) =>
+	($formatter: ident, $type: tt) =>
 	{
 		$formatter.write_str(stringify!($type))
 	}
@@ -46,9 +46,9 @@ macro_rules! sequence_field
 macro_rules! decode_from_sequence
 {
 	(
-		$type: tt,
 		$self: ident,
-        $access: ident
+        $access: ident,
+		$type: tt
         $(
             ,$length: expr
         )*
@@ -69,8 +69,8 @@ macro_rules! decode_from_sequence
 macro_rules! decode_from_map
 {
 	(
-		$type: tt,
         $access: expr,
+		$type: tt,
         $(
             $field_name: tt,
         )*
@@ -150,6 +150,27 @@ macro_rules! map_field
 	}
 }
 
+macro_rules! visit
+{
+	(
+		$deserializer: ident,
+		$type: tt,
+        $(
+            $field_name: tt,
+        )*
+	) =>
+	{
+		$deserializer.deserialize_struct
+		(
+			stringify!($type),
+			&[
+				$(stringify!($field_name),)*
+			],
+			DeserializingVisitor
+		)
+	}
+}
+
 impl<'deserialize> Deserialize<'deserialize> for AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification
 {
 	#[inline(always)]
@@ -164,13 +185,13 @@ impl<'deserialize> Deserialize<'deserialize> for AddressResolutionProtocolForInt
 			#[inline(always)]
 			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result
 			{
-				expecting!(AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification, formatter)
+				expecting!(formatter, AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification)
 			}
 			
 			#[inline(always)]
 			fn visit_seq<V: SeqAccess<'deserialize>>(self, mut access: V) -> Result<Self::Value, V::Error>
 			{
-				decode_from_sequence!(AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification, self, access, 0, 1, 2, 3, 4)
+				decode_from_sequence!(self, access, AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification, 0, 1, 2, 3, 4)
 			}
 			
 			#[inline(always)]
@@ -178,8 +199,8 @@ impl<'deserialize> Deserialize<'deserialize> for AddressResolutionProtocolForInt
 			{
 				decode_from_map!
 				(
-					AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification,
 					access,
+					AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification,
 					source_ethernet_address,
 					destination_ethernet_address,
 					source_internet_protocol_version_4_address,
@@ -189,7 +210,16 @@ impl<'deserialize> Deserialize<'deserialize> for AddressResolutionProtocolForInt
 			}
 		}
 		
-		deserializer.deserialize_struct("AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification", &["source_ethernet_address", "destination_ethernet_address", "source_internet_protocol_version_4_address", "destination_internet_protocol_version_4_address", "operation"], DeserializingVisitor)
+		visit!
+		(
+			deserializer,
+			AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification,
+			source_ethernet_address,
+			destination_ethernet_address,
+			source_internet_protocol_version_4_address,
+			destination_internet_protocol_version_4_address,
+			operation,
+		)
 	}
 }
 
