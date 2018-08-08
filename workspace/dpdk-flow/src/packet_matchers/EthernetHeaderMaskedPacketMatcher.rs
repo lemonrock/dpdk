@@ -8,12 +8,12 @@
 /// In this case, the ether type refers to the outer header, with the VirtualLanHeaderPacketMatcher's ether type referring to the inner Ether Type or tag protocol identifier (TPID).
 #[derive(Debug)]
 #[repr(transparent)]
-pub struct EthernetHeaderPacketMatcher
+pub struct EthernetHeaderMaskedPacketMatcher
 {
 	underlying: rte_flow_item_eth,
 }
 
-impl Clone for EthernetHeaderPacketMatcher
+impl Clone for EthernetHeaderMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
@@ -22,7 +22,7 @@ impl Clone for EthernetHeaderPacketMatcher
 	}
 }
 
-impl PartialEq for EthernetHeaderPacketMatcher
+impl PartialEq for EthernetHeaderMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn eq(&self, rhs: &Self) -> bool
@@ -31,11 +31,11 @@ impl PartialEq for EthernetHeaderPacketMatcher
 	}
 }
 
-impl Eq for EthernetHeaderPacketMatcher
+impl Eq for EthernetHeaderMaskedPacketMatcher
 {
 }
 
-impl PartialOrd for EthernetHeaderPacketMatcher
+impl PartialOrd for EthernetHeaderMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
@@ -44,7 +44,7 @@ impl PartialOrd for EthernetHeaderPacketMatcher
 	}
 }
 
-impl Ord for EthernetHeaderPacketMatcher
+impl Ord for EthernetHeaderMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn cmp(&self, rhs: &Self) -> Ordering
@@ -53,7 +53,7 @@ impl Ord for EthernetHeaderPacketMatcher
 	}
 }
 
-impl Hash for EthernetHeaderPacketMatcher
+impl Hash for EthernetHeaderMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, hasher: &mut H)
@@ -62,13 +62,16 @@ impl Hash for EthernetHeaderPacketMatcher
 	}
 }
 
-impl PacketMatcher for EthernetHeaderPacketMatcher
+impl PacketMatcher for EthernetHeaderMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_eth;
-	
 	const Type: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_ETH;
 	
 	const IsMeta: bool = false;
+}
+
+impl MaskedPacketMatcher for EthernetHeaderMaskedPacketMatcher
+{
+	type DpdkType = rte_flow_item_eth;
 	
 	#[inline(always)]
 	fn mask() -> &'static Self::DpdkType
@@ -77,11 +80,9 @@ impl PacketMatcher for EthernetHeaderPacketMatcher
 	}
 }
 
-impl EthernetHeaderPacketMatcher
+impl EthernetHeaderMaskedPacketMatcher
 {
-	/// A `source` of 0xFFFFFF matches all Ethernet source addresses.
-	/// A `destination` of 0xFFFFFF matches all Ethernet destination addresses.
-	/// A `ether_type_or_tag_protocol_identifier` of 0x0000 matches all EtherTypes and tag protocol identifiers (TPID)s.
+	/// Creates a new instance.
 	#[inline(always)]
 	pub fn new(source: MediaAccessControlAddress, destination: MediaAccessControlAddress, ether_type_or_tag_protocol_identifier: EtherType) -> Self
 	{

@@ -2,12 +2,13 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// An abstraction of a DPDK flow item.
-pub trait PacketMatcher
+/// A pattern matcher which uses a mask.
+pub trait MaskedPacketMatcher: PacketMatcher
 {
 	/// DPDK type.
-	const Type: rte_flow_item_type;
+	type DpdkType;
 	
-	/// Is this a DPDK 'META' flow item type?
-	const IsMeta: bool;
+	/// Default mask.
+	#[inline(always)]
+	fn mask() -> &'static Self::DpdkType;
 }

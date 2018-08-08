@@ -5,12 +5,12 @@
 /// A matcher that matches raw data using a pattern.
 #[derive(Debug)]
 #[repr(transparent)]
-pub struct RawPacketMatcher
+pub struct RawMaskedPacketMatcher
 {
 	underlying: rte_flow_item_raw,
 }
 
-impl Drop for RawPacketMatcher
+impl Drop for RawMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn drop(&mut self)
@@ -22,12 +22,12 @@ impl Drop for RawPacketMatcher
 	}
 }
 
-impl Clone for RawPacketMatcher
+impl Clone for RawMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
 	{
-		let mut clone = RawPacketMatcher
+		let mut clone = RawMaskedPacketMatcher
 		{
 			underlying: generic_clone(&self.underlying),
 		};
@@ -41,7 +41,7 @@ impl Clone for RawPacketMatcher
 	}
 }
 
-impl PartialEq for RawPacketMatcher
+impl PartialEq for RawMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn eq(&self, rhs: &Self) -> bool
@@ -50,11 +50,11 @@ impl PartialEq for RawPacketMatcher
 	}
 }
 
-impl Eq for RawPacketMatcher
+impl Eq for RawMaskedPacketMatcher
 {
 }
 
-impl PartialOrd for RawPacketMatcher
+impl PartialOrd for RawMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
@@ -63,7 +63,7 @@ impl PartialOrd for RawPacketMatcher
 	}
 }
 
-impl Ord for RawPacketMatcher
+impl Ord for RawMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn cmp(&self, rhs: &Self) -> Ordering
@@ -72,7 +72,7 @@ impl Ord for RawPacketMatcher
 	}
 }
 
-impl Hash for RawPacketMatcher
+impl Hash for RawMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, hasher: &mut H)
@@ -81,13 +81,16 @@ impl Hash for RawPacketMatcher
 	}
 }
 
-impl PacketMatcher for RawPacketMatcher
+impl PacketMatcher for RawMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_raw;
-	
 	const Type: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_RAW;
 	
 	const IsMeta: bool = false;
+}
+
+impl MaskedPacketMatcher for RawMaskedPacketMatcher
+{
+	type DpdkType = rte_flow_item_raw;
 	
 	#[inline(always)]
 	fn mask() -> &'static Self::DpdkType
@@ -96,8 +99,10 @@ impl PacketMatcher for RawPacketMatcher
 	}
 }
 
-impl RawPacketMatcher
+impl RawMaskedPacketMatcher
 {
+	/// Creates a new instance.
+	///
 	/// * `offset` can be absolute or relative; DPDK documentation is a little difficult to flow.
 	/// * `pattern` can not be longer than 65,535 bytes and must not be empty (zero, 0).
 	#[inline(always)]

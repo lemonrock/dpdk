@@ -2,28 +2,26 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://any.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Mark pattern match.
+/// Matches traffic originating from (ingress) or going to (egress) a given DPDK port identifier (also known as `port_id` and 'port ID').
 ///
-/// Not all devices will support a mark match, and, of those that do, not all will support the full range from 0 to 2^32 - 1 inclusive.
+/// Normally only supported if the port identifier in question is known by the underlying PMD and related to the device the flow rule is created against.
 ///
-/// A mark match matches a packet that has previously been 'marked' with a marking action. Marks are stored inside the `rte_mbuf` in the same union as the Receive Side Scaling (RSS) hash.
-///
-/// As of DPDK 18.05, this functionality is experimental.
+/// A port identifier is the application-side way of referring to 'ethernet' connections and getting reference to `eth_dev` structures.
 #[derive(Debug)]
 #[repr(transparent)]
-pub struct MarkPacketMatcher
+pub struct PortIdentifierMaskedPacketMatcher
 {
-	underlying: rte_flow_item_mark,
+	underlying: rte_flow_item_port_id,
 }
 
-impl Clone for MarkPacketMatcher
+impl Clone for PortIdentifierMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
 	{
-		MarkPacketMatcher
+		PortIdentifierMaskedPacketMatcher
 		{
-			underlying: rte_flow_item_mark
+			underlying: rte_flow_item_port_id
 			{
 				id: self.underlying.id,
 			}
@@ -31,7 +29,7 @@ impl Clone for MarkPacketMatcher
 	}
 }
 
-impl PartialEq for MarkPacketMatcher
+impl PartialEq for PortIdentifierMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn eq(&self, rhs: &Self) -> bool
@@ -40,11 +38,11 @@ impl PartialEq for MarkPacketMatcher
 	}
 }
 
-impl Eq for MarkPacketMatcher
+impl Eq for PortIdentifierMaskedPacketMatcher
 {
 }
 
-impl PartialOrd for MarkPacketMatcher
+impl PartialOrd for PortIdentifierMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
@@ -53,7 +51,7 @@ impl PartialOrd for MarkPacketMatcher
 	}
 }
 
-impl Ord for MarkPacketMatcher
+impl Ord for PortIdentifierMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn cmp(&self, rhs: &Self) -> Ordering
@@ -62,7 +60,7 @@ impl Ord for MarkPacketMatcher
 	}
 }
 
-impl Hash for MarkPacketMatcher
+impl Hash for PortIdentifierMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, hasher: &mut H)
@@ -71,39 +69,35 @@ impl Hash for MarkPacketMatcher
 	}
 }
 
-impl PacketMatcher for MarkPacketMatcher
+impl PacketMatcher for PortIdentifierMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_mark;
-	
-	const Type: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_FUZZY;
+	const Type: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_PORT_ID;
 	
 	const IsMeta: bool = false;
+}
+
+impl MaskedPacketMatcher for PortIdentifierMaskedPacketMatcher
+{
+	type DpdkType = rte_flow_item_port_id;
 	
 	#[inline(always)]
 	fn mask() -> &'static Self::DpdkType
 	{
-		static Mask: rte_flow_item_mark = rte_flow_item_mark
-		{
-			id: 0xFFFFFFFF,
-		};
-		
-		&Mask
+		unsafe { &rte_flow_item_port_id_mask }
 	}
 }
 
-impl MarkPacketMatcher
+impl PortIdentifierMaskedPacketMatcher
 {
 	/// Creates a new instance.
-	///
-	/// This matcher is always an exact match.
 	#[inline(always)]
-	pub fn new(mark: u32) -> Self
+	pub fn new(port_identifier: u32) -> Self
 	{
 		Self
 		{
-			underlying: rte_flow_item_mark
+			underlying: rte_flow_item_port_id
 			{
-				id: mark,
+				id: port_identifier,
 			}
 		}
 	}

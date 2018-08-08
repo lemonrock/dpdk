@@ -13,17 +13,17 @@
 /// As a device property, the list of allowed values as well as the value associated with a `port_id` should be retrieved by other means.
 #[derive(Debug)]
 #[repr(transparent)]
-pub struct PhysicalPortPacketMatcher
+pub struct PhysicalPortMaskedPacketMatcher
 {
 	underlying: rte_flow_item_phy_port,
 }
 
-impl Clone for PhysicalPortPacketMatcher
+impl Clone for PhysicalPortMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
 	{
-		PhysicalPortPacketMatcher
+		PhysicalPortMaskedPacketMatcher
 		{
 			underlying: rte_flow_item_phy_port
 			{
@@ -33,7 +33,7 @@ impl Clone for PhysicalPortPacketMatcher
 	}
 }
 
-impl PartialEq for PhysicalPortPacketMatcher
+impl PartialEq for PhysicalPortMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn eq(&self, rhs: &Self) -> bool
@@ -42,11 +42,11 @@ impl PartialEq for PhysicalPortPacketMatcher
 	}
 }
 
-impl Eq for PhysicalPortPacketMatcher
+impl Eq for PhysicalPortMaskedPacketMatcher
 {
 }
 
-impl PartialOrd for PhysicalPortPacketMatcher
+impl PartialOrd for PhysicalPortMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
@@ -55,7 +55,7 @@ impl PartialOrd for PhysicalPortPacketMatcher
 	}
 }
 
-impl Ord for PhysicalPortPacketMatcher
+impl Ord for PhysicalPortMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn cmp(&self, rhs: &Self) -> Ordering
@@ -64,7 +64,7 @@ impl Ord for PhysicalPortPacketMatcher
 	}
 }
 
-impl Hash for PhysicalPortPacketMatcher
+impl Hash for PhysicalPortMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, hasher: &mut H)
@@ -73,13 +73,16 @@ impl Hash for PhysicalPortPacketMatcher
 	}
 }
 
-impl PacketMatcher for PhysicalPortPacketMatcher
+impl PacketMatcher for PhysicalPortMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_phy_port;
-	
 	const Type: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_PHY_PORT;
 	
 	const IsMeta: bool = false;
+}
+
+impl MaskedPacketMatcher for PhysicalPortMaskedPacketMatcher
+{
+	type DpdkType = rte_flow_item_phy_port;
 	
 	#[inline(always)]
 	fn mask() -> &'static Self::DpdkType
@@ -88,11 +91,9 @@ impl PacketMatcher for PhysicalPortPacketMatcher
 	}
 }
 
-impl PhysicalPortPacketMatcher
+impl PhysicalPortMaskedPacketMatcher
 {
-	/// Create a new instance.
-	///
-	/// If `physical_port_identifier` is zero then matches any physical port.
+	/// Creates a new instance.
 	#[inline(always)]
 	pub fn new(physical_port_identifier: u32) -> Self
 	{

@@ -7,17 +7,17 @@
 /// This is usually specified as the first pattern item when looking for a protocol anywhere in a packet.
 #[derive(Debug)]
 #[repr(transparent)]
-pub struct AnyPacketMatcher
+pub struct AnyMaskedPacketMatcher
 {
 	underlying: rte_flow_item_any,
 }
 
-impl Clone for AnyPacketMatcher
+impl Clone for AnyMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
 	{
-		AnyPacketMatcher
+		AnyMaskedPacketMatcher
 		{
 			underlying: rte_flow_item_any
 			{
@@ -27,7 +27,7 @@ impl Clone for AnyPacketMatcher
 	}
 }
 
-impl PartialEq for AnyPacketMatcher
+impl PartialEq for AnyMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn eq(&self, rhs: &Self) -> bool
@@ -36,11 +36,11 @@ impl PartialEq for AnyPacketMatcher
 	}
 }
 
-impl Eq for AnyPacketMatcher
+impl Eq for AnyMaskedPacketMatcher
 {
 }
 
-impl PartialOrd for AnyPacketMatcher
+impl PartialOrd for AnyMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
@@ -49,7 +49,7 @@ impl PartialOrd for AnyPacketMatcher
 	}
 }
 
-impl Ord for AnyPacketMatcher
+impl Ord for AnyMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn cmp(&self, rhs: &Self) -> Ordering
@@ -58,7 +58,7 @@ impl Ord for AnyPacketMatcher
 	}
 }
 
-impl Hash for AnyPacketMatcher
+impl Hash for AnyMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, hasher: &mut H)
@@ -67,13 +67,16 @@ impl Hash for AnyPacketMatcher
 	}
 }
 
-impl PacketMatcher for AnyPacketMatcher
+impl PacketMatcher for AnyMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_any;
-	
 	const Type: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_ANY;
 	
 	const IsMeta: bool = false;
+}
+
+impl MaskedPacketMatcher for AnyMaskedPacketMatcher
+{
+	type DpdkType = rte_flow_item_any;
 	
 	#[inline(always)]
 	fn mask() -> &'static Self::DpdkType
@@ -82,7 +85,7 @@ impl PacketMatcher for AnyPacketMatcher
 	}
 }
 
-impl AnyPacketMatcher
+impl AnyMaskedPacketMatcher
 {
 	/// Creates a new instance.
 	///

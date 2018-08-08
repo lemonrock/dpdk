@@ -12,17 +12,17 @@
 /// * Can be combined with a PhysicalFunctionPacketMatcher to match both Physical Function (PF) and Virtual Function (VF) traffic.
 #[derive(Debug)]
 #[repr(transparent)]
-pub struct VirtualFunctionPacketMatcher
+pub struct VirtualFunctionMaskedPacketMatcher
 {
 	underlying: rte_flow_item_vf,
 }
 
-impl Clone for VirtualFunctionPacketMatcher
+impl Clone for VirtualFunctionMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
 	{
-		VirtualFunctionPacketMatcher
+		VirtualFunctionMaskedPacketMatcher
 		{
 			underlying: rte_flow_item_vf
 			{
@@ -32,7 +32,7 @@ impl Clone for VirtualFunctionPacketMatcher
 	}
 }
 
-impl PartialEq for VirtualFunctionPacketMatcher
+impl PartialEq for VirtualFunctionMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn eq(&self, rhs: &Self) -> bool
@@ -41,11 +41,11 @@ impl PartialEq for VirtualFunctionPacketMatcher
 	}
 }
 
-impl Eq for VirtualFunctionPacketMatcher
+impl Eq for VirtualFunctionMaskedPacketMatcher
 {
 }
 
-impl PartialOrd for VirtualFunctionPacketMatcher
+impl PartialOrd for VirtualFunctionMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
@@ -54,7 +54,7 @@ impl PartialOrd for VirtualFunctionPacketMatcher
 	}
 }
 
-impl Ord for VirtualFunctionPacketMatcher
+impl Ord for VirtualFunctionMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn cmp(&self, rhs: &Self) -> Ordering
@@ -63,7 +63,7 @@ impl Ord for VirtualFunctionPacketMatcher
 	}
 }
 
-impl Hash for VirtualFunctionPacketMatcher
+impl Hash for VirtualFunctionMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, hasher: &mut H)
@@ -72,13 +72,16 @@ impl Hash for VirtualFunctionPacketMatcher
 	}
 }
 
-impl PacketMatcher for VirtualFunctionPacketMatcher
+impl PacketMatcher for VirtualFunctionMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_vf;
-	
 	const Type: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_VF;
 	
 	const IsMeta: bool = false;
+}
+
+impl MaskedPacketMatcher for VirtualFunctionMaskedPacketMatcher
+{
+	type DpdkType = rte_flow_item_vf;
 	
 	#[inline(always)]
 	fn mask() -> &'static Self::DpdkType
@@ -87,11 +90,9 @@ impl PacketMatcher for VirtualFunctionPacketMatcher
 	}
 }
 
-impl VirtualFunctionPacketMatcher
+impl VirtualFunctionMaskedPacketMatcher
 {
-	/// Create a new instance.
-	///
-	/// If `virtual_function_identifier` is zero then matches any virtual function.
+	/// Creates a new instance.
 	#[inline(always)]
 	pub fn new(virtual_function_identifier: u32) -> Self
 	{

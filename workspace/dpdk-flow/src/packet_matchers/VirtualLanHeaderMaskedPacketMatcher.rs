@@ -7,12 +7,12 @@
 /// If precedeeded by an EthernetHeaderPacketMatcher, then matches on an IEEE 802.1ad QinQ Virtual LAN header's inner Tag Control Information (TCI).
 #[derive(Debug)]
 #[repr(transparent)]
-pub struct VirtualLanHeaderPacketMatcher
+pub struct VirtualLanHeaderMaskedPacketMatcher
 {
 	underlying: rte_flow_item_vlan,
 }
 
-impl Clone for VirtualLanHeaderPacketMatcher
+impl Clone for VirtualLanHeaderMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
@@ -21,7 +21,7 @@ impl Clone for VirtualLanHeaderPacketMatcher
 	}
 }
 
-impl PartialEq for VirtualLanHeaderPacketMatcher
+impl PartialEq for VirtualLanHeaderMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn eq(&self, rhs: &Self) -> bool
@@ -30,11 +30,11 @@ impl PartialEq for VirtualLanHeaderPacketMatcher
 	}
 }
 
-impl Eq for VirtualLanHeaderPacketMatcher
+impl Eq for VirtualLanHeaderMaskedPacketMatcher
 {
 }
 
-impl PartialOrd for VirtualLanHeaderPacketMatcher
+impl PartialOrd for VirtualLanHeaderMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
@@ -43,7 +43,7 @@ impl PartialOrd for VirtualLanHeaderPacketMatcher
 	}
 }
 
-impl Ord for VirtualLanHeaderPacketMatcher
+impl Ord for VirtualLanHeaderMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn cmp(&self, rhs: &Self) -> Ordering
@@ -52,7 +52,7 @@ impl Ord for VirtualLanHeaderPacketMatcher
 	}
 }
 
-impl Hash for VirtualLanHeaderPacketMatcher
+impl Hash for VirtualLanHeaderMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, hasher: &mut H)
@@ -61,13 +61,16 @@ impl Hash for VirtualLanHeaderPacketMatcher
 	}
 }
 
-impl PacketMatcher for VirtualLanHeaderPacketMatcher
+impl PacketMatcher for VirtualLanHeaderMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_vlan;
-	
 	const Type: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_VLAN;
 	
 	const IsMeta: bool = false;
+}
+
+impl MaskedPacketMatcher for VirtualLanHeaderMaskedPacketMatcher
+{
+	type DpdkType = rte_flow_item_vlan;
 	
 	#[inline(always)]
 	fn mask() -> &'static Self::DpdkType
@@ -76,10 +79,9 @@ impl PacketMatcher for VirtualLanHeaderPacketMatcher
 	}
 }
 
-impl VirtualLanHeaderPacketMatcher
+impl VirtualLanHeaderMaskedPacketMatcher
 {
-	/// A `tag_control_information` of 0x0FFF matches all values; the top 4-bit nibble of `tag_control_information` is ignored.
-	/// A `inner_ether_type_or_tag_protocol_identifier` of 0x0000 matches all EtherTypes and tag protocol identifiers (TPID)s. If it is EtherType::QinQVlanTagging (`0x88A8`), then this will match a IEEE 802.1ad QinQ Virtual LAN.
+	/// Creates a new instance.
 	#[inline(always)]
 	pub fn new(tag_control_information: TagControlInformation, inner_ether_type_or_tag_protocol_identifier: EtherType) -> Self
 	{

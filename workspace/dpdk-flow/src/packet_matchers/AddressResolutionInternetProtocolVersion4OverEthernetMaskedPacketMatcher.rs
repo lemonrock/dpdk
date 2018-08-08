@@ -7,12 +7,12 @@
 /// The underlying DPDK functionality supports other kinds of ARP packets but these are very rare in practice.
 #[derive(Debug)]
 #[repr(transparent)]
-pub struct AddressResolutionInternetProtocolVersion4OverEthernetPacketMatcher
+pub struct AddressResolutionInternetProtocolVersion4OverEthernetMaskedPacketMatcher
 {
 	underlying: rte_flow_item_arp_eth_ipv4,
 }
 
-impl Clone for AddressResolutionInternetProtocolVersion4OverEthernetPacketMatcher
+impl Clone for AddressResolutionInternetProtocolVersion4OverEthernetMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
@@ -21,7 +21,7 @@ impl Clone for AddressResolutionInternetProtocolVersion4OverEthernetPacketMatche
 	}
 }
 
-impl PartialEq for AddressResolutionInternetProtocolVersion4OverEthernetPacketMatcher
+impl PartialEq for AddressResolutionInternetProtocolVersion4OverEthernetMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn eq(&self, rhs: &Self) -> bool
@@ -30,11 +30,11 @@ impl PartialEq for AddressResolutionInternetProtocolVersion4OverEthernetPacketMa
 	}
 }
 
-impl Eq for AddressResolutionInternetProtocolVersion4OverEthernetPacketMatcher
+impl Eq for AddressResolutionInternetProtocolVersion4OverEthernetMaskedPacketMatcher
 {
 }
 
-impl PartialOrd for AddressResolutionInternetProtocolVersion4OverEthernetPacketMatcher
+impl PartialOrd for AddressResolutionInternetProtocolVersion4OverEthernetMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
@@ -43,7 +43,7 @@ impl PartialOrd for AddressResolutionInternetProtocolVersion4OverEthernetPacketM
 	}
 }
 
-impl Ord for AddressResolutionInternetProtocolVersion4OverEthernetPacketMatcher
+impl Ord for AddressResolutionInternetProtocolVersion4OverEthernetMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn cmp(&self, rhs: &Self) -> Ordering
@@ -52,7 +52,7 @@ impl Ord for AddressResolutionInternetProtocolVersion4OverEthernetPacketMatcher
 	}
 }
 
-impl Hash for AddressResolutionInternetProtocolVersion4OverEthernetPacketMatcher
+impl Hash for AddressResolutionInternetProtocolVersion4OverEthernetMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, hasher: &mut H)
@@ -61,13 +61,16 @@ impl Hash for AddressResolutionInternetProtocolVersion4OverEthernetPacketMatcher
 	}
 }
 
-impl PacketMatcher for AddressResolutionInternetProtocolVersion4OverEthernetPacketMatcher
+impl PacketMatcher for AddressResolutionInternetProtocolVersion4OverEthernetMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_arp_eth_ipv4;
-	
 	const Type: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_ARP_ETH_IPV4;
 	
 	const IsMeta: bool = false;
+}
+
+impl MaskedPacketMatcher for AddressResolutionInternetProtocolVersion4OverEthernetMaskedPacketMatcher
+{
+	type DpdkType = rte_flow_item_arp_eth_ipv4;
 	
 	#[inline(always)]
 	fn mask() -> &'static Self::DpdkType
@@ -76,12 +79,9 @@ impl PacketMatcher for AddressResolutionInternetProtocolVersion4OverEthernetPack
 	}
 }
 
-impl AddressResolutionInternetProtocolVersion4OverEthernetPacketMatcher
+impl AddressResolutionInternetProtocolVersion4OverEthernetMaskedPacketMatcher
 {
-	/// A `source_ethernet_address` of 0xFFFFFF matches all Ethernet source addresses.
-	/// A `destination_ethernet_address` of 0xFFFFFF matches all Ethernet destination addresses.
-	/// A `source_internet_protocol_version_4_address` of 0xFFFFFFFF matches all Internet Protocol (IP) version 4 source addresses.
-	/// A `destination_internet_protocol_version_4_address` of 0xFFFFFFFF matches all Internet Protocol (IP) version 4 destination addresses.
+	/// Creates a new instance.
 	#[inline(always)]
 	pub fn new(source_ethernet_address: MediaAccessControlAddress, destination_ethernet_address: MediaAccessControlAddress, source_internet_protocol_version_4_address: InternetProtocolVersion4HostAddress, destination_internet_protocol_version_4_address: InternetProtocolVersion4HostAddress, operation: Operation) -> Self
 	{

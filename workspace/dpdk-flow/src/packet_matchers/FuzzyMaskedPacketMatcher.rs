@@ -13,17 +13,17 @@
 /// These are mapped internally by a DPDK driver to the different accuracy levels that the underlying device supports.
 #[derive(Debug)]
 #[repr(transparent)]
-pub struct FuzzyPacketMatcher
+pub struct FuzzyMaskedPacketMatcher
 {
 	underlying: rte_flow_item_fuzzy,
 }
 
-impl Clone for FuzzyPacketMatcher
+impl Clone for FuzzyMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
 	{
-		FuzzyPacketMatcher
+		FuzzyMaskedPacketMatcher
 		{
 			underlying: rte_flow_item_fuzzy
 			{
@@ -33,7 +33,7 @@ impl Clone for FuzzyPacketMatcher
 	}
 }
 
-impl PartialEq for FuzzyPacketMatcher
+impl PartialEq for FuzzyMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn eq(&self, rhs: &Self) -> bool
@@ -42,11 +42,11 @@ impl PartialEq for FuzzyPacketMatcher
 	}
 }
 
-impl Eq for FuzzyPacketMatcher
+impl Eq for FuzzyMaskedPacketMatcher
 {
 }
 
-impl PartialOrd for FuzzyPacketMatcher
+impl PartialOrd for FuzzyMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
@@ -55,7 +55,7 @@ impl PartialOrd for FuzzyPacketMatcher
 	}
 }
 
-impl Ord for FuzzyPacketMatcher
+impl Ord for FuzzyMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn cmp(&self, rhs: &Self) -> Ordering
@@ -64,7 +64,7 @@ impl Ord for FuzzyPacketMatcher
 	}
 }
 
-impl Hash for FuzzyPacketMatcher
+impl Hash for FuzzyMaskedPacketMatcher
 {
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, hasher: &mut H)
@@ -73,13 +73,16 @@ impl Hash for FuzzyPacketMatcher
 	}
 }
 
-impl PacketMatcher for FuzzyPacketMatcher
+impl PacketMatcher for FuzzyMaskedPacketMatcher
 {
-	type DpdkType = rte_flow_item_fuzzy;
-	
 	const Type: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_FUZZY;
 	
 	const IsMeta: bool = false;
+}
+
+impl MaskedPacketMatcher for FuzzyMaskedPacketMatcher
+{
+	type DpdkType = rte_flow_item_fuzzy;
 	
 	#[inline(always)]
 	fn mask() -> &'static Self::DpdkType
@@ -88,7 +91,7 @@ impl PacketMatcher for FuzzyPacketMatcher
 	}
 }
 
-impl FuzzyPacketMatcher
+impl FuzzyMaskedPacketMatcher
 {
 	/// Creates a new instance.
 	///

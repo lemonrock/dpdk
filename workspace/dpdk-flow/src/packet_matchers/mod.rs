@@ -5,17 +5,19 @@
 use super::*;
 
 
-include!("AddressResolutionInternetProtocolVersion4OverEthernetPacketMatcher.rs");
-include!("AnyPacketMatcher.rs");
+include!("AddressResolutionInternetProtocolVersion4OverEthernetMaskedPacketMatcher.rs");
+include!("AnyMaskedPacketMatcher.rs");
 include!("EndPacketMatcher.rs");
-include!("EthernetHeaderPacketMatcher.rs");
-include!("FuzzyPacketMatcher.rs");
-include!("InternetProtocolVersion4HeaderPacketMatcher.rs");
-include!("InternetProtocolVersion6HeaderPacketMatcher.rs");
-include!("MarkPacketMatcher.rs");
+include!("EthernetHeaderMaskedPacketMatcher.rs");
+include!("FuzzyMaskedPacketMatcher.rs");
+include!("InternetProtocolVersion4HeaderMaskedPacketMatcher.rs");
+include!("InternetProtocolVersion6HeaderMaskedPacketMatcher.rs");
+include!("MarkMaskedPacketMatcher.rs");
+include!("MaskedPacketMatcher.rs");
 include!("PacketMatcher.rs");
-include!("PhysicalPortPacketMatcher.rs");
-include!("PortIdentifierPacketMatcher.rs");
-include!("RawPacketMatcher.rs");
-include!("VirtualFunctionPacketMatcher.rs");
-include!("VirtualLanHeaderPacketMatcher.rs");
+include!("PhysicalPortMaskedPacketMatcher.rs");
+include!("PortIdentifierMaskedPacketMatcher.rs");
+include!("RawMaskedPacketMatcher.rs");
+include!("VirtualFunctionMaskedPacketMatcher.rs");
+include!("VirtualLanHeaderMaskedPacketMatcher.rs");
+include!("VoidPacketMatcher.rs");
