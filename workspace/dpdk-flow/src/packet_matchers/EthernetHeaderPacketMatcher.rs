@@ -4,8 +4,8 @@
 
 /// A matcher that matches an ethernet header.
 ///
-/// When followed by a 'layer 2.5' matcher such as VirtualLanMatcher, the Ether Type is a tag protocol identifier (TPID).
-/// In this case, the ether type refers to the outer header, with the VirtualLanMatcher's ether type referring to the inner Ether Type or tag protocol identifier (TPID).
+/// When followed by a 'layer 2.5' matcher such as VirtualLanHeaderPacketMatcher, the Ether Type is a tag protocol identifier (TPID).
+/// In this case, the ether type refers to the outer header, with the VirtualLanHeaderPacketMatcher's ether type referring to the inner Ether Type or tag protocol identifier (TPID).
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct EthernetHeaderPacketMatcher
@@ -79,26 +79,24 @@ impl PacketMatcher for EthernetHeaderPacketMatcher
 
 impl EthernetHeaderPacketMatcher
 {
-	/// A `destination` of 0xFFFFFF matches all destination addresses.
-	/// A `source` of 0xFFFFFF matches all source addresses.
+	/// A `source` of 0xFFFFFF matches all Ethernet source addresses.
+	/// A `destination` of 0xFFFFFF matches all Ethernet destination addresses.
 	/// A `ether_type_or_tag_protocol_identifier` of 0x0000 matches all EtherTypes and tag protocol identifiers (TPID)s.
 	#[inline(always)]
-	pub fn new(destination: MediaAccessControlAddress, source: MediaAccessControlAddress, ether_type_or_tag_protocol_identifier: EtherType) -> Self
+	pub fn new(source: MediaAccessControlAddress, destination: MediaAccessControlAddress, ether_type_or_tag_protocol_identifier: EtherType) -> Self
 	{
-		let this = Self
+		Self
 		{
 			underlying: rte_flow_item_eth
 			{
-				dst: unsafe { transmute(destination.to_octets()) },
-				src: unsafe { transmute(source.to_octets()) },
+				dst: destination.to_ether_addr(),
+				src: source.to_ether_addr(),
 				type_:
 				{
 					let into: NetworkEndianU16 = ether_type_or_tag_protocol_identifier.into();
 					into.to_network_endian()
 				},
 			}
-		};
-		
-		this
+		}
 	}
 }

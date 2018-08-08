@@ -96,14 +96,12 @@ impl PhysicalPortPacketMatcher
 	#[inline(always)]
 	pub fn new(physical_port_identifier: u32) -> Self
 	{
-		let this = Self
+		Self
 		{
 			underlying: rte_flow_item_phy_port
 			{
 				index: physical_port_identifier,
 			}
-		};
-		
-		this
+		}
 	}
 }

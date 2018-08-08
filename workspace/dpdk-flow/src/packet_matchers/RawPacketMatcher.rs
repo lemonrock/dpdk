@@ -126,7 +126,7 @@ impl RawPacketMatcher
 			0
 		};
 		
-		let this = Self
+		Self
 		{
 			underlying: rte_flow_item_raw
 			{
@@ -136,9 +136,7 @@ impl RawPacketMatcher
 				length: pattern.len() as u16,
 				pattern: Self::pattern_to_raw(pattern),
 			}
-		};
-		
-		this
+		}
 	}
 	
 	#[inline(always)]

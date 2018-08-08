@@ -95,14 +95,12 @@ impl VirtualFunctionPacketMatcher
 	#[inline(always)]
 	pub fn new(virtual_function_identifier: u32) -> Self
 	{
-		let this = Self
+		Self
 		{
 			underlying: rte_flow_item_vf
 			{
 				id: virtual_function_identifier,
 			}
-		};
-		
-		this
+		}
 	}
 }

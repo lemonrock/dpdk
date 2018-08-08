@@ -90,14 +90,12 @@ impl AnyPacketMatcher
 	#[inline(always)]
 	pub fn new(number_of_layers_covered: u32) -> Self
 	{
-		let this = Self
+		Self
 		{
 			underlying: rte_flow_item_any
 			{
 				num: number_of_layers_covered,
 			}
-		};
-		
-		this
+		}
 	}
 }

@@ -4,18 +4,26 @@
 
 extern crate dpdk_sys;
 extern crate libc;
+extern crate network_address_resolution_protocol;
 extern crate network_endian;
 extern crate network_ethernet;
+extern crate network_internet_protocol;
 
 
 /// Packet matchers, called, confusingly, flow items, by DPDK.
 pub mod packet_matchers;
 
 
+use self::packet_matchers::*;
 use ::dpdk_sys::*;
 use ::libc::memcmp;
+use ::network_address_resolution_protocol::*;
 use ::network_endian::*;
 use ::network_ethernet::*;
+use ::network_ethernet::virtual_lans::*;
+#[allow(unused_imports)] use ::network_internet_protocol::InternetProtocolHostAddress;
+use ::network_internet_protocol::version_4::*;
+use ::network_internet_protocol::version_6::*;
 use ::std::cmp::Ordering;
 use ::std::hash::Hash;
 use ::std::hash::Hasher;
@@ -28,7 +36,9 @@ use ::std::slice::from_raw_parts;
 use ::std::slice::from_raw_parts_mut;
 
 
+include!("EthernetAddress.rs");
 include!("generic_clone.rs");
 include!("generic_compare.rs");
 include!("generic_equals.rs");
 include!("generic_hash.rs");
+include!("PatternItem.rs");

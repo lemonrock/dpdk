@@ -5,10 +5,17 @@
 use super::*;
 
 
+include!("AddressResolutionInternetProtocolVersion4OverEthernetPacketMatcher.rs");
 include!("AnyPacketMatcher.rs");
+include!("EndPacketMatcher.rs");
 include!("EthernetHeaderPacketMatcher.rs");
+include!("FuzzyPacketMatcher.rs");
+include!("InternetProtocolVersion4HeaderPacketMatcher.rs");
+include!("InternetProtocolVersion6HeaderPacketMatcher.rs");
+include!("MarkPacketMatcher.rs");
 include!("PacketMatcher.rs");
 include!("PhysicalPortPacketMatcher.rs");
 include!("PortIdentifierPacketMatcher.rs");
 include!("RawPacketMatcher.rs");
 include!("VirtualFunctionPacketMatcher.rs");
+include!("VirtualLanHeaderPacketMatcher.rs");
