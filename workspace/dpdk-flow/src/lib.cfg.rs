@@ -6,6 +6,10 @@ extern crate dpdk_sys;
 extern crate libc;
 
 
+/// Flow items.
+pub mod flow_items;
+
+
 use ::dpdk_sys::*;
 use ::libc::memcmp;
 use ::std::cmp::Ordering;
@@ -23,4 +27,3 @@ include!("generic_clone.rs");
 include!("generic_compare.rs");
 include!("generic_equals.rs");
 include!("generic_hash.rs");
-include!("Raw.rs");

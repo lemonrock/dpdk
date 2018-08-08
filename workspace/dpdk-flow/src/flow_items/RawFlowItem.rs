@@ -2,32 +2,15 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// An abstraction of a DPDK flow item.
-pub trait FlowItem
-{
-	/// DPDK related struct.
-	type DpdkType: Sized;
-	
-	/// DPDK type.
-	const Type: rte_flow_item_type;
-	
-	/// Is this a DPDK 'META' flow item type?
-	const IsMeta: bool;
-	
-	/// DPDK static mask.
-	#[inline(always)]
-	fn mask() -> &'static Self::DpdkType;
-}
-
 /// A flow item that matches raw data using a pattern.
 #[derive(Debug)]
 #[repr(transparent)]
-pub struct Raw
+pub struct RawFlowItem
 {
 	underlying: rte_flow_item_raw,
 }
 
-impl Drop for Raw
+impl Drop for RawFlowItem
 {
 	#[inline(always)]
 	fn drop(&mut self)
@@ -39,12 +22,12 @@ impl Drop for Raw
 	}
 }
 
-impl Clone for Raw
+impl Clone for RawFlowItem
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
 	{
-		let mut clone = Raw
+		let mut clone = RawFlowItem
 		{
 			underlying: generic_clone(&self.underlying),
 		};
@@ -58,7 +41,7 @@ impl Clone for Raw
 	}
 }
 
-impl PartialEq for Raw
+impl PartialEq for RawFlowItem
 {
 	#[inline(always)]
 	fn eq(&self, rhs: &Self) -> bool
@@ -67,11 +50,11 @@ impl PartialEq for Raw
 	}
 }
 
-impl Eq for Raw
+impl Eq for RawFlowItem
 {
 }
 
-impl PartialOrd for Raw
+impl PartialOrd for RawFlowItem
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
@@ -80,7 +63,7 @@ impl PartialOrd for Raw
 	}
 }
 
-impl Ord for Raw
+impl Ord for RawFlowItem
 {
 	#[inline(always)]
 	fn cmp(&self, rhs: &Self) -> Ordering
@@ -89,7 +72,7 @@ impl Ord for Raw
 	}
 }
 
-impl Hash for Raw
+impl Hash for RawFlowItem
 {
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, hasher: &mut H)
@@ -98,7 +81,7 @@ impl Hash for Raw
 	}
 }
 
-impl FlowItem for Raw
+impl FlowItem for RawFlowItem
 {
 	type DpdkType = rte_flow_item_raw;
 	
@@ -113,7 +96,7 @@ impl FlowItem for Raw
 	}
 }
 
-impl Raw
+impl RawFlowItem
 {
 	/// * `offset` can be absolute or relative; DPDK documentation is a little difficult to flow.
 	/// * `pattern` can not be longer than 65,535 bytes and must not be empty (zero, 0).
