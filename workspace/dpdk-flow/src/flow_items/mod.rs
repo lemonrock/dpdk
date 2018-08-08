@@ -5,5 +5,6 @@
 use super::*;
 
 
+include!("AnyFlowItem.rs");
 include!("FlowItem.rs");
 include!("RawFlowItem.rs");
