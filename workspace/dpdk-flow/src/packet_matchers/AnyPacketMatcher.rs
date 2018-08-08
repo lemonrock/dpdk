@@ -2,20 +2,22 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://any.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// A flow item that matches any data using a pattern.
+/// Matches any protocol in place of the current layer, a single instance may also stand for several protocol layers.
+///
+/// This is usually specified as the first pattern item when looking for a protocol anywhere in a packet.
 #[derive(Debug)]
 #[repr(transparent)]
-pub struct AnyFlowItem
+pub struct AnyPacketMatcher
 {
 	underlying: rte_flow_item_any,
 }
 
-impl Clone for AnyFlowItem
+impl Clone for AnyPacketMatcher
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
 	{
-		AnyFlowItem
+		AnyPacketMatcher
 		{
 			underlying: rte_flow_item_any
 			{
@@ -25,7 +27,7 @@ impl Clone for AnyFlowItem
 	}
 }
 
-impl PartialEq for AnyFlowItem
+impl PartialEq for AnyPacketMatcher
 {
 	#[inline(always)]
 	fn eq(&self, rhs: &Self) -> bool
@@ -34,11 +36,11 @@ impl PartialEq for AnyFlowItem
 	}
 }
 
-impl Eq for AnyFlowItem
+impl Eq for AnyPacketMatcher
 {
 }
 
-impl PartialOrd for AnyFlowItem
+impl PartialOrd for AnyPacketMatcher
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
@@ -47,7 +49,7 @@ impl PartialOrd for AnyFlowItem
 	}
 }
 
-impl Ord for AnyFlowItem
+impl Ord for AnyPacketMatcher
 {
 	#[inline(always)]
 	fn cmp(&self, rhs: &Self) -> Ordering
@@ -56,7 +58,7 @@ impl Ord for AnyFlowItem
 	}
 }
 
-impl Hash for AnyFlowItem
+impl Hash for AnyPacketMatcher
 {
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, hasher: &mut H)
@@ -65,7 +67,7 @@ impl Hash for AnyFlowItem
 	}
 }
 
-impl FlowItem for AnyFlowItem
+impl PacketMatcher for AnyPacketMatcher
 {
 	type DpdkType = rte_flow_item_any;
 	
@@ -80,12 +82,11 @@ impl FlowItem for AnyFlowItem
 	}
 }
 
-/// Matches any protocol in place of the current layer, a single instance may also stand for several protocol layers.
-///
-/// This is usually specified as the first pattern item when looking for a protocol anywhere in a packet.
-impl AnyFlowItem
+impl AnyPacketMatcher
 {
-	/// Create a new instance.
+	/// Creates a new instance.
+	///
+	/// If `number_of_layers_covered` is zero then matches any layer.
 	#[inline(always)]
 	pub fn new(number_of_layers_covered: u32) -> Self
 	{

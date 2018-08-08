@@ -2,19 +2,12 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// An abstraction of a DPDK flow item.
-pub trait FlowItem
-{
-	/// DPDK related struct.
-	type DpdkType: Sized;
-	
-	/// DPDK type.
-	const Type: rte_flow_item_type;
-	
-	/// Is this a DPDK 'META' flow item type?
-	const IsMeta: bool;
-	
-	/// DPDK static mask.
-	#[inline(always)]
-	fn mask() -> &'static Self::DpdkType;
-}
+use super::*;
+
+
+include!("AnyPacketMatcher.rs");
+include!("PacketMatcher.rs");
+include!("PhysicalPortPacketMatcher.rs");
+include!("PortIdentifierPacketMatcher.rs");
+include!("RawPacketMatcher.rs");
+include!("VirtualFunctionPacketMatcher.rs");

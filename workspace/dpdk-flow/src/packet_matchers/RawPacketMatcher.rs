@@ -5,12 +5,12 @@
 /// A flow item that matches raw data using a pattern.
 #[derive(Debug)]
 #[repr(transparent)]
-pub struct RawFlowItem
+pub struct RawPacketMatcher
 {
 	underlying: rte_flow_item_raw,
 }
 
-impl Drop for RawFlowItem
+impl Drop for RawPacketMatcher
 {
 	#[inline(always)]
 	fn drop(&mut self)
@@ -22,12 +22,12 @@ impl Drop for RawFlowItem
 	}
 }
 
-impl Clone for RawFlowItem
+impl Clone for RawPacketMatcher
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
 	{
-		let mut clone = RawFlowItem
+		let mut clone = RawPacketMatcher
 		{
 			underlying: generic_clone(&self.underlying),
 		};
@@ -41,7 +41,7 @@ impl Clone for RawFlowItem
 	}
 }
 
-impl PartialEq for RawFlowItem
+impl PartialEq for RawPacketMatcher
 {
 	#[inline(always)]
 	fn eq(&self, rhs: &Self) -> bool
@@ -50,11 +50,11 @@ impl PartialEq for RawFlowItem
 	}
 }
 
-impl Eq for RawFlowItem
+impl Eq for RawPacketMatcher
 {
 }
 
-impl PartialOrd for RawFlowItem
+impl PartialOrd for RawPacketMatcher
 {
 	#[inline(always)]
 	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
@@ -63,7 +63,7 @@ impl PartialOrd for RawFlowItem
 	}
 }
 
-impl Ord for RawFlowItem
+impl Ord for RawPacketMatcher
 {
 	#[inline(always)]
 	fn cmp(&self, rhs: &Self) -> Ordering
@@ -72,7 +72,7 @@ impl Ord for RawFlowItem
 	}
 }
 
-impl Hash for RawFlowItem
+impl Hash for RawPacketMatcher
 {
 	#[inline(always)]
 	fn hash<H: Hasher>(&self, hasher: &mut H)
@@ -81,7 +81,7 @@ impl Hash for RawFlowItem
 	}
 }
 
-impl FlowItem for RawFlowItem
+impl PacketMatcher for RawPacketMatcher
 {
 	type DpdkType = rte_flow_item_raw;
 	
@@ -96,7 +96,7 @@ impl FlowItem for RawFlowItem
 	}
 }
 
-impl RawFlowItem
+impl RawPacketMatcher
 {
 	/// * `offset` can be absolute or relative; DPDK documentation is a little difficult to flow.
 	/// * `pattern` can not be longer than 65,535 bytes and must not be empty (zero, 0).

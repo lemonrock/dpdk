@@ -6,8 +6,8 @@ extern crate dpdk_sys;
 extern crate libc;
 
 
-/// Flow items.
-pub mod flow_items;
+/// Packet matchers, called, confusingly, flow items, by DPDK.
+pub mod packet_matchers;
 
 
 use ::dpdk_sys::*;
