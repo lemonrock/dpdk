@@ -5,7 +5,7 @@
 
 ## Versioning
 
-Bindings are currently built for DPDK 17.02. To rebuild the bindings, run `tools/recreate-bindings`. The bindings are checked in, even though they can be generated. Building them as part of a Cargo build.rs has proven to be too fragile, not least because of the complexity of DPDK and the need to patch it to work with musl libc and to support compilation on Mac OS X.
+Bindings are currently built for DPDK 18.05. To rebuild the bindings, run `tools/recreate-bindings`. The bindings are checked in, even though they can be generated. Building them as part of a Cargo build.rs has proven to be too fragile, not least because of the complexity of DPDK and the need to patch it to work with musl libc and to support compilation on Mac OS X.
 
 
 ## Notes

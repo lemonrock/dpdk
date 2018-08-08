@@ -2,7 +2,7 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// A flow item that matches raw data using a pattern.
+/// A matcher that matches raw data using a pattern.
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct RawPacketMatcher

@@ -4,6 +4,8 @@
 
 extern crate dpdk_sys;
 extern crate libc;
+extern crate network_endian;
+extern crate network_ethernet;
 
 
 /// Packet matchers, called, confusingly, flow items, by DPDK.
@@ -12,6 +14,8 @@ pub mod packet_matchers;
 
 use ::dpdk_sys::*;
 use ::libc::memcmp;
+use ::network_endian::*;
+use ::network_ethernet;
 use ::std::cmp::Ordering;
 use ::std::hash::Hash;
 use ::std::hash::Hasher;

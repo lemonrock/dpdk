@@ -6,6 +6,7 @@ use super::*;
 
 
 include!("AnyPacketMatcher.rs");
+include!("EthernetHeaderPacketMatcher.rs");
 include!("PacketMatcher.rs");
 include!("PhysicalPortPacketMatcher.rs");
 include!("PortIdentifierPacketMatcher.rs");
