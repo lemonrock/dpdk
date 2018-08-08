@@ -5,7 +5,9 @@
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk/dpdk.iml" filepath="$PROJECT_DIR$/workspace/dpdk/dpdk.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-bus/dpdk-bus.iml" filepath="$PROJECT_DIR$/workspace/dpdk-bus/dpdk-bus.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-core/dpdk-core.iml" filepath="$PROJECT_DIR$/workspace/dpdk-core/dpdk-core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-cyclic-redundancy-check/dpdk-cyclic-redundancy-check.iml" filepath="$PROJECT_DIR$/workspace/dpdk-cyclic-redundancy-check/dpdk-cyclic-redundancy-check.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-elastic-flow-distributor/dpdk-elastic-flow-distributor.iml" filepath="$PROJECT_DIR$/workspace/dpdk-elastic-flow-distributor/dpdk-elastic-flow-distributor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-flow/dpdk-flow.iml" filepath="$PROJECT_DIR$/workspace/dpdk-flow/dpdk-flow.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-global-allocator/dpdk-global-allocator.iml" filepath="$PROJECT_DIR$/workspace/dpdk-global-allocator/dpdk-global-allocator.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-hash-table/dpdk-hash-table.iml" filepath="$PROJECT_DIR$/workspace/dpdk-hash-table/dpdk-hash-table.iml" />
       <module fileurl="file://$PROJECT_DIR$/workspace/dpdk-layers/dpdk-layers.iml" filepath="$PROJECT_DIR$/workspace/dpdk-layers/dpdk-layers.iml" />
