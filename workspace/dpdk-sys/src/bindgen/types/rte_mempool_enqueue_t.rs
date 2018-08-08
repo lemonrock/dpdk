@@ -2,4 +2,4 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-pub type rte_mempool_enqueue_t = Option<unsafe extern "C" fn(mp: *mut rte_mempool, obj_table: *const *const c_void, n: c_uint) -> c_int>;
+pub type rte_mempool_enqueue_t = Option<unsafe extern "C" fn(mp: *mut rte_mempool, obj_table: *const *mut c_void, n: c_uint) -> c_int>;

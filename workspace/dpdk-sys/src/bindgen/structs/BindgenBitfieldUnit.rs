@@ -30,7 +30,14 @@ where Storage: AsRef<[u8]> + AsMut<[u8]>
 		debug_assert!(index / 8 < self.storage.as_ref().len());
 		let byte_index = index / 8;
 		let byte = self.storage.as_ref()[byte_index];
-		let bit_index = index % 8;
+		let bit_index = if cfg!(target_endian = "big")
+		{
+			7 - (index % 8)
+		}
+		else
+		{
+			index % 8
+		};
 		let mask = 1 << bit_index;
 		byte & mask == mask
 	}
@@ -41,7 +48,14 @@ where Storage: AsRef<[u8]> + AsMut<[u8]>
 		debug_assert!(index / 8 < self.storage.as_ref().len());
 		let byte_index = index / 8;
 		let byte = &mut self.storage.as_mut()[byte_index];
-		let bit_index = index % 8;
+		let bit_index = if cfg!(target_endian = "big")
+		{
+			7 - (index % 8)
+		}
+		else
+		{
+			index % 8
+		};
 		let mask = 1 << bit_index;
 		if val
 		{
@@ -64,7 +78,15 @@ where Storage: AsRef<[u8]> + AsMut<[u8]>
 		{
 			if self.get_bit(i + bit_offset)
 			{
-				val |= 1 << i;
+				let index = if cfg!(target_endian = "big")
+				{
+					bit_width as usize - 1 - i
+				}
+				else
+				{
+					i
+				};
+				val |= 1 << index;
 			}
 		}
 		val
@@ -80,7 +102,15 @@ where Storage: AsRef<[u8]> + AsMut<[u8]>
 		{
 			let mask = 1 << i;
 			let val_bit_is_set = val & mask == mask;
-			self.set_bit(i + bit_offset, val_bit_is_set);
+			let index = if cfg!(target_endian = "big")
+			{
+				bit_width as usize - 1 - i
+			}
+			else
+			{
+				i
+			};
+			self.set_bit(index + bit_offset, val_bit_is_set);
 		}
 	}
 }

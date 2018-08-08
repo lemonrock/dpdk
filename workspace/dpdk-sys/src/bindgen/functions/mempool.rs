@@ -5,7 +5,7 @@
 extern "C"
 {
 	pub fn rust___mempool_generic_get(mp: *mut rte_mempool, obj_table: *mut *mut c_void, n: c_uint, cache: *mut rte_mempool_cache) -> c_int;
-	pub fn rust___mempool_generic_put(mp: *mut rte_mempool, obj_table: *const *const c_void, n: c_uint, cache: *mut rte_mempool_cache);
+	pub fn rust___mempool_generic_put(mp: *mut rte_mempool, obj_table: *const *mut c_void, n: c_uint, cache: *mut rte_mempool_cache);
 	pub fn rust___mempool_get_header(obj: *mut c_void) -> *mut rte_mempool_objhdr;
 	pub fn rust___mempool_get_trailer(obj: *mut c_void) -> *mut rte_mempool_objtlr;
 }

@@ -15,7 +15,7 @@ extern "C"
 	pub fn rte_eth_find_next(port_id: u16) -> u16;
 	pub fn rte_eth_find_next_owned_by(port_id: u16, owner_id: u64) -> u64;
 	pub fn rte_eth_from_ring(r: *mut rte_ring) -> c_int;
-	pub fn rte_eth_from_rings(name: *const c_char, rx_queues: *const *const rte_ring, nb_rx_queues: c_uint, tx_queues: *const *const rte_ring, nb_tx_queues: c_uint, numa_node: c_uint) -> c_int;
+	pub fn rte_eth_from_rings(name: *const c_char, rx_queues: *const *mut rte_ring, nb_rx_queues: c_uint, tx_queues: *const *mut rte_ring, nb_tx_queues: c_uint, numa_node: c_uint) -> c_int;
 	pub fn rte_eth_led_off(port_id: u16) -> c_int;
 	pub fn rte_eth_led_on(port_id: u16) -> c_int;
 	pub fn rte_eth_link_get(port_id: u16, link: *mut rte_eth_link);

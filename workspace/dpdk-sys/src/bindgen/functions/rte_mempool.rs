@@ -10,8 +10,8 @@ extern "C"
 	pub fn rte_mempool_cache_free(cache: *mut rte_mempool_cache);
 	pub fn rte_mempool_calc_mem_size_helper(elt_num: u32, total_elt_sz: usize, pg_shift: u32) -> usize;
 	pub fn rte_mempool_calc_obj_size(elt_size: u32, flags: u32, sz: *mut rte_mempool_objsz) -> u32;
-	pub fn rte_mempool_check_cookies(mp: *const rte_mempool, obj_table_const: *const *const c_void, n: c_uint, free: c_int);
-	pub fn rte_mempool_contig_blocks_check_cookies(mp: *const rte_mempool, first_obj_table_const: *const *const c_void, n: c_uint, free: c_int);
+	pub fn rte_mempool_check_cookies(mp: *const rte_mempool, obj_table_const: *const *mut c_void, n: c_uint, free: c_int);
+	pub fn rte_mempool_contig_blocks_check_cookies(mp: *const rte_mempool, first_obj_table_const: *const *mut c_void, n: c_uint, free: c_int);
 	pub fn rte_mempool_create(name: *const c_char, n: c_uint, elt_size: c_uint, cache_size: c_uint, private_data_size: c_uint, mp_init: rte_mempool_ctor_t, mp_init_arg: *mut c_void, obj_init: rte_mempool_obj_cb_t, obj_init_arg: *mut c_void, socket_id: c_int, flags: c_uint) -> *mut rte_mempool;
 	pub fn rte_mempool_create_empty(name: *const c_char, n: c_uint, elt_size: c_uint, cache_size: c_uint, private_data_size: c_uint, socket_id: c_int, flags: c_uint) -> *mut rte_mempool;
 	pub fn rte_mempool_dump(f: *mut FILE, mp: *mut rte_mempool);

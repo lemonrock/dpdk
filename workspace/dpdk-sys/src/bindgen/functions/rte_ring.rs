@@ -12,5 +12,5 @@ extern "C"
 	pub fn rte_ring_list_dump(f: *mut FILE);
 	pub fn rte_ring_lookup(name: *const c_char) -> *mut rte_ring;
 	pub fn rust___rte_ring_do_dequeue(r: *mut rte_ring, obj_table: *mut *mut c_void, n: c_uint, behavior: rte_ring_queue_behavior, is_sc: c_uint, available: *mut c_uint) -> c_uint;
-	pub fn rust___rte_ring_do_enqueue(r: *mut rte_ring, obj_table: *const *const c_void, n: c_uint, behavior: rte_ring_queue_behavior, is_sp: c_uint, free_space: *mut c_uint) -> c_uint;
+	pub fn rust___rte_ring_do_enqueue(r: *mut rte_ring, obj_table: *const *mut c_void, n: c_uint, behavior: rte_ring_queue_behavior, is_sp: c_uint, free_space: *mut c_uint) -> c_uint;
 }
