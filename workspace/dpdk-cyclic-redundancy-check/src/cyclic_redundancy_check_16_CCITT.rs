@@ -6,7 +6,7 @@
 ///
 /// Also known as the CRC-CITT algorithm, and used in standards including X.25, V.41, HDLC FCS, XMODEM, Bluetooth, PACTOR, SD and DigRF.
 ///
-/// `data` must have a length which does not exeeds 2^32 - 1.
+/// `data` must have a length which does not exeed 2^32 - 1.
 #[inline(always)]
 pub fn cyclic_redundancy_check_16_CCITT(data: &[u8]) -> u16
 {

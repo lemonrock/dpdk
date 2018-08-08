@@ -6,7 +6,7 @@
 ///
 ///Also known as the CRC-32 algorithm, and used in standards including ISO 3309 (HDLC), ANSI X3.66 (ADCCP), FIPS PUB 71, FED-STD-1003, ITU-T V.42, ISO/IEC/IEEE 802-3 (Ethernet), SATA, MPEG-2, PKZIP, Gzip, Bzip2, POSIX cksum, PNG and ZMODEM.
 ///
-/// `data` must have a length which does not exeeds 2^32 - 1.
+/// `data` must have a length which does not exeed 2^32 - 1.
 #[inline(always)]
 pub fn cyclic_redundancy_check_32(data: &[u8]) -> u32
 {
