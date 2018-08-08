@@ -13,34 +13,12 @@ pub struct EthernetHeaderPacketMatcher
 	underlying: rte_flow_item_eth,
 }
 
-impl Drop for EthernetHeaderPacketMatcher
-{
-	#[inline(always)]
-	fn drop(&mut self)
-	{
-		if self.pattern_is_not_null()
-		{
-			drop(self.pattern_as_boxed_slice())
-		}
-	}
-}
-
 impl Clone for EthernetHeaderPacketMatcher
 {
 	#[inline(always)]
 	fn clone(&self) -> Self
 	{
-		let mut clone = EthernetHeaderPacketMatcher
-		{
-			underlying: generic_clone(&self.underlying),
-		};
-		
-		if clone.pattern_is_not_null()
-		{
-			clone.underlying.pattern = Self::pattern_to_raw(self.pattern_cloned())
-		}
-		
-		clone
+		generic_clone(&self)
 	}
 }
 
@@ -49,7 +27,7 @@ impl PartialEq for EthernetHeaderPacketMatcher
 	#[inline(always)]
 	fn eq(&self, rhs: &Self) -> bool
 	{
-		generic_equals(&self.underlying, &rhs.underlying)
+		generic_equals(&self, &rhs)
 	}
 }
 
@@ -71,7 +49,7 @@ impl Ord for EthernetHeaderPacketMatcher
 	#[inline(always)]
 	fn cmp(&self, rhs: &Self) -> Ordering
 	{
-		generic_compare(&self.underlying, &rhs.underlying)
+		generic_compare(&self, &rhs)
 	}
 }
 
@@ -111,8 +89,8 @@ impl EthernetHeaderPacketMatcher
 		{
 			underlying: rte_flow_item_eth
 			{
-				dst: destination.into(),
-				src: source.into(),
+				dst: unsafe { transmute(destination.to_octets()) },
+				src: unsafe { transmute(source.to_octets()) },
 				type_:
 				{
 					let into: NetworkEndianU16 = ether_type_or_tag_protocol_identifier.into();

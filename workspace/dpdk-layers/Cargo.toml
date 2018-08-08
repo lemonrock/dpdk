@@ -28,5 +28,3 @@ likely = "0.1"
 serde = "1.0"
 serde_derive = "1.0"
 syscall-alt = "0.0.14"
-# TODO: Suspended as upstream crate needs changes.
-#treebitmap = "^0.3"
