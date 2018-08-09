@@ -24,6 +24,8 @@ custom_deserialize!
 	1 => target_address,
 }
 
+bitwise_clone_partial_ord_ord_partial_eq_eq_hash!(InternetControlMessageProtocolVersion6NeighborDiscoverySolicitationSpecification);
+
 impl MaskedPattern for InternetControlMessageProtocolVersion6NeighborDiscoverySolicitationSpecification
 {
 	type Type = rte_flow_item_icmp6_nd_ns;

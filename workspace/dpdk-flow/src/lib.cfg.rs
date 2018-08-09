@@ -6,6 +6,7 @@ extern crate arrayvec;
 extern crate dpdk_core;
 extern crate dpdk_sys;
 #[macro_use] extern crate likely;
+extern crate mem_cmp;
 extern crate network_address_resolution_protocol;
 extern crate network_check_sum;
 extern crate network_endian;
@@ -20,6 +21,7 @@ use self::pattern_item_implementations::*;
 use ::arrayvec::ArrayVec;
 use ::dpdk_core::*;
 use ::dpdk_sys::*;
+#[allow(unused_imports)] use ::mem_cmp::*;
 use ::network_address_resolution_protocol::*;
 use ::network_check_sum::*;
 use ::network_endian::*;
@@ -36,13 +38,22 @@ use ::serde::de::Error as DeserializerError;
 use ::serde::de::MapAccess;
 use ::serde::de::SeqAccess;
 use ::serde::de::Visitor;
+use ::std::cmp::Ordering;
 use ::std::fmt;
+use ::std::hash::Hash;
+use ::std::hash::Hasher;
+use ::std::mem::forget;
+use ::std::mem::size_of;
 use ::std::mem::transmute;
+use ::std::mem::uninitialized;
 use ::std::mem::zeroed;
+use ::std::ptr::copy_nonoverlapping;
 use ::std::ptr::NonNull;
 use ::std::ptr::null_mut;
+use ::std::slice::from_raw_parts;
 
 
+include!("bitwise_clone_partial_ord_ord_partial_eq_eq_hash.rs");
 include!("custom_deserialize.rs");
 
 
@@ -50,6 +61,7 @@ include!("custom_deserialize.rs");
 pub mod pattern_item_implementations;
 
 
+include!("ActiveFlowRule.rs");
 include!("FlowRule.rs");
 include!("Pattern.rs");
 include!("TrafficDirection.rs");

@@ -29,20 +29,11 @@ pub struct FlowRule
 	pub patterns: ArrayVec<[Pattern; Pattern::MaximumPatterns]>,
 }
 
-/*
-struct rte_flow *
-rte_flow_create(uint16_t port_id,
-		const struct rte_flow_attr *attr,
-		const struct rte_flow_item pattern[],
-		const struct rte_flow_action actions[],
-		struct rte_flow_error *error);
-*/
-
-
 impl FlowRule
 {
+	/// Creates an active flow rule.
 	#[inline(always)]
-	pub fn create(&self, port_identifier: u16) -> Result<NonNull<rte_flow>, rte_flow_error>
+	pub fn activate(&self, port_identifier: u16) -> Result<ActiveFlowRule, rte_flow_error>
 	{
 		let attributes = self.create_flow_attributes();
 		let mut error = unsafe { zeroed() };
@@ -55,7 +46,14 @@ impl FlowRule
 		
 		if likely!(result.is_null())
 		{
-			Ok(unsafe { NonNull::new_unchecked(result) })
+			Ok
+			(
+				ActiveFlowRule
+				{
+					port_identifier,
+					reference: unsafe { NonNull::new_unchecked(result) },
+				}
+			)
 		}
 		else
 		{

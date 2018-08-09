@@ -3,8 +3,9 @@
 
 
 /// Mask for an `Pattern::InternetControlMessageProtocolVersion6NeighborDiscoveryOption`.
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
+#[repr(C, packed)]
 pub struct InternetControlMessageProtocolVersion6NeighborDiscoveryOptionMask
 {
 	/// Type mask (see [IANA](https://www.iana.org/assignments/icmpv6-parameters/icmpv6-parameters.xhtml#icmpv6-parameters-5>)).

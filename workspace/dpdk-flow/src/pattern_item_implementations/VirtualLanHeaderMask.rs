@@ -3,7 +3,7 @@
 
 
 /// Mask for an `Pattern::VirtualLanHeader`.
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(C, packed)]
 pub struct VirtualLanHeaderMask

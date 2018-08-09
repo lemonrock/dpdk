@@ -3,7 +3,7 @@
 
 
 /// Mask for an `Pattern::InternetProtocolVersion4Header`.
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(C, packed)]
 pub struct InternetControlMessageProtocolVersion4HeaderMask

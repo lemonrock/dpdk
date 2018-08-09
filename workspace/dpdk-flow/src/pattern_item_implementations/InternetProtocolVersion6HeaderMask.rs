@@ -3,7 +3,7 @@
 
 
 /// Mask for an `Pattern::InternetProtocolVersion6Header`.
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(C, packed)]
 pub struct InternetProtocolVersion6HeaderMask

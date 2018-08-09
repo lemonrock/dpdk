@@ -28,6 +28,8 @@ custom_deserialize!
 	2 => flags,
 }
 
+bitwise_clone_partial_ord_ord_partial_eq_eq_hash!(InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementSpecification);
+
 impl MaskedPattern for InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementSpecification
 {
 	type Type = rte_flow_item_icmp6_nd_na;

@@ -36,6 +36,8 @@ custom_deserialize!
 	4 => operation,
 }
 
+bitwise_clone_partial_ord_ord_partial_eq_eq_hash!(AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask);
+
 impl MaskedPattern for AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask
 {
 	type Type = rte_flow_item_arp_eth_ipv4;
