@@ -2,19 +2,19 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// An virtual LAN header specification which shadows VirtualLanPacketHeader.
-pub type VirtualLanHeaderSpecification = VirtualLanPacketHeader;
+/// An virtual LAN header specification which shadows InternetProtocolVersion6PacketHeader.
+pub type InternetProtocolVersion6HeaderSpecification = InternetProtocolVersion6PacketHeader;
 
-impl MaskedPacketMatcher for VirtualLanHeaderSpecification
+impl MaskedPacketMatcher for InternetProtocolVersion6HeaderSpecification
 {
-	type Type = rte_flow_item_vlan;
+	type Type = rte_flow_item_ipv6;
 }
 
-impl Specification for VirtualLanHeaderSpecification
+impl Specification for InternetProtocolVersion6HeaderSpecification
 {
-	const DpdkFlowType: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_VLAN;
+	const DpdkFlowType: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_IPV6;
 	
-	type Mask = VirtualLanHeaderMask;
+	type Mask = InternetProtocolVersion6HeaderMask;
 	
 	#[inline(always)]
 	fn dpdk_specification(&self) -> &<Self as MaskedPacketMatcher>::Type

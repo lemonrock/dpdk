@@ -1,5 +1,5 @@
 // This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of predicator, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
-// Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
+// Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
 /// Packet matchers.
@@ -31,6 +31,12 @@ pub enum PacketMatcher
 	/// * a `threshold` of zero (0) is a perfect match.
 	/// * a `threshold` of 2^32 - 1 is the fuzziest match.
 	Fuzzy(MaskedPacketMatcherFields<u32, u32>),
+	
+	/// A matcher that matches an Internet Protocol (IP) version 4 packet header.
+	InternetProtocolVersion4Header(MaskedPacketMatcherFields<InternetProtocolVersion4HeaderSpecification, InternetProtocolVersion4HeaderMask>),
+	
+	/// A matcher that matches an Internet Protocol (IP) version 6 packet header.
+	InternetProtocolVersion6Header(MaskedPacketMatcherFields<InternetProtocolVersion6HeaderSpecification, InternetProtocolVersion6HeaderMask>),
 	
 	/// Mark pattern match.
 	///
@@ -117,6 +123,10 @@ impl PacketMatcher
 			EthernetHeader(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
 			Fuzzy(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_fuzzy>(RTE_FLOW_ITEM_TYPE_FUZZY, masked_packet_matched_fields),
+			
+			InternetProtocolVersion4Header(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
+			
+			InternetProtocolVersion6Header(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
 			Mark(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_mark>(RTE_FLOW_ITEM_TYPE_MARK, masked_packet_matched_fields),
 			
