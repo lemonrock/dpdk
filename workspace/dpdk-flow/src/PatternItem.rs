@@ -181,11 +181,11 @@ impl PacketMatcher
 		{
 			AddressResolutionProtocolForInternetProtocolVersion4OverEthernet(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
-			Any(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_any>(RTE_FLOW_ITEM_TYPE_ANY, masked_packet_matched_fields),
+			Any(ref masked_packet_matched_fields) => masked_packet_matched_fields.trivially_cast_as_rte_flow_item::<rte_flow_item_any>(RTE_FLOW_ITEM_TYPE_ANY),
 			
 			EthernetHeader(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
-			Fuzzy(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_fuzzy>(RTE_FLOW_ITEM_TYPE_FUZZY, masked_packet_matched_fields),
+			Fuzzy(ref masked_packet_matched_fields) => masked_packet_matched_fields.trivially_cast_as_rte_flow_item::<rte_flow_item_fuzzy>(RTE_FLOW_ITEM_TYPE_FUZZY),
 			
 			InternetControlMessageProtocolVersion4Header(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
@@ -201,17 +201,17 @@ impl PacketMatcher
 			
 			InternetProtocolVersion6Header(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
-			InternetProtocolVersion6PayloadExtensionHeaderPresent(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u8, rte_flow_item_ipv6_ext>(RTE_FLOW_ITEM_TYPE_IPV6_EXT, masked_packet_matched_fields),
+			InternetProtocolVersion6PayloadExtensionHeaderPresent(ref masked_packet_matched_fields) => masked_packet_matched_fields.trivially_cast_as_rte_flow_item::<rte_flow_item_ipv6_ext>(RTE_FLOW_ITEM_TYPE_IPV6_EXT),
 			
 			Invert => Self::unspecified_rte_flow_item(RTE_FLOW_ITEM_TYPE_INVERT),
 			
-			Mark(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_mark>(RTE_FLOW_ITEM_TYPE_MARK, masked_packet_matched_fields),
+			Mark(ref masked_packet_matched_fields) => masked_packet_matched_fields.trivially_cast_as_rte_flow_item::<rte_flow_item_mark>(RTE_FLOW_ITEM_TYPE_MARK),
 			
 			PhysicalFunction => Self::unspecified_rte_flow_item(RTE_FLOW_ITEM_TYPE_PF),
 			
-			PhysicalPort(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_phy_port>(RTE_FLOW_ITEM_TYPE_PHY_PORT, masked_packet_matched_fields),
+			PhysicalPort(ref masked_packet_matched_fields) => masked_packet_matched_fields.trivially_cast_as_rte_flow_item::<rte_flow_item_phy_port>(RTE_FLOW_ITEM_TYPE_PHY_PORT),
 			
-			PortIdentifier(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_port_id>(RTE_FLOW_ITEM_TYPE_PORT_ID, masked_packet_matched_fields),
+			PortIdentifier(ref masked_packet_matched_fields) => masked_packet_matched_fields.trivially_cast_as_rte_flow_item::<rte_flow_item_port_id>(RTE_FLOW_ITEM_TYPE_PORT_ID),
 			
 			Raw(ref specification, ref mask) =>
 			{
@@ -224,27 +224,11 @@ impl PacketMatcher
 				}
 			}
 			
-			VirtualFunction(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_vf>(RTE_FLOW_ITEM_TYPE_VF, masked_packet_matched_fields),
+			VirtualFunction(ref masked_packet_matched_fields) => masked_packet_matched_fields.trivially_cast_as_rte_flow_item::<rte_flow_item_vf>(RTE_FLOW_ITEM_TYPE_VF),
 			
 			VirtualLanHeader(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
 			Void => Self::unspecified_rte_flow_item(RTE_FLOW_ITEM_TYPE_VOID),
-		}
-	}
-	
-	#[inline(always)]
-	fn trivially_cast_as_rte_flow_item<S, RteFlowItem>(type_: rte_flow_item_type, masked_packet_matched_fields: &MaskedPacketMatcherFields<S, S>) -> rte_flow_item
-	{
-		rte_flow_item
-		{
-			type_,
-			spec: &masked_packet_matched_fields.from_specification as *const S as *const RteFlowItem as *const _,
-			last: match masked_packet_matched_fields.to_specification
-			{
-				None => null_mut(),
-				Some(ref specification) => specification as *const S as *const RteFlowItem as *const _,
-			},
-			mask: &masked_packet_matched_fields.mask as *const S as *const RteFlowItem as *const _,
 		}
 	}
 	

@@ -14,6 +14,7 @@ extern crate serde;
 #[macro_use] extern crate serde_derive;
 
 
+use self::pattern_item_implementations::*;
 use ::arrayvec::ArrayVec;
 use ::dpdk_sys::*;
 use ::network_address_resolution_protocol::*;
@@ -40,33 +41,8 @@ use ::std::ptr::null_mut;
 include!("custom_deserialize.rs");
 
 
-include!("AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask.rs");
-include!("AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification.rs");
-include!("EthernetAddress.rs");
-include!("EthernetAddressesMask.rs");
-include!("EthernetHeaderMask.rs");
-include!("EthernetHeaderSpecification.rs");
-include!("InternetControlMessageProtocolVersion4HeaderMask.rs");
-include!("InternetControlMessageProtocolVersion4HeaderSpecification.rs");
-include!("InternetControlMessageProtocolVersion6HeaderMask.rs");
-include!("InternetControlMessageProtocolVersion6HeaderSpecification.rs");
-include!("InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementMask.rs");
-include!("InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementSpecification.rs");
-include!("InternetControlMessageProtocolVersion6NeighborDiscoveryOptionMask.rs");
-include!("InternetControlMessageProtocolVersion6NeighborDiscoveryOptionSpecification.rs");
-include!("InternetControlMessageProtocolVersion6NeighborDiscoverySolicitationMask.rs");
-include!("InternetControlMessageProtocolVersion6NeighborDiscoverySolicitationSpecification.rs");
-include!("InternetProtocolVersion4HeaderMask.rs");
-include!("InternetProtocolVersion4HeaderSpecification.rs");
-include!("InternetProtocolVersion6HeaderMask.rs");
-include!("InternetProtocolVersion6HeaderSpecification.rs");
-include!("Mask.rs");
-include!("MaskedPacketMatcher.rs");
-include!("MaskedPacketMatcherFields.rs");
-include!("MediaAccessControlAddressMask.rs");
+/// Pattern item implementations.
+pub mod pattern_item_implementations;
+
+
 include!("PatternItem.rs");
-include!("RawMask.rs");
-include!("RawSpecification.rs");
-include!("Specification.rs");
-include!("VirtualLanHeaderMask.rs");
-include!("VirtualLanHeaderSpecification.rs");

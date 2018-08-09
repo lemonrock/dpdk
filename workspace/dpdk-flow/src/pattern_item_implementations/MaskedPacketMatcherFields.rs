@@ -10,10 +10,29 @@ pub struct MaskedPacketMatcherFields<S, M>
 	mask: M,
 }
 
+impl<S> MaskedPacketMatcherFields<S, S>
+{
+	#[inline(always)]
+	pub(crate) fn trivially_cast_as_rte_flow_item<RteFlowItem>(&self, type_: rte_flow_item_type) -> rte_flow_item
+	{
+		rte_flow_item
+		{
+			type_,
+			spec: &self.from_specification as *const S as *const RteFlowItem as *const _,
+			last: match self.to_specification
+			{
+				None => null_mut(),
+				Some(ref specification) => specification as *const S as *const RteFlowItem as *const _,
+			},
+			mask: &self.mask as *const S as *const RteFlowItem as *const _,
+		}
+	}
+}
+
 impl<S: Specification> MaskedPacketMatcherFields<S, S::Mask>
 {
 	#[inline(always)]
-	fn rte_flow_item(&self) -> rte_flow_item
+	pub(crate) fn rte_flow_item(&self) -> rte_flow_item
 	{
 		rte_flow_item
 		{
@@ -27,4 +46,5 @@ impl<S: Specification> MaskedPacketMatcherFields<S, S::Mask>
 			mask: self.mask.dpdk_mask() as *const S::Type as *const _,
 		}
 	}
+	
 }
