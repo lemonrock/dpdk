@@ -2,8 +2,8 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+extern crate arrayvec;
 extern crate dpdk_sys;
-extern crate libc;
 extern crate network_address_resolution_protocol;
 extern crate network_endian;
 extern crate network_ethernet;
@@ -12,8 +12,8 @@ extern crate serde;
 #[macro_use] extern crate serde_derive;
 
 
+use ::arrayvec::ArrayVec;
 use ::dpdk_sys::*;
-use ::libc::memcmp;
 use ::network_address_resolution_protocol::*;
 use ::network_endian::*;
 use ::network_ethernet::*;
@@ -27,24 +27,17 @@ use ::serde::de::Error as DeserializerError;
 use ::serde::de::MapAccess;
 use ::serde::de::SeqAccess;
 use ::serde::de::Visitor;
-use ::std::cmp::Ordering;
 use ::std::fmt;
-use ::std::hash::Hash;
-use ::std::hash::Hasher;
-use ::std::marker::PhantomData;
-use ::std::mem::forget;
-use ::std::mem::size_of;
 use ::std::mem::transmute;
-use ::std::mem::uninitialized;
-use ::std::ptr::copy_nonoverlapping;
-use ::std::slice::from_raw_parts;
-use ::std::slice::from_raw_parts_mut;
+use ::std::ptr::NonNull;
+use ::std::ptr::null_mut;
 
 
-include!("EthernetAddress.rs");
-//include!("generic_clone.rs");
-//include!("generic_compare.rs");
-//include!("generic_equals.rs");
-//include!("generic_hash.rs");
-//include!("PatternItem.rs");
+include!("custom_deserialize.rs");
+
+
+include!("PatternItem.rs");
+include!("AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask.rs");
 include!("AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification.rs");
+include!("MediaAccessControlAddressMask.rs");
+include!("EthernetAddress.rs");

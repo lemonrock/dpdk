@@ -16,3 +16,12 @@ impl EthernetAddress for MediaAccessControlAddress
 		unsafe { transmute(self.to_octets()) }
 	}
 }
+
+impl EthernetAddress for MediaAccessControlAddressMask
+{
+	#[inline(always)]
+	fn to_ether_addr(self) -> ether_addr
+	{
+		unsafe { transmute(self) }
+	}
+}

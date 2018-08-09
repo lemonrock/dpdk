@@ -5,22 +5,22 @@
 /// Specification for an `PacketMatcher::AddressResolutionProtocolForInternetProtocolVersion4OverEthernet`.
 #[derive(Debug)]
 #[derive(Serialize)]
-pub struct AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification
+pub struct AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask
 {
-	/// Source ethernet address.
-	pub source_ethernet_address: MediaAccessControlAddress,
+	/// Source ethernet address mask.
+	pub source_ethernet_address: MediaAccessControlAddressMask,
 	
-	/// Destination ethernet address.
-	pub destination_ethernet_address: MediaAccessControlAddress,
+	/// Destination ethernet address mask.
+	pub destination_ethernet_address: MediaAccessControlAddressMask,
 	
-	/// Source internet protocol version 4 address.
-	pub source_internet_protocol_version_4_address: InternetProtocolVersion4HostAddress,
+	/// Source internet protocol version 4 address mask.
+	pub source_internet_protocol_version_4_address: NetworkEndianU32,
 	
-	/// Destination internet protocol version 4 address.
-	pub destination_internet_protocol_version_4_address: InternetProtocolVersion4HostAddress,
+	/// Destination internet protocol version 4 address mask.
+	pub destination_internet_protocol_version_4_address: NetworkEndianU32,
 	
-	/// Operation; recommended to be either Request or Reply.
-	pub operation: Operation,
+	/// Operation mask.
+	pub operation: NetworkEndianU16,
 	
 	#[serde(skip_serializing)]
 	cached: rte_flow_item_arp_eth_ipv4,
@@ -28,7 +28,7 @@ pub struct AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpeci
 
 custom_deserialize!
 {
-	AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification,
+	AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask,
 	0 => source_ethernet_address,
 	1 => destination_ethernet_address,
 	2 => source_internet_protocol_version_4_address,
@@ -36,29 +36,25 @@ custom_deserialize!
 	4 => operation,
 }
 
-impl MaskedPacketMatcher for AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification
+impl MaskedPacketMatcher for AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask
 {
 	type Type = rte_flow_item_arp_eth_ipv4;
 }
 
-impl Specification for AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification
+impl Mask for AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask
 {
-	const DpdkFlowType: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_ARP_ETH_IPV4;
-	
-	type Mask = AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask;
-	
 	#[inline(always)]
-	fn dpdk_specification(&self) -> NonNull<<Self as MaskedPacketMatcher>::Type>
+	fn dpdk_mask(&self) -> NonNull<<Self as MaskedPacketMatcher>::Type>
 	{
 		unimplemented!()
 	}
 }
 
-impl AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification
+impl AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask
 {
 	/// Creates a new instance.
 	#[inline(always)]
-	pub fn new(source_ethernet_address: MediaAccessControlAddress, destination_ethernet_address: MediaAccessControlAddress, source_internet_protocol_version_4_address: InternetProtocolVersion4HostAddress, destination_internet_protocol_version_4_address: InternetProtocolVersion4HostAddress, operation: Operation) -> Self
+	pub fn new(source_ethernet_address: MediaAccessControlAddressMask, destination_ethernet_address: MediaAccessControlAddressMask, source_internet_protocol_version_4_address: NetworkEndianU32, destination_internet_protocol_version_4_address: NetworkEndianU32, operation: NetworkEndianU16) -> Self
 	{
 		Self
 		{
@@ -75,9 +71,9 @@ impl AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecificati
 				pln: InternetProtocolVersion4HostAddress::SizeU8,
 				op: operation.to_network_endian(),
 				sha: source_ethernet_address.to_ether_addr(),
-				spa: source_internet_protocol_version_4_address.as_network_endian(),
+				spa: source_internet_protocol_version_4_address.to_network_endian(),
 				tha: destination_ethernet_address.to_ether_addr(),
-				tpa: destination_internet_protocol_version_4_address.as_network_endian(),
+				tpa: destination_internet_protocol_version_4_address.to_network_endian(),
 			}
 		}
 	}
