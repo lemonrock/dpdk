@@ -4,7 +4,7 @@
 
 [package]
 name = "dpdk-flow"
-description = "A wrapper around DPDK's flow framework."
+description = "A wrapper around DPDK's flow matching and filtering framework."
 keywords = ["DPDK", "networking", "flow"]
 categories = ["network-programming", "external-ffi-bindings"]
 license = "AGPL-3.0"
@@ -22,6 +22,7 @@ version = "0.1.0"
 arrayvec = "^0.4"
 dpdk-sys = { path = "../dpdk-sys", version = "^0.1" }
 network-address-resolution-protocol = "^0.1"
+network-check-sum = "^0.1"
 network-endian = "^0.1"
 network-ethernet = "^0.1"
 network-internet-protocol = "^0.1"

@@ -9,8 +9,6 @@
 /// * `RTE_FLOW_ITEM_TYPE_RAW`
 /// * `RTE_FLOW_ITEM_TYPE_UDP`
 /// * `RTE_FLOW_ITEM_TYPE_TCP`
-/// * `RTE_FLOW_ITEM_TYPE_ICMP6_ND_NS`
-/// * `RTE_FLOW_ITEM_TYPE_ICMP6_ND_NA`
 /// * `RTE_FLOW_ITEM_TYPE_ICMP6_ND_OPT`
 /// * `RTE_FLOW_ITEM_TYPE_ICMP6_ND_OPT_SLA_ETH`
 /// * `RTE_FLOW_ITEM_TYPE_ICMP6_ND_OPT_TLA_ETH`
@@ -63,6 +61,15 @@ pub enum PacketMatcher
 	
 	/// A matcher that matches an Internet Control Message Protocol (ICMP) version 6 packet header.
 	InternetControlMessageProtocolVersion6Header(MaskedPacketMatcherFields<InternetControlMessageProtocolVersion6HeaderSpecification, InternetControlMessageProtocolVersion6HeaderMask>),
+	
+	/// A matcher that matches an Internet Control Message Protocol (ICMP) version 6 Neigbor Discovery Advertisement packet.
+	InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisement(MaskedPacketMatcherFields<InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementSpecification, InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementMask>),
+	
+	/// A matcher that matches an Internet Control Message Protocol (ICMP) version 6 Neigbor Discovery Solicitation packet.
+	InternetControlMessageProtocolVersion6NeighborDiscoverySolicitation(MaskedPacketMatcherFields<InternetControlMessageProtocolVersion6NeighborDiscoverySolicitationSpecification, InternetControlMessageProtocolVersion6NeighborDiscoverySolicitationMask>),
+	
+	/// A matcher that matches an Internet Control Message Protocol (ICMP) version 6 Neigbor Discovery option.
+	InternetControlMessageProtocolVersion6NeighborDiscoveryOption(MaskedPacketMatcherFields<InternetControlMessageProtocolVersion6NeighborDiscoveryOptionSpecification, InternetControlMessageProtocolVersion6NeighborDiscoveryOptionMask>),
 	
 	/// A matcher that matches an Internet Protocol (IP) version 4 packet header.
 	InternetProtocolVersion4Header(MaskedPacketMatcherFields<InternetProtocolVersion4HeaderSpecification, InternetProtocolVersion4HeaderMask>),
@@ -173,6 +180,12 @@ impl PacketMatcher
 			InternetControlMessageProtocolVersion4Header(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
 			InternetControlMessageProtocolVersion6Header(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
+			
+			InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisement(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
+			
+			InternetControlMessageProtocolVersion6NeighborDiscoverySolicitation(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
+			
+			InternetControlMessageProtocolVersion6NeighborDiscoveryOption(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
 			InternetProtocolVersion4Header(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			

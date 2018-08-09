@@ -2,7 +2,7 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Specification for an `PacketMatcher::AddressResolutionProtocolForInternetProtocolVersion4OverEthernet`.
+/// Mask for an `PacketMatcher::AddressResolutionProtocolForInternetProtocolVersion4OverEthernet`.
 #[derive(Debug)]
 #[derive(Serialize)]
 pub struct AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask
