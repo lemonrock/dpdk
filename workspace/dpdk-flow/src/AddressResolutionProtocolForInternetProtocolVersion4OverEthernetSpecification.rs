@@ -26,148 +26,19 @@ pub struct AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpeci
 	cached: rte_flow_item_arp_eth_ipv4,
 }
 
-macro_rules! expecting
-{
-	($formatter: ident, $type: tt) =>
-	{
-		$formatter.write_str(stringify!($type))
-	}
-}
-
-
 macro_rules! sequence_field
 {
-	($self: ident, $access: ident, $length: expr) =>
+	($self: ident, $access: ident, $field_index: expr) =>
 	{
-		$access.next_element()?.ok_or_else(|| DeserializerError::invalid_length($length, &$self))?
+		$access.next_element()?.ok_or_else(|| DeserializerError::invalid_length($field_index, &$self))?
 	}
-}
-
-macro_rules! decode_from_sequence
-{
-	(
-		$self: ident,
-        $access: ident,
-		$type: tt
-        $(
-            ,$length: expr
-        )*
-	) =>
-	{
-		{
-			Ok
-			(
-				$type::new
-				(
-					$(sequence_field!($self, $access, $length),)*
-				)
-			)
-		}
-	}
-}
-
-macro_rules! decode_from_map
-{
-	(
-        $access: expr,
-		$type: tt,
-        $(
-            $field_name: tt,
-        )*
-	) =>
-	{
-		{
-			#[allow(non_camel_case_types)]
-			#[derive(Deserialize)]
-			enum Field
-			{
-				$($field_name,)*
-			}
-			
-			$(
-			let mut $field_name = None;
-			)*
-			
-			decode_loop!($access, $($field_name => $field_name,)*);
-			
-			Ok($type::new($(map_field!($field_name),)*))
-		}
-	}
-}
-
-macro_rules! decode_loop
-{
-	(
-        $access: expr,
-        $(
-            $field_name: tt => $field_value: ident,
-        )*
-	) =>
-	{
-		while let Some(key) = $access.next_key()?
-		{
-			decode_match!
-			{
-				key,
-				$access,
-				$($field_name => $field_value,)*
-			}
-		}
-	}
-}
-
-macro_rules! decode_match
-{
-    (
-    	$key: expr,
-        $access: expr,
-        $(
-            $field_name: tt => $field_value: ident,
-        )*
-    ) =>
-	{
-        match $key
-        {
-            $(
-                Field::$field_name =>
-                {
-					if $field_value.is_some()
-					{
-						return Err(DeserializerError::duplicate_field(stringify!($field_value)));
-					}
-					$field_value = Some($access.next_value()?);
-                }
-            )*
-        }
-    }
 }
 
 macro_rules! map_field
 {
-	($field_value: ident) =>
+	($field_name: ident) =>
 	{
-		$field_value.ok_or_else(|| DeserializerError::missing_field(stringify!($field_value)))?
-	}
-}
-
-macro_rules! visit
-{
-	(
-		$deserializer: ident,
-		$type: tt,
-        $(
-            $field_name: tt,
-        )*
-	) =>
-	{
-		$deserializer.deserialize_struct
-		(
-			stringify!($type),
-			&[
-				$(stringify!($field_name),)*
-			],
-			DeserializingVisitor
-		)
+		$field_name.ok_or_else(|| DeserializerError::missing_field(stringify!($field_name)))?
 	}
 }
 
@@ -176,7 +47,7 @@ macro_rules! custom_deserialize
 	(
 		$type: tt,
 		$(
-			$field_name: tt,
+			$field_index: expr => $field_name: tt,
 		)*
 	) =>
 	{
@@ -194,35 +65,77 @@ macro_rules! custom_deserialize
 					#[inline(always)]
 					fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result
 					{
-						expecting!(formatter, AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification)
+						formatter.write_str(stringify!($type))
 					}
 					
 					#[inline(always)]
 					fn visit_seq<V: SeqAccess<'deserialize>>(self, mut access: V) -> Result<Self::Value, V::Error>
 					{
-						//TODO: replace 0 - 4 range somehow...
-						xxxx;
-					
-						decode_from_sequence!(self, access, $type, 0, 1, 2, 3, 4)
+						Ok
+						(
+							$type::new
+							(
+								$(
+									sequence_field!(self, access, $field_index),
+								)*
+							)
+						)
 					}
 					
 					#[inline(always)]
 					fn visit_map<V: MapAccess<'deserialize>>(self, mut access: V) -> Result<Self::Value, V::Error>
 					{
-						decode_from_map!
+						#[allow(non_camel_case_types)]
+						#[derive(Deserialize)]
+						enum Field
+						{
+							$(
+								$field_name,
+							)*
+						}
+						
+						$(
+							let mut $field_name = None;
+						)*
+						
+						while let Some(key) = access.next_key()?
+						{
+							match key
+							{
+								$(
+									Field::$field_name =>
+									{
+										if $field_name.is_some()
+										{
+											return Err(DeserializerError::duplicate_field(stringify!($field_name)));
+										}
+										$field_name = Some(access.next_value()?);
+									}
+								)*
+							}
+						}
+						
+						Ok
 						(
-							access,
-							$type,
-							$($field_name,)*
+							$type::new
+							(
+								$(
+									map_field!($field_name),
+								)*
+							)
 						)
 					}
 				}
 				
-				visit!
+				deserializer.deserialize_struct
 				(
-					deserializer,
-					$type,
-					$($field_name,)*
+					stringify!($type),
+					&[
+						$(
+							stringify!($field_name),
+						)*
+					],
+					DeserializingVisitor
 				)
 			}
 		}
@@ -232,11 +145,11 @@ macro_rules! custom_deserialize
 custom_deserialize!
 {
 	AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification,
-	source_ethernet_address,
-	destination_ethernet_address,
-	source_internet_protocol_version_4_address,
-	destination_internet_protocol_version_4_address,
-	operation,
+	0 => source_ethernet_address,
+	1 => destination_ethernet_address,
+	2 => source_internet_protocol_version_4_address,
+	3 => destination_internet_protocol_version_4_address,
+	4 => operation,
 }
 
 impl AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification
