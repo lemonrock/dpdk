@@ -2,62 +2,6 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// A masked packet matcher.
-pub trait MaskedPacketMatcher
-{
-	#[doc(hidden)]
-	type Type;
-}
-
-/// Specification.
-pub trait Specification: MaskedPacketMatcher
-{
-	#[doc(hidden)]
-	const DpdkFlowType: rte_flow_item_type;
-	
-	#[doc(hidden)]
-	type Mask: Mask<Type=<Self as MaskedPacketMatcher>::Type>;
-	
-	#[doc(hidden)]
-	#[inline(always)]
-	fn dpdk_specification(&self) -> &<Self as MaskedPacketMatcher>::Type;
-}
-
-/// Mask.
-pub trait Mask: MaskedPacketMatcher
-{
-	#[doc(hidden)]
-	#[inline(always)]
-	fn dpdk_mask(&self) -> &<Self as MaskedPacketMatcher>::Type;
-}
-
-/// Commonly reocurring fields for a masked packet matcher
-pub struct MaskedPacketMatcherFields<S, M>
-{
-	from_specification: S,
-	to_specification: Option<S>,
-	mask: M,
-}
-
-impl<S: Specification> MaskedPacketMatcherFields<S, S::Mask>
-{
-	#[inline(always)]
-	fn rte_flow_item(&self) -> rte_flow_item
-	{
-		rte_flow_item
-		{
-			type_: S::DpdkFlowType,
-			spec: self.from_specification.dpdk_specification() as *const S::Type as *const _,
-			last: match self.to_specification
-			{
-				None => null_mut(),
-				Some(ref specification) => specification.dpdk_specification() as *const S::Type as *const _,
-			},
-			mask: self.mask.dpdk_mask() as *const S::Type as *const _,
-		}
-	}
-}
-
 /// Packet matchers.
 pub enum PacketMatcher
 {
@@ -127,6 +71,11 @@ pub enum PacketMatcher
 	/// * Can be combined with a PhysicalFunctionPacketMatcher to match both Physical Function (PF) and Virtual Function (VF) traffic.
 	VirtualFunction(MaskedPacketMatcherFields<u32, u32>),
 	
+	/// A matcher that matches either an IEEE 802.1Q Virtual LAN header or an IEEE 802.1ad QinQ Virtual LAN header.
+	///
+	/// If precedeeded by an EthernetHeaderPacketMatcher, then matches on an IEEE 802.1ad QinQ Virtual LAN header's inner Tag Control Information (TCI).
+	VirtualLanHeader(MaskedPacketMatcherFields<VirtualLanHeaderSpecification, VirtualLanHeaderMask>),
+	
 	/// A 'null' matcher that does nothing.
 	Void,
 }
@@ -177,7 +126,7 @@ impl PacketMatcher
 			
 			VirtualFunction(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_vf>(RTE_FLOW_ITEM_TYPE_VF, masked_packet_matched_fields),
 			
-			
+			VirtualLanHeader(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
 			Void => Self::unspecified_rte_flow_item(RTE_FLOW_ITEM_TYPE_VOID),
 		}

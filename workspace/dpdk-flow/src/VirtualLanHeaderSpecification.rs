@@ -2,27 +2,22 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Specification for an `PacketMatcher::AddressResolutionProtocolForInternetProtocolVersion4OverEthernet`.
-#[derive(Debug)]
-#[derive(Deserialize, Serialize)]
-pub struct EthernetHeaderMask
+/// An virtual LAN header specification which shadows VirtualLanPacketHeader.
+pub type VirtualLanHeaderSpecification = VirtualLanPacketHeader;
+
+impl MaskedPacketMatcher for VirtualLanHeaderSpecification
 {
-	/// Source and destination addresses.
-	pub ethernet_addresses: EthernetAddressesMask,
+	type Type = rte_flow_item_vlan;
+}
+
+impl Specification for VirtualLanHeaderSpecification
+{
+	const DpdkFlowType: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_VLAN;
 	
-	/// Ether Type or legacy ethernet frame size.
-	pub ether_type_or_legacy_ethernet_frame_size: NetworkEndianU16,
-}
-
-impl MaskedPacketMatcher for EthernetHeaderMask
-{
-	type Type = rte_flow_item_eth;
-}
-
-impl Mask for EthernetHeaderMask
-{
+	type Mask = VirtualLanHeaderMask;
+	
 	#[inline(always)]
-	fn dpdk_mask(&self) -> &<Self as MaskedPacketMatcher>::Type
+	fn dpdk_specification(&self) -> &<Self as MaskedPacketMatcher>::Type
 	{
 		unsafe { transmute(self) }
 	}

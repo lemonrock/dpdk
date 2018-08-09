@@ -5,21 +5,21 @@
 /// Specification for an `PacketMatcher::AddressResolutionProtocolForInternetProtocolVersion4OverEthernet`.
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
-pub struct EthernetHeaderMask
+pub struct VirtualLanHeaderMask
 {
-	/// Source and destination addresses.
-	pub ethernet_addresses: EthernetAddressesMask,
+	/// Tag Control Information (TCI) mask.
+	pub tag_control_information: NetworkEndianU16,
 	
-	/// Ether Type or legacy ethernet frame size.
+	/// Ether Type or legacy ethernet frame size mask.
 	pub ether_type_or_legacy_ethernet_frame_size: NetworkEndianU16,
 }
 
-impl MaskedPacketMatcher for EthernetHeaderMask
+impl MaskedPacketMatcher for VirtualLanHeaderMask
 {
-	type Type = rte_flow_item_eth;
+	type Type = rte_flow_item_vlan;
 }
 
-impl Mask for EthernetHeaderMask
+impl Mask for VirtualLanHeaderMask
 {
 	#[inline(always)]
 	fn dpdk_mask(&self) -> &<Self as MaskedPacketMatcher>::Type
