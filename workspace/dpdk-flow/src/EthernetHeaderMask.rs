@@ -5,6 +5,7 @@
 /// Mask for an `PacketMatcher::EthernetHeader`.
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
+#[repr(C, packed)]
 pub struct EthernetHeaderMask
 {
 	/// Source and destination addresses.

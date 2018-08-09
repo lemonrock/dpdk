@@ -5,6 +5,7 @@
 /// Ethernet addresses mask.
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Serialize, Deserialize)]
+#[repr(C, packed)]
 pub struct EthernetAddressesMask
 {
 	/// Destination ethernet address mask.

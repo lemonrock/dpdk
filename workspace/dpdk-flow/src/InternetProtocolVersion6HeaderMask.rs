@@ -5,6 +5,7 @@
 /// Mask for an `PacketMatcher::InternetProtocolVersion6Header`.
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
+#[repr(C, packed)]
 pub struct InternetProtocolVersion6HeaderMask
 {
 	/// Version and internet header length bit fields.

@@ -5,6 +5,7 @@
 /// Mask for an `PacketMatcher::VirtualLanHeader`.
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
+#[repr(C, packed)]
 pub struct VirtualLanHeaderMask
 {
 	/// Tag Control Information (TCI) mask.
