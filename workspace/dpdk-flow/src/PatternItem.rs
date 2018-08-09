@@ -32,14 +32,14 @@ pub trait Mask: MaskedPacketMatcher
 }
 
 /// Commonly reocurring fields for a masked packet matcher
-pub struct MaskedPacketMatcherFields<S: Specification>
+pub struct MaskedPacketMatcherFields<S, M>
 {
 	from_specification: S,
 	to_specification: Option<S>,
-	mask: S::Mask,
+	mask: M,
 }
 
-impl<S: Specification> MaskedPacketMatcherFields<S>
+impl<S: Specification> MaskedPacketMatcherFields<S, S::Mask>
 {
 	#[inline(always)]
 	fn rte_flow_item(&self) -> rte_flow_item
@@ -64,10 +64,10 @@ pub enum PacketMatcher
 	/// A matcher that matches an Address Resolution Protocol (ARP) Internet Protocol (IP) version 4 packet over Ethernet.
 	///
 	/// The underlying DPDK functionality supports other kinds of ARP headers but always assumes an InternetProtocolVersion4-sized payload!
-	AddressResolutionProtocolForInternetProtocolVersion4OverEthernet(MaskedPacketMatcherFields<AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification>),
+	AddressResolutionProtocolForInternetProtocolVersion4OverEthernet(MaskedPacketMatcherFields<AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification, AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask>),
 	
-//	#[allow(doc_missing)]
-//	Any(MaskedPacketMatcherFields<rte_flow_item_any>),
+	/// Matches at a number of layers.
+	Any(MaskedPacketMatcherFields<u32, u32>),
 	
 	/// A 'null' matcher that does nothing.
 	Void,
@@ -105,7 +105,25 @@ impl PacketMatcher
 		{
 			AddressResolutionProtocolForInternetProtocolVersion4OverEthernet(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
+			Any(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_any>(RTE_FLOW_ITEM_TYPE_ANY, masked_packet_matched_fields),
+			
 			Void => Self::unspecified_rte_flow_item(RTE_FLOW_ITEM_TYPE_VOID),
+		}
+	}
+	
+	#[inline(always)]
+	fn trivially_cast_as_rte_flow_item<S, RteFlowItem>(type_: rte_flow_item_type, masked_packet_matched_fields: &MaskedPacketMatcherFields<S, S>) -> rte_flow_item
+	{
+		rte_flow_item
+		{
+			type_,
+			spec: &masked_packet_matched_fields.from_specification as *const S as *const RteFlowItem as *const _,
+			last: match masked_packet_matched_fields.to_specification
+			{
+				None => null_mut(),
+				Some(ref specification) => specification as *const S as *const RteFlowItem as *const _,
+			},
+			mask: &masked_packet_matched_fields.mask as *const S as *const RteFlowItem as *const _,
 		}
 	}
 	
