@@ -7,11 +7,8 @@
 /// The following DPDK matchers are not yet implemented but are planned to be supported:-
 ///
 /// * `RTE_FLOW_ITEM_TYPE_RAW`
-/// * `RTE_FLOW_ITEM_TYPE_ICMP`
 /// * `RTE_FLOW_ITEM_TYPE_UDP`
 /// * `RTE_FLOW_ITEM_TYPE_TCP`
-/// * `RTE_FLOW_ITEM_TYPE_IPV6_EXT`
-/// * `RTE_FLOW_ITEM_TYPE_ICMP6`
 /// * `RTE_FLOW_ITEM_TYPE_ICMP6_ND_NS`
 /// * `RTE_FLOW_ITEM_TYPE_ICMP6_ND_NA`
 /// * `RTE_FLOW_ITEM_TYPE_ICMP6_ND_OPT`
@@ -64,11 +61,21 @@ pub enum PacketMatcher
 	/// A matcher that matches an Internet Control Message Protocol (ICMP) version 4 packet header.
 	InternetControlMessageProtocolVersion4Header(MaskedPacketMatcherFields<InternetControlMessageProtocolVersion4HeaderSpecification, InternetControlMessageProtocolVersion4HeaderMask>),
 	
+	/// A matcher that matches an Internet Control Message Protocol (ICMP) version 6 packet header.
+	InternetControlMessageProtocolVersion6Header(MaskedPacketMatcherFields<InternetControlMessageProtocolVersion6HeaderSpecification, InternetControlMessageProtocolVersion6HeaderMask>),
+	
 	/// A matcher that matches an Internet Protocol (IP) version 4 packet header.
 	InternetProtocolVersion4Header(MaskedPacketMatcherFields<InternetProtocolVersion4HeaderSpecification, InternetProtocolVersion4HeaderMask>),
 	
 	/// A matcher that matches an Internet Protocol (IP) version 6 packet header.
 	InternetProtocolVersion6Header(MaskedPacketMatcherFields<InternetProtocolVersion6HeaderSpecification, InternetProtocolVersion6HeaderMask>),
+	
+	/// A matcher that matches the presence of Internet Protocol (IP) version 6 packet payload's extension header.
+	///
+	/// Usually preceeded by `InternetProtocolVersion6Header` or itself.
+	///
+	/// It is not clear what kind of matching this does specifically, and whether it will also match a `NoNextHeader` value or a layer 4 protocol number value.
+	InternetProtocolVersion6PayloadExtensionHeaderPresent(MaskedPacketMatcherFields<u8, u8>),
 	
 	/// Inverts the pattern match, ie acts like a boolean NOT operator.
 	Invert,
@@ -165,9 +172,13 @@ impl PacketMatcher
 			
 			InternetControlMessageProtocolVersion4Header(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
+			InternetControlMessageProtocolVersion6Header(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
+			
 			InternetProtocolVersion4Header(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
 			InternetProtocolVersion6Header(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
+			
+			InternetProtocolVersion6PayloadExtensionHeaderPresent(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u8, rte_flow_item_ipv6_ext>(RTE_FLOW_ITEM_TYPE_IPV6_EXT, masked_packet_matched_fields),
 			
 			Invert => Self::unspecified_rte_flow_item(RTE_FLOW_ITEM_TYPE_INVERT),
 			
