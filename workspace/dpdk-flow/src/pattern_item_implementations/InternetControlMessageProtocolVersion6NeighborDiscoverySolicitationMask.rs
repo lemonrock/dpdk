@@ -2,7 +2,7 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Specification for an `PacketMatcher::AddressResolutionProtocolForInternetProtocolVersion4OverEthernet`.
+/// Specification for an `Pattern::AddressResolutionProtocolForInternetProtocolVersion4OverEthernet`.
 #[derive(Debug)]
 #[derive(Serialize)]
 pub struct InternetControlMessageProtocolVersion6NeighborDiscoverySolicitationMask
@@ -24,7 +24,7 @@ custom_deserialize!
 	1 => target_address,
 }
 
-impl MaskedPacketMatcher for InternetControlMessageProtocolVersion6NeighborDiscoverySolicitationMask
+impl MaskedPattern for InternetControlMessageProtocolVersion6NeighborDiscoverySolicitationMask
 {
 	type Type = rte_flow_item_icmp6_nd_ns;
 }
@@ -32,7 +32,7 @@ impl MaskedPacketMatcher for InternetControlMessageProtocolVersion6NeighborDisco
 impl Mask for InternetControlMessageProtocolVersion6NeighborDiscoverySolicitationMask
 {
 	#[inline(always)]
-	fn dpdk_mask(&self) -> &<Self as MaskedPacketMatcher>::Type
+	fn dpdk_mask(&self) -> &<Self as MaskedPattern>::Type
 	{
 		&self.cached
 	}

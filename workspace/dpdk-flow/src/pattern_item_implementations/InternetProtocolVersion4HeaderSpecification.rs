@@ -5,7 +5,7 @@
 /// An Internet Protocol (IP) version 4 header specification which shadows InternetProtocolVersion4PacketHeader.
 pub type InternetProtocolVersion4HeaderSpecification = InternetProtocolVersion4PacketHeader;
 
-impl MaskedPacketMatcher for InternetProtocolVersion4HeaderSpecification
+impl MaskedPattern for InternetProtocolVersion4HeaderSpecification
 {
 	type Type = rte_flow_item_ipv4;
 }
@@ -17,7 +17,7 @@ impl Specification for InternetProtocolVersion4HeaderSpecification
 	type Mask = InternetProtocolVersion4HeaderMask;
 	
 	#[inline(always)]
-	fn dpdk_specification(&self) -> &<Self as MaskedPacketMatcher>::Type
+	fn dpdk_specification(&self) -> &<Self as MaskedPattern>::Type
 	{
 		unsafe { transmute(self) }
 	}

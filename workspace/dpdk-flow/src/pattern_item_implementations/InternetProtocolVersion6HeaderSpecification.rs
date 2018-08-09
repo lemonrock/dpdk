@@ -5,7 +5,7 @@
 /// An Internet Protocol (IP) version 6 header specification which shadows InternetProtocolVersion4PacketHeader.
 pub type InternetProtocolVersion6HeaderSpecification = InternetProtocolVersion6PacketHeader;
 
-impl MaskedPacketMatcher for InternetProtocolVersion6HeaderSpecification
+impl MaskedPattern for InternetProtocolVersion6HeaderSpecification
 {
 	type Type = rte_flow_item_ipv6;
 }
@@ -17,7 +17,7 @@ impl Specification for InternetProtocolVersion6HeaderSpecification
 	type Mask = InternetProtocolVersion6HeaderMask;
 	
 	#[inline(always)]
-	fn dpdk_specification(&self) -> &<Self as MaskedPacketMatcher>::Type
+	fn dpdk_specification(&self) -> &<Self as MaskedPattern>::Type
 	{
 		unsafe { transmute(self) }
 	}

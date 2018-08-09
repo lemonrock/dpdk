@@ -25,21 +25,23 @@
 /// * `RTE_FLOW_ITEM_TYPE_ESP`
 /// * `RTE_FLOW_ITEM_TYPE_GENEVE`
 /// * `RTE_FLOW_ITEM_TYPE_VXLAN_GPE`
-pub enum PacketMatcher
+#[derive(Debug)]
+#[derive(Deserialize, Serialize)]
+pub enum Pattern
 {
 	/// A matcher that matches an Address Resolution Protocol (ARP) Internet Protocol (IP) version 4 packet over Ethernet.
 	///
 	/// The underlying DPDK functionality supports other kinds of ARP headers but always assumes an InternetProtocolVersion4-sized payload!
-	AddressResolutionProtocolForInternetProtocolVersion4OverEthernet(MaskedPacketMatcherFields<AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification, AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask>),
+	AddressResolutionProtocolForInternetProtocolVersion4OverEthernet(MaskedPatternFields<AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification, AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask>),
 	
 	/// Matches at a number of layers.
-	Any(MaskedPacketMatcherFields<u32, u32>),
+	Any(MaskedPatternFields<u32, u32>),
 	
 	/// A matcher that matches an ethernet header.
 	///
-	/// When followed by a 'layer 2.5' matcher such as VirtualLanHeaderPacketMatcher, the Ether Type is a tag protocol identifier (TPID).
-	/// In this case, the ether type refers to the outer header, with the VirtualLanHeaderPacketMatcher's ether type referring to the inner Ether Type or tag protocol identifier (TPID).
-	EthernetHeader(MaskedPacketMatcherFields<EthernetHeaderSpecification, EthernetHeaderMask>),
+	/// When followed by a 'layer 2.5' matcher such as VirtualLanHeaderPattern, the Ether Type is a tag protocol identifier (TPID).
+	/// In this case, the ether type refers to the outer header, with the VirtualLanHeaderPattern's ether type referring to the inner Ether Type or tag protocol identifier (TPID).
+	EthernetHeader(MaskedPatternFields<EthernetHeaderSpecification, EthernetHeaderMask>),
 	
 	/// Fuzzy pattern match.
 	///
@@ -52,35 +54,35 @@ pub enum PacketMatcher
 	/// These are mapped internally by a DPDK driver to the different accuracy levels that the underlying device supports.
 	/// * a `threshold` of zero (0) is a perfect match.
 	/// * a `threshold` of 2^32 - 1 is the fuzziest match.
-	Fuzzy(MaskedPacketMatcherFields<u32, u32>),
+	Fuzzy(MaskedPatternFields<u32, u32>),
 	
 	/// A matcher that matches an Internet Control Message Protocol (ICMP) version 4 packet header.
-	InternetControlMessageProtocolVersion4Header(MaskedPacketMatcherFields<InternetControlMessageProtocolVersion4HeaderSpecification, InternetControlMessageProtocolVersion4HeaderMask>),
+	InternetControlMessageProtocolVersion4Header(MaskedPatternFields<InternetControlMessageProtocolVersion4HeaderSpecification, InternetControlMessageProtocolVersion4HeaderMask>),
 	
 	/// A matcher that matches an Internet Control Message Protocol (ICMP) version 6 packet header.
-	InternetControlMessageProtocolVersion6Header(MaskedPacketMatcherFields<InternetControlMessageProtocolVersion6HeaderSpecification, InternetControlMessageProtocolVersion6HeaderMask>),
+	InternetControlMessageProtocolVersion6Header(MaskedPatternFields<InternetControlMessageProtocolVersion6HeaderSpecification, InternetControlMessageProtocolVersion6HeaderMask>),
 	
 	/// A matcher that matches an Internet Control Message Protocol (ICMP) version 6 Neigbor Discovery Advertisement packet.
-	InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisement(MaskedPacketMatcherFields<InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementSpecification, InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementMask>),
+	InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisement(MaskedPatternFields<InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementSpecification, InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementMask>),
 	
 	/// A matcher that matches an Internet Control Message Protocol (ICMP) version 6 Neigbor Discovery Solicitation packet.
-	InternetControlMessageProtocolVersion6NeighborDiscoverySolicitation(MaskedPacketMatcherFields<InternetControlMessageProtocolVersion6NeighborDiscoverySolicitationSpecification, InternetControlMessageProtocolVersion6NeighborDiscoverySolicitationMask>),
+	InternetControlMessageProtocolVersion6NeighborDiscoverySolicitation(MaskedPatternFields<InternetControlMessageProtocolVersion6NeighborDiscoverySolicitationSpecification, InternetControlMessageProtocolVersion6NeighborDiscoverySolicitationMask>),
 	
 	/// A matcher that matches an Internet Control Message Protocol (ICMP) version 6 Neigbor Discovery option.
-	InternetControlMessageProtocolVersion6NeighborDiscoveryOption(MaskedPacketMatcherFields<InternetControlMessageProtocolVersion6NeighborDiscoveryOptionSpecification, InternetControlMessageProtocolVersion6NeighborDiscoveryOptionMask>),
+	InternetControlMessageProtocolVersion6NeighborDiscoveryOption(MaskedPatternFields<InternetControlMessageProtocolVersion6NeighborDiscoveryOptionSpecification, InternetControlMessageProtocolVersion6NeighborDiscoveryOptionMask>),
 	
 	/// A matcher that matches an Internet Protocol (IP) version 4 packet header.
-	InternetProtocolVersion4Header(MaskedPacketMatcherFields<InternetProtocolVersion4HeaderSpecification, InternetProtocolVersion4HeaderMask>),
+	InternetProtocolVersion4Header(MaskedPatternFields<InternetProtocolVersion4HeaderSpecification, InternetProtocolVersion4HeaderMask>),
 	
 	/// A matcher that matches an Internet Protocol (IP) version 6 packet header.
-	InternetProtocolVersion6Header(MaskedPacketMatcherFields<InternetProtocolVersion6HeaderSpecification, InternetProtocolVersion6HeaderMask>),
+	InternetProtocolVersion6Header(MaskedPatternFields<InternetProtocolVersion6HeaderSpecification, InternetProtocolVersion6HeaderMask>),
 	
 	/// A matcher that matches the presence of Internet Protocol (IP) version 6 packet payload's extension header.
 	///
 	/// Usually preceeded by `InternetProtocolVersion6Header` or itself.
 	///
 	/// It is not clear what kind of matching this does specifically, and whether it will also match a `NoNextHeader` value or a layer 4 protocol number value.
-	InternetProtocolVersion6PayloadExtensionHeaderPresent(MaskedPacketMatcherFields<u8, u8>),
+	InternetProtocolVersion6PayloadExtensionHeaderPresent(MaskedPatternFields<u8, u8>),
 	
 	/// Inverts the pattern match, ie acts like a boolean NOT operator.
 	Invert,
@@ -93,7 +95,7 @@ pub enum PacketMatcher
 	/// Marks are stored inside the `rte_mbuf` in the same union as the Receive Side Scaling (RSS) hash.
 	///
 	/// As of DPDK 18.05, this functionality is experimental.
-	Mark(MaskedPacketMatcherFields<u32, u32>),
+	Mark(MaskedPatternFields<u32, u32>),
 	
 	/// Physical Function (PF).
 	///
@@ -102,21 +104,21 @@ pub enum PacketMatcher
 	
 	/// Matches traffic originating from (ingress) or going to (egress) a physical port of the underlying device.
 	///
-	/// The first PhysicalPortPacketMatcher overrides the physical port normally associated with the specified DPDK input port (`port_id`).
+	/// The first PhysicalPortPattern overrides the physical port normally associated with the specified DPDK input port (`port_id`).
 	/// This item can be provided several times to match additional physical ports.
 	///
 	/// Note that physical ports are not necessarily tied to DPDK input ports (`port_id`) when those are not under DPDK control.
 	/// Possible values are specific to each device, they are not necessarily indexed from zero and may not be contiguous.
 	///
 	/// As a device property, the list of allowed values as well as the value associated with a `port_id` should be retrieved by other means.
-	PhysicalPort(MaskedPacketMatcherFields<u32, u32>),
+	PhysicalPort(MaskedPatternFields<u32, u32>),
 	
 	/// Matches traffic originating from (ingress) or going to (egress) a given DPDK port identifier (also known as `port_id` and 'port ID').
 	///
 	/// Normally only supported if the port identifier in question is known by the underlying PMD and related to the device the flow rule is created against.
 	///
 	/// A port identifier is the application-side way of referring to 'ethernet' connections and getting reference to `eth_dev` structures.
-	PortIdentifier(MaskedPacketMatcherFields<u32, u32>),
+	PortIdentifier(MaskedPatternFields<u32, u32>),
 	
 	/// Matches a byte string of a given length at a given offset.
 	///
@@ -137,29 +139,29 @@ pub enum PacketMatcher
 	/// Note this pattern item does not match VF representors traffic which, as separate entities, should be addressed through their own DPDK port identifiers (IDs).
 	///
 	/// * Can be specified multiple times to match traffic addressed to several Virtual Function (VF) Identifiers (IDs).
-	/// * Can be combined with a PhysicalFunctionPacketMatcher to match both Physical Function (PF) and Virtual Function (VF) traffic.
-	VirtualFunction(MaskedPacketMatcherFields<u32, u32>),
+	/// * Can be combined with a PhysicalFunctionPattern to match both Physical Function (PF) and Virtual Function (VF) traffic.
+	VirtualFunction(MaskedPatternFields<u32, u32>),
 	
 	/// A matcher that matches either an IEEE 802.1Q Virtual LAN header or an IEEE 802.1ad QinQ Virtual LAN header.
 	///
-	/// If precedeeded by an EthernetHeaderPacketMatcher, then matches on an IEEE 802.1ad QinQ Virtual LAN header's inner Tag Control Information (TCI).
-	VirtualLanHeader(MaskedPacketMatcherFields<VirtualLanHeaderSpecification, VirtualLanHeaderMask>),
+	/// If precedeeded by an EthernetHeaderPattern, then matches on an IEEE 802.1ad QinQ Virtual LAN header's inner Tag Control Information (TCI).
+	VirtualLanHeader(MaskedPatternFields<VirtualLanHeaderSpecification, VirtualLanHeaderMask>),
 	
 	/// A 'null' matcher that does nothing.
 	Void,
 }
 
-impl PacketMatcher
+impl Pattern
 {
-	const MaximumPatternMatcher: usize = 16;
+	const MaximumPatterns: usize = 16;
 	
 	/// Flow items.
 	///
 	/// Resultant array is only valid as long as `packet_matchers` is valid.
 	#[inline(always)]
-	pub fn rte_flow_items(packet_matchers: &ArrayVec<[PacketMatcher; Self::MaximumPatternMatcher]>) -> ArrayVec<[rte_flow_item; Self::MaximumPatternMatcher]>
+	pub fn rte_flow_items(packet_matchers: &ArrayVec<[Pattern; Self::MaximumPatterns]>) -> ArrayVec<[rte_flow_item; Self::MaximumPatterns]>
 	{
-		let mut items: ArrayVec<[rte_flow_item; Self::MaximumPatternMatcher]> = ArrayVec::new();
+		let mut items: ArrayVec<[rte_flow_item; Self::MaximumPatterns]> = ArrayVec::new();
 		
 		for packet_matcher in packet_matchers
 		{
@@ -174,7 +176,7 @@ impl PacketMatcher
 	#[inline(always)]
 	fn rte_flow_item(&self) -> rte_flow_item
 	{
-		use self::PacketMatcher::*;
+		use self::Pattern::*;
 		use self::rte_flow_item_type::*;
 		
 		match *self
@@ -218,9 +220,9 @@ impl PacketMatcher
 				rte_flow_item
 				{
 					type_: RawSpecification::DpdkFlowType,
-					spec: specification.dpdk_specification() as *const <RawSpecification as MaskedPacketMatcher>::Type as *const _,
+					spec: specification.dpdk_specification() as *const <RawSpecification as MaskedPattern>::Type as *const _,
 					last: null_mut(),
-					mask: mask.dpdk_mask() as *const <RawSpecification as MaskedPacketMatcher>::Type as *const _,
+					mask: mask.dpdk_mask() as *const <RawSpecification as MaskedPattern>::Type as *const _,
 				}
 			}
 			
@@ -244,13 +246,3 @@ impl PacketMatcher
 		}
 	}
 }
-
-
-/*
-struct rte_flow *
-rte_flow_create(uint16_t port_id,
-		const struct rte_flow_attr *attr,
-		const struct rte_flow_item pattern[],
-		const struct rte_flow_action actions[],
-		struct rte_flow_error *error);
-*/

@@ -10,7 +10,7 @@
 //! #dpdk-flow
 //! A wrapper around DPDK's flow matching and filtering framework.
 //!
-//! Look at the variants in PatternItem for what can be matched.
+//! Look at the variants in Pattern for what can be matched.
 //!
 //! Whilst DPDK is supported for Linux on AArch64, ARM v7, PowerPC 64-bit (recent) and x86-64, and FreeBSD on x86-64, only Linux x86-64 will compile.
 //!

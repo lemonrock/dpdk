@@ -2,7 +2,7 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Mask for an `PacketMatcher::EthernetHeader`.
+/// Mask for an `Pattern::EthernetHeader`.
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
 #[repr(C, packed)]
@@ -15,7 +15,7 @@ pub struct EthernetHeaderMask
 	pub ether_type_or_legacy_ethernet_frame_size: NetworkEndianU16,
 }
 
-impl MaskedPacketMatcher for EthernetHeaderMask
+impl MaskedPattern for EthernetHeaderMask
 {
 	type Type = rte_flow_item_eth;
 }
@@ -23,7 +23,7 @@ impl MaskedPacketMatcher for EthernetHeaderMask
 impl Mask for EthernetHeaderMask
 {
 	#[inline(always)]
-	fn dpdk_mask(&self) -> &<Self as MaskedPacketMatcher>::Type
+	fn dpdk_mask(&self) -> &<Self as MaskedPattern>::Type
 	{
 		unsafe { transmute(self) }
 	}

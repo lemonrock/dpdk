@@ -3,14 +3,16 @@
 
 
 /// Commonly reocurring fields for a masked packet matcher
-pub struct MaskedPacketMatcherFields<S, M>
+#[derive(Debug)]
+#[derive(Deserialize, Serialize)]
+pub struct MaskedPatternFields<S, M>
 {
 	from_specification: S,
 	to_specification: Option<S>,
 	mask: M,
 }
 
-impl<S> MaskedPacketMatcherFields<S, S>
+impl<S> MaskedPatternFields<S, S>
 {
 	#[inline(always)]
 	pub(crate) fn trivially_cast_as_rte_flow_item<RteFlowItem>(&self, type_: rte_flow_item_type) -> rte_flow_item
@@ -29,7 +31,7 @@ impl<S> MaskedPacketMatcherFields<S, S>
 	}
 }
 
-impl<S: Specification> MaskedPacketMatcherFields<S, S::Mask>
+impl<S: Specification> MaskedPatternFields<S, S::Mask>
 {
 	#[inline(always)]
 	pub(crate) fn rte_flow_item(&self) -> rte_flow_item

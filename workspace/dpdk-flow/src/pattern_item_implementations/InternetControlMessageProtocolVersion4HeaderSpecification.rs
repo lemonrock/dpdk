@@ -5,7 +5,7 @@
 /// An Internet Control Message Protocol (ICMP) version 4 header specification which shadows InternetControlMessageProtocolPacketHeader.
 pub type InternetControlMessageProtocolVersion4HeaderSpecification = InternetControlMessageProtocolVersion4PacketHeader;
 
-impl MaskedPacketMatcher for InternetControlMessageProtocolVersion4HeaderSpecification
+impl MaskedPattern for InternetControlMessageProtocolVersion4HeaderSpecification
 {
 	type Type = rte_flow_item_icmp;
 }
@@ -17,7 +17,7 @@ impl Specification for InternetControlMessageProtocolVersion4HeaderSpecification
 	type Mask = InternetControlMessageProtocolVersion4HeaderMask;
 	
 	#[inline(always)]
-	fn dpdk_specification(&self) -> &<Self as MaskedPacketMatcher>::Type
+	fn dpdk_specification(&self) -> &<Self as MaskedPattern>::Type
 	{
 		unsafe { transmute(self) }
 	}

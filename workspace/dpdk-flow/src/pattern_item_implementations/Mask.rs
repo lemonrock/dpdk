@@ -3,9 +3,9 @@
 
 
 /// Mask.
-pub trait Mask: MaskedPacketMatcher
+pub trait Mask: MaskedPattern
 {
 	#[doc(hidden)]
 	#[inline(always)]
-	fn dpdk_mask(&self) -> &<Self as MaskedPacketMatcher>::Type;
+	fn dpdk_mask(&self) -> &<Self as MaskedPattern>::Type;
 }

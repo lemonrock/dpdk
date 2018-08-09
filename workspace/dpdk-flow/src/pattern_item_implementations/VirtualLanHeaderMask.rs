@@ -2,7 +2,7 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Mask for an `PacketMatcher::VirtualLanHeader`.
+/// Mask for an `Pattern::VirtualLanHeader`.
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
 #[repr(C, packed)]
@@ -15,7 +15,7 @@ pub struct VirtualLanHeaderMask
 	pub ether_type_or_legacy_ethernet_frame_size: NetworkEndianU16,
 }
 
-impl MaskedPacketMatcher for VirtualLanHeaderMask
+impl MaskedPattern for VirtualLanHeaderMask
 {
 	type Type = rte_flow_item_vlan;
 }
@@ -23,7 +23,7 @@ impl MaskedPacketMatcher for VirtualLanHeaderMask
 impl Mask for VirtualLanHeaderMask
 {
 	#[inline(always)]
-	fn dpdk_mask(&self) -> &<Self as MaskedPacketMatcher>::Type
+	fn dpdk_mask(&self) -> &<Self as MaskedPattern>::Type
 	{
 		unsafe { transmute(self) }
 	}

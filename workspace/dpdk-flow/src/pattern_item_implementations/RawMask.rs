@@ -2,7 +2,7 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Mask for an `PacketMatcher::Raw`.
+/// Mask for an `Pattern::Raw`.
 #[derive(Debug)]
 #[derive(Serialize)]
 pub struct RawMask
@@ -28,7 +28,7 @@ custom_deserialize!
 	2 => pattern,
 }
 
-impl MaskedPacketMatcher for RawMask
+impl MaskedPattern for RawMask
 {
 	type Type = rte_flow_item_raw;
 }
@@ -36,7 +36,7 @@ impl MaskedPacketMatcher for RawMask
 impl Mask for RawMask
 {
 	#[inline(always)]
-	fn dpdk_mask(&self) -> &<Self as MaskedPacketMatcher>::Type
+	fn dpdk_mask(&self) -> &<Self as MaskedPattern>::Type
 	{
 		&self.cached
 	}

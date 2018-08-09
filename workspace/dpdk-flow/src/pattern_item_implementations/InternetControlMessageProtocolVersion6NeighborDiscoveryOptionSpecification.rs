@@ -5,7 +5,7 @@
 /// An Internet Control Message Protocol (ICMP) version 4 Neighbor Discovery option specification which shadows InternetControlMessageProtocolVersion6NeighborDiscoveryOption.
 pub type InternetControlMessageProtocolVersion6NeighborDiscoveryOptionSpecification = InternetControlMessageProtocolVersion6NeighborDiscoveryOption;
 
-impl MaskedPacketMatcher for InternetControlMessageProtocolVersion6NeighborDiscoveryOptionSpecification
+impl MaskedPattern for InternetControlMessageProtocolVersion6NeighborDiscoveryOptionSpecification
 {
 	type Type = rte_flow_item_icmp6_nd_opt;
 }
@@ -17,7 +17,7 @@ impl Specification for InternetControlMessageProtocolVersion6NeighborDiscoveryOp
 	type Mask = InternetControlMessageProtocolVersion6NeighborDiscoveryOptionMask;
 	
 	#[inline(always)]
-	fn dpdk_specification(&self) -> &<Self as MaskedPacketMatcher>::Type
+	fn dpdk_specification(&self) -> &<Self as MaskedPattern>::Type
 	{
 		unsafe { transmute(self) }
 	}

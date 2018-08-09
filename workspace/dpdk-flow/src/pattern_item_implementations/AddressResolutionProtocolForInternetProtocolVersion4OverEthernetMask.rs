@@ -2,7 +2,7 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Mask for an `PacketMatcher::AddressResolutionProtocolForInternetProtocolVersion4OverEthernet`.
+/// Mask for an `Pattern::AddressResolutionProtocolForInternetProtocolVersion4OverEthernet`.
 #[derive(Debug)]
 #[derive(Serialize)]
 pub struct AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask
@@ -36,7 +36,7 @@ custom_deserialize!
 	4 => operation,
 }
 
-impl MaskedPacketMatcher for AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask
+impl MaskedPattern for AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask
 {
 	type Type = rte_flow_item_arp_eth_ipv4;
 }
@@ -44,7 +44,7 @@ impl MaskedPacketMatcher for AddressResolutionProtocolForInternetProtocolVersion
 impl Mask for AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask
 {
 	#[inline(always)]
-	fn dpdk_mask(&self) -> &<Self as MaskedPacketMatcher>::Type
+	fn dpdk_mask(&self) -> &<Self as MaskedPattern>::Type
 	{
 		&self.cached
 	}

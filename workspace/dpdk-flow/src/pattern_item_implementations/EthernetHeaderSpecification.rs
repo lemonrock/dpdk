@@ -5,7 +5,7 @@
 /// An ethernet header specification which shadows EthernetPacketHeader.
 pub type EthernetHeaderSpecification = EthernetPacketHeader;
 
-impl MaskedPacketMatcher for EthernetHeaderSpecification
+impl MaskedPattern for EthernetHeaderSpecification
 {
 	type Type = rte_flow_item_eth;
 }
@@ -17,7 +17,7 @@ impl Specification for EthernetHeaderSpecification
 	type Mask = EthernetHeaderMask;
 	
 	#[inline(always)]
-	fn dpdk_specification(&self) -> &<Self as MaskedPacketMatcher>::Type
+	fn dpdk_specification(&self) -> &<Self as MaskedPattern>::Type
 	{
 		unsafe { transmute(self) }
 	}

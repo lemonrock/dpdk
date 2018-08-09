@@ -2,7 +2,7 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Mask for an `PacketMatcher::InternetProtocolVersion4Header`.
+/// Mask for an `Pattern::InternetProtocolVersion4Header`.
 #[derive(Debug)]
 #[derive(Deserialize, Serialize)]
 #[repr(C, packed)]
@@ -39,7 +39,7 @@ pub struct InternetProtocolVersion4HeaderMask
 	pub destination_address: NetworkEndianU32,
 }
 
-impl MaskedPacketMatcher for InternetProtocolVersion4HeaderMask
+impl MaskedPattern for InternetProtocolVersion4HeaderMask
 {
 	type Type = rte_flow_item_ipv4;
 }
@@ -47,7 +47,7 @@ impl MaskedPacketMatcher for InternetProtocolVersion4HeaderMask
 impl Mask for InternetProtocolVersion4HeaderMask
 {
 	#[inline(always)]
-	fn dpdk_mask(&self) -> &<Self as MaskedPacketMatcher>::Type
+	fn dpdk_mask(&self) -> &<Self as MaskedPattern>::Type
 	{
 		unsafe { transmute(self) }
 	}

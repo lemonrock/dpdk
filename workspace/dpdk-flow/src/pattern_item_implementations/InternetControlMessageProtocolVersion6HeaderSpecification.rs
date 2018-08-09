@@ -5,7 +5,7 @@
 /// An Internet Control Message Protocol (ICMP) version 6 header specification which shadows InternetControlMessageProtocolPacketHeader.
 pub type InternetControlMessageProtocolVersion6HeaderSpecification = InternetControlMessageProtocolVersion6PacketHeader;
 
-impl MaskedPacketMatcher for InternetControlMessageProtocolVersion6HeaderSpecification
+impl MaskedPattern for InternetControlMessageProtocolVersion6HeaderSpecification
 {
 	type Type = rte_flow_item_icmp6;
 }
@@ -17,7 +17,7 @@ impl Specification for InternetControlMessageProtocolVersion6HeaderSpecification
 	type Mask = InternetControlMessageProtocolVersion6HeaderMask;
 	
 	#[inline(always)]
-	fn dpdk_specification(&self) -> &<Self as MaskedPacketMatcher>::Type
+	fn dpdk_specification(&self) -> &<Self as MaskedPattern>::Type
 	{
 		unsafe { transmute(self) }
 	}

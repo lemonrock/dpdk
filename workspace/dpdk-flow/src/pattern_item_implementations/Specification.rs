@@ -3,15 +3,15 @@
 
 
 /// Specification.
-pub trait Specification: MaskedPacketMatcher
+pub trait Specification: MaskedPattern
 {
 	#[doc(hidden)]
 	const DpdkFlowType: rte_flow_item_type;
 	
 	#[doc(hidden)]
-	type Mask: Mask<Type=<Self as MaskedPacketMatcher>::Type>;
+	type Mask: Mask<Type=<Self as MaskedPattern>::Type>;
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn dpdk_specification(&self) -> &<Self as MaskedPacketMatcher>::Type;
+	fn dpdk_specification(&self) -> &<Self as MaskedPattern>::Type;
 }

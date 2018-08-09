@@ -5,7 +5,7 @@
 /// An virtual LAN header specification which shadows VirtualLanPacketHeader.
 pub type VirtualLanHeaderSpecification = VirtualLanPacketHeader;
 
-impl MaskedPacketMatcher for VirtualLanHeaderSpecification
+impl MaskedPattern for VirtualLanHeaderSpecification
 {
 	type Type = rte_flow_item_vlan;
 }
@@ -17,7 +17,7 @@ impl Specification for VirtualLanHeaderSpecification
 	type Mask = VirtualLanHeaderMask;
 	
 	#[inline(always)]
-	fn dpdk_specification(&self) -> &<Self as MaskedPacketMatcher>::Type
+	fn dpdk_specification(&self) -> &<Self as MaskedPattern>::Type
 	{
 		unsafe { transmute(self) }
 	}

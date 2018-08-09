@@ -2,7 +2,7 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Mask for an `PacketMatcher::InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisement`.
+/// Mask for an `Pattern::InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisement`.
 #[derive(Debug)]
 #[derive(Serialize)]
 pub struct InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementMask
@@ -28,7 +28,7 @@ custom_deserialize!
 	2 => flags,
 }
 
-impl MaskedPacketMatcher for InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementMask
+impl MaskedPattern for InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementMask
 {
 	type Type = rte_flow_item_icmp6_nd_na;
 }
@@ -36,7 +36,7 @@ impl MaskedPacketMatcher for InternetControlMessageProtocolVersion6NeighborDisco
 impl Mask for InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementMask
 {
 	#[inline(always)]
-	fn dpdk_mask(&self) -> &<Self as MaskedPacketMatcher>::Type
+	fn dpdk_mask(&self) -> &<Self as MaskedPattern>::Type
 	{
 		&self.cached
 	}

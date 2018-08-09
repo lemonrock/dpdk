@@ -3,7 +3,7 @@
 
 
 /// A masked packet matcher.
-pub trait MaskedPacketMatcher
+pub trait MaskedPattern
 {
 	#[doc(hidden)]
 	type Type;
