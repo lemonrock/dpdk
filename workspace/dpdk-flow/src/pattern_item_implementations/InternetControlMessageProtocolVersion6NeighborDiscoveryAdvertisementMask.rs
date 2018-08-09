@@ -28,7 +28,62 @@ custom_deserialize!
 	2 => flags,
 }
 
-bitwise_clone_partial_ord_ord_partial_eq_eq_hash!(InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementMask);
+impl Clone for InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementMask
+{
+	#[inline(always)]
+	fn clone(&self) -> Self
+	{
+		Self
+		{
+			header_check_sum: self.header_check_sum,
+			target_address: self.target_address,
+			flags: self.flags,
+			cached: bitwise_clone!(self, rte_flow_item_icmp6_nd_na),
+		}
+	}
+}
+
+impl PartialOrd for InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementMask
+{
+	#[inline(always)]
+	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
+	{
+		Some(self.cmp(rhs))
+	}
+}
+
+impl Ord for InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementMask
+{
+	#[inline(always)]
+	fn cmp(&self, rhs: &Self) -> Ordering
+	{
+		self.header_check_sum.cmp(&rhs.header_check_sum).then_with(|| self.target_address.cmp(&rhs.target_address)).then_with(|| self.flags.cmp(&rhs.flags))
+	}
+}
+
+impl PartialEq for InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementMask
+{
+	#[inline(always)]
+	fn eq(&self, rhs: &Self) -> bool
+	{
+		self.header_check_sum == rhs.header_check_sum && self.target_address == rhs.target_address && self.flags == rhs.flags
+	}
+}
+
+impl Eq for InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementMask
+{
+}
+
+impl Hash for InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementMask
+{
+	#[inline(always)]
+	fn hash<H: Hasher>(&self, hasher: &mut H)
+	{
+		self.header_check_sum.hash(hasher);
+		self.target_address.hash(hasher);
+		self.flags.hash(hasher)
+	}
+}
 
 impl MaskedPattern for InternetControlMessageProtocolVersion6NeighborDiscoveryAdvertisementMask
 {

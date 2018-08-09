@@ -25,7 +25,7 @@
 /// * `RTE_FLOW_ITEM_TYPE_ESP`
 /// * `RTE_FLOW_ITEM_TYPE_GENEVE`
 /// * `RTE_FLOW_ITEM_TYPE_VXLAN_GPE`
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 pub enum Pattern
 {

@@ -50,10 +50,9 @@ use ::std::mem::zeroed;
 use ::std::ptr::copy_nonoverlapping;
 use ::std::ptr::NonNull;
 use ::std::ptr::null_mut;
-use ::std::slice::from_raw_parts;
 
 
-include!("bitwise_clone_partial_ord_ord_partial_eq_eq_hash.rs");
+include!("bitwise_clone.rs");
 include!("custom_deserialize.rs");
 
 

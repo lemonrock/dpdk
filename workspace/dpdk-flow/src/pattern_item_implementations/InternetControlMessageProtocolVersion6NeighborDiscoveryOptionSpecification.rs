@@ -2,8 +2,8 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// An Internet Control Message Protocol (ICMP) version 4 Neighbor Discovery option specification which shadows InternetControlMessageProtocolVersion6NeighborDiscoveryOption.
-pub type InternetControlMessageProtocolVersion6NeighborDiscoveryOptionSpecification = InternetControlMessageProtocolVersion6NeighborDiscoveryOption;
+/// An Internet Control Message Protocol (ICMP) version 4 Neighbor Discovery option specification which shadows InternetControlMessageProtocolVersion6NeighborDiscoveryOptionHeader.
+pub type InternetControlMessageProtocolVersion6NeighborDiscoveryOptionSpecification = InternetControlMessageProtocolVersion6NeighborDiscoveryOptionHeader;
 
 impl MaskedPattern for InternetControlMessageProtocolVersion6NeighborDiscoveryOptionSpecification
 {

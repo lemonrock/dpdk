@@ -3,7 +3,7 @@
 
 
 /// Commonly reocurring fields for a masked packet matcher
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 pub struct MaskedPatternFields<S, M>
 {

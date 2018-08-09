@@ -28,6 +28,69 @@ custom_deserialize!
 	2 => pattern,
 }
 
+impl Clone for RawMask
+{
+	#[inline(always)]
+	fn clone(&self) -> Self
+	{
+		let pattern = self.pattern.clone();
+		Self
+		{
+			cached:
+			{
+				let mut clone = bitwise_clone!(self, rte_flow_item_raw);
+				clone.pattern = pattern.as_ptr();
+				clone
+			},
+			offset: self.offset,
+			search_area_limit_for_start_of_pattern: self.search_area_limit_for_start_of_pattern,
+			pattern,
+		}
+	}
+}
+
+impl PartialOrd for RawMask
+{
+	#[inline(always)]
+	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
+	{
+		Some(self.cmp(rhs))
+	}
+}
+
+impl Ord for RawMask
+{
+	#[inline(always)]
+	fn cmp(&self, rhs: &Self) -> Ordering
+	{
+		self.offset.cmp(&rhs.offset).then_with(|| self.search_area_limit_for_start_of_pattern.cmp(&rhs.search_area_limit_for_start_of_pattern)).then_with(|| self.pattern.cmp(&rhs.pattern))
+	}
+}
+
+impl PartialEq for RawMask
+{
+	#[inline(always)]
+	fn eq(&self, rhs: &Self) -> bool
+	{
+		self.offset == rhs.offset && self.search_area_limit_for_start_of_pattern == rhs.search_area_limit_for_start_of_pattern && self.pattern == rhs.pattern
+	}
+}
+
+impl Eq for RawMask
+{
+}
+
+impl Hash for RawMask
+{
+	#[inline(always)]
+	fn hash<H: Hasher>(&self, hasher: &mut H)
+	{
+		self.offset.hash(hasher);
+		self.search_area_limit_for_start_of_pattern.hash(hasher);
+		self.pattern.hash(hasher)
+	}
+}
+
 impl MaskedPattern for RawMask
 {
 	type Type = rte_flow_item_raw;

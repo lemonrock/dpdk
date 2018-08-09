@@ -3,7 +3,7 @@
 
 
 /// Flow rule.
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
 #[derive(Deserialize, Serialize)]
 pub struct FlowRule
 {

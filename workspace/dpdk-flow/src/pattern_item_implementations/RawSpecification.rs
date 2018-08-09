@@ -36,6 +36,73 @@ custom_deserialize!
 	4 => relative_offset,
 }
 
+impl Clone for RawSpecification
+{
+	#[inline(always)]
+	fn clone(&self) -> Self
+	{
+		let pattern = self.pattern.clone();
+		Self
+		{
+			cached:
+			{
+				let mut clone = bitwise_clone!(self, rte_flow_item_raw);
+				clone.pattern = pattern.as_ptr();
+				clone
+			},
+			offset: self.offset,
+			search_area_limit_for_start_of_pattern: self.search_area_limit_for_start_of_pattern,
+			pattern,
+			look_for_pattern_after_the_previous_item_offset: self.look_for_pattern_after_the_previous_item_offset,
+			relative_offset: self.relative_offset,
+		}
+	}
+}
+
+impl PartialOrd for RawSpecification
+{
+	#[inline(always)]
+	fn partial_cmp(&self, rhs: &Self) -> Option<Ordering>
+	{
+		Some(self.cmp(rhs))
+	}
+}
+
+impl Ord for RawSpecification
+{
+	#[inline(always)]
+	fn cmp(&self, rhs: &Self) -> Ordering
+	{
+		self.offset.cmp(&rhs.offset).then_with(|| self.search_area_limit_for_start_of_pattern.cmp(&rhs.search_area_limit_for_start_of_pattern)).then_with(|| self.pattern.cmp(&rhs.pattern)).then_with(|| self.look_for_pattern_after_the_previous_item_offset.cmp(&rhs.look_for_pattern_after_the_previous_item_offset)).then_with(|| self.relative_offset.cmp(&rhs.relative_offset))
+	}
+}
+
+impl PartialEq for RawSpecification
+{
+	#[inline(always)]
+	fn eq(&self, rhs: &Self) -> bool
+	{
+		self.offset == rhs.offset && self.search_area_limit_for_start_of_pattern == rhs.search_area_limit_for_start_of_pattern && self.pattern == rhs.pattern && self.look_for_pattern_after_the_previous_item_offset == rhs.look_for_pattern_after_the_previous_item_offset && self.relative_offset == rhs.relative_offset
+	}
+}
+
+impl Eq for RawSpecification
+{
+}
+
+impl Hash for RawSpecification
+{
+	#[inline(always)]
+	fn hash<H: Hasher>(&self, hasher: &mut H)
+	{
+		self.offset.hash(hasher);
+		self.search_area_limit_for_start_of_pattern.hash(hasher);
+		self.pattern.hash(hasher);
+		self.look_for_pattern_after_the_previous_item_offset.hash(hasher);
+		self.relative_offset.hash(hasher)
+	}
+}
+
 impl MaskedPattern for RawSpecification
 {
 	type Type = rte_flow_item_raw;
