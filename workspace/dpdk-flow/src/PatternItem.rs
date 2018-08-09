@@ -69,6 +69,58 @@ pub enum PacketMatcher
 	/// Matches at a number of layers.
 	Any(MaskedPacketMatcherFields<u32, u32>),
 	
+	/// Fuzzy pattern match.
+	///
+	/// Not all devices will support a fuzzy match.
+	///
+	/// Usually a fuzzy match is fast but the cost is accuracy, eg Signature Match only match pattern's hash value, but it is possible two different patterns have the same hash value.
+	///
+	/// Matching accuracy level can be configure by a `threshold`.
+	///
+	/// These are mapped internally by a DPDK driver to the different accuracy levels that the underlying device supports.
+	/// * a `threshold` of zero (0) is a perfect match.
+	/// * a `threshold` of 2^32 - 1 is the fuzziest match.
+	Fuzzy(MaskedPacketMatcherFields<u32, u32>),
+	
+	/// Mark pattern match.
+	///
+	/// Not all devices will support a mark match, and, of those that do, not all will support the full range from 0 to 2^32 - 1 inclusive.
+	///
+	/// A mark match matches a packet that has previously been 'marked' with a marking action.
+	/// Marks are stored inside the `rte_mbuf` in the same union as the Receive Side Scaling (RSS) hash.
+	///
+	/// As of DPDK 18.05, this functionality is experimental.
+	Mark(MaskedPacketMatcherFields<u32, u32>),
+	
+	/// Matches traffic originating from (ingress) or going to (egress) a physical port of the underlying device.
+	///
+	/// The first PhysicalPortPacketMatcher overrides the physical port normally associated with the specified DPDK input port (`port_id`).
+	/// This item can be provided several times to match additional physical ports.
+	///
+	/// Note that physical ports are not necessarily tied to DPDK input ports (`port_id`) when those are not under DPDK control.
+	/// Possible values are specific to each device, they are not necessarily indexed from zero and may not be contiguous.
+	///
+	/// As a device property, the list of allowed values as well as the value associated with a `port_id` should be retrieved by other means.
+	PhysicalPort(MaskedPacketMatcherFields<u32, u32>),
+	
+	/// Matches traffic originating from (ingress) or going to (egress) a given DPDK port identifier (also known as `port_id` and 'port ID').
+	///
+	/// Normally only supported if the port identifier in question is known by the underlying PMD and related to the device the flow rule is created against.
+	///
+	/// A port identifier is the application-side way of referring to 'ethernet' connections and getting reference to `eth_dev` structures.
+	PortIdentifier(MaskedPacketMatcherFields<u32, u32>),
+	
+	
+	/// Matches traffic originating from (ingress) or going to (egress) a given virtual function (VF) of the current device.
+	///
+	/// If supported, should work even if the virtual function (VF) is not managed by the application and thus not associated with a DPDK port identifier (ID).
+	///
+	/// Note this pattern item does not match VF representors traffic which, as separate entities, should be addressed through their own DPDK port identifiers (IDs).
+	///
+	/// * Can be specified multiple times to match traffic addressed to several Virtual Function (VF) Identifiers (IDs).
+	/// * Can be combined with a PhysicalFunctionPacketMatcher to match both Physical Function (PF) and Virtual Function (VF) traffic.
+	VirtualFunction(MaskedPacketMatcherFields<u32, u32>),
+	
 	/// A 'null' matcher that does nothing.
 	Void,
 }
@@ -106,6 +158,18 @@ impl PacketMatcher
 			AddressResolutionProtocolForInternetProtocolVersion4OverEthernet(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
 			Any(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_any>(RTE_FLOW_ITEM_TYPE_ANY, masked_packet_matched_fields),
+			
+			Fuzzy(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_fuzzy>(RTE_FLOW_ITEM_TYPE_FUZZY, masked_packet_matched_fields),
+			
+			Mark(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_mark>(RTE_FLOW_ITEM_TYPE_MARK, masked_packet_matched_fields),
+			
+			PhysicalPort(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_phy_port>(RTE_FLOW_ITEM_TYPE_PHY_PORT, masked_packet_matched_fields),
+			
+			PortIdentifier(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_port_id>(RTE_FLOW_ITEM_TYPE_PORT_ID, masked_packet_matched_fields),
+			
+			VirtualFunction(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_vf>(RTE_FLOW_ITEM_TYPE_VF, masked_packet_matched_fields),
+			
+			
 			
 			Void => Self::unspecified_rte_flow_item(RTE_FLOW_ITEM_TYPE_VOID),
 		}
