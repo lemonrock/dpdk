@@ -44,9 +44,9 @@ impl MaskedPacketMatcher for AddressResolutionProtocolForInternetProtocolVersion
 impl Mask for AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask
 {
 	#[inline(always)]
-	fn dpdk_mask(&self) -> NonNull<<Self as MaskedPacketMatcher>::Type>
+	fn dpdk_mask(&self) -> &<Self as MaskedPacketMatcher>::Type
 	{
-		unimplemented!()
+		&self.cached
 	}
 }
 

@@ -48,9 +48,9 @@ impl Specification for AddressResolutionProtocolForInternetProtocolVersion4OverE
 	type Mask = AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask;
 	
 	#[inline(always)]
-	fn dpdk_specification(&self) -> NonNull<<Self as MaskedPacketMatcher>::Type>
+	fn dpdk_specification(&self) -> &<Self as MaskedPacketMatcher>::Type
 	{
-		unimplemented!()
+		&self.cached
 	}
 }
 

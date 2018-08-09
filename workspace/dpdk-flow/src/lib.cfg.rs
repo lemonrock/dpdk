@@ -29,7 +29,6 @@ use ::serde::de::SeqAccess;
 use ::serde::de::Visitor;
 use ::std::fmt;
 use ::std::mem::transmute;
-use ::std::ptr::NonNull;
 use ::std::ptr::null_mut;
 
 
@@ -39,5 +38,8 @@ include!("custom_deserialize.rs");
 include!("PatternItem.rs");
 include!("AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask.rs");
 include!("AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification.rs");
-include!("MediaAccessControlAddressMask.rs");
 include!("EthernetAddress.rs");
+include!("EthernetAddressesMask.rs");
+include!("EthernetHeaderMask.rs");
+include!("EthernetHeaderSpecification.rs");
+include!("MediaAccessControlAddressMask.rs");

@@ -20,7 +20,7 @@ pub trait Specification: MaskedPacketMatcher
 	
 	#[doc(hidden)]
 	#[inline(always)]
-	fn dpdk_specification(&self) -> NonNull<<Self as MaskedPacketMatcher>::Type>;
+	fn dpdk_specification(&self) -> &<Self as MaskedPacketMatcher>::Type;
 }
 
 /// Mask.
@@ -28,7 +28,7 @@ pub trait Mask: MaskedPacketMatcher
 {
 	#[doc(hidden)]
 	#[inline(always)]
-	fn dpdk_mask(&self) -> NonNull<<Self as MaskedPacketMatcher>::Type>;
+	fn dpdk_mask(&self) -> &<Self as MaskedPacketMatcher>::Type;
 }
 
 /// Commonly reocurring fields for a masked packet matcher
@@ -47,13 +47,13 @@ impl<S: Specification> MaskedPacketMatcherFields<S, S::Mask>
 		rte_flow_item
 		{
 			type_: S::DpdkFlowType,
-			spec: self.from_specification.dpdk_specification().as_ptr() as *const S::Type as *const _,
+			spec: self.from_specification.dpdk_specification() as *const S::Type as *const _,
 			last: match self.to_specification
 			{
 				None => null_mut(),
-				Some(ref specification) => specification.dpdk_specification().as_ptr() as *const S::Type as *const _,
+				Some(ref specification) => specification.dpdk_specification() as *const S::Type as *const _,
 			},
-			mask: self.mask.dpdk_mask().as_ptr() as *const S::Type as *const _,
+			mask: self.mask.dpdk_mask() as *const S::Type as *const _,
 		}
 	}
 }
@@ -68,6 +68,12 @@ pub enum PacketMatcher
 	
 	/// Matches at a number of layers.
 	Any(MaskedPacketMatcherFields<u32, u32>),
+	
+	/// A matcher that matches an ethernet header.
+	///
+	/// When followed by a 'layer 2.5' matcher such as VirtualLanHeaderPacketMatcher, the Ether Type is a tag protocol identifier (TPID).
+	/// In this case, the ether type refers to the outer header, with the VirtualLanHeaderPacketMatcher's ether type referring to the inner Ether Type or tag protocol identifier (TPID).
+	EthernetHeader(MaskedPacketMatcherFields<EthernetHeaderSpecification, EthernetHeaderMask>),
 	
 	/// Fuzzy pattern match.
 	///
@@ -158,6 +164,8 @@ impl PacketMatcher
 			AddressResolutionProtocolForInternetProtocolVersion4OverEthernet(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
 			Any(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_any>(RTE_FLOW_ITEM_TYPE_ANY, masked_packet_matched_fields),
+			
+			EthernetHeader(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
 			Fuzzy(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_fuzzy>(RTE_FLOW_ITEM_TYPE_FUZZY, masked_packet_matched_fields),
 			
