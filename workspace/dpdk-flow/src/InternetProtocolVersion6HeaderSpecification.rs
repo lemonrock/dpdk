@@ -2,7 +2,7 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// An virtual LAN header specification which shadows InternetProtocolVersion6PacketHeader.
+/// An Internet Protocol (IP) version 6 header specification which shadows InternetProtocolVersion4PacketHeader.
 pub type InternetProtocolVersion6HeaderSpecification = InternetProtocolVersion6PacketHeader;
 
 impl MaskedPacketMatcher for InternetProtocolVersion6HeaderSpecification

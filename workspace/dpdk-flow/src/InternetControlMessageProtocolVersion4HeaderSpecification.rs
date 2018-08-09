@@ -2,19 +2,19 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// An Internet Protocol (IP) version 4 header specification which shadows InternetProtocolVersion4PacketHeader.
-pub type InternetProtocolVersion4HeaderSpecification = InternetProtocolVersion4PacketHeader;
+/// An Internet Control Message Protocol (ICMP) version 4 header specification which shadows InternetControlMessageProtocolPacketHeader.
+pub type InternetControlMessageProtocolVersion4HeaderSpecification = InternetControlMessageProtocolVersion4PacketHeader;
 
-impl MaskedPacketMatcher for InternetProtocolVersion4HeaderSpecification
+impl MaskedPacketMatcher for InternetControlMessageProtocolVersion4HeaderSpecification
 {
-	type Type = rte_flow_item_ipv4;
+	type Type = rte_flow_item_icmp;
 }
 
-impl Specification for InternetProtocolVersion4HeaderSpecification
+impl Specification for InternetControlMessageProtocolVersion4HeaderSpecification
 {
-	const DpdkFlowType: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_IPV4;
+	const DpdkFlowType: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_ICMP;
 	
-	type Mask = InternetProtocolVersion4HeaderMask;
+	type Mask = InternetControlMessageProtocolVersion4HeaderMask;
 	
 	#[inline(always)]
 	fn dpdk_specification(&self) -> &<Self as MaskedPacketMatcher>::Type

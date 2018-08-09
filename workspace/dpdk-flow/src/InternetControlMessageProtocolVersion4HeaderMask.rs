@@ -2,22 +2,33 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// An Internet Protocol (IP) version 4 header specification which shadows InternetProtocolVersion4PacketHeader.
-pub type InternetProtocolVersion4HeaderSpecification = InternetProtocolVersion4PacketHeader;
-
-impl MaskedPacketMatcher for InternetProtocolVersion4HeaderSpecification
+/// Mask for an `PacketMatcher::InternetProtocolVersion4Header`.
+#[derive(Debug)]
+#[derive(Deserialize, Serialize)]
+pub struct InternetControlMessageProtocolVersion4HeaderMask
 {
-	type Type = rte_flow_item_ipv4;
+	/// Type mask.
+	pub type_: u8,
+	
+	/// Code mask.
+	pub code: u8,
+	
+	/// The checksum includes the payload.
+	pub checksum: NetworkEndianU16,
+	
+	/// Rest-of-header.
+	pub rest_of_header: NetworkEndianU32,
 }
 
-impl Specification for InternetProtocolVersion4HeaderSpecification
+impl MaskedPacketMatcher for InternetControlMessageProtocolVersion4HeaderMask
 {
-	const DpdkFlowType: rte_flow_item_type = rte_flow_item_type::RTE_FLOW_ITEM_TYPE_IPV4;
-	
-	type Mask = InternetProtocolVersion4HeaderMask;
-	
+	type Type = rte_flow_item_icmp;
+}
+
+impl Mask for InternetControlMessageProtocolVersion4HeaderMask
+{
 	#[inline(always)]
-	fn dpdk_specification(&self) -> &<Self as MaskedPacketMatcher>::Type
+	fn dpdk_mask(&self) -> &<Self as MaskedPacketMatcher>::Type
 	{
 		unsafe { transmute(self) }
 	}

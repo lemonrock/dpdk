@@ -3,6 +3,35 @@
 
 
 /// Packet matchers.
+///
+/// The following DPDK matchers are not yet implemented but are planned to be supported:-
+///
+/// * `RTE_FLOW_ITEM_TYPE_RAW`
+/// * `RTE_FLOW_ITEM_TYPE_ICMP`
+/// * `RTE_FLOW_ITEM_TYPE_UDP`
+/// * `RTE_FLOW_ITEM_TYPE_TCP`
+/// * `RTE_FLOW_ITEM_TYPE_IPV6_EXT`
+/// * `RTE_FLOW_ITEM_TYPE_ICMP6`
+/// * `RTE_FLOW_ITEM_TYPE_ICMP6_ND_NS`
+/// * `RTE_FLOW_ITEM_TYPE_ICMP6_ND_NA`
+/// * `RTE_FLOW_ITEM_TYPE_ICMP6_ND_OPT`
+/// * `RTE_FLOW_ITEM_TYPE_ICMP6_ND_OPT_SLA_ETH`
+/// * `RTE_FLOW_ITEM_TYPE_ICMP6_ND_OPT_TLA_ETH`
+///
+/// The following DPDK matchers are not yet implemented and there are no plans to support them:-
+///
+/// * `RTE_FLOW_ITEM_TYPE_SCTP`
+/// * `RTE_FLOW_ITEM_TYPE_VXLAN`
+/// * `RTE_FLOW_ITEM_TYPE_E_TAG`
+/// * `RTE_FLOW_ITEM_TYPE_NVGRE`
+/// * `RTE_FLOW_ITEM_TYPE_MPLS`
+/// * `RTE_FLOW_ITEM_TYPE_GRE`
+/// * `RTE_FLOW_ITEM_TYPE_GTP`
+/// * `RTE_FLOW_ITEM_TYPE_GTPC`
+/// * `RTE_FLOW_ITEM_TYPE_GTPU`
+/// * `RTE_FLOW_ITEM_TYPE_ESP`
+/// * `RTE_FLOW_ITEM_TYPE_GENEVE`
+/// * `RTE_FLOW_ITEM_TYPE_VXLAN_GPE`
 pub enum PacketMatcher
 {
 	/// A matcher that matches an Address Resolution Protocol (ARP) Internet Protocol (IP) version 4 packet over Ethernet.
@@ -32,11 +61,17 @@ pub enum PacketMatcher
 	/// * a `threshold` of 2^32 - 1 is the fuzziest match.
 	Fuzzy(MaskedPacketMatcherFields<u32, u32>),
 	
+	/// A matcher that matches an Internet Control Message Protocol (ICMP) version 4 packet header.
+	InternetControlMessageProtocolVersion4Header(MaskedPacketMatcherFields<InternetControlMessageProtocolVersion4HeaderSpecification, InternetControlMessageProtocolVersion4HeaderMask>),
+	
 	/// A matcher that matches an Internet Protocol (IP) version 4 packet header.
 	InternetProtocolVersion4Header(MaskedPacketMatcherFields<InternetProtocolVersion4HeaderSpecification, InternetProtocolVersion4HeaderMask>),
 	
 	/// A matcher that matches an Internet Protocol (IP) version 6 packet header.
 	InternetProtocolVersion6Header(MaskedPacketMatcherFields<InternetProtocolVersion6HeaderSpecification, InternetProtocolVersion6HeaderMask>),
+	
+	/// Inverts the pattern match, ie acts like a boolean NOT operator.
+	Invert,
 	
 	/// Mark pattern match.
 	///
@@ -47,6 +82,11 @@ pub enum PacketMatcher
 	///
 	/// As of DPDK 18.05, this functionality is experimental.
 	Mark(MaskedPacketMatcherFields<u32, u32>),
+	
+	/// Physical Function (PF).
+	///
+	/// Matches traffic originating from (ingress) or going to (egress) the physical function of the current device.
+	PhysicalFunction,
 	
 	/// Matches traffic originating from (ingress) or going to (egress) a physical port of the underlying device.
 	///
@@ -65,7 +105,6 @@ pub enum PacketMatcher
 	///
 	/// A port identifier is the application-side way of referring to 'ethernet' connections and getting reference to `eth_dev` structures.
 	PortIdentifier(MaskedPacketMatcherFields<u32, u32>),
-	
 	
 	/// Matches traffic originating from (ingress) or going to (egress) a given virtual function (VF) of the current device.
 	///
@@ -124,11 +163,17 @@ impl PacketMatcher
 			
 			Fuzzy(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_fuzzy>(RTE_FLOW_ITEM_TYPE_FUZZY, masked_packet_matched_fields),
 			
+			InternetControlMessageProtocolVersion4Header(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
+			
 			InternetProtocolVersion4Header(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
 			InternetProtocolVersion6Header(ref masked_packet_matched_fields) => masked_packet_matched_fields.rte_flow_item(),
 			
+			Invert => Self::unspecified_rte_flow_item(RTE_FLOW_ITEM_TYPE_INVERT),
+			
 			Mark(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_mark>(RTE_FLOW_ITEM_TYPE_MARK, masked_packet_matched_fields),
+			
+			PhysicalFunction => Self::unspecified_rte_flow_item(RTE_FLOW_ITEM_TYPE_PF),
 			
 			PhysicalPort(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_phy_port>(RTE_FLOW_ITEM_TYPE_PHY_PORT, masked_packet_matched_fields),
 			
