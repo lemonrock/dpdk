@@ -40,7 +40,6 @@ use ::std::ptr::null_mut;
 include!("custom_deserialize.rs");
 
 
-include!("PatternItem.rs");
 include!("AddressResolutionProtocolForInternetProtocolVersion4OverEthernetMask.rs");
 include!("AddressResolutionProtocolForInternetProtocolVersion4OverEthernetSpecification.rs");
 include!("EthernetAddress.rs");
@@ -65,6 +64,9 @@ include!("Mask.rs");
 include!("MaskedPacketMatcher.rs");
 include!("MaskedPacketMatcherFields.rs");
 include!("MediaAccessControlAddressMask.rs");
+include!("PatternItem.rs");
+include!("RawMask.rs");
+include!("RawSpecification.rs");
 include!("Specification.rs");
 include!("VirtualLanHeaderMask.rs");
 include!("VirtualLanHeaderSpecification.rs");

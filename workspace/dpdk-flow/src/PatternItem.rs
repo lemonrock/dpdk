@@ -6,7 +6,6 @@
 ///
 /// The following DPDK matchers are not yet implemented but are planned to be supported:-
 ///
-/// * `RTE_FLOW_ITEM_TYPE_RAW`
 /// * `RTE_FLOW_ITEM_TYPE_UDP`
 /// * `RTE_FLOW_ITEM_TYPE_TCP`
 /// * `RTE_FLOW_ITEM_TYPE_ICMP6_ND_OPT_SLA_ETH`
@@ -119,6 +118,18 @@ pub enum PacketMatcher
 	/// A port identifier is the application-side way of referring to 'ethernet' connections and getting reference to `eth_dev` structures.
 	PortIdentifier(MaskedPacketMatcherFields<u32, u32>),
 	
+	/// Matches a byte string of a given length at a given offset.
+	///
+	/// Offset is either absolute (using the start of the packet) or relative to the end of the previous matched item in the stack, in which case negative values are allowed.
+	///
+	/// If search is enabled, offset is used as the starting point.
+	/// The search area can be delimited by setting `search_area_limit_for_start_of_pattern` to a nonzero value, which is the maximum number of bytes after offset where the pattern may start.
+	///
+	/// Matching a zero-length pattern is allowed, doing so resets the relative offset for subsequent items.
+	///
+	/// This type does not support ranges.
+	Raw(RawSpecification, RawMask),
+	
 	/// Matches traffic originating from (ingress) or going to (egress) a given virtual function (VF) of the current device.
 	///
 	/// If supported, should work even if the virtual function (VF) is not managed by the application and thus not associated with a DPDK port identifier (ID).
@@ -201,6 +212,17 @@ impl PacketMatcher
 			PhysicalPort(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_phy_port>(RTE_FLOW_ITEM_TYPE_PHY_PORT, masked_packet_matched_fields),
 			
 			PortIdentifier(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_port_id>(RTE_FLOW_ITEM_TYPE_PORT_ID, masked_packet_matched_fields),
+			
+			Raw(ref specification, ref mask) =>
+			{
+				rte_flow_item
+				{
+					type_: RawSpecification::DpdkFlowType,
+					spec: specification.dpdk_specification() as *const <RawSpecification as MaskedPacketMatcher>::Type as *const _,
+					last: null_mut(),
+					mask: mask.dpdk_mask() as *const <RawSpecification as MaskedPacketMatcher>::Type as *const _,
+				}
+			}
 			
 			VirtualFunction(ref masked_packet_matched_fields) => Self::trivially_cast_as_rte_flow_item::<u32, rte_flow_item_vf>(RTE_FLOW_ITEM_TYPE_VF, masked_packet_matched_fields),
 			
