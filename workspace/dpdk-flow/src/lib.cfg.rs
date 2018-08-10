@@ -6,7 +6,6 @@ extern crate arrayvec;
 extern crate dpdk_core;
 extern crate dpdk_sys;
 #[macro_use] extern crate likely;
-extern crate mem_cmp;
 extern crate network_address_resolution_protocol;
 extern crate network_check_sum;
 extern crate network_endian;
@@ -56,11 +55,12 @@ include!("bitwise_clone.rs");
 include!("custom_deserialize.rs");
 
 
-/// Pattern item implementations.
-pub mod pattern_item_implementations;
+/// Pattern implementations.
+pub mod patterns;
 
 
 include!("ActiveFlowRule.rs");
 include!("FlowRule.rs");
+include!("FlowRulePriorityGroup.rs");
 include!("Pattern.rs");
 include!("TrafficDirection.rs");

@@ -42,6 +42,14 @@ use ::libnuma_sys::numa_distance;
 use ::libnuma_sys::numa_node_to_cpus;
 use ::libnuma_sys::numa_num_possible_cpus;
 use ::libnuma_sys::numa_num_possible_nodes;
+use ::serde::Deserialize;
+use ::serde::Deserializer;
+use ::serde::Serialize;
+use ::serde::Serializer;
+use ::serde::de::Error as DeserializeError;
+use ::serde::de::SeqAccess;
+use ::serde::de::Visitor;
+#[allow(unused_imports)] use ::serde::ser::SerializeTuple;
 use ::std::any::Any;
 use ::std::collections::BTreeMap;
 use ::std::collections::BTreeSet;
@@ -94,6 +102,10 @@ pub mod power;
 #[doc(hidden)]
 #[allow(non_snake_case)]
 pub mod E_RTE;
+
+
+/// Receive side scaling.
+pub mod receive_side_scaling;
 
 
 /// Print information helpers.

@@ -40,4 +40,40 @@ impl ActiveFlowRule
 			Err((self, (LogicalCore::current_logical_core_error_number(), error)))
 		}
 	}
+	
+	/*
+	 * Definition of a single action.
+	 *
+	 * A list of actions is terminated by a END action.
+	 *
+	 * For simple actions without a configuration structure, conf remains NULL.
+	 */
+	struct rte_flow_action {
+enum rte_flow_action_type type; /**< Action type. */
+const void *conf; /**< Pointer to action configuration structure. */
+};
+	
+	
+	
+	
+	int
+	rte_flow_validate(uint16_t port_id,
+	const struct rte_flow_attr *attr,
+	const struct rte_flow_item pattern[],
+	const struct rte_flow_action actions[],
+struct rte_flow_error *error);
+	
+	int
+	rte_flow_flush(uint16_t port_id,
+	struct rte_flow_error *error);
+
+int
+rte_flow_query(uint16_t port_id,
+struct rte_flow *flow,
+	const struct rte_flow_action *action,
+void *data,
+struct rte_flow_error *error);
+
+int
+rte_flow_isolate(uint16_t port_id, int set, struct rte_flow_error *error);
 }

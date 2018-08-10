@@ -3,11 +3,93 @@
 
 
 /// Receive side scaling toeplitz hash function key data (40 byte variants).
-#[derive(Deserialize, Serialize)]
-pub struct ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes([u8; 40]);
+pub struct ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes([u8; ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes::Size]);
+
+impl<'deserialize> Deserialize<'deserialize> for ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
+{
+	#[inline(always)]
+	fn deserialize<D: Deserializer<'deserialize>>(deserializer: D) -> Result<Self, D::Error>
+	{
+		const Size: usize = ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes::Size;
+		
+		struct DeserializeVisitor;
+		
+		impl<'deserialize> Visitor<'deserialize> for DeserializeVisitor
+		{
+			type Value = ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes;
+			
+			#[inline(always)]
+			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result
+			{
+				write!(formatter, "a {} byte array", Size)
+			}
+			
+			#[inline(always)]
+			fn visit_bytes<E: DeserializeError>(self, v: &[u8]) -> Result<Self::Value, E>
+			{
+				if v.len() != Size
+				{
+					return Err(E::invalid_length(v.len(), &self))
+				}
+				
+				let mut result = ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes(unsafe { uninitialized() });
+				result.0.as_mut().clone_from_slice(v);
+				Ok(result)
+			}
+			
+			#[inline(always)]
+			fn visit_seq<A: SeqAccess<'deserialize>>(self, mut access: A) -> Result<Self::Value, A::Error>
+			{
+				let mut result = ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes(unsafe { uninitialized() });
+				
+				// Visit each element in the inner array and push it onto
+				// the existing vector.
+				let mut index = 0;
+				while let Some(byte) = access.next_element()?
+				{
+					if index == Size
+					{
+						return Err(A::Error::invalid_length(index, &self))
+					}
+					* (unsafe { result.0.get_unchecked_mut(index) }) = byte;
+					index += 1;
+				}
+				if index != Size
+				{
+					Err(A::Error::invalid_length(index, &self))
+				}
+				else
+				{
+					Ok(result)
+				}
+			}
+		}
+		
+		deserializer.deserialize_tuple(Size, DeserializeVisitor)
+	}
+}
+
+impl Serialize for ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
+{
+	#[inline(always)]
+	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	{
+		const Size: usize = ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes::Size;
+		
+		let mut tuple = serializer.serialize_tuple(Size)?;
+		for index in 0 .. Size
+		{
+			tuple.serialize_element(unsafe { self.0.get_unchecked(index) })?;
+		}
+		tuple.end()
+	}
+}
 
 impl ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
 {
+	/// Size.
+	pub const Size: usize = 40;
+	
 	/// Microsoft key, found at <http://www.ran-lifshitz.com/2014/08/28/symmetric-rss-receive-side-scaling/>.
 	///
 	/// Good distribution apparently.
@@ -44,7 +126,7 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
 	
 	/// The RSS `receive_queue_identifier` will handle the stream according to the TCP/UDP `source_port` of the stream. The `receive_queue_identifier` can be calculated as `receive_queue_identifier = (source_port % power_of_2(number_of_receive_queues)) % number_of_receive_queues`.
 	#[inline(always)]
-	pub const fn for_layer_4_one_way_for_number_of_queues(number_of_receive_queues: u16) -> Self
+	pub fn for_layer_4_one_way_for_number_of_queues(number_of_receive_queues: u16) -> Self
 	{
 		let variable_byte = (number_of_receive_queues.next_power_of_two() & 0xFF) as u8;
 		

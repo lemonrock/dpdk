@@ -2,29 +2,46 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Packet matchers.
+/// Patterns which match properties of packets, or, in some cases, control subsequent patterns.
 ///
-/// The following DPDK matchers are not yet implemented but are planned to be supported:-
+/// The following patterns affect subsequent patterns:-
 ///
-/// * `RTE_FLOW_ITEM_TYPE_UDP`
-/// * `RTE_FLOW_ITEM_TYPE_TCP`
-/// * `RTE_FLOW_ITEM_TYPE_ICMP6_ND_OPT_SLA_ETH`
-/// * `RTE_FLOW_ITEM_TYPE_ICMP6_ND_OPT_TLA_ETH`
+/// * `Invert`
+/// * `Fuzzy`
 ///
-/// The following DPDK matchers are not yet implemented and there are no plans to support them:-
+/// The following patterns should be specified at the start of the list:-
 ///
-/// * `RTE_FLOW_ITEM_TYPE_SCTP`
-/// * `RTE_FLOW_ITEM_TYPE_VXLAN`
-/// * `RTE_FLOW_ITEM_TYPE_E_TAG`
-/// * `RTE_FLOW_ITEM_TYPE_NVGRE`
-/// * `RTE_FLOW_ITEM_TYPE_MPLS`
-/// * `RTE_FLOW_ITEM_TYPE_GRE`
-/// * `RTE_FLOW_ITEM_TYPE_GTP`
-/// * `RTE_FLOW_ITEM_TYPE_GTPC`
-/// * `RTE_FLOW_ITEM_TYPE_GTPU`
-/// * `RTE_FLOW_ITEM_TYPE_ESP`
-/// * `RTE_FLOW_ITEM_TYPE_GENEVE`
-/// * `RTE_FLOW_ITEM_TYPE_VXLAN_GPE`
+/// * `Invert`
+/// * `Fuzzy`
+/// * `Any`
+/// * `PhysicalFunction`
+/// * `VirtualFunction`
+/// * `PhysicalPort`
+/// * `PortIdentifier`
+///
+/// The following DPDK patterns are not yet implemented but are planned to be supported:-
+///
+/// * `ICMP6_ND_OPT_SLA_ETH`
+/// * `ICMP6_ND_OPT_TLA_ETH`
+/// * `TCP`
+/// * `UDP`
+///
+/// The following DPDK patterns are not yet implemented and there are no plans to support them:-
+///
+/// * `E_TAG`
+/// * `ESP`
+/// * `GENEVE`
+/// * `GRE`
+/// * `GTP`
+/// * `GTPC`
+/// * `GTPU`
+/// * `MPLS`
+/// * `NVGRE`
+/// * `SCTP`
+/// * `VXLAN`
+/// * `VXLAN_GPE`
+///
+/// Note that the `END` DPDK pattern is applied automatically.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 pub enum Pattern
@@ -102,12 +119,11 @@ pub enum Pattern
 	/// Matches traffic originating from (ingress) or going to (egress) the physical function of the current device.
 	PhysicalFunction,
 	
-	/// Matches traffic originating from (ingress) or going to (egress) a physical port of the underlying device.
+	/// Matches traffic originating from (ingress) or going to (egress) a physical port of the underlying device (eg on a 4-port card, one of ports 1 to 4 but see caveats below).
 	///
-	/// The first PhysicalPortPattern overrides the physical port normally associated with the specified DPDK input port (`port_id`).
 	/// This item can be provided several times to match additional physical ports.
 	///
-	/// Note that physical ports are not necessarily tied to DPDK input ports (`port_id`) when those are not under DPDK control.
+	/// Note that physical ports are not necessarily tied to DPDK input port identifierss (`port_id`) when those are not under DPDK control.
 	/// Possible values are specific to each device, they are not necessarily indexed from zero and may not be contiguous.
 	///
 	/// As a device property, the list of allowed values as well as the value associated with a `port_id` should be retrieved by other means.

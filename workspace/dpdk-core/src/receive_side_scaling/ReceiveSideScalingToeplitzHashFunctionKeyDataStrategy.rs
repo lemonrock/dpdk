@@ -9,15 +9,17 @@ pub enum ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
 	/// Use fixed values.
 	Fixed(ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes, ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes),
 	
+	/// Generate a Layer 4 hash key using the number of queues as an input.
 	ForNumberOfQueues,
 }
 
-impl ReceiveSideScalingToeplitzHashFunctionKeyData
+impl ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
 {
+	/// Generates a vector of bytes.
 	#[inline(always)]
-	pub(crate) fn generate(&self, hash_key_size: u8, number_of_receive_queues: u16) -> Vec<u8>
+	pub fn generate(&self, hash_key_size: u8, number_of_receive_queues: u16) -> Vec<u8>
 	{
-		use self::ReceiveSideScalingToeplitzHashFunctionKeyData::*;
+		use self::ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy::*;
 		
 		const SomePollModeDriversSuchAsMellanox5ReportZeroInsteadOfForty: u8 = 0;
 		

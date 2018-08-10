@@ -8,6 +8,7 @@
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/benches" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/.cargo" />
+      <excludeFolder url="file://$MODULE_DIR$/bindgen-wrapper.conf.d/temporary" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Rust &lt;dpdk&gt;" level="project" />
