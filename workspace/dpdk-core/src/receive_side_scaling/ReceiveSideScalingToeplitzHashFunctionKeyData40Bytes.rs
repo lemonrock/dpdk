@@ -78,11 +78,4 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
 			)
 		)
 	}
-	
-	/// To a vector of bytes.
-	#[inline(always)]
-	pub fn to_vec(&self) -> Vec<u8>
-	{
-		(&self.0[..]).to_vec()
-	}
 }

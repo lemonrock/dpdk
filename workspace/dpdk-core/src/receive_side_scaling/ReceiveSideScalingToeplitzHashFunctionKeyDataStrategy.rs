@@ -15,25 +15,27 @@ pub enum ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
 
 impl ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
 {
-	/// Generates a vector of bytes.
+	/// Creates an array of receive side scaling bytes.
 	#[inline(always)]
-	pub fn generate(&self, hash_key_size: u8, number_of_receive_queues: u16) -> Box<[u8]>
+	pub fn create(&self, hash_key_size: u8, number_of_receive_queues: u16) -> Either<Cow<ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes>, Cow<ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes>>
 	{
 		use self::ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy::*;
+		use self::Cow::*;
+		use self::Either::*;
 		
 		const SomePollModeDriversSuchAsMellanox5ReportZeroInsteadOfForty: u8 = 0;
-		const _40Bytes: u8 = 40;
-		const _52Bytes: u8 = 52;
+		const Length40: u8 = 40;
+		const Length52: u8 = 52;
 		
-		let vec = match *self
+		match *self
 		{
-			Fixed(ref _40_bytes, ref _52_bytes) =>
+			Fixed(ref key_data_40_bytes, ref key_data_52_bytes) =>
 			{
 				match hash_key_size
 				{
-					SomePollModeDriversSuchAsMellanox5ReportZeroInsteadOfForty | _40Bytes => _40_bytes.to_vec(),
+					SomePollModeDriversSuchAsMellanox5ReportZeroInsteadOfForty | Length40 => Left(Borrowed(key_data_40_bytes)),
 					
-					_52Bytes => _52_bytes.to_vec(),
+					Length52 => Right(Borrowed(key_data_52_bytes)),
 					
 					_ => panic!("Invalid hash_key_size, '{}'", hash_key_size),
 				}
@@ -43,14 +45,13 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
 			{
 				match hash_key_size
 				{
-					SomePollModeDriversSuchAsMellanox5ReportZeroInsteadOfForty | _40Bytes => ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes::for_layer_4_one_way_for_number_of_queues(number_of_receive_queues).to_vec(),
-					
-					_52Bytes => ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes::for_layer_4_one_way_for_number_of_queues(number_of_receive_queues).to_vec(),
-					
+					SomePollModeDriversSuchAsMellanox5ReportZeroInsteadOfForty | Length40 => Left(Owned(ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes::for_layer_4_one_way_for_number_of_queues(number_of_receive_queues))),
+
+					Length52 => Right(Owned(ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes::for_layer_4_one_way_for_number_of_queues(number_of_receive_queues))),
+
 					_ => panic!("Invalid hash_key_size, '{}'", hash_key_size),
 				}
 			}
-		};
-		vec.into_boxed_slice()
+		}
 	}
 }
