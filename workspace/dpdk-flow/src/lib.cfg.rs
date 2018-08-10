@@ -19,6 +19,7 @@ extern crate serde;
 use self::pattern_item_implementations::*;
 use ::arrayvec::ArrayVec;
 use ::dpdk_core::*;
+use ::dpdk_core::receive_side_scaling::*;
 use ::dpdk_sys::*;
 #[allow(unused_imports)] use ::mem_cmp::*;
 use ::network_address_resolution_protocol::*;
