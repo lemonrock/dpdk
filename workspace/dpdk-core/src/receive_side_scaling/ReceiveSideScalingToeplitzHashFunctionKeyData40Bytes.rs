@@ -3,9 +3,18 @@
 
 
 /// Receive side scaling toeplitz hash function key data (40 byte variants).
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 pub struct ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes(Array40<u8>);
+
+impl Default for ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes::Symmetric
+	}
+}
 
 impl ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
 {
@@ -28,7 +37,7 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
 	
 	/// Symmetric with good queue distribution, found at <http://www.ran-lifshitz.com/2014/08/28/symmetric-rss-receive-side-scaling/> and <https://galsagie.github.io/2015/02/26/dpdk-tips-1/>.
 	///
-	/// Essential when applying RSS to both sides of a TCP or UDP connection, eg if one if a man-in-the-middle.
+	/// Essential when applying RSS to both sides of a TCP or UDP connection, eg if one is a man-in-the-middle.
 	pub const Symmetric: Self = ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
 	(
 		Array40

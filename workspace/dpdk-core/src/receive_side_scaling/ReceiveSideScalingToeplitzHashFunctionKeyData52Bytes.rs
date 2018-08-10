@@ -3,9 +3,18 @@
 
 
 /// Receive side scaling toeplitz hash function key data (52 byte variants for Intel i40e).
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 pub struct ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes(Array52<u8>);
+
+impl Default for ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes::IntelI40EDefault
+	}
+}
 
 impl ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes
 {

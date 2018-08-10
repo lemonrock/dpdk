@@ -3,6 +3,7 @@
 
 
 /// Receive side scaling toeplitz hash function key data strategy.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 pub enum ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
 {
@@ -11,6 +12,15 @@ pub enum ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
 	
 	/// Generate a Layer 4 hash key using the number of queues as an input.
 	ForNumberOfQueues,
+}
+
+impl Default for ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy::ForNumberOfQueues
+	}
 }
 
 impl ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
