@@ -3,126 +3,60 @@
 
 
 /// Receive side scaling toeplitz hash function key data (40 byte variants).
-pub struct ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes([u8; ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes::Size]);
-
-impl<'deserialize> Deserialize<'deserialize> for ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
-{
-	#[inline(always)]
-	fn deserialize<D: Deserializer<'deserialize>>(deserializer: D) -> Result<Self, D::Error>
-	{
-		const Size: usize = ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes::Size;
-		
-		struct DeserializeVisitor;
-		
-		impl<'deserialize> Visitor<'deserialize> for DeserializeVisitor
-		{
-			type Value = ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes;
-			
-			#[inline(always)]
-			fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result
-			{
-				write!(formatter, "a {} byte array", Size)
-			}
-			
-			#[inline(always)]
-			fn visit_bytes<E: DeserializeError>(self, v: &[u8]) -> Result<Self::Value, E>
-			{
-				if v.len() != Size
-				{
-					return Err(E::invalid_length(v.len(), &self))
-				}
-				
-				let mut result = ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes(unsafe { uninitialized() });
-				result.0.as_mut().clone_from_slice(v);
-				Ok(result)
-			}
-			
-			#[inline(always)]
-			fn visit_seq<A: SeqAccess<'deserialize>>(self, mut access: A) -> Result<Self::Value, A::Error>
-			{
-				let mut result = ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes(unsafe { uninitialized() });
-				
-				// Visit each element in the inner array and push it onto
-				// the existing vector.
-				let mut index = 0;
-				while let Some(byte) = access.next_element()?
-				{
-					if index == Size
-					{
-						return Err(A::Error::invalid_length(index, &self))
-					}
-					* (unsafe { result.0.get_unchecked_mut(index) }) = byte;
-					index += 1;
-				}
-				if index != Size
-				{
-					Err(A::Error::invalid_length(index, &self))
-				}
-				else
-				{
-					Ok(result)
-				}
-			}
-		}
-		
-		deserializer.deserialize_tuple(Size, DeserializeVisitor)
-	}
-}
-
-impl Serialize for ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
-{
-	#[inline(always)]
-	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error>
-	{
-		const Size: usize = ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes::Size;
-		
-		let mut tuple = serializer.serialize_tuple(Size)?;
-		for index in 0 .. Size
-		{
-			tuple.serialize_element(unsafe { self.0.get_unchecked(index) })?;
-		}
-		tuple.end()
-	}
-}
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
+pub struct ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes(Array40<u8>);
 
 impl ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
 {
-	/// Size.
-	pub const Size: usize = 40;
-	
 	/// Microsoft key, found at <http://www.ran-lifshitz.com/2014/08/28/symmetric-rss-receive-side-scaling/>.
 	///
 	/// Good distribution apparently.
 	pub const Microsoft: Self = ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
-	([
-		0x6D, 0x5A, 0x56, 0xDA, 0x25, 0x5B, 0x0E, 0xC2,
-		0x41, 0x67, 0x25, 0x3D, 0x43, 0xA3, 0x8F, 0xB0,
-		0xD0, 0xCA, 0x2B, 0xCB, 0xAE, 0x7B, 0x30, 0xB4,
-		0x77, 0xCB, 0x2D, 0xA3, 0x80, 0x30, 0xF2, 0x0C,
-		0x6A, 0x42, 0xB7, 0x3B, 0xBE, 0xAC, 0x01, 0xFA,
-	]);
+	(
+		Array40
+		(
+			[
+				0x6D, 0x5A, 0x56, 0xDA, 0x25, 0x5B, 0x0E, 0xC2,
+				0x41, 0x67, 0x25, 0x3D, 0x43, 0xA3, 0x8F, 0xB0,
+				0xD0, 0xCA, 0x2B, 0xCB, 0xAE, 0x7B, 0x30, 0xB4,
+				0x77, 0xCB, 0x2D, 0xA3, 0x80, 0x30, 0xF2, 0x0C,
+				0x6A, 0x42, 0xB7, 0x3B, 0xBE, 0xAC, 0x01, 0xFA,
+			]
+		)
+	);
 	
 	/// Symmetric with good queue distribution, found at <http://www.ran-lifshitz.com/2014/08/28/symmetric-rss-receive-side-scaling/> and <https://galsagie.github.io/2015/02/26/dpdk-tips-1/>.
 	///
 	/// Essential when applying RSS to both sides of a TCP or UDP connection, eg if one if a man-in-the-middle.
 	pub const Symmetric: Self = ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
-	([
-		0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A,
-		0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A,
-		0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A,
-		0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A,
-		0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A,
-	]);
+	(
+		Array40
+		(
+			[
+				0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A,
+				0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A,
+				0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A,
+				0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A,
+				0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A, 0x6D, 0x5A,
+			]
+		)
+	);
 	
 	/// Default Mellanox key.
 	pub const Mellanox: Self = ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
-	([
-		0xD1, 0x81, 0xC6, 0x2C, 0xF7, 0xF4, 0xDB, 0x5B,
-		0x19, 0x83, 0xA2, 0xFC, 0x94, 0x3E, 0x1A, 0xDB,
-		0xD9, 0x38, 0x9E, 0x6B, 0xD1, 0x03, 0x9C, 0x2C,
-		0xA7, 0x44, 0x99, 0xAD, 0x59, 0x3D, 0x56, 0xD9,
-		0xF3, 0x25, 0x3C, 0x06, 0x2A, 0xDC, 0x1F, 0xFC,
-	]);
+	(
+		Array40
+		(
+			[
+				0xD1, 0x81, 0xC6, 0x2C, 0xF7, 0xF4, 0xDB, 0x5B,
+				0x19, 0x83, 0xA2, 0xFC, 0x94, 0x3E, 0x1A, 0xDB,
+				0xD9, 0x38, 0x9E, 0x6B, 0xD1, 0x03, 0x9C, 0x2C,
+				0xA7, 0x44, 0x99, 0xAD, 0x59, 0x3D, 0x56, 0xD9,
+				0xF3, 0x25, 0x3C, 0x06, 0x2A, 0xDC, 0x1F, 0xFC,
+			]
+		)
+	);
 	
 	/// The RSS `receive_queue_identifier` will handle the stream according to the TCP/UDP `source_port` of the stream. The `receive_queue_identifier` can be calculated as `receive_queue_identifier = (source_port % power_of_2(number_of_receive_queues)) % number_of_receive_queues`.
 	#[inline(always)]
@@ -131,13 +65,18 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
 		let variable_byte = (number_of_receive_queues.next_power_of_two() & 0xFF) as u8;
 		
 		ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
-		([
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, variable_byte,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, variable_byte,
-			0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-		])
+		(
+			Array40
+			(
+				[
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, variable_byte,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, variable_byte,
+				0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+				]
+			)
+		)
 	}
 	
 	/// To a vector of bytes.
