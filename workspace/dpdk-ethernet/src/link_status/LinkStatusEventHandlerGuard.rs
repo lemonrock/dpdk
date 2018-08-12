@@ -61,32 +61,16 @@ impl<Handler: LinkStatusEventHandler> LinkStatusEventHandlerGuard<Handler>
 		let handler = &mut * (cb_arg as *mut Handler);
 		let ethernet_port_identifier = EthernetPortIdentifier(ethernet_port_identifier);
 		
-		if Self::link_status_is_down(&link_status)
+		if link_status.is_down()
 		{
-			handler.link_has_gone_down(ethernet_port_identifier);
+			handler.link_has_gone_down(ethernet_port_identifier)
 		}
 		else
 		{
-			let (is_full_duplex, was_auto_negotiated, speed_in_megabits_per_second) = Self::link_status_is_up(&link_status);
+			let (is_full_duplex, was_auto_negotiated, speed_in_megabits_per_second) = link_status.if_is_up();
 			handler.link_has_come_up(ethernet_port_identifier, is_full_duplex, was_auto_negotiated, speed_in_megabits_per_second)
 		}
 		
 		0
-	}
-	
-	#[inline(always)]
-	fn link_status_is_down(link_status: &rte_eth_link) -> bool
-	{
-		link_status.link_status() == 0
-	}
-	
-	#[inline(always)]
-	fn link_status_is_up(link_status: &rte_eth_link) -> (bool, bool, u32)
-	{
-		let is_full_duplex = link_status.link_duplex() == 1;
-		let was_auto_negotiated = link_status.link_autoneg() == 1;
-		let speed_in_megabits_per_second = link_status.link_speed;
-		
-		(is_full_duplex, was_auto_negotiated, speed_in_megabits_per_second)
 	}
 }

@@ -226,10 +226,36 @@ impl EthernetPortIdentifier
 	
 	/// Register a handler for link up or link down events.
 	///
+	/// The handler may be run on a service core; generically, it mya be run on any thread.
+	///
 	/// The returned `EthernetPortLinkStatusEventHandlerGuard` guard, when dropped, will unregister the event handler.
 	#[inline(always)]
 	pub fn receive_link_up_or_down_events<Handler: LinkStatusEventHandler>(self, handler: Handler) -> LinkStatusEventHandlerGuard<Handler>
 	{
 		LinkStatusEventHandlerGuard::register(self, handler)
 	}
+	
+	/// Waits for link to come up.
+	///
+	/// Returns early with `None` if should terminate becomes true.
+	///
+	/// Returns with `Some(is_full_duplex, was_auto_negotiated, speed_in_megabits_per_second)` when the link comes up.
+	#[inline(always)]
+	pub fn wait_for_link_to_come_up(self, should_function_terminate: &Arc<ShouldFunctionTerminate>) -> Option<(bool, bool, u32)>
+	{
+		let mut link_status = unsafe { uninitialized() };
+		while
+		{
+			unsafe { rte_eth_link_get_nowait(self.0, &mut link_status) }
+			link_status.is_down()
+		}
+		{
+			if should_function_terminate.sleep_and_check_should_terminate()
+			{
+				return None
+			}
+		}
+		Some(link_status.if_is_up())
+	}
+	
 }

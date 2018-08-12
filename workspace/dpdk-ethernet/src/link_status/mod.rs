@@ -7,3 +7,4 @@ use super::*;
 
 include!("LinkStatusEventHandler.rs");
 include!("LinkStatusEventHandlerGuard.rs");
+include!("rte_eth_linkExt.rs");

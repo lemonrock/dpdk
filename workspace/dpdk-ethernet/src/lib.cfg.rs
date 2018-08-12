@@ -3,6 +3,7 @@
 
 
 extern crate dpdk_bus;
+extern crate dpdk_core;
 extern crate dpdk_sys;
 extern crate either;
 extern crate libc;
@@ -15,6 +16,7 @@ extern crate serde;
 use self::link_status::*;
 use self::queue_identifiers::*;
 use ::dpdk_bus::pci::*;
+use ::dpdk_core::*;
 use ::dpdk_sys::*;
 pub use ::either::*;
 use ::libc::*;
@@ -32,6 +34,7 @@ use ::std::ops::AddAssign;
 use ::std::ops::Sub;
 use ::std::ops::SubAssign;
 use ::std::ptr::NonNull;
+use ::std::sync::Arc;
 
 
 /// Link status.
