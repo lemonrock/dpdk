@@ -6,6 +6,15 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct DpdkPciDevice(NonNull<rte_pci_device>);
 
+impl From<NonNull<rte_device>> for DpdkPciDevice
+{
+	#[inline(always)]
+	fn from(value: NonNull<rte_device>) -> Self
+	{
+		DpdkPciDevice(unsafe { NonNull::new_unchecked(rust_RTE_DEV_TO_PCI(value.as_ptr())) })
+	}
+}
+
 impl DpdkPciDevice
 {
 	/// `/sys/fs` path used by DPDK.
