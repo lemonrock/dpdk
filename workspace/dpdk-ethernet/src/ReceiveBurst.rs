@@ -36,15 +36,16 @@ impl ReceiveBurst
 	/// * `::std::u16::MAX`.
 	/// * The `nb_desc` of `rte_eth_rxq_info`.
 	#[inline(always)]
-	pub fn receive_packets_in_a_burst<A: UnifiedArrayVecAndVec<NonNull<rte_mbuf>>>(&self, receive_packets_into: &mut A) -> usize
+	pub fn receive_packets_in_a_burst<A: NonNullUnifiedArrayVecAndVec<rte_mbuf>>(&self, receive_packets_into: &mut A) -> usize
 	{
 		let (pointer, number_of_potential_packets) = receive_packets_into.from_ffi_data_u16();
 		
-		let number_received_u16 = (self.receive_burst_function_pointer)(self.receive_queue.as_ptr(), pointer, number_of_potential_packets);
-		debug_assert!(number_received_u16 <= number_of_potential_packets_u16, "number_received_u16 '{}' exceeds number_of_potential_packets_u16 '{}'", number_received_u16, number_of_potential_packets_u16);
+		let number_of_packets_received = unsafe { (self.receive_burst_function_pointer)(self.receive_queue.as_ptr(), pointer, number_of_potential_packets) };
+		debug_assert!(number_of_packets_received <= number_of_potential_packets, "number_of_packets_received '{}' exceeds number_of_potential_packets_u16 '{}'", number_of_packets_received, number_of_potential_packets);
 		
-		let number_received = number_received_u16 as usize;
-		receive_packets_into.set_length(length + number_received);
-		number_received
+		let number_of_packets_received = number_of_packets_received as usize;
+		let length = receive_packets_into.length();
+		receive_packets_into.set_length(length + number_of_packets_received);
+		number_of_packets_received
 	}
 }

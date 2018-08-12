@@ -5,6 +5,7 @@
 extern crate dpdk_core;
 extern crate dpdk_sys;
 extern crate either;
+extern crate libc;
 #[macro_use] extern crate likely;
 extern crate network_collections;
 extern crate serde;
@@ -15,8 +16,10 @@ use self::queue_identifiers::*;
 use ::dpdk_core::*;
 use ::dpdk_sys::*;
 pub use ::either::*;
+use ::libc::*;
 use ::network_collections::Array40;
 use ::network_collections::Array52;
+use ::network_collections::NonNullUnifiedArrayVecAndVec;
 use ::std::borrow::Cow;
 use ::std::cmp::min;
 use ::std::convert::TryFrom;
@@ -27,6 +30,7 @@ use ::std::ops::Add;
 use ::std::ops::AddAssign;
 use ::std::ops::Sub;
 use ::std::ops::SubAssign;
+use ::std::ptr::NonNull;
 
 
 /// Queue identifiers.
@@ -35,3 +39,7 @@ pub mod queue_identifiers;
 
 /// Receive side scaling.
 pub mod receive_side_scaling;
+
+
+include!("ReceiveBurst.rs");
+include!("TransmitBurst.rs");
