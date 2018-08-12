@@ -41,5 +41,7 @@ pub mod queue_identifiers;
 pub mod receive_side_scaling;
 
 
+include!("EthernetPortIdentifier.rs");
+include!("EthernetPortLinkStatusEventHandler.rs");
 include!("ReceiveBurst.rs");
 include!("TransmitBurst.rs");
