@@ -217,6 +217,13 @@ impl EthernetPortIdentifier
 		(receive_descriptors, transmit_descriptors)
 	}
 	
+	/// Set the default media access control address.
+	#[inline(always)]
+	pub fn set_default_media_access_control_address(self, mut media_access_control_address: MediaAccessControlAddress)
+	{
+		assert_eq!(unsafe { rte_eth_dev_default_mac_addr_set(self.0, &mut media_access_control_address as *mut MediaAccessControlAddress as *mut ether_addr) }, 0, "rte_eth_dev_default_mac_addr_set failed");
+	}
+	
 	/// Starts the underlying ethernet device.
 	#[inline(always)]
 	pub fn start(self)

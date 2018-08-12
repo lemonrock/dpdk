@@ -9,6 +9,7 @@ extern crate either;
 extern crate libc;
 #[macro_use] extern crate likely;
 extern crate network_collections;
+extern crate network_ethernet;
 extern crate serde;
 #[macro_use] extern crate serde_derive;
 
@@ -23,6 +24,7 @@ use ::libc::*;
 use ::network_collections::Array40;
 use ::network_collections::Array52;
 use ::network_collections::NonNullUnifiedArrayVecAndVec;
+use ::network_ethernet::MediaAccessControlAddress;
 use ::std::borrow::Cow;
 use ::std::cmp::min;
 use ::std::convert::TryFrom;
