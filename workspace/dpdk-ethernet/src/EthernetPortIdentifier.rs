@@ -4,7 +4,7 @@
 
 /// An ethernet port identifier.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
-pub struct EthernetPortIdentifier(u16);
+pub struct EthernetPortIdentifier(pub(crate) u16);
 
 impl TryFrom<u16> for EthernetPortIdentifier
 {
@@ -183,4 +183,53 @@ impl EthernetPortIdentifier
 {
 	/// Maximum.
 	pub const Maximum: usize = RTE_MAX_ETHPORTS;
+	
+	/// Underlying DPDK type.
+	#[inline(always)]
+	pub fn ethernet_device(self) -> &'static rte_eth_dev
+	{
+		unsafe { &rte_eth_devices[self.0 as usize] }
+	}
+	
+	/// Warning: This method will fail if the device is not PCI-based, eg is virtual.
+	#[inline(always)]
+	pub fn ethernet_device_as_pci_device(self) -> DpdkPciDevice
+	{
+		DpdkPciDevice::from(unsafe { NonNull::new_unchecked(self.ethernet_device().device) })
+	}
+	
+	/// Warning: This method will fail if the device is not PCI-based, eg is virtual.
+	#[inline(always)]
+	pub fn ethernet_device_needs_link_status_interrupt(self) -> bool
+	{
+		self.ethernet_device_as_pci_device().driver().unwrap().flags().contains(DpdkPciDriverFlags::SupportsLinkStatusInterrupt)
+	}
+	
+	/// Maximum receive and transmit queue depths.
+	#[inline(always)]
+	pub fn obtain_maximum_receive_and_transmit_queue_depths(self, ethernet_device_information: &rte_eth_dev_info) -> (u16, u16)
+	{
+		let mut receive_descriptors = ethernet_device_information.rx_desc_lim.nb_max;
+		let mut transmit_descriptors = ethernet_device_information.tx_desc_lim.nb_max;
+		
+		assert_eq!(unsafe { rte_eth_dev_adjust_nb_rx_tx_desc(self.0, &mut receive_descriptors, &mut transmit_descriptors) }, 0, "rte_eth_dev_adjust_nb_rx_tx_desc failed");
+		
+		(receive_descriptors, transmit_descriptors)
+	}
+	
+	/// Starts the underlying ethernet device.
+	#[inline(always)]
+	pub fn start(self)
+	{
+		assert_eq!(unsafe { rte_eth_dev_start(self.into()) }, 0, "rte_eth_dev_start failed");
+	}
+	
+	/// Register a handler for link up or link down events.
+	///
+	/// The returned `EthernetPortLinkStatusEventHandlerGuard` guard, when dropped, will unregister the event handler.
+	#[inline(always)]
+	pub fn receive_link_up_or_down_events<Handler: LinkStatusEventHandler>(self, handler: Handler) -> LinkStatusEventHandlerGuard<Handler>
+	{
+		LinkStatusEventHandlerGuard::register(self, handler)
+	}
 }

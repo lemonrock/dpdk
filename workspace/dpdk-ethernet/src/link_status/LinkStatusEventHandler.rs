@@ -3,7 +3,7 @@
 
 
 /// Trait to handle ethernet port link status events.
-pub trait EthernetPortLinkStatusEventHandler
+pub trait LinkStatusEventHandler
 {
 	/// Link has come up.
 	///
