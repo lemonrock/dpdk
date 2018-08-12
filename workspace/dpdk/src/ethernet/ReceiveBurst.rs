@@ -40,7 +40,7 @@ impl ReceiveBurst
 	{
 		let (pointer, number_of_potential_packets) = receive_packets_into.from_ffi_data_u16();
 		
-		let number_received_u16 = (self.receive_burst_function_pointer)(self.receive_queue.as_ptr(), pointer, number_of_potential_packets_u16);
+		let number_received_u16 = (self.receive_burst_function_pointer)(self.receive_queue.as_ptr(), pointer, number_of_potential_packets);
 		debug_assert!(number_received_u16 <= number_of_potential_packets_u16, "number_received_u16 '{}' exceeds number_of_potential_packets_u16 '{}'", number_received_u16, number_of_potential_packets_u16);
 		
 		let number_received = number_received_u16 as usize;

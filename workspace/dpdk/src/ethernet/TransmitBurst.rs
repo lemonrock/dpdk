@@ -44,7 +44,7 @@ impl TransmitBurst
 	{
 		let (pointer, number_of_potential_packets) = transmit_packets_from.to_ffi_data_u16(start_from_index);
 		
-		let number_transmitted_u16 = (self.transmit_burst_function_pointer)(self.transmit_queue.as_ptr(), pointer, number_of_potential_packets_u16);
+		let number_transmitted_u16 = (self.transmit_burst_function_pointer)(self.transmit_queue.as_ptr(), pointer, number_of_potential_packets);
 		debug_assert!(number_transmitted_u16 <= number_of_potential_packets_u16, "number_transmitted_u16 '{}' exceeds number_of_potential_packets_u16 '{}'", number_transmitted_u16, number_of_potential_packets_u16);
 		
 		number_transmitted_u16 as usize
@@ -80,7 +80,7 @@ impl TransmitBurst
 	{
 		let (pointer, number_of_potential_packets) = transmit_packets_from.to_ffi_data_u16(start_from_index);
 		
-		let number_acceptable_u16 = (self.transmit_prepare_function_pointer)(self.transmit_queue, pointer, number_of_potential_packets_u16);
+		let number_acceptable_u16 = (self.transmit_prepare_function_pointer)(self.transmit_queue, pointer, number_of_potential_packets);
 		
 		debug_assert_eq!(number_acceptable_u16, number_acceptable_u16, "A packet was not acceptable")
 	}

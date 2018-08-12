@@ -8,3 +8,5 @@ use super::*;
 include!("ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes.rs");
 include!("ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes.rs");
 include!("ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy.rs");
+include!("RedirectionTable.rs");
+include!("RedirectionTableStategy.rs");

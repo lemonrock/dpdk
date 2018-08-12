@@ -6,14 +6,12 @@ extern crate arrayvec;
 #[macro_use] extern crate bitflags;
 extern crate dpdk_sys;
 extern crate dpdk_unix;
-extern crate either;
 extern crate indexmap;
 #[macro_use] extern crate lazy_static;
 extern crate libc;
 extern crate libc_extra;
 extern crate libnuma_sys;
 #[macro_use] extern crate likely;
-extern crate network_collections;
 extern crate serde;
 #[macro_use] extern crate serde_derive;
 extern crate syscall_alt;
@@ -29,7 +27,6 @@ use ::dpdk_unix::android_linux::resource_limits::ResourceName;
 use ::dpdk_unix::memory_information::MemoryInformation;
 use ::dpdk_unix::memory_information::MemoryInformationParseError;
 use ::dpdk_unix::signals::SignalNumber;
-use ::either::*;
 use ::indexmap::set::IndexSet;
 use ::libc::*;
 use ::libc_extra::unix::stdio::open_memstream;
@@ -45,10 +42,7 @@ use ::libnuma_sys::numa_distance;
 use ::libnuma_sys::numa_node_to_cpus;
 use ::libnuma_sys::numa_num_possible_cpus;
 use ::libnuma_sys::numa_num_possible_nodes;
-use ::network_collections::Array40;
-use ::network_collections::Array52;
 use ::std::any::Any;
-use ::std::borrow::Cow;
 use ::std::collections::BTreeMap;
 use ::std::collections::BTreeSet;
 use ::std::collections::HashSet;
@@ -100,10 +94,6 @@ pub mod power;
 #[doc(hidden)]
 #[allow(non_snake_case)]
 pub mod E_RTE;
-
-
-/// Receive side scaling.
-pub mod receive_side_scaling;
 
 
 /// Print information helpers.

@@ -8,6 +8,7 @@ members = [
 	"dpdk-bus",
 	"dpdk-core",
 	"dpdk-cyclic-redundancy-check",
+	"dpdk-ethernet",
 	"dpdk-elastic-flow-distributor",
 	"dpdk-flow",
 	"dpdk-global-allocator",

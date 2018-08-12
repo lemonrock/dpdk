@@ -3,9 +3,9 @@
 
 
 [package]
-name = "dpdk-core"
-description = "A wrapper around DPDK's core framework"
-keywords = ["DPDK", "TCP", "UDP", "Networking"]
+name = "dpdk-ethernet"
+description = "A wrapper around DPDK's ethernet device driver functionality."
+keywords = ["DPDK", "networking", "ethernet", "device", "driver"]
 categories = ["network-programming", "external-ffi-bindings", "hardware-support"]
 license = "AGPL-3.0"
 authors = ["Raphael Cohn <raphael.cohn@stormmq.com>"]
@@ -16,19 +16,13 @@ include = ["README.md", "LICENSE", "COPYRIGHT", "src/**/*.rs", "Cargo.toml", "ru
 # Relative to Cargo.toml
 readme = "README.md"
 publish = true
-version = "0.1.1"
+version = "0.1.0"
 
 [target.'cfg(any(all(any(target_os = "android", target_os = "linux"), any(target_arch = "aarch64", target_arch = "arm", target_arch = "powerpc64", target_arch = "x86", target_arch = "x86_64")), all(target_os = "freebsd", target_arch = "x86_64")))'.dependencies]
-arrayvec = { version = "^0.4", features = ["serde-1"] }
-bitflags = "^1.0"
+dpdk-core = { path = "../dpdk-core", version = "^0.1" }
 dpdk-sys = { path = "../dpdk-sys", version = "^0.1" }
-dpdk-unix = { path = "../dpdk-unix", version = "^0.1" }
-indexmap = "^1.0"
-lazy_static = "^1.0"
-libc = "^0.2"
-libc-extra = "^0.3"
-libnuma-sys = "0.0.9"
-likely = "0.1"
+either = "^1.5"
+likely = "^0.1"
+network-collections = "^0.1"
 serde = "1.0"
 serde_derive = "1.0"
-syscall-alt = "0.0.14"

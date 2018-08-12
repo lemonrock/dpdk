@@ -27,7 +27,7 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
 {
 	/// Creates an array of receive side scaling bytes.
 	#[inline(always)]
-	pub fn create(&self, hash_key_size: u8, number_of_receive_queues: u16) -> Either<Cow<ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes>, Cow<ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes>>
+	pub fn create(&self, device_specific_hash_key_size: u8, number_of_receive_queues: u16) -> Either<Cow<ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes>, Cow<ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes>>
 	{
 		use self::ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy::*;
 		use self::Cow::*;
@@ -41,25 +41,25 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
 		{
 			Fixed(ref key_data_40_bytes, ref key_data_52_bytes) =>
 			{
-				match hash_key_size
+				match device_specific_hash_key_size
 				{
 					SomePollModeDriversSuchAsMellanox5ReportZeroInsteadOfForty | Length40 => Left(Borrowed(key_data_40_bytes)),
 					
 					Length52 => Right(Borrowed(key_data_52_bytes)),
 					
-					_ => panic!("Invalid hash_key_size, '{}'", hash_key_size),
+					_ => panic!("Invalid device_specific_hash_key_size, '{}'", device_specific_hash_key_size),
 				}
 			}
 			
 			ForNumberOfQueues =>
 			{
-				match hash_key_size
+				match device_specific_hash_key_size
 				{
 					SomePollModeDriversSuchAsMellanox5ReportZeroInsteadOfForty | Length40 => Left(Owned(ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes::for_layer_4_one_way_for_number_of_queues(number_of_receive_queues))),
 
 					Length52 => Right(Owned(ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes::for_layer_4_one_way_for_number_of_queues(number_of_receive_queues))),
 
-					_ => panic!("Invalid hash_key_size, '{}'", hash_key_size),
+					_ => panic!("Invalid device_specific_hash_key_size, '{}'", device_specific_hash_key_size),
 				}
 			}
 		}

@@ -6,11 +6,22 @@
 #[derive(Serialize)]
 pub struct ReceiveSideScaling
 {
-	pub hash_key: Box<[u8]>,
-	pub hash_to_receive_queue_indices_mapping: Box<[u8]>,
+	pub hash_key: ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy,
+	
+	pub redirection_table_strategy: RedirectionTableStategy,
 	
 	#[serde(skip)]
 	cached: rte_flow_action_rss,
+	
+	// We can't cache this, as the generated size depends on the number of queues / device hash key length.
+	// We could force number of queues, and ignore the number the device has.
+	#[serde(skip)]
+	cached_receive_side_scaling_key: Either<Cow<ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes>, Cow<ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes>>,
+	
+	// We can't cache this, as the generated size depends on the number of queues / device RETA table size.
+	// We could force number of queues, and ignore the number the device has.
+	#[serde(skip)]
+	cached_receive_redirection_table: RedirectionTable,
 }
 
 custom_deserialize!
