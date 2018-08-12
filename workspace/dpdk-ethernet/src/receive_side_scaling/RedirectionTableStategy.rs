@@ -73,7 +73,7 @@ impl RedirectionTableStategy
 							}
 							else
 							{
-								$queue_index += 1usize;
+								$queue_index += 1u16;
 							}
 						}
 						reta
