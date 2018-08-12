@@ -3,6 +3,7 @@
 
 
 #[repr(C)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct rte_eth_bond_8023ad_conf
 {
 	pub fast_periodic_ms: u32,

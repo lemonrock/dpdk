@@ -3,6 +3,7 @@
 
 
 #[repr(C)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct rte_eth_udpv4_flow
 {
 	pub ip: rte_eth_ipv4_flow,

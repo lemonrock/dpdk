@@ -3,6 +3,7 @@
 
 
 #[repr(C)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct malloc_heap_1
 {
 	pub lh_first: *mut malloc_elem,

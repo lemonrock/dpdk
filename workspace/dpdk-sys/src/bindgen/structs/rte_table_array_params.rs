@@ -3,6 +3,7 @@
 
 
 #[repr(C)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct rte_table_array_params
 {
 	pub n_entries: u32,

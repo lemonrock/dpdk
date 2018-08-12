@@ -3,6 +3,7 @@
 
 
 #[repr(C, packed)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ipv6_hdr
 {
 	pub vtc_flow: u32,

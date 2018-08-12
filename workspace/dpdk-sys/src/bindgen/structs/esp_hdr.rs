@@ -3,6 +3,7 @@
 
 
 #[repr(C, packed)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct esp_hdr
 {
 	pub spi: rte_be32_t,

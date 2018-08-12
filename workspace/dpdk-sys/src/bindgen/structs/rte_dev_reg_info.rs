@@ -3,6 +3,7 @@
 
 
 #[repr(C)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct rte_dev_reg_info
 {
 	pub data: *mut c_void,

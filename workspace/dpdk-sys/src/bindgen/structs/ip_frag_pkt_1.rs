@@ -3,6 +3,7 @@
 
 
 #[repr(C)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ip_frag_pkt_1
 {
 	pub tqe_next: *mut ip_frag_pkt,

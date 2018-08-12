@@ -1,3 +1,4 @@
+#@IgnoreInspection BashAddShebang
 # This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
 # Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
@@ -176,6 +177,7 @@ final_chance_to_tweak()
 		rte_power_get_freq_t \
 		rte_power_set_freq_t \
 		rte_service_func \
+		rte_table_hash_op_hash \
 	 	rte_timer_cb_t
 	do
 		sed -i -e 's/Option<//g' -e 's/>;$/;/g' "$outputFolderPath"/types/"$type".rs
@@ -196,27 +198,38 @@ final_chance_to_tweak()
 	# Use the correct definition
 	sed -i -e 's/: cpu_set_t/: rte_cpuset_t/g' "$outputFolderPath"/statics/lcore.rs
 
-	#  Fix bindgen cussedness (1): enum with missing Ord and PartialOrd
+	#  Fix bindgen cussedness (1): enum with missing Ord and PartialOrd.
 	local enum
 	for enum in \
 		rte_bbdev_op_type \
 		rte_bus_scan_mode \
 		rte_cryptodev_scheduler_mode \
+		rte_dev_policy \
+		rte_devtype \
+		rte_bond_8023ad_agg_selection \
+		rte_bond_8023ad_selection \
 		rte_eth_nb_pools \
+		rte_eth_nb_tcs \
+		rte_eth_fc_mode \
+		rte_eth_payload_type \
+		rte_eth_global_cfg_type \
 		rte_flow_action_type \
 		rte_flow_classify_table_type \
 		rte_flow_error_type \
 		rte_flow_item_type \
+		rte_lcore_state_t \
 		rte_mtr_error_type \
 		rte_security_ipsec_sa_protocol \
 		rte_security_ipsec_sa_mode \
 		rte_security_ipsec_sa_direction \
-		rte_tm_error_type
+		rte_tm_error_type \
+		rte_tunnel_iptype \
+		rte_eth_tunnel_type
 	do
 		sed -i -e 's/PartialEq, Eq/PartialEq, Eq, PartialOrd, Ord/g' "$outputFolderPath"/enums/"$enum".rs
 	done
 
-	# Fix bindgen cussedness (2): Remove implementations of Debug where a struct is packed
+	# Fix bindgen cussedness (2): Remove implementations of Debug where a struct is packed.
 	local struct
 	for struct in \
 		rte_avp_request \
@@ -256,5 +269,144 @@ final_chance_to_tweak()
 		rte_flow_item_esp
 	do
 		sed -i -e '/#\[derive(/d' "$outputFolderPath"/structs/"$struct".rs
+	done
+
+	# Fix bindgen cussedness (4a): Add PartialOrd, Ord which should have been derived.
+	local struct
+	for struct in \
+		BindgenUnionField
+	do
+		sed -i -e 's/#\[repr(C)\]/#[repr(C)]\n#[derive(PartialOrd, Ord)]/g' "$outputFolderPath"/structs/"$struct".rs
+	done
+
+	# Fix bindgen cussedness (4b): Add Copy, Clone, PartialEq, Eq, PartialOrd, Ord which should have been derived.
+	local struct
+	for struct in \
+		ether_addr \
+		rte_bus \
+		rte_eth_dcb_rx_conf \
+		rte_eth_dcb_tx_conf \
+		vring_desc \
+		vring_used_elem
+	do
+		sed -i -e 's/#\[derive(Hash)\]/#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]/g' "$outputFolderPath"/structs/"$struct".rs
+	done
+
+	# Fix bindgen cussedness (4c): Add Debug which should have been derived.
+	local struct
+	for struct in \
+		rte_bus_1 \
+		rte_bus_conf \
+		rte_bus_list \
+		rte_devargs_1 \
+		rte_device_1 \
+		rte_driver \
+		rte_driver_1 \
+		rte_eth_dev_cb_list \
+		rte_flow_error \
+		rte_tm_error \
+		rte_vdev_device_1 \
+		rte_vdev_driver \
+		rte_vdev_driver_1
+	do
+		sed -i -e 's/#\[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)\]/#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]/g' "$outputFolderPath"/structs/"$struct".rs
+	done
+
+	# Fix bindgen cussedness (4d): Add Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash which should have been derived.
+	local struct
+	for struct in \
+		cryptodev_driver \
+		ip_frag \
+		ip_frag_key \
+		ip_frag_pkt \
+		ip_frag_pkt_1 \
+		ip_frag_tbl_stat \
+		ip_pkt_list \
+		malloc_heap \
+		malloc_heap_1 \
+		rte_acl_field_def \
+		rte_acl_param \
+		rte_acl_rule_data \
+		rte_atomic16_t \
+		rte_atomic32_t \
+		rte_atomic64_t \
+		rte_avp_device_info \
+		rte_avp_memmap \
+		rte_avp_mempool_info \
+		rte_config \
+		rte_dev_eeprom_info \
+		rte_dev_event \
+		rte_dev_reg_info \
+		rte_device \
+		rte_epoll_data \
+		rte_epoll_event \
+		rte_eth_bond_8023ad_conf \
+		rte_eth_bond_8023ad_slave_info \
+		rte_eth_dcb_tc_queue_mapping_1 \
+		rte_eth_dcb_tc_queue_mapping_2 \
+		rte_eth_desc_lim \
+		rte_eth_dev_info \
+		rte_eth_dev_module_info \
+		rte_eth_dev_portconf \
+		rte_eth_dev_sriov \
+		rte_eth_devargs \
+		rte_eth_link \
+		rte_eth_ipv4_flow \
+		rte_eth_rxconf \
+		rte_eth_switch_info \
+		rte_eth_thresh \
+		rte_eth_tunnel_filter_conf \
+		rte_eth_tunnel_filter_conf_1 \
+		rte_eth_txconf \
+		rte_eth_udpv4_flow \
+		rte_hash_parameters \
+		rte_lpm6_config \
+		rte_lpm_config \
+		rte_malloc_socket_stats \
+		rte_reciprocal \
+		rte_reciprocal_u64 \
+		rte_red \
+		rte_red_config \
+		rte_red_params \
+		rte_rwlock_t \
+		rte_spinlock_t \
+		rte_table_array_key \
+		rte_table_array_params \
+		rte_table_hash_params \
+		rte_table_stats \
+		rte_tm_capabilities \
+		rte_tm_node_stats \
+		rte_tm_node_stats_1 \
+		rte_tm_red_params \
+		rte_tm_shaper_params \
+		rte_tm_token_bucket \
+		rte_tm_wred_params \
+		rte_vdev_device \
+		rte_vhost_mem_region \
+		vfio_device_info
+	do
+		sed -i -e 's/#\[repr(C)\]/#[repr(C)]\n#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]/g' "$outputFolderPath"/structs/"$struct".rs
+	done
+
+	# Fix bindgen cussedness (4e): Add Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash which should have been derived.
+	local struct
+	for struct in \
+		arp_hdr \
+		arp_ipv4 \
+		esp_hdr \
+		ether_hdr \
+		icmp_hdr \
+		ipv4_hdr \
+		ipv6_extension_fragment \
+		ipv6_hdr \
+		port_params \
+		sctp_hdr \
+		tcp_hdr \
+		udp_hdr \
+		vlan_hdr \
+		vxlan_gpe_hdr \
+		vxlan_hdr
+	do
+		sed -i -e 's/#\[repr(C, packed)\]/#[repr(C, packed)]\n#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]/g' "$outputFolderPath"/structs/"$struct".rs
 	done
 }

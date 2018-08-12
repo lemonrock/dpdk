@@ -3,6 +3,7 @@
 
 
 #[repr(C)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct rte_tm_node_stats_1
 {
 	pub n_pkts_dropped: [u64; 3usize],

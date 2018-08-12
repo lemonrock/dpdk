@@ -3,6 +3,7 @@
 
 
 #[repr(C, packed)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct vxlan_hdr
 {
 	pub vx_flags: u32,

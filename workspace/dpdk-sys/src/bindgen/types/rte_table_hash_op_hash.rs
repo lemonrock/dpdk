@@ -2,4 +2,4 @@
 // Copyright © 2016 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-pub type rte_table_hash_op_hash = Option<unsafe extern "C" fn(key: *mut c_void, key_mask: *mut c_void, key_size: u32, seed: u64) -> u64>;
+pub type rte_table_hash_op_hash = unsafe extern "C" fn(key: *mut c_void, key_mask: *mut c_void, key_size: u32, seed: u64) -> u64;

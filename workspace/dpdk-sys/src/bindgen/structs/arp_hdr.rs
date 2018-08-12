@@ -3,6 +3,7 @@
 
 
 #[repr(C, packed)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct arp_hdr
 {
 	pub arp_hrd: u16,

@@ -3,6 +3,7 @@
 
 
 #[repr(C)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct rte_tm_wred_params
 {
 	pub red_params: [rte_tm_red_params; 3usize],

@@ -3,7 +3,7 @@
 
 
 #[repr(C)]
-#[derive(Hash)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct vring_used_elem
 {
 	pub id: __virtio32,

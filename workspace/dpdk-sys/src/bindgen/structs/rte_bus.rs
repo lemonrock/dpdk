@@ -3,7 +3,7 @@
 
 
 #[repr(C)]
-#[derive(Hash)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct rte_bus
 {
 	pub next: rte_bus_1,

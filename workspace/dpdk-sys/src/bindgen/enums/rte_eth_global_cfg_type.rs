@@ -3,7 +3,7 @@
 
 
 #[repr(u32)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum rte_eth_global_cfg_type
 {
 	RTE_ETH_GLOBAL_CFG_TYPE_UNKNOWN = 0,

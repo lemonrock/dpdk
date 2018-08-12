@@ -3,7 +3,7 @@
 
 
 #[repr(u32)]
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum rte_bond_8023ad_selection
 {
 	UNSELECTED = 0,

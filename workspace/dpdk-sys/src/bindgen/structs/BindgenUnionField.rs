@@ -3,6 +3,7 @@
 
 
 #[repr(C)]
+#[derive(PartialOrd, Ord)]
 pub struct BindgenUnionField<T>(PhantomData<T>);
 
 impl<T> BindgenUnionField<T>

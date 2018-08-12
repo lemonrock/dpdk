@@ -3,7 +3,7 @@
 
 
 #[repr(C, packed)]
-#[derive(Hash)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ether_addr
 {
 	pub addr_bytes: [u8; 6usize],

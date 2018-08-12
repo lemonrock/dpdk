@@ -3,7 +3,7 @@
 
 
 #[repr(C)]
-#[derive(Hash)]
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct rte_eth_dcb_rx_conf
 {
 	pub nb_tcs: rte_eth_nb_tcs,
