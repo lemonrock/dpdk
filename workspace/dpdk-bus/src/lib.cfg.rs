@@ -52,4 +52,5 @@ include!("DpdkDeviceArguments.rs");
 include!("DpdkDeviceMemoryResource.rs");
 include!("DpdkDeviceMemoryResources.rs");
 include!("DpdkDriver.rs");
+include!("DpdkVirtualDevice.rs");
 include!("NetworkInterfaceName.rs");
