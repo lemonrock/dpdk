@@ -5,7 +5,15 @@
 /// An ethernet port's receive queue (RX) identifier.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct ReceiveQueueIdentifier(u16);
+pub struct ReceiveQueueIdentifier(pub(crate) u16);
+
+impl Display for ReceiveQueueIdentifier
+{
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}", self.0)
+	}
+}
 
 impl TryFrom<u16> for ReceiveQueueIdentifier
 {

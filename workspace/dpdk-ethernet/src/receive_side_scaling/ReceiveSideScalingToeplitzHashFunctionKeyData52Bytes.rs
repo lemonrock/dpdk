@@ -37,9 +37,10 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes
 	
 	/// Guessed.
 	#[inline(always)]
-	pub fn for_layer_4_one_way_for_number_of_queues(number_of_receive_queues: u16) -> Self
+	pub fn for_layer_4_one_way_for_number_of_queues(number_of_receive_queues: ReceiveNumberOfQueues) -> Self
 	{
-		let variable_byte = (number_of_receive_queues.next_power_of_two() & 0xFF) as u8;
+		let into: u16 = number_of_receive_queues.into();
+		let variable_byte = (into.next_power_of_two() & 0xFF) as u8;
 		
 		ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes
 		(

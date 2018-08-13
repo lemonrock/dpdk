@@ -18,8 +18,21 @@ impl<Handler: LinkStatusEventHandler> Drop for LinkStatusEventHandlerGuard<Handl
 	fn drop(&mut self)
 	{
 		let handler = unsafe { Box::from_raw(self.handler.as_ptr()) };
-		unsafe { rte_eth_dev_callback_unregister(self.ethernet_port_identifier.into(), Self::OurEventType, Self::link_up_or_down_events_callback, self.handler.as_ptr() as *mut _) };
-		drop(handler)
+		let result = unsafe { rte_eth_dev_callback_unregister(self.ethernet_port_identifier.into(), Self::OurEventType, Self::link_up_or_down_events_callback, self.handler.as_ptr() as *mut _) };
+		drop(handler);
+		
+		if likely!(result == 0)
+		{
+			return
+		}
+		else if likely!(result < 0)
+		{
+			panic!("rte_eth_dev_callback_unregister failed '{}'", result)
+		}
+		else
+		{
+			panic!("rte_eth_dev_callback_unregister returned an invalid result '{}'", result)
+		}
 	}
 }
 
@@ -46,7 +59,14 @@ impl<Handler: LinkStatusEventHandler> LinkStatusEventHandlerGuard<Handler>
 			}
 		}
 		
-		panic!("rte_eth_dev_callback_register failed '{}'", result)
+		if likely!(result < 0)
+		{
+			panic!("rte_eth_dev_callback_register failed '{}'", result)
+		}
+		else
+		{
+			panic!("rte_eth_dev_callback_register returned an invalid result '{}'", result)
+		}
 	}
 	
 	unsafe extern "C" fn link_up_or_down_events_callback(ethernet_port_identifier: u16, event: rte_eth_event_type, cb_arg: *mut c_void, ret_param: *mut c_void) -> i32

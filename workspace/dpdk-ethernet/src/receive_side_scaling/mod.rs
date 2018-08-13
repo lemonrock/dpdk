@@ -5,8 +5,11 @@
 use super::*;
 
 
+include!("ReceiveSideScalingHashKey.rs");
+include!("ReceiveSideScalingHashKeySize.rs");
 include!("ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes.rs");
 include!("ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes.rs");
 include!("ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy.rs");
 include!("RedirectionTable.rs");
+include!("RedirectionTableNumberOfEntries.rs");
 include!("RedirectionTableStategy.rs");

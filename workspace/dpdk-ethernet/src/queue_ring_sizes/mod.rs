@@ -4,7 +4,7 @@
 
 use super::*;
 
-include!("QueueIdentifier.rs");
-include!("QueueIdentifier.rs");
-include!("ReceiveQueueIdentifier.rs");
-include!("TransmitQueueIdentifier.rs");
+
+include!("QueueRingSize.rs");
+include!("ReceiveQueueRingSize.rs");
+include!("TransmitQueueRingSize.rs");

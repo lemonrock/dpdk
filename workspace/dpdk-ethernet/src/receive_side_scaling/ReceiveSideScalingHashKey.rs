@@ -2,17 +2,6 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Represents a queue identifier.
-pub trait QueueIdentifier: Display + TryFrom<u16> + TryFrom<usize> + Into<u16> + Into<usize> +  Step + Add<u16, Output=Self> + Add<usize, Output=Self> + AddAssign<u16> + AddAssign<usize> + Sub<u16, Output=Self> + Sub<usize, Output=Self> + SubAssign<u16> + SubAssign<usize>
-{
-	/// Maximum.
-	const Maximum: usize = RTE_MAX_QUEUES_PER_PORT as usize;
-	
-	/// Zero.
-	///
-	/// Smallest possible queue identifier.
-	const Zero: Self;
-	
-	/// Largest possible queue identifier.
-	const InclusiveMaximum: Self;
-}
+/// A receive side scaling (RSS) hash key.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct ReceiveSideScalingHashKey<'a>(Either<Cow<'a, ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes>, Cow<'a, ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes>>);

@@ -5,8 +5,11 @@
 /// Represents a queue ring size.
 ///
 /// Also known as the number of descriptors, such as `nb_rx_desc` for the number of receive descriptors.
-pub trait QueueRingSize: TryFrom<u16> + TryFrom<usize> + Into<u16> + Into<usize>
+pub trait QueueRingSize: Display + TryFrom<u16> + TryFrom<usize> + Into<u16> + Into<usize>
 {
 	/// Maximum.
 	const Maximum: usize = ::std::u16::MAX as usize;
+	
+	/// Inclusive Maximum
+	const InclusiveMaximum: Self;
 }

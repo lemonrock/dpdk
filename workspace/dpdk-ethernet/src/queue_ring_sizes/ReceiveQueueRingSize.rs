@@ -2,10 +2,18 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// An ethernet port's receive queue (RX) identifier.
+/// An ethernet port's receive queue ring size.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct ReceiveQueueRingSize(u16);
+pub struct ReceiveQueueRingSize(pub(crate) u16);
+
+impl Display for ReceiveQueueRingSize
+{
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		write!(f, "{}", self.0)
+	}
+}
 
 impl TryFrom<u16> for ReceiveQueueRingSize
 {
@@ -63,7 +71,5 @@ impl Into<usize> for ReceiveQueueRingSize
 
 impl QueueRingSize for ReceiveQueueRingSize
 {
-	const Zero: Self = ReceiveQueueRingSize(0);
-	
 	const InclusiveMaximum: Self = ReceiveQueueRingSize((Self::Maximum as u16) - 1);
 }

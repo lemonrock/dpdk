@@ -2,12 +2,12 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// An ethernet port's transmit queue ring size.
+/// Represents a number of receive queues for a particular ethernet device.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct TransmitQueueRingSize(pub(crate) u16);
+pub struct ReceiveNumberOfQueues(pub(crate) u16);
 
-impl Display for TransmitQueueRingSize
+impl Display for ReceiveNumberOfQueues
 {
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
@@ -15,43 +15,7 @@ impl Display for TransmitQueueRingSize
 	}
 }
 
-impl TryFrom<u16> for TransmitQueueRingSize
-{
-	type Error = ();
-	
-	#[inline(always)]
-	fn try_from(value: u16) -> Result<Self, Self::Error>
-	{
-		if value >= Self::Maximum as u16
-		{
-			Err(())
-		}
-		else
-		{
-			Ok(TransmitQueueRingSize(value))
-		}
-	}
-}
-
-impl TryFrom<usize> for TransmitQueueRingSize
-{
-	type Error = ();
-	
-	#[inline(always)]
-	fn try_from(value: usize) -> Result<Self, Self::Error>
-	{
-		if value >= Self::Maximum as usize
-		{
-			Err(())
-		}
-		else
-		{
-			Ok(TransmitQueueRingSize(value as u16))
-		}
-	}
-}
-
-impl Into<u16> for TransmitQueueRingSize
+impl Into<u16> for ReceiveNumberOfQueues
 {
 	#[inline(always)]
 	fn into(self) -> u16
@@ -60,7 +24,7 @@ impl Into<u16> for TransmitQueueRingSize
 	}
 }
 
-impl Into<usize> for TransmitQueueRingSize
+impl Into<usize> for ReceiveNumberOfQueues
 {
 	#[inline(always)]
 	fn into(self) -> usize
@@ -69,7 +33,6 @@ impl Into<usize> for TransmitQueueRingSize
 	}
 }
 
-impl QueueRingSize for TransmitQueueRingSize
+impl NumberOfQueues for ReceiveNumberOfQueues
 {
-	const InclusiveMaximum: Self = TransmitQueueRingSize((Self::Maximum as u16) - 1);
 }

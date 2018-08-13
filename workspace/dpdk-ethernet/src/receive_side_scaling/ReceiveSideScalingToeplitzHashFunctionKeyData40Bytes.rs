@@ -69,9 +69,10 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
 	
 	/// The RSS `receive_queue_identifier` will handle the stream according to the TCP/UDP `source_port` of the stream. The `receive_queue_identifier` can be calculated as `receive_queue_identifier = (source_port % power_of_2(number_of_receive_queues)) % number_of_receive_queues`.
 	#[inline(always)]
-	pub fn for_layer_4_one_way_for_number_of_queues(number_of_receive_queues: u16) -> Self
+	pub fn for_layer_4_one_way_for_number_of_queues(number_of_receive_queues: ReceiveNumberOfQueues) -> Self
 	{
-		let variable_byte = (number_of_receive_queues.next_power_of_two() & 0xFF) as u8;
+		let into: u16 = number_of_receive_queues.into();
+		let variable_byte = (into.next_power_of_two() & 0xFF) as u8;
 		
 		ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
 		(

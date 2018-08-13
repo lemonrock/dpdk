@@ -25,29 +25,12 @@ impl RedirectionTableStategy
 {
 	/// Creates a redirection table (RETA).
 	///
-	/// If `first_queue_index >= number_of_receive_queues`, returns an Error.
-	///
-	/// `device_specific_reta_size` must be one of the supported DPDK sizes:-
-	///
-	/// * `ETH_RSS_RETA_SIZE_64`
-	/// * `ETH_RSS_RETA_SIZE_128`
-	/// * `ETH_RSS_RETA_SIZE_256`
-	/// * `ETH_RSS_RETA_SIZE_512`
-	///
-	/// If it is not, this code will panic.
+	/// If `first_queue >= number_of_receive_queues`, returns an Error.
 	#[inline(always)]
-	pub fn create(&self, device_specific_reta_size: u16, number_of_receive_queues: usize, first_queue_index: ReceiveQueueIdentifier) -> Result<RedirectionTable, ()>
+	pub fn create(&self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: ReceiveNumberOfQueues) -> Result<RedirectionTable, ()>
 	{
 		use self::RedirectionTableStategy::*;
 		use self::RedirectionTable::*;
-		
-		{
-			let first_queue_index: usize = first_queue_index.into();
-			if first_queue_index > number_of_receive_queues
-			{
-				return Err(())
-			}
-		}
 		
 		macro_rules! entry
 		{
@@ -86,19 +69,22 @@ impl RedirectionTableStategy
 		{
 			Striped { first_receive_side_scaling_queue_index } =>
 			{
-				let last_queue_index = first_receive_side_scaling_queue_index + min(number_of_receive_queues, device_specific_reta_size as usize);
+				let first_queue_index = first_receive_side_scaling_queue_index;
+				let last_queue_index = ethernet_device_capabilities.last_receive_queue(first_receive_side_scaling_queue_index, number_of_receive_queues.into()).ok_or(())?;
+				let redirection_table_number_of_entries = ethernet_device_capabilities.redirection_table_number_of_entries();
+				
 				let mut queue_index = first_queue_index;
 				
-				let redirection_table = match device_specific_reta_size
+				let redirection_table = match redirection_table_number_of_entries
 				{
-					ETH_RSS_RETA_SIZE_64 => Entries64
+					RedirectionTableNumberOfEntries::Entries64 => Entries64
 					(
 						[
 							entry!(first_queue_index, last_queue_index, queue_index),
 						]
 					),
 					
-					ETH_RSS_RETA_SIZE_128 => Entries128
+					RedirectionTableNumberOfEntries::Entries128 => Entries128
 					(
 						[
 							entry!(first_queue_index, last_queue_index, queue_index),
@@ -106,23 +92,9 @@ impl RedirectionTableStategy
 						]
 					),
 					
-					ETH_RSS_RETA_SIZE_256 => Entries256
+					RedirectionTableNumberOfEntries::Entries256 => Entries256
 					(
 						[
-							entry!(first_queue_index, last_queue_index, queue_index),
-							entry!(first_queue_index, last_queue_index, queue_index),
-							entry!(first_queue_index, last_queue_index, queue_index),
-							entry!(first_queue_index, last_queue_index, queue_index),
-						]
-					),
-					
-					ETH_RSS_RETA_SIZE_512 => Entries512
-					(
-						[
-							entry!(first_queue_index, last_queue_index, queue_index),
-							entry!(first_queue_index, last_queue_index, queue_index),
-							entry!(first_queue_index, last_queue_index, queue_index),
-							entry!(first_queue_index, last_queue_index, queue_index),
 							entry!(first_queue_index, last_queue_index, queue_index),
 							entry!(first_queue_index, last_queue_index, queue_index),
 							entry!(first_queue_index, last_queue_index, queue_index),
@@ -130,7 +102,19 @@ impl RedirectionTableStategy
 						]
 					),
 					
-					_ => panic!("Unsupported reta size '{}'", device_specific_reta_size)
+					RedirectionTableNumberOfEntries::Entries512 => Entries512
+					(
+						[
+							entry!(first_queue_index, last_queue_index, queue_index),
+							entry!(first_queue_index, last_queue_index, queue_index),
+							entry!(first_queue_index, last_queue_index, queue_index),
+							entry!(first_queue_index, last_queue_index, queue_index),
+							entry!(first_queue_index, last_queue_index, queue_index),
+							entry!(first_queue_index, last_queue_index, queue_index),
+							entry!(first_queue_index, last_queue_index, queue_index),
+							entry!(first_queue_index, last_queue_index, queue_index),
+						]
+					),
 				};
 				
 				Ok(redirection_table)

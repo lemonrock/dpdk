@@ -2,6 +2,7 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+#[macro_use] extern crate bitflags;
 extern crate dpdk_bus;
 extern crate dpdk_core;
 extern crate dpdk_sys;
@@ -15,7 +16,10 @@ extern crate serde;
 
 
 use self::link_status::*;
+use self::number_of_queues::*;
 use self::queue_identifiers::*;
+use self::queue_ring_sizes::*;
+use self::receive_side_scaling::*;
 use ::dpdk_bus::pci::*;
 use ::dpdk_core::*;
 use ::dpdk_sys::*;
@@ -28,6 +32,9 @@ use ::network_ethernet::MediaAccessControlAddress;
 use ::std::borrow::Cow;
 use ::std::cmp::min;
 use ::std::convert::TryFrom;
+use ::std::fmt;
+use ::std::fmt::Display;
+use ::std::fmt::Formatter;
 use ::std::iter::Step;
 use ::std::mem::replace;
 use ::std::mem::uninitialized;
@@ -39,18 +46,31 @@ use ::std::ptr::NonNull;
 use ::std::sync::Arc;
 
 
+/// Packet receive or send bursts.
+pub mod bursts;
+
+
 /// Link status.
 pub mod link_status;
+
+
+/// Number of queues.
+pub mod number_of_queues;
 
 
 /// Queue identifiers.
 pub mod queue_identifiers;
 
 
+/// Queue ring sizes.
+pub mod queue_ring_sizes;
+
+
 /// Receive side scaling.
 pub mod receive_side_scaling;
 
 
+include!("EthernetDeviceCapabilities.rs");
 include!("EthernetPortIdentifier.rs");
-include!("ReceiveBurst.rs");
-include!("TransmitBurst.rs");
+include!("ReceiveHardwareOffloadingFlags.rs");
+include!("TransmitHardwareOffloadingFlags.rs");
