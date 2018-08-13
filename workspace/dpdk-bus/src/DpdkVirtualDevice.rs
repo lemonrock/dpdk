@@ -17,6 +17,15 @@ impl From<NonNull<rte_device>> for DpdkVirtualDevice
 
 impl DpdkVirtualDevice
 {
+	/// Underlying generic DPDK device, a sort of super class.
+	///
+	/// Use this to get to the NUMA node associated with this PCI device.
+	#[inline(always)]
+	pub fn device<'a>(&'a self) -> DpdkDevice<'a>
+	{
+		DpdkDevice(unsafe { NonNull::new_unchecked(&self.reference().device as *const _ as *mut _) }, PhantomData)
+	}
+	
 	/// Device arguments.
 	#[inline(always)]
 	pub fn device_arguments(self) -> &'static CStr
@@ -29,5 +38,17 @@ impl DpdkVirtualDevice
 	pub fn device_name(self) -> &'static CStr
 	{
 		unsafe { CStr::from_ptr(rust_rte_vdev_device_name(self.0.as_ptr() as *const _)) }
+	}
+	
+	#[inline(always)]
+	fn reference(&self) -> &rte_vdev_device
+	{
+		unsafe { & * self.handle() }
+	}
+	
+	#[inline(always)]
+	fn handle(&self) -> *mut rte_vdev_device
+	{
+		self.0.as_ptr()
 	}
 }
