@@ -12,6 +12,8 @@ pub enum RedirectionTableStategy
 	/// * If the number of queues is an exact multiple of the support table size, all queues are represented fairly;
 	/// * If the number of queues is not, then the remainder will be over-represented slightly;
 	/// * In an extreme case, where there are fewer hash indices than queues, some queues will not be represented at all.
+	///
+	/// This method does not work well when ARP messages are received, as these will always be sent to the first queue in the RETA table, causing the core processing that queue to potentially be 'overloaded'.
 	Striped
 	{
 		/// First queue identifier.
@@ -65,13 +67,21 @@ impl RedirectionTableStategy
 			}
 		}
 		
+		let redirection_table_number_of_entries = if let Some(redirection_table_number_of_entries) = ethernet_device_capabilities.redirection_table_number_of_entries()
+		{
+			redirection_table_number_of_entries
+		}
+		else
+		{
+			return Err(())
+		};
+		
 		match *self
 		{
 			Striped { first_receive_side_scaling_queue_index } =>
 			{
 				let first_queue_index = first_receive_side_scaling_queue_index;
 				let last_queue_index = ethernet_device_capabilities.last_receive_queue(first_receive_side_scaling_queue_index, number_of_receive_queues.into()).ok_or(())?;
-				let redirection_table_number_of_entries = ethernet_device_capabilities.redirection_table_number_of_entries();
 				
 				let mut queue_index = first_queue_index;
 				

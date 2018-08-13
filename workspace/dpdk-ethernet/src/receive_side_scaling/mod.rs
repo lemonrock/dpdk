@@ -7,6 +7,7 @@ use super::*;
 
 include!("ReceiveSideScalingHashKey.rs");
 include!("ReceiveSideScalingHashKeySize.rs");
+include!("ReceiveSideScalingOffloadFlow.rs");
 include!("ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes.rs");
 include!("ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes.rs");
 include!("ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy.rs");

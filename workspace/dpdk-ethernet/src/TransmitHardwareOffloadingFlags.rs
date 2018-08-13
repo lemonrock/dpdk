@@ -56,24 +56,24 @@ bitflags!
 		/// User Datagram Protocol (UDP) Transmission Segmentation Offload (TSO).
 		const UserDatagramProtocolTransmissionSegmentationOffload = DEV_TX_OFFLOAD_UDP_TSO as u64;
 		
-		/// Virtual Extensible Local Area Network (VXLAN) Tunnel Transmission Segmentation Offload (TSO).
+		/// Virtual Extensible Local Area Network (VXLAN) tunnel Transmission Segmentation Offload (TSO).
 		const VirtualExtensibleLocalAreaNetworkTunnelTransmissionSegmentationOffload = DEV_TX_OFFLOAD_VXLAN_TNL_TSO as u64;
 		
-		/// Generic Routing Encapsulation (GRE) Tunnel Transmission Segmentation Offload (TSO).
+		/// Generic Routing Encapsulation (GRE) tunnel Transmission Segmentation Offload (TSO).
 		const GenericRoutingEncapsulationTunnelTransmissionSegmentationOffload = DEV_TX_OFFLOAD_GRE_TNL_TSO as u64;
 		
-		/// Internet Protocol (IP) in Internet Protocol Tunnel Transmission Segmentation Offload (TSO).
+		/// Internet Protocol (IP) in Internet Protocol (IP) tunnel Transmission Segmentation Offload (TSO).
 		const InternetProtocolInInternetProtocolTunnelTransmissionSegmentationOffload = DEV_TX_OFFLOAD_IPIP_TNL_TSO as u64;
 		
-		/// Generic Network Virtualization Encapsulation (GENEVE) Tunnel Transmission Segmentation Offload (TSO).
+		/// Generic Network Virtualization Encapsulation (GENEVE) tunnel Transmission Segmentation Offload (TSO).
 		const GenericNetworkVirtualizationEncapsulationTunnelTransmissionSegmentationOffload = DEV_TX_OFFLOAD_GENEVE_TNL_TSO as u64;
 		
-		/// Any (generic) Internet Protocol (IP) Tunnel Transmission Segmentation Offload (TSO).
+		/// Any (generic) Internet Protocol (IP) tunnel Transmission Segmentation Offload (TSO).
 		///
 		/// The `PKT_TX_TUNNEL_IP` flag must be set in `rte_mbuf`'s `packet_type` field (`rte_mbuf._3.packet_type`).
 		const AnyInternetProtocolTunnelTransmissionSegmentationOffload = DEV_TX_OFFLOAD_IP_TNL_TSO as u64;
 		
-		/// Any (generic) User Datagram Protocol (UDP) Tunnel Transmission Segmentation Offload (TSO).
+		/// Any (generic) User Datagram Protocol (UDP) tunnel Transmission Segmentation Offload (TSO).
 		///
 		/// The `PKT_TX_TUNNEL_UDP` flag must be set in `rte_mbuf`'s `packet_type` field (`rte_mbuf._3.packet_type`).
 		const AnyUserDatagramProtocolTunnelTransmissionSegmentationOffload = DEV_TX_OFFLOAD_UDP_TNL_TSO as u64;
@@ -93,4 +93,10 @@ bitflags!
 		/// An application must ensure that all packets come from the same mempool and the reference count is 1.
 		const PacketBufferFastFree = DEV_TX_OFFLOAD_MBUF_FAST_FREE as u64;
 	}
+}
+
+impl TransmitHardwareOffloadingFlags
+{
+	/// Common flags.
+	pub const CommonFlags: Self = Self::InsertVirtualLan_802_1_Q_Tag | Self::InsertVirtualLan_802_1_ad_Tag | Self::CalculateInternetProtocolVersion4CheckSum | Self::CalculateUserDatagramProtocolCheckSum | Self::CalculateTransmissionControlProtocolCheckSum | Self::TransmissionControlProtocolTransmissionSegmentationOffload | Self::UserDatagramProtocolTransmissionSegmentationOffload;
 }

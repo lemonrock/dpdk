@@ -93,8 +93,38 @@ impl TransmitBurst
 		debug_assert_eq!(number_of_potential_packets, number_acceptable, "A packet was not acceptable because offloaf flags were incorrectly set or the offload feature was not supported")
 	}
 	
-	unsafe extern "C" fn prepare_is_unsupported(_txq: *mut c_void, _tx_pkts: *mut *mut rte_mbuf, nb_pkts: u16) -> u16
+	#[inline(always)]
+	pub(crate) unsafe extern "C" fn prepare_is_unsupported(_txq: *mut c_void, _tx_pkts: *mut *mut rte_mbuf, nb_pkts: u16) -> u16
 	{
 		nb_pkts
+	}
+	
+	#[inline(always)]
+	pub(crate) fn new(ethernet_port_identifier: EthernetPortIdentifier, ethernet_device_capabilities: &EthernetDeviceCapabilities, queue_identifier: TransmitQueueIdentifier) -> TransmitBurst
+	{
+		let ethernet_device_mutable = ethernet_port_identifier.ethernet_device_mutable();
+		
+		if cfg!(debug_assertions)
+		{
+			let callbacks = &mut ethernet_device_mutable.pre_tx_burst_cbs;
+			let mut index = 0;
+			for callback in callbacks.iter()
+			{
+				debug_assert!(callback.is_null(), "Pre-process callback before transmit burst at index '{}' is not null", index);
+				index +=1;
+			}
+		}
+		
+		TransmitBurst
+		{
+			transmit_burst_function_pointer: ethernet_device_mutable.tx_pkt_burst,
+			transmit_queue: ethernet_port_identifier.transmit_queue(queue_identifier),
+			maximum_number_of_packets_which_can_be_transmitted_at_once: ethernet_device_capabilities.transmit_burst_maximum_packets(),
+			transmit_prepare_function_pointer: match ethernet_device_mutable.tx_pkt_prepare
+			{
+				None => TransmitBurst::prepare_is_unsupported,
+				Some(transmit_prepare_function_pointer) => transmit_prepare_function_pointer,
+			},
+		}
 	}
 }

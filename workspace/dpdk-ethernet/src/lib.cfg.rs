@@ -15,12 +15,14 @@ extern crate serde;
 #[macro_use] extern crate serde_derive;
 
 
+use self::bursts::*;
 use self::link_status::*;
 use self::number_of_queues::*;
 use self::queue_identifiers::*;
 use self::queue_ring_sizes::*;
 use self::receive_side_scaling::*;
 use ::dpdk_bus::pci::*;
+use ::dpdk_bus::DpdkVirtualDevice;
 use ::dpdk_core::*;
 use ::dpdk_sys::*;
 pub use ::either::*;
@@ -28,21 +30,25 @@ use ::libc::*;
 use ::network_collections::Array40;
 use ::network_collections::Array52;
 use ::network_collections::NonNullUnifiedArrayVecAndVec;
+use ::network_ethernet::EthernetFrameLength;
 use ::network_ethernet::MediaAccessControlAddress;
 use ::std::borrow::Cow;
 use ::std::cmp::min;
 use ::std::convert::TryFrom;
+use ::std::ffi::CStr;
 use ::std::fmt;
 use ::std::fmt::Display;
 use ::std::fmt::Formatter;
 use ::std::iter::Step;
 use ::std::mem::replace;
+use ::std::mem::zeroed;
 use ::std::mem::uninitialized;
 use ::std::ops::Add;
 use ::std::ops::AddAssign;
 use ::std::ops::Sub;
 use ::std::ops::SubAssign;
 use ::std::ptr::NonNull;
+use ::std::slice::from_raw_parts;
 use ::std::sync::Arc;
 
 

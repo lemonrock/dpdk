@@ -5,31 +5,54 @@
 // See also comments for ETH_RSS_IPV4 in rte_ethdev.h
 bitflags!
 {
-	pub struct ReceiveSideScalingOffloadFlowTypeSet: u64
+	pub struct ReceiveSideScalingOffloadFlow: u64
 	{
 		const Raw = 1 << RTE_ETH_FLOW_RAW;
-		const IpV4 = 1 << RTE_ETH_FLOW_IPV4;
-		const FragmentingIpV4 = 1 << RTE_ETH_FLOW_FRAG_IPV4;
-		const NonFragmentingIpV4Tcp = 1 << RTE_ETH_FLOW_NONFRAG_IPV4_TCP;
-		const NonFragmentingIpV4Udp = 1 << RTE_ETH_FLOW_NONFRAG_IPV4_UDP;
-		const NonFragmentingIpV4Sctp = 1 << RTE_ETH_FLOW_NONFRAG_IPV4_SCTP;
-		const NonFragmentingIpV4Other = 1 << RTE_ETH_FLOW_NONFRAG_IPV4_OTHER;
-		const IpV6 = 1 << RTE_ETH_FLOW_IPV6;
-		const FragmentingIpV6 = 1 << RTE_ETH_FLOW_FRAG_IPV6;
-		const NonFragmentingIpV6Tcp = 1 << RTE_ETH_FLOW_NONFRAG_IPV6_TCP;
-		const NonFragmentingIpV6Udp = 1 << RTE_ETH_FLOW_NONFRAG_IPV6_UDP;
-		const NonFragmentingIpV6Sctp = 1 << RTE_ETH_FLOW_NONFRAG_IPV6_SCTP;
-		const NonFragmentingIpV6Other = 1 << RTE_ETH_FLOW_NONFRAG_IPV6_OTHER;
+		
+		const InternetProtocolVersion4 = 1 << RTE_ETH_FLOW_IPV4;
+		
+		const FragmentingInternetProtocolVersion4 = 1 << RTE_ETH_FLOW_FRAG_IPV4;
+		
+		const NonFragmentingInternetProtocolVersion4TransmissionControlProtocol = 1 << RTE_ETH_FLOW_NONFRAG_IPV4_TCP;
+		
+		const NonFragmentingInternetProtocolVersion4UserDatagramProtocol = 1 << RTE_ETH_FLOW_NONFRAG_IPV4_UDP;
+		
+		const NonFragmentingInternetProtocolVersion4StreamControlTransmissionProtocol = 1 << RTE_ETH_FLOW_NONFRAG_IPV4_SCTP;
+		
+		const NonFragmentingInternetProtocolVersion4Other = 1 << RTE_ETH_FLOW_NONFRAG_IPV4_OTHER;
+		
+		const InternetProtocolVersion6 = 1 << RTE_ETH_FLOW_IPV6;
+		
+		const FragmentingInternetProtocolVersion6 = 1 << RTE_ETH_FLOW_FRAG_IPV6;
+		
+		const NonFragmentingInternetProtocolVersion6TransmissionControlProtocol = 1 << RTE_ETH_FLOW_NONFRAG_IPV6_TCP;
+		
+		const NonFragmentingInternetProtocolVersion6UserDatagramProtocol = 1 << RTE_ETH_FLOW_NONFRAG_IPV6_UDP;
+		
+		const NonFragmentingInternetProtocolVersion6StreamControlTransmissionProtocol = 1 << RTE_ETH_FLOW_NONFRAG_IPV6_SCTP;
+		
+		const NonFragmentingInternetProtocolVersion6Other = 1 << RTE_ETH_FLOW_NONFRAG_IPV6_OTHER;
+		
 		const Layer2Payload = 1 << RTE_ETH_FLOW_L2_PAYLOAD;
-		const IpV6Extended = 1 << RTE_ETH_FLOW_IPV6_EX;
-		const IpV6TcpExtended = 1 << RTE_ETH_FLOW_IPV6_TCP_EX;
-		const IpV6UdpExtended = 1 << RTE_ETH_FLOW_IPV6_UDP_EX;
+		
+		const InternetProtocolVersion6Extended = 1 << RTE_ETH_FLOW_IPV6_EX;
+		
+		const InternetProtocolVersion6TransmissionControlProtocolExtended = 1 << RTE_ETH_FLOW_IPV6_TCP_EX;
+		
+		const InternetProtocolVersion6UserDatagramProtocolExtended = 1 << RTE_ETH_FLOW_IPV6_UDP_EX;
+		
 		const Port = 1 << RTE_ETH_FLOW_PORT;
+		
+		/// Virtual eXtensible Local Area Network (VXLAN) tunnel.
 		const VXLAN = 1 << RTE_ETH_FLOW_VXLAN;
+		
+		/// Generic Network Virtualization Encapsulation (GENEVE) tunnel
 		const GENEVE = 1 << RTE_ETH_FLOW_GENEVE;
+		
+		/// Network Virtualization using Generic Routing Encapsulation (NVGRE) tunnel.
 		const NVGRE = 1 << RTE_ETH_FLOW_NVGRE;
 		
-		const Ip = 1 << RTE_ETH_FLOW_IPV4
+		const InternetProtocol = 1 << RTE_ETH_FLOW_IPV4
 			| 1 << RTE_ETH_FLOW_FRAG_IPV4
 			| 1 << RTE_ETH_FLOW_NONFRAG_IPV4_OTHER
 			| 1 << RTE_ETH_FLOW_IPV6
@@ -37,15 +60,15 @@ bitflags!
 			| 1 << RTE_ETH_FLOW_NONFRAG_IPV6_OTHER
 			| 1 << RTE_ETH_FLOW_IPV6_EX;
 		
-		const Udp = 1 << RTE_ETH_FLOW_NONFRAG_IPV4_UDP
+		const UserDatagramProtocol = 1 << RTE_ETH_FLOW_NONFRAG_IPV4_UDP
 			| 1 << RTE_ETH_FLOW_NONFRAG_IPV6_UDP
 			| 1 << RTE_ETH_FLOW_IPV6_UDP_EX;
 		
-		const Tcp = 1 << RTE_ETH_FLOW_NONFRAG_IPV4_TCP
+		const TransmissionControlProtocol = 1 << RTE_ETH_FLOW_NONFRAG_IPV4_TCP
 			| 1 << RTE_ETH_FLOW_NONFRAG_IPV6_TCP
 			| 1 << RTE_ETH_FLOW_IPV6_TCP_EX;
 		 
-		const Sctp = 1 << RTE_ETH_FLOW_NONFRAG_IPV4_SCTP
+		const StreamControlTransmissionProtocol = 1 << RTE_ETH_FLOW_NONFRAG_IPV4_SCTP
 			| 1 << RTE_ETH_FLOW_NONFRAG_IPV6_SCTP;
 		
 		const Tunnel = 1 << RTE_ETH_FLOW_VXLAN
@@ -94,25 +117,5 @@ bitflags!
 			| 1 << RTE_ETH_FLOW_VXLAN
 			| 1 << RTE_ETH_FLOW_GENEVE
 			| 1 << RTE_ETH_FLOW_NVGRE;
-	}
-}
-
-impl Default for ReceiveSideScalingOffloadFlowTypeSet
-{
-	#[inline(always)]
-	fn default() -> Self
-	{
-		Self::empty()
-	}
-}
-
-const NumberOfFieldsInDpdkApi: usize = 1;
-
-impl ReceiveSideScalingOffloadFlowTypeSet
-{
-	#[inline(always)]
-	pub fn asHashFilterSet(&self) -> [u32; NumberOfFieldsInDpdkApi]
-	{
-		[self.bits as u32]
 	}
 }

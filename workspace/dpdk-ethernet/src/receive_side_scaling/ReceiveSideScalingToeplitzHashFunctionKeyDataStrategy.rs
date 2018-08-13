@@ -34,20 +34,27 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
 {
 	/// Creates an array of receive side scaling bytes.
 	#[inline(always)]
-	pub fn create<'a>(&'a self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: ReceiveNumberOfQueues) -> ReceiveSideScalingHashKey<'a>
+	pub fn create<'a>(&'a self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: ReceiveNumberOfQueues) -> Result<ReceiveSideScalingHashKey<'a>, ()>
 	{
 		use self::ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy::*;
 		use self::Cow::*;
 		use self::Either::*;
 		
 		use self::ReceiveSideScalingHashKeySize::*;
-		let device_specific_hash_key_size = ethernet_device_capabilities.hash_key_size();
+		let receive_side_scaling_hash_key_size = if let Some(receive_side_scaling_hash_key_size) = ethernet_device_capabilities.receive_side_scaling_hash_key_size()
+		{
+			receive_side_scaling_hash_key_size
+		}
+		else
+		{
+			return Err(())
+		};
 		
-		match *self
+		let key = match *self
 		{
 			Fixed { ref forty, ref fifty_two } =>
 			{
-				match device_specific_hash_key_size
+				match receive_side_scaling_hash_key_size
 				{
 					Forty => ReceiveSideScalingHashKey(Left(Borrowed(forty))),
 					
@@ -57,13 +64,15 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
 			
 			ForNumberOfQueues =>
 			{
-				match device_specific_hash_key_size
+				match receive_side_scaling_hash_key_size
 				{
 					Forty => ReceiveSideScalingHashKey(Left(Owned(ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes::for_layer_4_one_way_for_number_of_queues(number_of_receive_queues)))),
 					
 					FiftyTwo => ReceiveSideScalingHashKey(Right(Owned(ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes::for_layer_4_one_way_for_number_of_queues(number_of_receive_queues)))),
 				}
 			}
-		}
+		};
+		
+		Ok(key)
 	}
 }

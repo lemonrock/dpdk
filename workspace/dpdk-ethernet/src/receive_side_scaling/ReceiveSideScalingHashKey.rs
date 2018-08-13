@@ -5,3 +5,19 @@
 /// A receive side scaling (RSS) hash key.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ReceiveSideScalingHashKey<'a>(Either<Cow<'a, ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes>, Cow<'a, ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes>>);
+
+impl<'a> ReceiveSideScalingHashKey<'a>
+{
+	#[inline(always)]
+	pub(crate) fn pointer_and_length(&mut self) -> (*mut u8, u8)
+	{
+		use self::Either::*;
+		
+		match self.0
+		{
+			Left(ref mut forty_bytes) => (forty_bytes.to_mut().0.as_mut_ptr(), 40),
+			
+			Right(ref mut fifty_two_bytes) => (fifty_two_bytes.to_mut().0.as_mut_ptr(), 52),
+		}
+	}
+}
