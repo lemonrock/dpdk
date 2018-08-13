@@ -57,7 +57,7 @@ include!("ReceiveSideScalingHashFunctionConfiguration.rs");
 include!("ReceiveSideScalingHashFunctionKeyData.rs");
 include!("ReceiveSideScalingHashKeySize.rs");
 include!("ReceiveSideScalingOffloadFlowType.rs");
-include!("ReceiveSideScalingOffloadFlowTypeSet.rs");
+include!("ReceiveSideScalingOffloadFlow.rs");
 include!("ReceiveSideScalingRetaIndirectionTable.rs");
 include!("ReceiveVmdQConfiguration.rs");
 include!("ReceiveVmdQDataCentreBridgingConfiguration.rs");
