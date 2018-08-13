@@ -287,8 +287,9 @@ impl EthernetPortIdentifier
 	
 	// TODO: rte_flow_isolate(uint16_t port_id, int set, struct rte_flow_error *error) BEFORE configure.
 	// TODO: do transmit queues before receive queues
+	/// Configure an ethernet device.
 	#[inline(always)]
-	pub(crate) fn configure<'a>(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: TransmitNumberOfQueues, number_of_transmit_queues: TransmitNumberOfQueues, receive_side_scaling_hash_key: Option<&mut ReceiveSideScalingHashKey<'a>>) -> (ReceiveHardwareOffloadingFlags, TransmitHardwareOffloadingFlags)
+	pub fn configure_ethernet_device<'a>(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: TransmitNumberOfQueues, number_of_transmit_queues: TransmitNumberOfQueues, receive_side_scaling_hash_key: Option<&mut ReceiveSideScalingHashKey<'a>>) -> (ReceiveHardwareOffloadingFlags, TransmitHardwareOffloadingFlags)
 	{
 		use self::rte_eth_rx_mq_mode::*;
 		use self::rte_eth_tx_mq_mode::*;
@@ -300,17 +301,17 @@ impl EthernetPortIdentifier
 		{
 			let offload_jumbo_frames_bit = if ethernet_device_capabilities.maximum_receive_packet_length().implies_jumbo_frames()
 			{
-				ReceiveHardwareOffloadingFlags::CommonFlags
+				ReceiveHardwareOffloadingFlags::common_flags()
 			}
 			else
 			{
-				ReceiveHardwareOffloadingFlags::CommonFlagsWithJumboFramesSupport
+				ReceiveHardwareOffloadingFlags::common_flags_with_jumbo_frames_support()
 			};
 			
 			ethernet_device_capabilities.receive_device_hardware_offloading_flags() & offload_jumbo_frames_bit
 		};
 		
-		let device_transmit_offloads = ethernet_device_capabilities.transmit_device_hardware_offloading_flags() & TransmitHardwareOffloadingFlags::CommonFlags;
+		let device_transmit_offloads = ethernet_device_capabilities.transmit_device_hardware_offloading_flags() & TransmitHardwareOffloadingFlags::common_flags();
 		
 		let ethernet_configuration = rte_eth_conf
 		{

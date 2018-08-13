@@ -89,8 +89,16 @@ bitflags!
 impl ReceiveHardwareOffloadingFlags
 {
 	/// Common flags.
-	pub const CommonFlags: Self = Self::StripTrailingFrameCheckSequence | Self::StripVirtualLan_802_1_Q | Self::StripVirtualLan_802_1_ad | Self::VirtualLanFilter | Self::VirtualLanExtend | Self::ValidateInternetProtocolVersion4CheckSum | Self::ValidateUserDatagrramProtocolCheckSum | Self::ValidateTransmissionControlProtocolCheckSum | Self::TransmissionControlProtocolLargeReceiveOffload;
+	#[inline(always)]
+	pub fn common_flags() -> Self
+	{
+		Self::StripTrailingFrameCheckSequence | Self::StripVirtualLan_802_1_Q | Self::StripVirtualLan_802_1_ad | Self::VirtualLanFilter | Self::VirtualLanExtend | Self::ValidateInternetProtocolVersion4CheckSum | Self::ValidateUserDatagrramProtocolCheckSum | Self::ValidateTransmissionControlProtocolCheckSum | Self::TransmissionControlProtocolLargeReceiveOffload
+	}
 	
 	/// Common flags with jumbo frames support.
-	pub const CommonFlagsWithJumboFramesSupport: Self = Self::CommonFlags | Self::SupportJumboFrames;
+	#[inline(always)]
+	pub fn common_flags_with_jumbo_frames_support() -> Self
+	{
+		Self::common_flags() | Self::SupportJumboFrames
+	}
 }

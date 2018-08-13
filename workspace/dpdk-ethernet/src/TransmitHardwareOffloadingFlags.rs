@@ -98,5 +98,9 @@ bitflags!
 impl TransmitHardwareOffloadingFlags
 {
 	/// Common flags.
-	pub const CommonFlags: Self = Self::InsertVirtualLan_802_1_Q_Tag | Self::InsertVirtualLan_802_1_ad_Tag | Self::CalculateInternetProtocolVersion4CheckSum | Self::CalculateUserDatagramProtocolCheckSum | Self::CalculateTransmissionControlProtocolCheckSum | Self::TransmissionControlProtocolTransmissionSegmentationOffload | Self::UserDatagramProtocolTransmissionSegmentationOffload;
+	#[inline(always)]
+	pub fn common_flags() -> Self
+	{
+		Self::InsertVirtualLan_802_1_Q_Tag | Self::InsertVirtualLan_802_1_ad_Tag | Self::CalculateInternetProtocolVersion4CheckSum | Self::CalculateUserDatagramProtocolCheckSum | Self::CalculateTransmissionControlProtocolCheckSum | Self::TransmissionControlProtocolTransmissionSegmentationOffload | Self::UserDatagramProtocolTransmissionSegmentationOffload
+	}
 }
