@@ -475,7 +475,7 @@ impl EthernetPortIdentifier
 	
 	/// Configure an ethernet device.
 	#[inline(always)]
-	pub fn configure_ethernet_device<'a>(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: TransmitNumberOfQueues, number_of_transmit_queues: TransmitNumberOfQueues, receive_side_scaling_hash_key: Option<&mut ReceiveSideScalingHashKey<'a>>) -> (ReceiveHardwareOffloadingFlags, TransmitHardwareOffloadingFlags)
+	pub fn configure_ethernet_device<'a>(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: TransmitNumberOfQueues, number_of_transmit_queues: TransmitNumberOfQueues, receive_side_scaling_hash_key: Option<&mut ReceiveSideScalingHashKey<'a>>)
 	{
 		use self::rte_eth_rx_mq_mode::*;
 		use self::rte_eth_tx_mq_mode::*;
@@ -499,6 +499,23 @@ impl EthernetPortIdentifier
 		
 		let device_transmit_offloads = ethernet_device_capabilities.transmit_device_hardware_offloading_flags() & TransmitHardwareOffloadingFlags::common_flags();
 		
+		// TODO: If using the flow API, does this matter?
+		let (mq_mode, rss_conf) = match receive_side_scaling_hash_key
+		{
+			None => (ETH_MQ_RX_NONE, unsafe { zeroed() }),
+			Some(receive_side_scaling_hash_key) =>
+			{
+				let (pointer, length) = receive_side_scaling_hash_key.pointer_and_length();
+				let rss_conf = rte_eth_rss_conf
+				{
+					rss_key: pointer,
+					rss_key_len: length,
+					rss_hf: ethernet_device_capabilities.receive_side_scaling_offload_flow().bits(),
+				};
+				(ETH_MQ_RX_RSS, rss_conf)
+			}
+		};
+		
 		let ethernet_configuration = rte_eth_conf
 		{
 			link_speeds: ETH_LINK_SPEED_AUTONEG,
@@ -513,14 +530,7 @@ impl EthernetPortIdentifier
 			{
 				let mut rxmode = rte_eth_rxmode
 				{
-					mq_mode: if receive_side_scaling_hash_key.is_none()
-					{
-						ETH_MQ_RX_NONE
-					}
-					else
-					{
-						ETH_MQ_RX_RSS
-					},
+					mq_mode,
 					
 					max_rx_pkt_len: ethernet_device_capabilities.maximum_receive_packet_length().into(),
 					
@@ -543,20 +553,7 @@ impl EthernetPortIdentifier
 			// TODO: If using the flow API, does this matter?
 			rx_adv_conf: rte_eth_conf_1
 			{
-				rss_conf: match receive_side_scaling_hash_key
-				{
-					None => unsafe { zeroed() },
-					Some(receive_side_scaling_hash_key) =>
-					{
-						let (pointer, length) = receive_side_scaling_hash_key.pointer_and_length();
-						rte_eth_rss_conf
-						{
-							rss_key: pointer,
-							rss_key_len: length,
-							rss_hf: ethernet_device_capabilities.receive_side_scaling_offload_flow().bits(),
-						}
-					}
-				},
+				rss_conf,
 				
 				vmdq_dcb_conf: unsafe { zeroed() },
 				
@@ -621,7 +618,7 @@ impl EthernetPortIdentifier
 		let result = unsafe { rte_eth_dev_configure(self.0, number_of_receive_queues.into(), number_of_transmit_queues.into(), &ethernet_configuration) };
 		if likely!(result == 0)
 		{
-			return (device_receive_offloads, device_transmit_offloads)
+			return
 		}
 		else if likely!(result < 0)
 		{
