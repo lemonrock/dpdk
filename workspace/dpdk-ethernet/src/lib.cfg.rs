@@ -98,3 +98,5 @@ pub mod statistics;
 
 
 include!("EthernetPortIdentifier.rs");
+include!("ReceiveQueueConfiguration.rs");
+include!("TransmitQueueConfiguration.rs");
