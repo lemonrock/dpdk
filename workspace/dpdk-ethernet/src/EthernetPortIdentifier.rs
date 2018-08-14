@@ -475,7 +475,7 @@ impl EthernetPortIdentifier
 	
 	/// Configure an ethernet device.
 	#[inline(always)]
-	pub fn configure_ethernet_device<'a>(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: ReceiveNumberOfQueues, number_of_transmit_queues: TransmitNumberOfQueues, receive_side_scaling_toeplitz_hash_function_key_data_strategy: ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy, receive_side_scaling_redirection_table_strategy: &RedirectionTableStategy)
+	pub fn configure_ethernet_device<'a>(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues_for_receive_side_scaling: ReceiveNumberOfQueues, number_of_receive_queues: ReceiveNumberOfQueues, number_of_transmit_queues: TransmitNumberOfQueues, receive_side_scaling_toeplitz_hash_function_key_data_strategy: ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy, receive_side_scaling_redirection_table_strategy: &RedirectionTableStategy)
 	{
 		use self::rte_eth_rx_mq_mode::*;
 		use self::rte_eth_tx_mq_mode::*;
@@ -500,10 +500,10 @@ impl EthernetPortIdentifier
 		let device_transmit_offloads = ethernet_device_capabilities.transmit_device_hardware_offloading_flags() & TransmitHardwareOffloadingFlags::common_flags();
 		
 		// TODO: If using the flow API, does this matter?
-		let (mq_mode, rss_conf, drop_prevention_when_calling_ffi_function, redirection_table) = match receive_side_scaling_toeplitz_hash_function_key_data_strategy.create(ethernet_device_capabilities, number_of_receive_queues)
+		let (mq_mode, rss_conf, drop_prevention_when_calling_ffi_function, redirection_table) = match receive_side_scaling_toeplitz_hash_function_key_data_strategy.create(ethernet_device_capabilities, number_of_receive_queues_for_receive_side_scaling)
 		{
 			None => (ETH_MQ_RX_NONE, unsafe { zeroed() }, None, None),
-			Some(mut receive_side_scaling_hash_key) => match receive_side_scaling_redirection_table_strategy.create(ethernet_device_capabilities, number_of_receive_queues).expect("If there is a RSS key size")
+			Some(mut receive_side_scaling_hash_key) => match receive_side_scaling_redirection_table_strategy.create(ethernet_device_capabilities, number_of_receive_queues_for_receive_side_scaling).expect("If there is a RSS key size")
 			{
 				None => (ETH_MQ_RX_NONE, unsafe { zeroed() }, None, None),
 				Some(redirection_table) =>
