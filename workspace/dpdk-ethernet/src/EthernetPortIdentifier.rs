@@ -633,6 +633,7 @@ impl EthernetPortIdentifier
 		};
 		
 		let result = unsafe { rte_eth_dev_configure(self.0, number_of_receive_queues.into(), number_of_transmit_queues.into(), &ethernet_configuration) };
+		
 		if likely!(result == 0)
 		{
 			return
