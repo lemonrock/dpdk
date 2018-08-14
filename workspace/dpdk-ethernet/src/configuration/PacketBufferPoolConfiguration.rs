@@ -64,7 +64,7 @@ impl PacketBufferPoolConfiguration
 		}
 		else
 		{
-			Ok(PacketBufferPool(unsafe { NonNull::new_unchecked(result) }))
+			Ok(PacketBufferPool::from(unsafe { NonNull::new_unchecked(result) }))
 		}
 	}
 	

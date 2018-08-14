@@ -23,6 +23,14 @@ impl PrintInformation for PacketBufferPool
 	}
 }
 
+impl From<NonNull<rte_mempool>> for PacketBufferPool
+{
+	fn from(value: NonNull<rte_mempool>) -> Self
+	{
+		PacketBufferPool(value)
+	}
+}
+
 macro_rules! bulk_allocate
 {
 	($self: ident, $size: expr) =>
@@ -154,8 +162,9 @@ impl PacketBufferPool
 		unsafe { rust_rte_mempool_put(self.as_ptr(), packet_buffer.as_ptr() as *mut c_void) }
 	}
 	
+	/// As pointer.
 	#[inline(always)]
-	fn as_ptr(&self) -> *mut rte_mempool
+	pub fn as_ptr(&self) -> *mut rte_mempool
 	{
 		self.0.as_ptr()
 	}

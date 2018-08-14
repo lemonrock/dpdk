@@ -40,7 +40,6 @@ use ::network_ethernet::MediaAccessControlAddress;
 use ::std::borrow::Cow;
 use ::std::cmp::min;
 use ::std::collections::HashMap;
-use ::std::collections::HashSet;
 use ::std::convert::TryFrom;
 use ::std::ffi::CStr;
 use ::std::ffi::CString;

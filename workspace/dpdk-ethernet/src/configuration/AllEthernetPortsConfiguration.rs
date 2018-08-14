@@ -21,33 +21,33 @@ pub struct AllEthernetPortsConfiguration
 impl AllEthernetPortsConfiguration
 {
 	/// Configure.
-	pub fn configure(&self) -> (HashSet<PacketBufferPool>, HashMap<EthernetPortIdentifier, (EthernetDeviceCapabilities, Box<[ReceiveBurst]>, Box<[TransmitBurst]>)>)
+	pub fn configure(&self) -> (HashMap<PacketBufferPoolReference, PacketBufferPool>, HashMap<EthernetPortIdentifier, (EthernetDeviceCapabilities, Box<[ReceiveBurst]>, Box<[TransmitBurst]>)>)
 	{
 		let packet_buffer_pools_to_not_drop = self.configure_packet_buffer_pools();
 		
 		let mut ethernet_ports = HashMap::with_capacity(self.ethernet_ports.len());
 		
-		for (ethernet_port_identifier, ethernet_port_configuration) in self.ethernet_ports
+		for (ethernet_port_identifier, ethernet_port_configuration) in self.ethernet_ports.iter()
 		{
 			let ethernet_port_identifier = *ethernet_port_identifier;
-			ethernet_ports.push(ethernet_port_identifier, ethernet_port_configuration.configure((ethernet_port_identifier, &self.packet_buffer_pools_by_numa_node));
+			ethernet_ports.insert(ethernet_port_identifier, ethernet_port_configuration.configure(ethernet_port_identifier, &self.packet_buffer_pools_by_numa_node, &packet_buffer_pools_to_not_drop));
 		}
 		
 		(packet_buffer_pools_to_not_drop, ethernet_ports)
 	}
 	
-	fn configure_packet_buffer_pools(&self) -> HashSet<PacketBufferPool>
+	fn configure_packet_buffer_pools(&self) -> HashMap<PacketBufferPoolReference, PacketBufferPool>
 	{
 		for packet_buffer_pool_reference in self.packet_buffer_pools_by_numa_node.iter()
 		{
 			assert!(self.packet_buffer_pool_definitions.contains_key(packet_buffer_pool_reference), "packet_buffer_pools_by_numa_node '{:?}' is missing in packet_buffer_pool_definitions", packet_buffer_pool_reference);
 		}
 		
-		let mut packet_buffer_pools_to_not_drop = HashSet::with_capacity(self.packet_buffer_pool_definitions.len());
+		let mut packet_buffer_pools_to_not_drop = HashMap::with_capacity(self.packet_buffer_pool_definitions.len());
 		
-		for (packet_buffer_bool_reference, packet_buffer_pool_configuration) in self.packet_buffer_pool_definitions.iter()
+		for (packet_buffer_pool_reference, packet_buffer_pool_configuration) in self.packet_buffer_pool_definitions.iter()
 		{
-			packet_buffer_pools_to_not_drop.push(packet_buffer_pool_configuration.configure(packet_buffer_pool_reference).unwrap())
+			packet_buffer_pools_to_not_drop.insert(*packet_buffer_pool_reference, packet_buffer_pool_configuration.configure(packet_buffer_pool_reference).unwrap());
 		}
 		
 		packet_buffer_pools_to_not_drop

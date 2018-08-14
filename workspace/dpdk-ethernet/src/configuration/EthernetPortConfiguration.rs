@@ -36,7 +36,7 @@ impl EthernetPortConfiguration
 {
 	/// Configure.
 	#[cold]
-	pub fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, packet_buffer_pools_by_numa_node: &[PacketBufferPoolReference; NumaNode::Maximum]) -> (EthernetDeviceCapabilities, Box<[ReceiveBurst]>, Box<[TransmitBurst]>)
+	pub fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, packet_buffer_pools_by_numa_node: &[PacketBufferPoolReference; NumaNode::Maximum], packet_buffer_pools: &HashMap<PacketBufferPoolReference, PacketBufferPool>) -> (EthernetDeviceCapabilities, Box<[ReceiveBurst]>, Box<[TransmitBurst]>)
 	{
 		let ethernet_device_capabilities = ethernet_port_identifier.ethernet_device_capabilities();
 		
@@ -45,7 +45,7 @@ impl EthernetPortConfiguration
 			ethernet_port_identifier.configure_default_media_access_control_address(media_access_control_address);
 		}
 		
-		if self.ethernet_port_identifier.isolate_flow_rules()
+		if self.isolate_flow_rules
 		{
 			ethernet_port_identifier.configure_flow_isolation().unwrap();
 		}
@@ -54,7 +54,7 @@ impl EthernetPortConfiguration
 		
 		let transmit_bursts = self.configure_transmit_queues(ethernet_port_identifier, &ethernet_device_capabilities);
 		
-		let receive_bursts = self.configure_receive_queues(ethernet_port_identifier, &ethernet_device_capabilities, packet_buffer_pools_by_numa_node);
+		let receive_bursts = self.configure_receive_queues(ethernet_port_identifier, &ethernet_device_capabilities, packet_buffer_pools_by_numa_node, packet_buffer_pools);
 		
 		(ethernet_device_capabilities, receive_bursts, transmit_bursts)
 	}
@@ -74,23 +74,23 @@ impl EthernetPortConfiguration
 	}
 	
 	#[inline(always)]
-	fn configure_receive_queues(&self, ethernet_port_identifier: EthernetPortIdentifier, ethernet_device_capabilities: &EthernetDeviceCapabilities, packet_buffer_pools_by_numa_node: &[PacketBufferPoolReference; NumaNode::Maximum]) -> Box<[ReceiveBurst]>
+	fn configure_receive_queues(&self, ethernet_port_identifier: EthernetPortIdentifier, ethernet_device_capabilities: &EthernetDeviceCapabilities, packet_buffer_pools_by_numa_node: &[PacketBufferPoolReference; NumaNode::Maximum], packet_buffer_pools: &HashMap<PacketBufferPoolReference, PacketBufferPool>) -> Box<[ReceiveBurst]>
 	{
-		let packet_buffer_pools = self.packet_buffer_pools(packet_buffer_pools_by_numa_node);
+		let packet_buffer_pool_references = self.packet_buffer_pool_references(packet_buffer_pools_by_numa_node);
 		
 		let default_ethernet_device_receive_queue_capabilities = ethernet_device_capabilities.ethernet_device_receive_queue_capabilities();
 		let mut queue_identifier = ReceiveQueueIdentifier::Zero;
 		let mut receive_bursts = Vec::with_capacity(self.receive_queue_configurations.len());
 		for receive_queue_configuration in self.receive_queue_configurations.iter()
 		{
-			receive_bursts.push(receive_queue_configuration.configure(ethernet_port_identifier, queue_identifier, default_ethernet_device_receive_queue_capabilities, &packet_buffer_pools));
+			receive_bursts.push(receive_queue_configuration.configure(ethernet_port_identifier, queue_identifier, default_ethernet_device_receive_queue_capabilities, &packet_buffer_pool_references, packet_buffer_pools));
 			queue_identifier += 1u16;
 		}
 		receive_bursts.into_boxed_slice()
 	}
 	
 	#[inline(always)]
-	fn packet_buffer_pools(&self, packet_buffer_pools_by_numa_node: &[PacketBufferPoolReference; NumaNode::Maximum]) -> HashMap<NumaNode, PacketBufferPoolReference>
+	fn packet_buffer_pool_references(&self, packet_buffer_pools_by_numa_node: &[PacketBufferPoolReference; NumaNode::Maximum]) -> HashMap<NumaNode, PacketBufferPoolReference>
 	{
 		let mut packet_buffer_pools = HashMap::with_capacity(NumaNode::Maximum);
 		for numa_node_index in 0u16 .. (NumaNode::Maximum as u16)

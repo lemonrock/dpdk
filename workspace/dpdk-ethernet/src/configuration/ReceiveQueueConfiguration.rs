@@ -33,7 +33,7 @@ pub struct ReceiveQueueConfiguration
 impl ReceiveQueueConfiguration
 {
 	/// `queue_packet_buffer_pool` should ideally be on the same NUMA node as that used for the ethernet port.
-	pub(crate) fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, queue_identifier: ReceiveQueueIdentifier, default_ethernet_device_receive_queue_capabilities: &EthernetDeviceReceiveQueueCapabilities, default_packet_buffer_pools: &HashMap<NumaNode, PacketBufferPoolReference>) -> ReceiveBurst
+	pub(crate) fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, queue_identifier: ReceiveQueueIdentifier, default_ethernet_device_receive_queue_capabilities: &EthernetDeviceReceiveQueueCapabilities, default_packet_buffer_pools: &HashMap<NumaNode, PacketBufferPoolReference>, packet_buffer_pools: &HashMap<PacketBufferPoolReference, PacketBufferPool>) -> ReceiveBurst
 	{
 		let ethernet_device_receive_queue_capabilities = self.overrride_ethernet_device_receive_queue_capabilities.as_ref().unwrap_or(default_ethernet_device_receive_queue_capabilities);
 		let queue_ring_numa_node = self.queue_ring_numa_node.unwrap_or_else(|| ethernet_port_identifier.numa_node_choice().unwrap_or_default());
@@ -54,17 +54,8 @@ impl ReceiveQueueConfiguration
 		
 		let packet_buffer_pool =
 		{
-			let packet_buffer_pool_reference = match self.packet_buffer_pool
-			{
-				None => default_packet_buffer_pools.get(&queue_ring_numa_node),
-				Some(ref packet_buffer_pool_reference) => Some(packet_buffer_pool_reference),
-			};
-			
-			match packet_buffer_pool_reference
-			{
-				None => PacketBufferPoolReference::default().find(),
-				Some(packet_buffer_pool_reference) => packet_buffer_pool_reference.find(),
-			}.expect("packet buffer pool not created").as_ptr()
+			let packet_buffer_pool_reference = self.packet_buffer_pool.unwrap_or(default_packet_buffer_pools.get(&queue_ring_numa_node).map(|value| *value).unwrap_or(PacketBufferPoolReference::default()));
+			packet_buffer_pools.get(&packet_buffer_pool_reference).expect(&format!("packet buffer pool reference '{:?}' not created", packet_buffer_pool_reference)).as_ptr()
 		};
 		
 		let result = unsafe { rte_eth_rx_queue_setup(ethernet_port_identifier.into(), queue_identifier.into(), ethernet_device_receive_queue_capabilities.queue_ring_size().into(), queue_ring_numa_node.into(), &queue_configuration, packet_buffer_pool) };
