@@ -41,7 +41,7 @@ impl PacketBufferPoolConfiguration
 {
 	/// Create a new instance.
 	#[inline(always)]
-	pub fn configure(&self, packet_buffer_pool_reference: PacketBufferPoolReference) -> Result<NonNull<rte_mempool>, ()>
+	pub fn configure(&self, packet_buffer_pool_reference: &PacketBufferPoolReference) -> Result<PacketBufferPool, ()>
 	{
 		let memory_zone_name = packet_buffer_pool_reference.name();
 		let data_room_size = Self::minimum_data_room_size().saturating_add(self.additional_buffer_headroom_bytes);
@@ -64,7 +64,7 @@ impl PacketBufferPoolConfiguration
 		}
 		else
 		{
-			Ok(unsafe { NonNull::new_unchecked(result) })
+			Ok(PacketBufferPool(unsafe { NonNull::new_unchecked(result) }))
 		}
 	}
 	

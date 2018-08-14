@@ -5,6 +5,7 @@
 use super::*;
 
 
+include!("AllEthernetPortsConfiguration.rs");
 include!("EthernetPortConfiguration.rs");
 include!("PacketBufferPoolReference.rs");
 include!("PacketBufferPoolConfiguration.rs");

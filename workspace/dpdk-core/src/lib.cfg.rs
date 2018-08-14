@@ -122,6 +122,7 @@ include!("MegaBytes.rs");
 include!("Memory.rs");
 include!("NumaNode.rs");
 include!("NumaNodeChoice.rs");
+include!("PacketBufferPool.rs");
 include!("PerMyriad.rs");
 include!("PointerExt.rs");
 include!("Service.rs");

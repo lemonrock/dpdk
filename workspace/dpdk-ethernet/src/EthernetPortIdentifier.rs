@@ -396,7 +396,7 @@ impl EthernetPortIdentifier
 {
 	/// Configure the default media access control address.
 	#[inline(always)]
-	pub fn configure_default_media_access_control_address(self, mut media_access_control_address: MediaAccessControlAddress)
+	pub(crate) fn configure_default_media_access_control_address(self, mut media_access_control_address: MediaAccessControlAddress)
 	{
 		let result = unsafe { rte_eth_dev_default_mac_addr_set(self.0, &mut media_access_control_address as *mut MediaAccessControlAddress as *mut ether_addr) };
 		
@@ -417,7 +417,7 @@ impl EthernetPortIdentifier
 	
 	/// Returns an error message and error number on failure.
 	#[inline(always)]
-	pub fn configure_flow_isolation(self) -> Result<(), (rte_flow_error, i32)>
+	pub(crate) fn configure_flow_isolation(self) -> Result<(), (rte_flow_error, i32)>
 	{
 		let mut error = unsafe { zeroed() };
 		

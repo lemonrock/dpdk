@@ -2,24 +2,21 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-///// All ethernet ports configuration.
-//#[derive(Debug, Clone, PartialEq, Eq)]
-//#[derive(Deserialize, Serialize)]
-//pub struct AllEthernetPortsConfiguration
-//{
-//	/// Packet buffer pool definitions.
-//	pub packet_buffer_pool_definitions: HashMap<PacketBufferPoolReference, PacketBufferPoolConfiguration>,
-//
-//	/// Packet buffer pools by NUMA node.
-//	#[serde(default)]
-//	pub packet_buffer_pools_by_numa_node: [PacketBufferPoolReference; NumaNode::Maximum],
-//}
-
 /// Ethernet port configuration.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Deserialize, Serialize)]
 pub struct EthernetPortConfiguration
 {
+	/// Receive side scaling configuration.
+	#[serde(default = "EthernetPortConfiguration::isolate_flow_rules_default")]
+	pub isolate_flow_rules: bool,
+	
+	/// Set a specifc media access control address.
+	///
+	/// Generally speaking, this is a good idea.
+	#[serde(default)]
+	pub media_access_control_address: Option<MediaAccessControlAddress>,
+	
 	/// Override packet buffer pools; merged with the defaults to provide references to packet buffer pools.
 	#[serde(default)]
 	pub override_packet_buffer_pools: HashMap<NumaNode, PacketBufferPoolReference>,
@@ -39,9 +36,19 @@ impl EthernetPortConfiguration
 {
 	/// Configure.
 	#[cold]
-	pub fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, packet_buffer_pools_by_numa_node: &[PacketBufferPoolReference; NumaNode::Maximum]) -> (Box<[ReceiveBurst]>, Box<[TransmitBurst]>)
+	pub fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, packet_buffer_pools_by_numa_node: &[PacketBufferPoolReference; NumaNode::Maximum]) -> (EthernetDeviceCapabilities, Box<[ReceiveBurst]>, Box<[TransmitBurst]>)
 	{
 		let ethernet_device_capabilities = ethernet_port_identifier.ethernet_device_capabilities();
+		
+		if let Some(media_access_control_address) = self.media_access_control_address
+		{
+			ethernet_port_identifier.configure_default_media_access_control_address(media_access_control_address);
+		}
+		
+		if self.ethernet_port_identifier.isolate_flow_rules()
+		{
+			ethernet_port_identifier.configure_flow_isolation().unwrap();
+		}
 		
 		ethernet_port_identifier.configure_ethernet_device(&ethernet_device_capabilities, &self.receive_queue_configurations[..], &self.transmit_queue_configurations[..], self.receive_side_scaling_configuration.as_ref());
 		
@@ -49,7 +56,7 @@ impl EthernetPortConfiguration
 		
 		let receive_bursts = self.configure_receive_queues(ethernet_port_identifier, &ethernet_device_capabilities, packet_buffer_pools_by_numa_node);
 		
-		(receive_bursts, transmit_bursts)
+		(ethernet_device_capabilities, receive_bursts, transmit_bursts)
 	}
 	
 	#[inline(always)]
@@ -67,9 +74,9 @@ impl EthernetPortConfiguration
 	}
 	
 	#[inline(always)]
-	fn configure_receive_queues(&self, ethernet_port_identifier: EthernetPortIdentifier, ethernet_device_capabilities: &EthernetDeviceCapabilities, default_packet_buffer_pools: &[PacketBufferPoolReference; NumaNode::Maximum]) -> Box<[ReceiveBurst]>
+	fn configure_receive_queues(&self, ethernet_port_identifier: EthernetPortIdentifier, ethernet_device_capabilities: &EthernetDeviceCapabilities, packet_buffer_pools_by_numa_node: &[PacketBufferPoolReference; NumaNode::Maximum]) -> Box<[ReceiveBurst]>
 	{
-		let packet_buffer_pools = self.packet_buffer_pools(default_packet_buffer_pools);
+		let packet_buffer_pools = self.packet_buffer_pools(packet_buffer_pools_by_numa_node);
 		
 		let default_ethernet_device_receive_queue_capabilities = ethernet_device_capabilities.ethernet_device_receive_queue_capabilities();
 		let mut queue_identifier = ReceiveQueueIdentifier::Zero;
@@ -97,5 +104,11 @@ impl EthernetPortConfiguration
 		}
 		
 		packet_buffer_pools
+	}
+	
+	#[inline(always)]
+	fn isolate_flow_rules_default() -> bool
+	{
+		true
 	}
 }

@@ -24,7 +24,7 @@ impl PacketBufferPoolReference
 	#[inline(always)]
 	pub fn name(&self) -> CString
 	{
-		let mut name = format!("PacketBufferPool{}", self.0);
+		let name = format!("PacketBufferPool{}", self.0);
 		CString::new(name.as_str()).unwrap()
 	}
 }
