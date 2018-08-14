@@ -81,6 +81,20 @@ impl LogicalCoreChoice
 		}
 	}
 	
+	/// Unwraps as a NumaNode or returns a default (the Numa Node for zero).
+	#[inline(always)]
+	pub fn unwrap_or_default(self) -> LogicalCore
+	{
+		use self::LogicalCoreChoice::*;
+		
+		match self
+		{
+			Any => LogicalCore::default(),
+			
+			Specific(logical_core) => logical_core,
+		}
+	}
+	
 	//noinspection SpellCheckingInspection
 	/// Constructs from an `u32` value.
 	///

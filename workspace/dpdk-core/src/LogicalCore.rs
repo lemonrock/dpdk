@@ -29,7 +29,7 @@
 /// To iterate over known logical cores, use either `AllLogicalCoreIterator` or `SlaveLogicalCoreIterator`.
 ///
 /// To find the logical core the running code is currently executing on, use `LogicalCoreChoice::current_logical_core()`.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 pub struct LogicalCore(u16);
 

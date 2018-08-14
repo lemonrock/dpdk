@@ -11,7 +11,7 @@
 /// NUMA node numbers are not necessarily contiguous but usually are.
 ///
 /// NUMA nodes are also, confusingly, known as sockets. In this sense they represent the socket where a modern CPU with multiple cores resides.
-#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 pub struct NumaNode(u8);
 

@@ -95,6 +95,20 @@ impl NumaNodeChoice
 		}
 	}
 	
+	/// Unwraps as a NumaNode or returns a default (the Numa Node for zero).
+	#[inline(always)]
+	pub fn unwrap_or_default(self) -> NumaNode
+	{
+		use self::NumaNodeChoice::*;
+		
+		match self
+		{
+			Any => NumaNode::default(),
+			
+			Specific(numa_node) => numa_node,
+		}
+	}
+	
 	/// Constructs from an `i32` value.
 	///
 	/// Panics if the value is out-of-range (less than -1 or greater than or equal to `RTE_MAX_NUMA_NODES`).
