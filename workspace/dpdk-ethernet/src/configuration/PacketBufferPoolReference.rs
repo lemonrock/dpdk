@@ -5,24 +5,9 @@
 /// A packet buffer pool reference makes it possible to reference to memory pools when deserializing with Serde.
 ///
 /// They act as a sort-of reference counted ('Rc') smart pointer.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct PacketBufferPoolReference
-{
-	name: CString,
-}
-
-impl Default for PacketBufferPoolReference
-{
-	#[inline(always)]
-	fn default() -> Self
-	{
-		Self
-		{
-			name: CString::new("PacketBufferPool").unwrap(),
-		}
-	}
-}
+pub struct PacketBufferPoolReference(u16);
 
 impl PacketBufferPoolReference
 {
@@ -30,6 +15,16 @@ impl PacketBufferPoolReference
 	#[inline(always)]
 	pub fn find(&self) -> Option<NonNull<rte_mempool>>
 	{
-		NonNull::new(unsafe { rte_mempool_lookup(self.name.as_ptr()) })
+		let name = self.name();
+		
+		NonNull::new(unsafe { rte_mempool_lookup(name.as_ptr()) })
+	}
+	
+	/// Name.
+	#[inline(always)]
+	pub fn name(&self) -> CString
+	{
+		let mut name = format!("PacketBufferPool{}", self.0);
+		CString::new(name.as_str()).unwrap()
 	}
 }

@@ -2,6 +2,19 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+///// All ethernet ports configuration.
+//#[derive(Debug, Clone, PartialEq, Eq)]
+//#[derive(Deserialize, Serialize)]
+//pub struct AllEthernetPortsConfiguration
+//{
+//	/// Packet buffer pool definitions.
+//	pub packet_buffer_pool_definitions: HashMap<PacketBufferPoolReference, PacketBufferPoolConfiguration>,
+//
+//	/// Packet buffer pools by NUMA node.
+//	#[serde(default)]
+//	pub packet_buffer_pools_by_numa_node: [PacketBufferPoolReference; NumaNode::Maximum],
+//}
+
 /// Ethernet port configuration.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Deserialize, Serialize)]
@@ -26,7 +39,7 @@ impl EthernetPortConfiguration
 {
 	/// Configure.
 	#[cold]
-	pub fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, default_packet_buffer_pools: &HashMap<NumaNode, PacketBufferPoolReference>) -> (Box<[ReceiveBurst]>, Box<[TransmitBurst]>)
+	pub fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, packet_buffer_pools_by_numa_node: &[PacketBufferPoolReference; NumaNode::Maximum]) -> (Box<[ReceiveBurst]>, Box<[TransmitBurst]>)
 	{
 		let ethernet_device_capabilities = ethernet_port_identifier.ethernet_device_capabilities();
 		
@@ -34,7 +47,7 @@ impl EthernetPortConfiguration
 		
 		let transmit_bursts = self.configure_transmit_queues(ethernet_port_identifier, &ethernet_device_capabilities);
 		
-		let receive_bursts = self.configure_receive_queues(ethernet_port_identifier, &ethernet_device_capabilities, default_packet_buffer_pools);
+		let receive_bursts = self.configure_receive_queues(ethernet_port_identifier, &ethernet_device_capabilities, packet_buffer_pools_by_numa_node);
 		
 		(receive_bursts, transmit_bursts)
 	}
@@ -54,7 +67,7 @@ impl EthernetPortConfiguration
 	}
 	
 	#[inline(always)]
-	fn configure_receive_queues(&self, ethernet_port_identifier: EthernetPortIdentifier, ethernet_device_capabilities: &EthernetDeviceCapabilities, default_packet_buffer_pools: &HashMap<NumaNode, PacketBufferPoolReference>) -> Box<[ReceiveBurst]>
+	fn configure_receive_queues(&self, ethernet_port_identifier: EthernetPortIdentifier, ethernet_device_capabilities: &EthernetDeviceCapabilities, default_packet_buffer_pools: &[PacketBufferPoolReference; NumaNode::Maximum]) -> Box<[ReceiveBurst]>
 	{
 		let packet_buffer_pools = self.packet_buffer_pools(default_packet_buffer_pools);
 		
@@ -70,14 +83,17 @@ impl EthernetPortConfiguration
 	}
 	
 	#[inline(always)]
-	fn packet_buffer_pools(&self, default_packet_buffer_pools: &HashMap<NumaNode, PacketBufferPoolReference>) -> HashMap<NumaNode, PacketBufferPoolReference>
+	fn packet_buffer_pools(&self, packet_buffer_pools_by_numa_node: &[PacketBufferPoolReference; NumaNode::Maximum]) -> HashMap<NumaNode, PacketBufferPoolReference>
 	{
 		let mut packet_buffer_pools = HashMap::with_capacity(NumaNode::Maximum);
-		packet_buffer_pools.clone_from(default_packet_buffer_pools);
+		for numa_node_index in 0u16 .. (NumaNode::Maximum as u16)
+		{
+			packet_buffer_pools.insert(NumaNode::from_u16(numa_node_index), *(unsafe { packet_buffer_pools_by_numa_node.get_unchecked(numa_node_index as usize) }));
+		}
 		
 		for (numa_node, packet_buffer_pool_reference) in self.override_packet_buffer_pools.iter()
 		{
-			packet_buffer_pools.insert(*numa_node, packet_buffer_pool_reference.clone());
+			packet_buffer_pools.insert(*numa_node, *packet_buffer_pool_reference);
 		}
 		
 		packet_buffer_pools

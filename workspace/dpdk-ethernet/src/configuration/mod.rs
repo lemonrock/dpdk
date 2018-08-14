@@ -7,6 +7,7 @@ use super::*;
 
 include!("EthernetPortConfiguration.rs");
 include!("PacketBufferPoolReference.rs");
+include!("PacketBufferPoolConfiguration.rs");
 include!("ReceiveQueueConfiguration.rs");
 include!("ReceiveSideScalingConfiguration.rs");
 include!("TransmitQueueConfiguration.rs");

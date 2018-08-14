@@ -14,6 +14,15 @@ pub enum NumaNodeChoice
 	Specific(NumaNode),
 }
 
+impl Default for NumaNodeChoice
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		NumaNodeChoice::Any
+	}
+}
+
 impl Into<i32> for NumaNodeChoice
 {
 	#[inline(always)]

@@ -14,6 +14,15 @@ pub enum LogicalCoreChoice
 	Specific(LogicalCore),
 }
 
+impl Default for LogicalCoreChoice
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		LogicalCoreChoice::Any
+	}
+}
+
 impl Into<u32> for LogicalCoreChoice
 {
 	#[inline(always)]
