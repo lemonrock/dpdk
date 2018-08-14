@@ -21,7 +21,6 @@ pub struct ReceiveSideScalingConfiguration
 
 impl ReceiveSideScalingConfiguration
 {
-	#[inline(always)]
 	pub(crate) fn create<'a>(this: Option<&'a Self>, ethernet_device_capabilities: &EthernetDeviceCapabilities, receive_queue_configurations: &[ReceiveQueueConfiguration]) -> (rte_eth_rx_mq_mode, rte_eth_rss_conf, Option<ReceiveSideScalingHashKey<'a>>, Option<RedirectionTable>)
 	{
 		match this

@@ -26,7 +26,6 @@ pub struct TransmitQueueConfiguration
 
 impl TransmitQueueConfiguration
 {
-	#[inline(always)]
 	pub(crate) fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, queue_identifier: TransmitQueueIdentifier, default_ethernet_device_transmit_queue_capabilities: &EthernetDeviceTransmitQueueCapabilities) -> TransmitBurst
 	{
 		let ethernet_device_transmit_queue_capabilities = self.overrride_ethernet_device_transmit_queue_capabilities.as_ref().unwrap_or(default_ethernet_device_transmit_queue_capabilities);
