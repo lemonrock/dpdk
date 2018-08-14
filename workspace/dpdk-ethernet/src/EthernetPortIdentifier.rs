@@ -602,7 +602,7 @@ impl EthernetPortIdentifier
 	///
 	/// `queue_ring_numa_node` should ideally be the same as the one for the ethernet port.
 	#[inline(always)]
-	pub fn configure_transmit_queue(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, queue_identifier: TransmitQueueIdentifier, transmit_hardware_offloading_flags: TransmitHardwareOffloadingFlags, queue_ring_size: TransmitQueueRingSize, queue_ring_numa_node: NumaNode) -> TransmitBurst
+	pub fn configure_transmit_queue(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, queue_identifier: TransmitQueueIdentifier, transmit_hardware_offloading_flags: TransmitHardwareOffloadingFlags, queue_ring_size: TransmitQueueRingSize, queue_ring_numa_node: NumaNode, queue_simple_statistics_counter_index: QueueSimpleStatisticCounterIndex) -> TransmitBurst
 	{
 		let queue_configuration = rte_eth_txconf
 		{
@@ -618,20 +618,29 @@ impl EthernetPortIdentifier
 		
 		if likely!(result == 0)
 		{
-			return TransmitBurst::new(self, ethernet_device_capabilities, queue_identifier)
+			let into: u8 = queue_simple_statistics_counter_index.into();
+			let result = unsafe { rte_eth_dev_set_tx_queue_stats_mapping(self.0, queue_identifier.into(), into) };
+			if likely!(result == 0)
+			{
+				return TransmitBurst::new(self, ethernet_device_capabilities, queue_identifier)
+			}
+			else
+			{
+				panic!("rte_eth_dev_set_tx_queue_stats_mapping for ethernet port '{}' for queue '{}' failed with '{}'", self, queue_identifier, result)
+			}
 		}
 		
 		match result
 		{
 			// NOTE: This is not listed in the documentation but it seems likely to occur.
-			NegativeE::ENODEV => panic!("This ethernet port '{}' is not a device", self),
+			NegativeE::ENODEV => panic!("This ethernet port '{}' for queue '{}' is not a device", self, queue_identifier),
 			
 			// NOTE: This is not listed in the documentation but it seems likely to occur.
-			NegativeE::EIO => panic!("This ethernet port '{}' is removed", self),
+			NegativeE::EIO => panic!("This ethernet port '{}' for queue '{}' is removed", self, queue_identifier),
 			
-			NegativeE::ENOMEM => panic!("rte_eth_tx_queue_setup: unable to allocate the transmit ring descriptors"),
+			NegativeE::ENOMEM => panic!("rte_eth_tx_queue_setup: unable to allocate the transmit ring descriptors for ethernet port '{}' for queue '{}'", self, queue_identifier),
 			
-			_ => panic!("rte_eth_rx_queue_setup returned an unknown error '{}'", result)
+			_ => panic!("rte_eth_rx_queue_setup returned an unknown error '{}' for ethernet port '{}' for queue '{}'", result, self, queue_identifier)
 		}
 	}
 	
@@ -643,39 +652,49 @@ impl EthernetPortIdentifier
 	///
 	/// `queue_packet_buffer_pool` should ideally be on the numa node `queue_ring_numa_node`.
 	#[inline(always)]
-	pub fn configure_receive_queue(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, queue_identifier: ReceiveQueueIdentifier, receive_hardware_offloading_flags: ReceiveHardwareOffloadingFlags, queue_ring_size: ReceiveQueueRingSize, queue_ring_numa_node: NumaNode, queue_packet_buffer_pool: NonNull<rte_mempool>) -> ReceiveBurst
+	pub fn configure_receive_queue(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, queue_identifier: ReceiveQueueIdentifier, receive_hardware_offloading_flags: ReceiveHardwareOffloadingFlags, queue_ring_size: ReceiveQueueRingSize, queue_ring_numa_node: NumaNode, queue_simple_statistics_counter_index: QueueSimpleStatisticCounterIndex, queue_packet_buffer_pool: NonNull<rte_mempool>) -> ReceiveBurst
 	{
 		let queue_configuration =
+		{
+			const DropPacketsIfNoReceiveDescriptorsAreAvailable: u8 = 1;
+			
+			rte_eth_rxconf
 			{
-				const DropPacketsIfNoReceiveDescriptorsAreAvailable: u8 = 1;
-				
-				rte_eth_rxconf
-				{
-					rx_thresh: ethernet_device_capabilities.receive_threshold(),
-					rx_free_thresh: ethernet_device_capabilities.receive_free_threshold(),
-					rx_drop_en: DropPacketsIfNoReceiveDescriptorsAreAvailable,
-					rx_deferred_start: EthernetDeviceCapabilities::ImmediateStart,
-					offloads: (ethernet_device_capabilities.receive_queue_hardware_offloading_flags() & receive_hardware_offloading_flags).bits,
-				}
-			};
+				rx_thresh: ethernet_device_capabilities.receive_threshold(),
+				rx_free_thresh: ethernet_device_capabilities.receive_free_threshold(),
+				rx_drop_en: DropPacketsIfNoReceiveDescriptorsAreAvailable,
+				rx_deferred_start: EthernetDeviceCapabilities::ImmediateStart,
+				offloads: (ethernet_device_capabilities.receive_queue_hardware_offloading_flags() & receive_hardware_offloading_flags).bits,
+			}
+		};
 		
 		let result = unsafe { rte_eth_rx_queue_setup(self.0, queue_identifier.into(), queue_ring_size.into(), queue_ring_numa_node.into(), &queue_configuration, queue_packet_buffer_pool.as_ptr()) };
 		
 		if likely!(result == 0)
 		{
-			return ReceiveBurst::new(self, ethernet_device_capabilities, queue_identifier)
+			let into: u8 = queue_simple_statistics_counter_index.into();
+			let result = unsafe { rte_eth_dev_set_rx_queue_stats_mapping(self.0, queue_identifier.into(), into) };
+			
+			if likely!(result == 0)
+			{
+				return ReceiveBurst::new(self, ethernet_device_capabilities, queue_identifier)
+			}
+			else
+			{
+				panic!("rte_eth_dev_set_rx_queue_stats_mapping for ethernet port '{}' for queue '{}' failed with '{}'", self, queue_identifier, result)
+			}
 		}
 		
 		match result
 		{
 			// NOTE: This is not listed in the documentation but it seems likely to occur.
-			NegativeE::ENODEV => panic!("This ethernet port '{}' is not a device", self),
+			NegativeE::ENODEV => panic!("This ethernet port '{}' for queue '{}' is not a device", self, queue_identifier),
 			
-			NegativeE::EIO => panic!("This ethernet port '{}' is removed", self),
-			NegativeE::EINVAL => panic!("rte_eth_rx_queue_setup: the size of network buffers which can be allocated from the memory pool does not fit the various buffer sizes allowed by the device controller"),
-			NegativeE::ENOMEM => panic!("rte_eth_rx_queue_setup: unable to allocate the receive ring descriptors or to allocate network packet buffers from the queue_packet_buffer_pool when initializing receive descriptors"),
+			NegativeE::EIO => panic!("This ethernet port '{}' for queue '{}' is removed", self, queue_identifier),
+			NegativeE::EINVAL => panic!("rte_eth_rx_queue_setup: the size of network buffers which can be allocated from the memory pool does not fit the various buffer sizes allowed by the device controller for ethernet port '{}' for queue '{}'", self, queue_identifier),
+			NegativeE::ENOMEM => panic!("rte_eth_rx_queue_setup: unable to allocate the receive ring descriptors or to allocate network packet buffers from the queue_packet_buffer_pool when initializing receive descriptors for ethernet port '{}' for queue '{}'", self, queue_identifier),
 			
-			_ => panic!("rte_eth_rx_queue_setup returned an unknown error '{}'", result)
+			_ => panic!("rte_eth_rx_queue_setup returned an unknown error '{}' for ethernet port '{}' for queue '{}'", result, self, queue_identifier)
 		}
 	}
 	
@@ -791,7 +810,7 @@ impl EthernetPortIdentifier
 		}
 	}
 	
-	/// Reset simple statistic counters.
+	/// Reset simple statistics.
 	#[inline(always)]
 	pub fn reset_simple_statistics(self)
 	{
@@ -819,7 +838,7 @@ impl EthernetPortIdentifier
 		extended_statistics_iterator
 	}
 	
-	/// Reset extended statistic counters.
+	/// Reset extended statistics.
 	#[inline(always)]
 	pub fn reset_extended_statistics(self)
 	{

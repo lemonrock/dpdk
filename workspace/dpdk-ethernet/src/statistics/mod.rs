@@ -8,3 +8,4 @@ use super::*;
 include!("EthernetPortSimpleStatistics.rs");
 include!("EthernetPortSimpleStatisticsOverview.rs");
 include!("ExtendedStatisticsIterator.rs");
+include!("QueueSimpleStatisticCounterIndex.rs");

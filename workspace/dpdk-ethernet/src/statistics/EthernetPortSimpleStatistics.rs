@@ -30,32 +30,32 @@ pub struct EthernetPortSimpleStatistics
 	/// (`rte_eth_stats.rx_nombuf`).
 	pub total_number_of_receive_allocation_failures: u64,
 	
-	/// For a counter (0 to EthernetPortSimpleStatistics::MaximumQueueStatisticCounters exclusive) associated with a queue, the total number of successfully received packets.
+	/// For a QueueSimpleStatisticCounterIndex (0 to QueueSimpleStatisticCounterIndex::Maximum exclusive) associated with a queue, the total number of successfully received packets.
 	///
 	/// (`rte_eth_stats.q_ipackets`).
-	pub total_number_of_successfully_received_packets_by_queue_counter: [u64; EthernetPortSimpleStatistics::MaximumQueueStatisticCounters],
+	total_number_of_successfully_received_packets_by_queue_counter: [u64; QueueSimpleStatisticCounterIndex::Maximum as usize],
 	
-	/// For a counter (0 to EthernetPortSimpleStatistics::MaximumQueueStatisticCounters exclusive) associated with a queue, the total number of successfully transmitted packets.
+	/// For a QueueSimpleStatisticCounterIndex (0 to QueueSimpleStatisticCounterIndex::Maximum exclusive) associated with a queue, the total number of successfully transmitted packets.
 	///
 	/// (`rte_eth_stats.q_opackets`).
-	pub total_number_of_successfully_transmitted_packets_by_queue_counter: [u64; EthernetPortSimpleStatistics::MaximumQueueStatisticCounters],
+	total_number_of_successfully_transmitted_packets_by_queue_counter: [u64; QueueSimpleStatisticCounterIndex::Maximum as usize],
 	
-	/// For a counter (0 to EthernetPortSimpleStatistics::MaximumQueueStatisticCounters exclusive) associated with a queue, the total number of successfully received bytes.
+	/// For a QueueSimpleStatisticCounterIndex (0 to QueueSimpleStatisticCounterIndex::Maximum exclusive) associated with a queue, the total number of successfully received bytes.
 	///
 	/// (`rte_eth_stats.q_ibytes`).
-	pub total_number_of_successfully_received_bytes_by_queue_counter: [u64; EthernetPortSimpleStatistics::MaximumQueueStatisticCounters],
+	total_number_of_successfully_received_bytes_by_queue_counter: [u64; QueueSimpleStatisticCounterIndex::Maximum as usize],
 	
-	/// For a counter (0 to EthernetPortSimpleStatistics::MaximumQueueStatisticCounters exclusive) associated with a queue, the total number of successfully transmitted bytes.
+	/// For a QueueSimpleStatisticCounterIndex (0 to QueueSimpleStatisticCounterIndex::Maximum exclusive) associated with a queue, the total number of successfully transmitted bytes.
 	///
 	/// (`rte_eth_stats.q_obytes`).
-	pub total_number_of_successfully_transmitted_bytes_by_queue_counter: [u64; EthernetPortSimpleStatistics::MaximumQueueStatisticCounters],
+	total_number_of_successfully_transmitted_bytes_by_queue_counter: [u64; QueueSimpleStatisticCounterIndex::Maximum as usize],
 	
-	/// For a counter (0 to EthernetPortSimpleStatistics::MaximumQueueStatisticCounters exclusive) associated with a queue, the total number of packets received but dropped before reaching software because there was no available received buffer.
+	/// For a QueueSimpleStatisticCounterIndex (0 to QueueSimpleStatisticCounterIndex::Maximum exclusive) associated with a queue, the total number of packets received but dropped before reaching software because there was no available received buffer.
 	///
 	/// Causes include there not being enough receive descriptors (ie the queue ring size aka queue depth was reached) and the received packet being larger, including headroom, than the receive queue's memory pool has been configured to support.
 	///
 	/// (`rte_eth_stats.q_errors`).
-	pub total_number_of_packets_received_but_dropped_by_queue_counter: [u64; EthernetPortSimpleStatistics::MaximumQueueStatisticCounters],
+	total_number_of_packets_received_but_dropped_by_queue_counter: [u64; QueueSimpleStatisticCounterIndex::Maximum as usize],
 }
 
 impl From<rte_eth_stats> for EthernetPortSimpleStatistics
@@ -69,14 +69,11 @@ impl From<rte_eth_stats> for EthernetPortSimpleStatistics
 
 impl EthernetPortSimpleStatistics
 {
-	/// Maximum queue statistic counters.
-	pub const MaximumQueueStatisticCounters: usize = RTE_ETHDEV_QUEUE_STAT_CNTRS as usize;
-	
-	/// `counter_index` is from 0 to EthernetPortSimpleStatistics::MaximumQueueStatisticCounters exclusive.
+	/// Simple statistics overflow for a queue (actually, a counter associated with a queue, for which there may not be a 1:1 mapping).
 	#[inline(always)]
-	pub fn overview_by_counter(&self, counter_index: usize) -> EthernetPortSimpleStatisticsOverview
+	pub fn overview_of_queue_statistics(&self, counter_index: QueueSimpleStatisticCounterIndex) -> EthernetPortSimpleStatisticsOverview
 	{
-		debug_assert!(counter_index < Self::MaximumQueueStatisticCounters, "counter_index '{}' equals or exceeds MaximumQueueStatisticCounters '{}'", counter_index, Self::MaximumQueueStatisticCounters);
+		let counter_index: usize = counter_index.into();
 		
 		unsafe
 		{
