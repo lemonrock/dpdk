@@ -505,13 +505,17 @@ impl EthernetPortIdentifier
 			None => (ETH_MQ_RX_NONE, unsafe { zeroed() }),
 			Some(receive_side_scaling_hash_key) =>
 			{
-				let (pointer, length) = receive_side_scaling_hash_key.pointer_and_length();
-				let rss_conf = rte_eth_rss_conf
+				let rss_conf =
 				{
-					rss_key: pointer,
-					rss_key_len: length,
-					rss_hf: ethernet_device_capabilities.receive_side_scaling_offload_flow().bits(),
+					let (pointer, length) = receive_side_scaling_hash_key.pointer_and_length();
+					rte_eth_rss_conf
+					{
+						rss_key: pointer,
+						rss_key_len: length,
+						rss_hf: ethernet_device_capabilities.receive_side_scaling_offload_flow().bits(),
+					}
 				};
+				
 				(ETH_MQ_RX_RSS, rss_conf)
 			}
 		};
@@ -534,7 +538,11 @@ impl EthernetPortIdentifier
 					
 					max_rx_pkt_len: ethernet_device_capabilities.maximum_receive_packet_length().into(),
 					
-					split_hdr_size: 0,
+					split_hdr_size:
+					{
+						const NoHeaderBuferSplitSizeBecauseHeaderSplitDeviceReceiveOffloadsDisabled: u16 = 0;
+						NoHeaderBuferSplitSizeBecauseHeaderSplitDeviceReceiveOffloadsDisabled
+					},
 					
 					offloads: device_receive_offloads.bits(),
 					
@@ -596,10 +604,19 @@ impl EthernetPortIdentifier
 			fdir_conf: rte_fdir_conf
 			{
 				mode: RTE_FDIR_MODE_NONE,
+				
 				pballoc: RTE_FDIR_PBALLOC_64K,
+				
 				status: RTE_FDIR_NO_REPORT_STATUS,
-				drop_queue: 0,
+				
+				drop_queue:
+				{
+					const ReceiveQueueOfPacketsMatchingADropFilterInPerfectMode: u8 = 0;
+					ReceiveQueueOfPacketsMatchingADropFilterInPerfectMode
+				},
+				
 				mask: unsafe { zeroed() },
+				
 				flex_conf: unsafe { zeroed() },
 			},
 			
