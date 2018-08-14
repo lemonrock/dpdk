@@ -7,3 +7,4 @@ use super::*;
 
 include!("EthernetPortSimpleStatistics.rs");
 include!("EthernetPortSimpleStatisticsOverview.rs");
+include!("ExtendedStatisticsIterator.rs");

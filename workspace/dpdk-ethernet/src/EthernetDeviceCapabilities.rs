@@ -17,13 +17,16 @@ pub struct EthernetDeviceCapabilities
 	receive_side_scaling_is_unavailable: bool,
 	receive_side_scaling_hash_key_size: Option<ReceiveSideScalingHashKeySize>,
 	redirection_table_number_of_entries: Option<RedirectionTableNumberOfEntries>,
+	extended_statistics_names: Vec<&'static str>,
 	dpdk_information: rte_eth_dev_info,
 }
 
-impl From<rte_eth_dev_info> for EthernetDeviceCapabilities
+impl EthernetDeviceCapabilities
 {
+	const ImmediateStart: u8 = 0;
+	
 	#[inline(always)]
-	fn from(mut dpdk_information: rte_eth_dev_info) -> Self
+	pub(crate) fn from(mut dpdk_information: rte_eth_dev_info, extended_statistics_names: Vec<&'static str>) -> Self
 	{
 		let driver_name = unsafe { CStr::from_ptr(dpdk_information.driver_name) }.to_str().unwrap();
 		
@@ -109,14 +112,16 @@ impl From<rte_eth_dev_info> for EthernetDeviceCapabilities
 					}
 				}
 			},
+			extended_statistics_names,
 			dpdk_information,
 		}
 	}
-}
-
-impl EthernetDeviceCapabilities
-{
-	const ImmediateStart: u8 = 0;
+	
+	/// An ExtendedStatisticsIterator is slightly expensive to construct, so it should be re-used.
+	pub fn extended_statistics_iterator<'a>(&'a self) -> ExtendedStatisticsIterator<'a>
+	{
+		ExtendedStatisticsIterator::new_unchecked(&self.extended_statistics_names)
+	}
 	
 	/// Maximum receive packet length.
 	#[inline(always)]

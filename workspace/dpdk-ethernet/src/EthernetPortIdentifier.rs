@@ -156,7 +156,10 @@ impl EthernetPortIdentifier
 	{
 		let mut dpdk_information: rte_eth_dev_info = unsafe { uninitialized() };
 		unsafe { rte_eth_dev_info_get(self.0, &mut dpdk_information) };
-		EthernetDeviceCapabilities::from(dpdk_information)
+		
+		let extended_statistic_names = self.extended_statistic_names();
+		
+		EthernetDeviceCapabilities::from(dpdk_information, extended_statistic_names)
 	}
 	
 	/// Warning: This method will fail if the device is not PCI-based, eg is virtual.
@@ -795,6 +798,58 @@ impl EthernetPortIdentifier
 		// We ignore any errors as they don't contribute anything useful to the use of this functionality.
 		unsafe { rte_eth_stats_reset(self.0) };
 	}
+	
+	/// Obtain an `extended_statistics_iterator` from `EthernetDeviceCapabilities.extended_statistics_iterator()`.
+	///
+	/// Resets the `extended_statistics_iterator`.
+	#[inline(always)]
+	pub fn get_extended_statistics<'a>(self, extended_statistics_iterator: &mut ExtendedStatisticsIterator<'a>)
+	{
+		let result = unsafe { rte_eth_xstats_get(self.0, extended_statistics_iterator.extended_statistic_entries.as_mut_ptr(), extended_statistics_iterator.extended_statistic_entries.len() as u32) };
+		
+		if unlikely!(result < 0)
+		{
+			panic!("rte_eth_xstats_get failed with error '{}' when trying to retrieve extended statistics", result);
+		}
+		debug_assert!(result == extended_statistics_iterator.extended_statistic_entries.len() as i32, "result '{}' did not match number of extended statistics '{}' when trying to retrieve extended statistic names", result, extended_statistics_iterator.extended_statistic_entries.len());
+		extended_statistics_iterator.index = 0;
+	}
+	
+	/// Reset extended statistic counters.
+	#[inline(always)]
+	pub fn reset_extended_statistics(self)
+	{
+		unsafe { rte_eth_xstats_reset(self.0) }
+	}
+	
+	#[inline(always)]
+	fn extended_statistic_names(self) -> Vec<&'static str>
+	{
+		let number_of_extended_statistic_names = unsafe { rte_eth_xstats_get_names(self.0, null_mut(), 0) };
+		if unlikely!(number_of_extended_statistic_names < 0)
+		{
+			panic!("rte_eth_xstats_get_names failed with error '{}' when trying to retrieve the number of extended statistic names", number_of_extended_statistic_names);
+		}
+		
+		let number_of_extended_statistic_names_usize = number_of_extended_statistic_names as usize;
+		
+		let mut extended_statistic_c_names = Vec::with_capacity(number_of_extended_statistic_names_usize);
+		let result = unsafe { rte_eth_xstats_get_names(self.0, extended_statistic_c_names.as_mut_ptr(), number_of_extended_statistic_names as u32) };
+		if unlikely!(result < 0)
+		{
+			panic!("rte_eth_xstats_get_names failed with error '{}' when trying to retrieve extended statistic names", result);
+		}
+		debug_assert!(result == number_of_extended_statistic_names, "result '{}' did not match number_of_extended_statistic_names '{}' when trying to retrieve extended statistic names", result, number_of_extended_statistic_names);
+		unsafe { extended_statistic_c_names.set_len(number_of_extended_statistic_names_usize) };
+		
+		let mut extended_statistic_names = Vec::with_capacity(number_of_extended_statistic_names_usize);
+		for extended_statistic_c_name in extended_statistic_c_names.iter()
+		{
+			let c_name = unsafe { CStr::from_ptr((&extended_statistic_c_name.name[..]).as_ptr()) };
+			let extended_statistic_name = c_name.to_str().unwrap();
+			extended_statistic_names.push(extended_statistic_name);
+		}
+		
+		extended_statistic_names
+	}
 }
-
-// TODO: rte_eth_xstats_get / rte_eth_xstats_reset
