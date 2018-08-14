@@ -2,16 +2,11 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Represents a number of queues for a particular ethernet device.
-pub trait NumberOfQueues: Default + Debug + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + Display + Into<u16> + Into<usize>
-{
-	/// Zero.
-	const Zero: Self;
-	
-	/// Is zero?
-	#[inline(always)]
-	fn is_zero(self) -> bool
-	{
-		&self == &Self::Zero
-	}
-}
+use super::*;
+
+
+include!("EthernetPortConfiguration.rs");
+include!("PacketBufferPoolReference.rs");
+include!("ReceiveQueueConfiguration.rs");
+include!("ReceiveSideScalingConfiguration.rs");
+include!("TransmitQueueConfiguration.rs");

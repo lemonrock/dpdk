@@ -5,21 +5,21 @@
 /// Receive side scaling toeplitz hash function key data (52 byte variants for Intel i40e).
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes(Array52<u8>);
+pub struct ToeplitzHashFunctionKeyData52Bytes(Array52<u8>);
 
-impl Default for ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes
+impl Default for ToeplitzHashFunctionKeyData52Bytes
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
-		ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes::IntelI40EDefault
+		ToeplitzHashFunctionKeyData52Bytes::IntelI40EDefault
 	}
 }
 
-impl ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes
+impl ToeplitzHashFunctionKeyData52Bytes
 {
 	/// Intel i40e default key.
-	pub const IntelI40EDefault: Self = ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes
+	pub const IntelI40EDefault: Self = ToeplitzHashFunctionKeyData52Bytes
 	(
 		Array52
 		(
@@ -42,7 +42,7 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes
 		let into: u16 = number_of_receive_queues.into();
 		let variable_byte = (into.next_power_of_two() & 0xFF) as u8;
 		
-		ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes
+		ToeplitzHashFunctionKeyData52Bytes
 		(
 			Array52
 			(

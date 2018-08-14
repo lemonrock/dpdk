@@ -73,7 +73,7 @@ impl ReceiveBurst
 		{
 			receive_burst_function_pointer: ethernet_device_mutable.rx_pkt_burst,
 			receive_queue: ethernet_port_identifier.receive_queue(queue_identifier),
-			maximum_number_of_packets_which_can_be_received_at_once: ethernet_device_receive_queue_capabilities.receive_burst_maximum_packets(),
+			maximum_number_of_packets_which_can_be_received_at_once: ethernet_device_receive_queue_capabilities.burst_maximum_packets(),
 			receive_memory_pool: unsafe { NonNull::new_unchecked(receive_queue_information.mp) },
 		}
 	}

@@ -8,18 +8,19 @@
 pub struct TransmitQueueConfiguration
 {
 	/// Override the ethernet device transmit queue capabilities.
+	#[serde(default)]
 	pub overrride_ethernet_device_transmit_queue_capabilities: Option<EthernetDeviceTransmitQueueCapabilities>,
 	
 	/// Specify the transmit hardware offloading flags.
+	#[serde(default)]
 	pub hardware_offloading_flags: TransmitHardwareOffloadingFlags,
 	
-	/// Queue ring ring size.
-	pub queue_ring_size: TransmitQueueRingSize,
-	
 	/// Override the queue ring's NUMA node from that used for the ethernet port.
+	#[serde(default)]
 	pub queue_ring_numa_node: Option<NumaNode>,
 	
 	/// Counter index for simple statistics (shared across one or more transmit and receive queues).
+	#[serde(default)]
 	pub queue_simple_statistics_counter_index: QueueSimpleStatisticCounterIndex,
 }
 
@@ -33,15 +34,15 @@ impl TransmitQueueConfiguration
 		
 		let queue_configuration = rte_eth_txconf
 		{
-			tx_thresh: ethernet_device_transmit_queue_capabilities.transmit_threshold().into(),
-			tx_rs_thresh: ethernet_device_transmit_queue_capabilities.transmit_intel_specific_rs_bit_threshold(),
-			tx_free_thresh: ethernet_device_transmit_queue_capabilities.transmit_free_threshold(),
+			tx_thresh: ethernet_device_transmit_queue_capabilities.threshold().into(),
+			tx_rs_thresh: ethernet_device_transmit_queue_capabilities.intel_specific_rs_bit_threshold(),
+			tx_free_thresh: ethernet_device_transmit_queue_capabilities.free_threshold(),
 			txq_flags: ETH_TXQ_FLAGS_IGNORE,
 			tx_deferred_start: EthernetDeviceCapabilities::ImmediateStart,
-			offloads: (ethernet_device_transmit_queue_capabilities.transmit_queue_hardware_offloading_flags() & self.hardware_offloading_flags).bits(),
+			offloads: (ethernet_device_transmit_queue_capabilities.queue_hardware_offloading_flags() & self.hardware_offloading_flags).bits(),
 		};
 		
-		let result = unsafe { rte_eth_tx_queue_setup(ethernet_port_identifier.into(), queue_identifier.into(), self.queue_ring_size.into(), queue_ring_numa_node.into(), &queue_configuration) };
+		let result = unsafe { rte_eth_tx_queue_setup(ethernet_port_identifier.into(), queue_identifier.into(), ethernet_device_transmit_queue_capabilities.queue_ring_size().into(), queue_ring_numa_node.into(), &queue_configuration) };
 		
 		if likely!(result == 0)
 		{

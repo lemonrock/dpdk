@@ -12,9 +12,9 @@ pub struct EthernetDeviceCapabilities
 	maximum_queue_pairs: u16,
 	maximum_receive_packet_length: u16,
 	receive_device_hardware_offloading_flags: ReceiveHardwareOffloadingFlags,
-	receive_queue_capabilities: EthernetDeviceReceiveQueueCapabilities,
+	ethernet_device_receive_queue_capabilities: EthernetDeviceReceiveQueueCapabilities,
 	transmit_device_hardware_offloading_flags: TransmitHardwareOffloadingFlags,
-	transmit_queue_capabilities: EthernetDeviceTransmitQueueCapabilities,
+	ethernet_device_transmit_queue_capabilities: EthernetDeviceTransmitQueueCapabilities,
 	receive_side_scaling_offload_flow: ReceiveSideScalingOffloadFlow,
 	receive_side_scaling_is_unavailable: bool,
 	receive_side_scaling_hash_key_size: Option<ReceiveSideScalingHashKeySize>,
@@ -71,9 +71,9 @@ impl EthernetDeviceCapabilities
 				maximum_receive_packet_length as u16
 			},
 			receive_device_hardware_offloading_flags: ReceiveHardwareOffloadingFlags::from_bits_truncate(dpdk_information.rx_offload_capa),
-			receive_queue_capabilities: EthernetDeviceReceiveQueueCapabilities::from(&dpdk_information),
+			ethernet_device_receive_queue_capabilities: EthernetDeviceReceiveQueueCapabilities::from(&dpdk_information),
 			transmit_device_hardware_offloading_flags: TransmitHardwareOffloadingFlags::from_bits_truncate(dpdk_information.tx_offload_capa),
-			transmit_queue_capabilities: EthernetDeviceTransmitQueueCapabilities::from(&dpdk_information),
+			ethernet_device_transmit_queue_capabilities: EthernetDeviceTransmitQueueCapabilities::from(&dpdk_information),
 			receive_side_scaling_offload_flow: ReceiveSideScalingOffloadFlow::from_bits_truncate(dpdk_information.flow_type_rss_offloads),
 			receive_side_scaling_is_unavailable,
 			receive_side_scaling_hash_key_size:
@@ -145,9 +145,17 @@ impl EthernetDeviceCapabilities
 	}
 	
 	/// Receive hardware offloading flags for what the ethernet device supports generally.
+	#[inline(always)]
 	pub fn receive_device_hardware_offloading_flags(&self) -> ReceiveHardwareOffloadingFlags
 	{
 		self.receive_device_hardware_offloading_flags
+	}
+	
+	/// Receive queue capabilities.
+	#[inline(always)]
+	pub fn ethernet_device_receive_queue_capabilities(&self) -> &EthernetDeviceReceiveQueueCapabilities
+	{
+		&self.ethernet_device_receive_queue_capabilities
 	}
 	
 	/// Limits the number of receive queues to the device supported maximum queue pairs.
@@ -158,9 +166,17 @@ impl EthernetDeviceCapabilities
 	}
 	
 	/// Transmit hardware offloading flags for what the ethernet device supports generally.
+	#[inline(always)]
 	pub fn transmit_device_hardware_offloading_flags(&self) -> TransmitHardwareOffloadingFlags
 	{
 		self.transmit_device_hardware_offloading_flags
+	}
+	
+	/// Transmit queue capabilities.
+	#[inline(always)]
+	pub fn ethernet_device_transmit_queue_capabilities(&self) -> &EthernetDeviceTransmitQueueCapabilities
+	{
+		&self.ethernet_device_transmit_queue_capabilities
 	}
 	
 	/// Limits the number of transmit queues to the device supported maximum queue pairs.

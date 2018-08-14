@@ -16,6 +16,7 @@ extern crate serde;
 
 
 use self::bursts::*;
+use self::configuration::*;
 use self::ethernet_device_capabilities::*;
 use self::link_status::*;
 use self::number_of_queues::*;
@@ -40,6 +41,7 @@ use ::std::borrow::Cow;
 use ::std::cmp::min;
 use ::std::convert::TryFrom;
 use ::std::ffi::CStr;
+use ::std::ffi::CString;
 use ::std::fmt;
 use ::std::fmt::Debug;
 use ::std::fmt::Display;
@@ -63,6 +65,10 @@ use ::std::sync::Arc;
 
 /// Packet receive or send bursts.
 pub mod bursts;
+
+
+/// Configuration.
+pub mod configuration;
 
 
 /// Ethernet device capabilities.
@@ -98,5 +104,3 @@ pub mod statistics;
 
 
 include!("EthernetPortIdentifier.rs");
-include!("ReceiveQueueConfiguration.rs");
-include!("TransmitQueueConfiguration.rs");

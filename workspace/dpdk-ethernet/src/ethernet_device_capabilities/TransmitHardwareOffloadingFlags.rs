@@ -101,7 +101,7 @@ impl Default for TransmitHardwareOffloadingFlags
 	#[inline(always)]
 	fn default() -> Self
 	{
-		Self::empty()
+		Self::common_flags()
 	}
 }
 

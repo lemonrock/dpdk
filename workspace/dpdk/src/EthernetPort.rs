@@ -15,7 +15,7 @@ pub trait EthernetPort
 	/// When this function returns with a `Some()`, then the link is fully configured and up. It should be freed by calling `self.terminate_started_device_and_hot_plug_detach()`.
 	///
 	/// If it returns with `None`, then the calling process should terminate.
-	fn configure_and_start<Handler: EthernetPortLinkStatusEventHandler>(self, receive_side_scaling_toeplitz_hash_function_key_data_strategy: &ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy, handler: Handler, should_function_terminate: &Arc<ShouldFunctionTerminate>, media_access_control_address: MediaAccessControlAddress) -> Option<Box<Handler>>
+	fn configure_and_start<Handler: EthernetPortLinkStatusEventHandler>(self, toeplitz_hash_function_key_data_strategy: &ToeplitzHashFunctionKeyDataStrategy, handler: Handler, should_function_terminate: &Arc<ShouldFunctionTerminate>, media_access_control_address: MediaAccessControlAddress) -> Option<Box<Handler>>
 	{
 		/*
 			Cap on rss queues - size of RETA table (64, 128 or 512 entries)

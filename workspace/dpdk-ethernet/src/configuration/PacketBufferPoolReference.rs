@@ -2,23 +2,34 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// A receive side scaling (RSS) hash key.
+/// A packet buffer pool reference makes it possible to reference to memory pools when deserializing with Serde.
+///
+/// They act as a sort-of reference counted ('Rc') smart pointer.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct ReceiveSideScalingHashKey<'a>(Either<Cow<'a, ToeplitzHashFunctionKeyData40Bytes>, Cow<'a, ToeplitzHashFunctionKeyData52Bytes>>);
+pub struct PacketBufferPoolReference
+{
+	name: CString,
+}
 
-impl<'a> ReceiveSideScalingHashKey<'a>
+impl Default for PacketBufferPoolReference
 {
 	#[inline(always)]
-	pub(crate) fn pointer_and_length(&mut self) -> (*mut u8, u8)
+	fn default() -> Self
 	{
-		use self::Either::*;
-		
-		match self.0
+		Self
 		{
-			Left(ref mut forty_bytes) => (forty_bytes.to_mut().0.as_mut_ptr(), 40),
-			
-			Right(ref mut fifty_two_bytes) => (fifty_two_bytes.to_mut().0.as_mut_ptr(), 52),
+			name: CString::new("PacketBufferPool").unwrap(),
 		}
+	}
+}
+
+impl PacketBufferPoolReference
+{
+	/// Finds a memory pool.
+	#[inline(always)]
+	pub fn find(&self) -> Option<NonNull<rte_mempool>>
+	{
+		NonNull::new(unsafe { rte_mempool_lookup(self.name.as_ptr()) })
 	}
 }

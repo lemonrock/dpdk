@@ -92,7 +92,7 @@ impl Default for ReceiveHardwareOffloadingFlags
 	#[inline(always)]
 	fn default() -> Self
 	{
-		Self::empty()
+		Self::common_flags()
 	}
 }
 

@@ -119,7 +119,7 @@ impl TransmitBurst
 		{
 			transmit_burst_function_pointer: ethernet_device_mutable.tx_pkt_burst,
 			transmit_queue: ethernet_port_identifier.transmit_queue(queue_identifier),
-			maximum_number_of_packets_which_can_be_transmitted_at_once: ethernet_device_transmit_queue_capabilities.transmit_burst_maximum_packets(),
+			maximum_number_of_packets_which_can_be_transmitted_at_once: ethernet_device_transmit_queue_capabilities.burst_maximum_packets(),
 			transmit_prepare_function_pointer: match ethernet_device_mutable.tx_pkt_prepare
 			{
 				None => TransmitBurst::prepare_is_unsupported,

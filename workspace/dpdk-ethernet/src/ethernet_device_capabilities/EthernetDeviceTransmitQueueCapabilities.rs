@@ -7,12 +7,12 @@
 #[derive(Deserialize, Serialize)]
 pub struct EthernetDeviceTransmitQueueCapabilities
 {
-	transmit_queue_hardware_offloading_flags: TransmitHardwareOffloadingFlags,
-	transmit_queue_ring_size: TransmitQueueRingSize,
-	transmit_queue_burst_size: usize,
-	transmit_threshold: TransmitRingThresholdRegisters,
-	transmit_free_threshold: u16,
-	transmit_intel_specific_rs_bit_threshold: u16,
+	queue_hardware_offloading_flags: TransmitHardwareOffloadingFlags,
+	queue_ring_size: TransmitQueueRingSize,
+	queue_burst_size: usize,
+	threshold: TransmitRingThresholdRegisters,
+	free_threshold: u16,
+	intel_specific_rs_bit_threshold: u16,
 }
 
 impl EthernetDeviceTransmitQueueCapabilities
@@ -22,56 +22,56 @@ impl EthernetDeviceTransmitQueueCapabilities
 	{
 		Self
 		{
-			transmit_queue_hardware_offloading_flags: TransmitHardwareOffloadingFlags::from_bits_truncate(dpdk_information.tx_queue_offload_capa),
-			transmit_queue_ring_size: TransmitQueueRingSize(dpdk_information.tx_desc_lim.nb_max),
-			transmit_queue_burst_size: dpdk_information.default_rxportconf.burst_size as usize,
-			transmit_threshold: TransmitRingThresholdRegisters::from(dpdk_information.default_txconf.tx_thresh),
-			transmit_free_threshold: dpdk_information.default_txconf.tx_free_thresh,
-			transmit_intel_specific_rs_bit_threshold: dpdk_information.default_txconf.tx_rs_thresh,
+			queue_hardware_offloading_flags: TransmitHardwareOffloadingFlags::from_bits_truncate(dpdk_information.tx_queue_offload_capa),
+			queue_ring_size: TransmitQueueRingSize(dpdk_information.tx_desc_lim.nb_max),
+			queue_burst_size: dpdk_information.default_rxportconf.burst_size as usize,
+			threshold: TransmitRingThresholdRegisters::from(dpdk_information.default_txconf.tx_thresh),
+			free_threshold: dpdk_information.default_txconf.tx_free_thresh,
+			intel_specific_rs_bit_threshold: dpdk_information.default_txconf.tx_rs_thresh,
 		}
 	}
 	
 	/// Transmit hardware offloading flags for what the ethernet device supports for a transmit queue.
 	#[inline(always)]
-	pub fn transmit_queue_hardware_offloading_flags(&self) -> TransmitHardwareOffloadingFlags
+	pub fn queue_hardware_offloading_flags(&self) -> TransmitHardwareOffloadingFlags
 	{
-		self.transmit_queue_hardware_offloading_flags
+		self.queue_hardware_offloading_flags
 	}
 	
 	/// Transmit queue ring size.
 	#[inline(always)]
-	pub fn transmit_queue_ring_size(&self) -> TransmitQueueRingSize
+	pub fn queue_ring_size(&self) -> TransmitQueueRingSize
 	{
-		self.transmit_queue_ring_size
+		self.queue_ring_size
 	}
 	
 	/// Transmit burst maximum packets.
 	#[inline(always)]
-	pub fn transmit_burst_maximum_packets(&self) -> usize
+	pub fn burst_maximum_packets(&self) -> usize
 	{
-		self.transmit_queue_burst_size
+		self.queue_burst_size
 	}
 	
 	/// Transmit threshold.
 	#[inline(always)]
-	pub fn transmit_threshold(&self) -> TransmitRingThresholdRegisters
+	pub fn threshold(&self) -> TransmitRingThresholdRegisters
 	{
-		self.transmit_threshold
+		self.threshold
 	}
 	
 	/// Transmit free threshold.
 	#[inline(always)]
-	pub fn transmit_free_threshold(&self) -> u16
+	pub fn free_threshold(&self) -> u16
 	{
-		self.transmit_free_threshold
+		self.free_threshold
 	}
 	
 	/// Transmit 'RS' bit threshold.
 	///
 	/// Only applies to some Intel hardware.
 	#[inline(always)]
-	pub fn transmit_intel_specific_rs_bit_threshold(&self) -> u16
+	pub fn intel_specific_rs_bit_threshold(&self) -> u16
 	{
-		self.transmit_intel_specific_rs_bit_threshold
+		self.intel_specific_rs_bit_threshold
 	}
 }

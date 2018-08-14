@@ -6,7 +6,7 @@
 #[derive(Serialize)]
 pub struct ReceiveSideScaling
 {
-	pub hash_key: ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy,
+	pub hash_key: ToeplitzHashFunctionKeyDataStrategy,
 	
 	pub redirection_table_strategy: RedirectionTableStategy,
 	
@@ -16,7 +16,7 @@ pub struct ReceiveSideScaling
 	// We can't cache this, as the generated size depends on the number of queues / device hash key length.
 	// We could force number of queues, and ignore the number the device has.
 	#[serde(skip)]
-	cached_receive_side_scaling_key: Either<Cow<ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes>, Cow<ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes>>,
+	cached_receive_side_scaling_key: Either<Cow<ToeplitzHashFunctionKeyData40Bytes>, Cow<ToeplitzHashFunctionKeyData52Bytes>>,
 	
 	// We can't cache this, as the generated size depends on the number of queues / device RETA table size.
 	// We could force number of queues, and ignore the number the device has.

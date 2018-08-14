@@ -5,38 +5,38 @@
 /// Receive side scaling toeplitz hash function key data strategy.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-pub enum ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
+pub enum ToeplitzHashFunctionKeyDataStrategy
 {
 	/// Use fixed values.
 	Fixed
 	{
 		/// For an ethernet device that supports 40-byte long hash keys.
-		forty: ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes,
+		forty: ToeplitzHashFunctionKeyData40Bytes,
 		
 		/// For an ethernet device that supports 52-byte long hash keys.
-		fifty_two: ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes,
+		fifty_two: ToeplitzHashFunctionKeyData52Bytes,
 	},
 	
 	/// Generate a Layer 4 hash key using the number of queues as an input.
 	ForNumberOfQueues,
 }
 
-impl Default for ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
+impl Default for ToeplitzHashFunctionKeyDataStrategy
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
-		ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy::ForNumberOfQueues
+		ToeplitzHashFunctionKeyDataStrategy::ForNumberOfQueues
 	}
 }
 
-impl ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
+impl ToeplitzHashFunctionKeyDataStrategy
 {
 	/// Creates an array of receive side scaling bytes.
 	#[inline(always)]
 	pub fn create<'a>(&'a self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: ReceiveNumberOfQueues) -> Option<ReceiveSideScalingHashKey<'a>>
 	{
-		use self::ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy::*;
+		use self::ToeplitzHashFunctionKeyDataStrategy::*;
 		use self::Cow::*;
 		use self::Either::*;
 		
@@ -66,9 +66,9 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
 			{
 				match receive_side_scaling_hash_key_size
 				{
-					Forty => ReceiveSideScalingHashKey(Left(Owned(ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes::for_layer_4_one_way_for_number_of_queues(number_of_receive_queues)))),
+					Forty => ReceiveSideScalingHashKey(Left(Owned(ToeplitzHashFunctionKeyData40Bytes::for_layer_4_one_way_for_number_of_queues(number_of_receive_queues)))),
 					
-					FiftyTwo => ReceiveSideScalingHashKey(Right(Owned(ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes::for_layer_4_one_way_for_number_of_queues(number_of_receive_queues)))),
+					FiftyTwo => ReceiveSideScalingHashKey(Right(Owned(ToeplitzHashFunctionKeyData52Bytes::for_layer_4_one_way_for_number_of_queues(number_of_receive_queues)))),
 				}
 			}
 		};

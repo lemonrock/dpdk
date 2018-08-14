@@ -7,11 +7,11 @@
 #[derive(Deserialize, Serialize)]
 pub struct EthernetDeviceReceiveQueueCapabilities
 {
-	receive_queue_hardware_offloading_flags: ReceiveHardwareOffloadingFlags,
-	receive_queue_ring_size: ReceiveQueueRingSize,
-	receive_queue_burst_size: usize,
-	receive_threshold: ReceiveRingThresholdRegisters,
-	receive_free_threshold: u16,
+	queue_hardware_offloading_flags: ReceiveHardwareOffloadingFlags,
+	queue_ring_size: ReceiveQueueRingSize,
+	queue_burst_size: usize,
+	threshold: ReceiveRingThresholdRegisters,
+	free_threshold: u16,
 }
 
 impl EthernetDeviceReceiveQueueCapabilities
@@ -21,46 +21,46 @@ impl EthernetDeviceReceiveQueueCapabilities
 	{
 		Self
 		{
-			receive_queue_hardware_offloading_flags: ReceiveHardwareOffloadingFlags::from_bits_truncate(dpdk_information.rx_queue_offload_capa),
-			receive_queue_ring_size: ReceiveQueueRingSize(dpdk_information.rx_desc_lim.nb_max),
-			receive_queue_burst_size: dpdk_information.default_rxportconf.burst_size as usize,
-			receive_threshold: ReceiveRingThresholdRegisters::from(dpdk_information.default_rxconf.rx_thresh),
-			receive_free_threshold: dpdk_information.default_rxconf.rx_free_thresh,
+			queue_hardware_offloading_flags: ReceiveHardwareOffloadingFlags::from_bits_truncate(dpdk_information.rx_queue_offload_capa),
+			queue_ring_size: ReceiveQueueRingSize(dpdk_information.rx_desc_lim.nb_max),
+			queue_burst_size: dpdk_information.default_rxportconf.burst_size as usize,
+			threshold: ReceiveRingThresholdRegisters::from(dpdk_information.default_rxconf.rx_thresh),
+			free_threshold: dpdk_information.default_rxconf.rx_free_thresh,
 		}
 	}
 	
 	/// Receive hardware offloading flags for what the ethernet device supports for a receive queue.
 	#[inline(always)]
-	pub fn receive_queue_hardware_offloading_flags(&self) -> ReceiveHardwareOffloadingFlags
+	pub fn queue_hardware_offloading_flags(&self) -> ReceiveHardwareOffloadingFlags
 	{
-		self.receive_queue_hardware_offloading_flags
+		self.queue_hardware_offloading_flags
 	}
 	
 	/// Receive threshold.
 	#[inline(always)]
-	pub fn receive_threshold(&self) -> ReceiveRingThresholdRegisters
+	pub fn threshold(&self) -> ReceiveRingThresholdRegisters
 	{
-		self.receive_threshold
+		self.threshold
 	}
 	
 	/// Receive free threshold.
 	#[inline(always)]
-	pub fn receive_free_threshold(&self) -> u16
+	pub fn free_threshold(&self) -> u16
 	{
-		self.receive_free_threshold
+		self.free_threshold
 	}
 	
 	/// Receive queue ring size.
 	#[inline(always)]
-	pub fn receive_queue_ring_size(&self) -> ReceiveQueueRingSize
+	pub fn queue_ring_size(&self) -> ReceiveQueueRingSize
 	{
-		self.receive_queue_ring_size
+		self.queue_ring_size
 	}
 	
 	/// Receive burst maximum packets.
 	#[inline(always)]
-	pub fn receive_burst_maximum_packets(&self) -> usize
+	pub fn burst_maximum_packets(&self) -> usize
 	{
-		self.receive_queue_burst_size
+		self.queue_burst_size
 	}
 }

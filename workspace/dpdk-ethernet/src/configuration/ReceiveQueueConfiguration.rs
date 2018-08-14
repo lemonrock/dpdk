@@ -8,26 +8,33 @@
 pub struct ReceiveQueueConfiguration
 {
 	/// Override the ethernet device receive queue capabilities.
+	#[serde(default)]
 	pub overrride_ethernet_device_receive_queue_capabilities: Option<EthernetDeviceReceiveQueueCapabilities>,
 	
 	/// Specify the receive hardware offloading flags.
+	#[serde(default)]
 	pub hardware_offloading_flags: ReceiveHardwareOffloadingFlags,
 	
-	/// Queue ring ring size.
-	pub queue_ring_size: TransmitQueueRingSize,
-	
 	/// Override the queue ring's NUMA node from that used for the ethernet port.
+	#[serde(default)]
 	pub queue_ring_numa_node: Option<NumaNode>,
 	
 	/// Counter index for simple statistics (shared across one or more transmit and receive queues).
+	#[serde(default)]
 	pub queue_simple_statistics_counter_index: QueueSimpleStatisticCounterIndex,
+
+	/// The packet buffer pool to allocated receive packet buffers from.
+	///
+	/// Ideally should be on the same NUMA node as the queue or ethernet device.
+	#[serde(default)]
+	pub packet_buffer_pool: PacketBufferPoolReference,
 }
 
 impl ReceiveQueueConfiguration
 {
 	/// `queue_packet_buffer_pool` should ideally be on the same NUMA node as that used for the ethernet port.
 	#[inline(always)]
-	pub(crate) fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, queue_identifier: ReceiveQueueIdentifier, default_ethernet_device_receive_queue_capabilities: &EthernetDeviceReceiveQueueCapabilities, queue_packet_buffer_pool: NonNull<rte_mempool>) -> ReceiveBurst
+	pub(crate) fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, queue_identifier: ReceiveQueueIdentifier, default_ethernet_device_receive_queue_capabilities: &EthernetDeviceReceiveQueueCapabilities) -> ReceiveBurst
 	{
 		let ethernet_device_receive_queue_capabilities = self.overrride_ethernet_device_receive_queue_capabilities.as_ref().unwrap_or(default_ethernet_device_receive_queue_capabilities);
 		let queue_ring_numa_node = self.queue_ring_numa_node.unwrap_or_else(|| ethernet_port_identifier.numa_node_choice().unwrap_or_default());
@@ -38,15 +45,15 @@ impl ReceiveQueueConfiguration
 			
 			rte_eth_rxconf
 			{
-				rx_thresh: ethernet_device_receive_queue_capabilities.receive_threshold().into(),
-				rx_free_thresh: ethernet_device_receive_queue_capabilities.receive_free_threshold(),
+				rx_thresh: ethernet_device_receive_queue_capabilities.threshold().into(),
+				rx_free_thresh: ethernet_device_receive_queue_capabilities.free_threshold(),
 				rx_drop_en: DropPacketsIfNoReceiveDescriptorsAreAvailable,
 				rx_deferred_start: EthernetDeviceCapabilities::ImmediateStart,
-				offloads: (ethernet_device_receive_queue_capabilities.receive_queue_hardware_offloading_flags() & self.hardware_offloading_flags).bits(),
+				offloads: (ethernet_device_receive_queue_capabilities.queue_hardware_offloading_flags() & self.hardware_offloading_flags).bits(),
 			}
 		};
 		
-		let result = unsafe { rte_eth_rx_queue_setup(ethernet_port_identifier.into(), queue_identifier.into(), self.queue_ring_size.into(), queue_ring_numa_node.into(), &queue_configuration, queue_packet_buffer_pool.as_ptr()) };
+		let result = unsafe { rte_eth_rx_queue_setup(ethernet_port_identifier.into(), queue_identifier.into(), ethernet_device_receive_queue_capabilities.queue_ring_size().into(), queue_ring_numa_node.into(), &queue_configuration, self.packet_buffer_pool.find().expect("packet buffer pool not created").as_ptr()) };
 		
 		if likely!(result == 0)
 		{

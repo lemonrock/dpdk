@@ -475,9 +475,8 @@ impl EthernetPortIdentifier
 	
 	/// Configure an ethernet device.
 	#[inline(always)]
-	pub fn configure_ethernet_device<'a>(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues_for_receive_side_scaling: ReceiveNumberOfQueues, number_of_receive_queues: ReceiveNumberOfQueues, number_of_transmit_queues: TransmitNumberOfQueues, receive_side_scaling_toeplitz_hash_function_key_data_strategy: ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy, receive_side_scaling_redirection_table_strategy: &RedirectionTableStategy)
+	pub(crate) fn configure_ethernet_device<'a>(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, receive_queue_configurations: &[ReceiveQueueConfiguration], transmit_queue_configurations: &[TransmitQueueConfiguration], receive_side_scaling_configuration: Option<&ReceiveSideScalingConfiguration>)
 	{
-		use self::rte_eth_rx_mq_mode::*;
 		use self::rte_eth_tx_mq_mode::*;
 		use self::rte_fdir_mode::*;
 		use self::rte_fdir_pballoc_type::*;
@@ -500,29 +499,7 @@ impl EthernetPortIdentifier
 		let device_transmit_offloads = ethernet_device_capabilities.transmit_device_hardware_offloading_flags() & TransmitHardwareOffloadingFlags::common_flags();
 		
 		// TODO: If using the flow API, does this matter?
-		let (mq_mode, rss_conf, drop_prevention_when_calling_ffi_function, redirection_table) = match receive_side_scaling_toeplitz_hash_function_key_data_strategy.create(ethernet_device_capabilities, number_of_receive_queues_for_receive_side_scaling)
-		{
-			None => (ETH_MQ_RX_NONE, unsafe { zeroed() }, None, None),
-			Some(mut receive_side_scaling_hash_key) => match receive_side_scaling_redirection_table_strategy.create(ethernet_device_capabilities, number_of_receive_queues_for_receive_side_scaling).expect("If there is a RSS key size")
-			{
-				None => (ETH_MQ_RX_NONE, unsafe { zeroed() }, None, None),
-				Some(redirection_table) =>
-				{
-					let rss_conf =
-					{
-						let (pointer, length) = receive_side_scaling_hash_key.pointer_and_length();
-						rte_eth_rss_conf
-						{
-							rss_key: pointer,
-							rss_key_len: length,
-							rss_hf: ethernet_device_capabilities.receive_side_scaling_offload_flow().bits(),
-						}
-					};
-					
-					(ETH_MQ_RX_RSS, rss_conf, Some(receive_side_scaling_hash_key), Some(redirection_table))
-				}
-			}
-		};
+		let (mq_mode, rss_conf, drop_prevention_when_calling_ffi_function, redirection_table) = ReceiveSideScalingConfiguration::create(receive_side_scaling_configuration, ethernet_device_capabilities, receive_queue_configurations);
 		
 		let ethernet_configuration = rte_eth_conf
 		{
@@ -544,8 +521,8 @@ impl EthernetPortIdentifier
 					
 					split_hdr_size:
 					{
-						const NoHeaderBuferSplitSizeBecauseHeaderSplitDeviceReceiveOffloadsDisabled: u16 = 0;
-						NoHeaderBuferSplitSizeBecauseHeaderSplitDeviceReceiveOffloadsDisabled
+						const NoHeaderBufferSplitSizeBecauseHeaderSplitDeviceReceiveOffloadsDisabled: u16 = 0;
+						NoHeaderBufferSplitSizeBecauseHeaderSplitDeviceReceiveOffloadsDisabled
 					},
 					
 					offloads: device_receive_offloads.bits(),
@@ -636,7 +613,7 @@ impl EthernetPortIdentifier
 			},
 		};
 		
-		let result = unsafe { rte_eth_dev_configure(self.0, number_of_receive_queues.into(), number_of_transmit_queues.into(), &ethernet_configuration) };
+		let result = unsafe { rte_eth_dev_configure(self.0, receive_queue_configurations.len() as u16, transmit_queue_configurations.len() as u16, &ethernet_configuration) };
 		
 		drop(drop_prevention_when_calling_ffi_function);
 		
@@ -656,26 +633,6 @@ impl EthernetPortIdentifier
 		{
 			panic!("rte_eth_dev_configure configure failed with unexpected positive code '{}'", result)
 		}
-	}
-	
-	/// Configure a transmit queue.
-	///
-	/// Should only be called after configuring the network card and before starting it.
-	#[inline(always)]
-	pub fn configure_transmit_queue(self, queue_identifier: TransmitQueueIdentifier, transmit_queue_configuration: &TransmitQueueConfiguration, default_ethernet_device_transmit_queue_capabilities: &EthernetDeviceTransmitQueueCapabilities) -> TransmitBurst
-	{
-		transmit_queue_configuration.configure(self, queue_identifier, default_ethernet_device_transmit_queue_capabilities)
-	}
-	
-	/// Configure a receive queue.
-	///
-	/// Should only be called after configuring the network card and before starting it.
-	///
-	/// `queue_packet_buffer_pool` should ideally be on the numa node `receive_queue_configuration.queue_ring_numa_node`.
-	#[inline(always)]
-	pub fn configure_receive_queue(self, queue_identifier: ReceiveQueueIdentifier, receive_queue_configuration: &ReceiveQueueConfiguration, default_ethernet_device_receive_queue_capabilities: &EthernetDeviceReceiveQueueCapabilities, queue_packet_buffer_pool: NonNull<rte_mempool>) -> ReceiveBurst
-	{
-		receive_queue_configuration.configure(self, queue_identifier, default_ethernet_device_receive_queue_capabilities, queue_packet_buffer_pool)
 	}
 	
 	/// Register a handler for link up or link down events.

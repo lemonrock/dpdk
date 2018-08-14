@@ -35,4 +35,5 @@ impl Into<usize> for ReceiveNumberOfQueues
 
 impl NumberOfQueues for ReceiveNumberOfQueues
 {
+	const Zero: Self = ReceiveNumberOfQueues(0);
 }

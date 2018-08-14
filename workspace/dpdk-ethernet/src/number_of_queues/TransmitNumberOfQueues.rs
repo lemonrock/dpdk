@@ -35,4 +35,5 @@ impl Into<usize> for TransmitNumberOfQueues
 
 impl NumberOfQueues for TransmitNumberOfQueues
 {
+	const Zero: Self = TransmitNumberOfQueues(0);
 }

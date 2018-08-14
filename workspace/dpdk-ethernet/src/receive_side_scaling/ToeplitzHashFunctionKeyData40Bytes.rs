@@ -5,23 +5,23 @@
 /// Receive side scaling toeplitz hash function key data (40 byte variants).
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes(Array40<u8>);
+pub struct ToeplitzHashFunctionKeyData40Bytes(Array40<u8>);
 
-impl Default for ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
+impl Default for ToeplitzHashFunctionKeyData40Bytes
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
-		ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes::Symmetric
+		ToeplitzHashFunctionKeyData40Bytes::Symmetric
 	}
 }
 
-impl ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
+impl ToeplitzHashFunctionKeyData40Bytes
 {
 	/// Microsoft key, found at <http://www.ran-lifshitz.com/2014/08/28/symmetric-rss-receive-side-scaling/>.
 	///
 	/// Good distribution apparently.
-	pub const Microsoft: Self = ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
+	pub const Microsoft: Self = ToeplitzHashFunctionKeyData40Bytes
 	(
 		Array40
 		(
@@ -38,7 +38,7 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
 	/// Symmetric with good queue distribution, found at <http://www.ran-lifshitz.com/2014/08/28/symmetric-rss-receive-side-scaling/> and <https://galsagie.github.io/2015/02/26/dpdk-tips-1/>.
 	///
 	/// Essential when applying RSS to both sides of a TCP or UDP connection, eg if one is a man-in-the-middle.
-	pub const Symmetric: Self = ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
+	pub const Symmetric: Self = ToeplitzHashFunctionKeyData40Bytes
 	(
 		Array40
 		(
@@ -53,7 +53,7 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
 	);
 	
 	/// Default Mellanox key.
-	pub const Mellanox: Self = ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
+	pub const Mellanox: Self = ToeplitzHashFunctionKeyData40Bytes
 	(
 		Array40
 		(
@@ -74,7 +74,7 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
 		let into: u16 = number_of_receive_queues.into();
 		let variable_byte = (into.next_power_of_two() & 0xFF) as u8;
 		
-		ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes
+		ToeplitzHashFunctionKeyData40Bytes
 		(
 			Array40
 			(
