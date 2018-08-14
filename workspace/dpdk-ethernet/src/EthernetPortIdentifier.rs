@@ -19,24 +19,15 @@ impl TryFrom<u16> for EthernetPortIdentifier
 	type Error = ();
 	
 	#[inline(always)]
-	fn try_from(value: u16) -> Result<Self, Self::Error>
+	fn try_from(potential_ethernet_port_identifier: u16) -> Result<Self, Self::Error>
 	{
-		if value >= Self::Maximum as u16
+		if potential_ethernet_port_identifier >= Self::Maximum as u16
 		{
 			Err(())
 		}
 		else
 		{
-			if Self::is_invalid(value)
-			{
-				Err(())
-			}
-			else
-			{
-				let result = EthernetPortIdentifier(value);
-				debug_assert_eq!(result.data().port_id, value, "Self consistency check failed");
-				Ok(result)
-			}
+			Self::try_from_u16_unchecked(potential_ethernet_port_identifier)
 		}
 	}
 }
@@ -46,25 +37,15 @@ impl TryFrom<usize> for EthernetPortIdentifier
 	type Error = ();
 	
 	#[inline(always)]
-	fn try_from(value: usize) -> Result<Self, Self::Error>
+	fn try_from(potential_ethernet_port_identifier: usize) -> Result<Self, Self::Error>
 	{
-		if value >= Self::Maximum
+		if potential_ethernet_port_identifier >= Self::Maximum
 		{
 			Err(())
 		}
 		else
 		{
-			let value = value as u16;
-			if Self::is_invalid(value)
-			{
-				Err(())
-			}
-			else
-			{
-				let result = EthernetPortIdentifier(value);
-				debug_assert_eq!(result.data().port_id, value, "Self consistency check failed");
-				Ok(result)
-			}
+			Self::try_from_u16_unchecked(potential_ethernet_port_identifier as u16)
 		}
 	}
 }
@@ -92,96 +73,55 @@ impl EthernetPortIdentifier
 	/// Maximum.
 	pub const Maximum: usize = RTE_MAX_ETHPORTS;
 	
-	#[inline(always)]
-	fn is_valid(port_id: u16) -> bool
-	{
-		if unlikely!(port_id >= Self::Maximum as u16)
-		{
-			return false
-		}
-		
-		Self::ethernet_device_from_port_id(port_id).state == rte_eth_dev_state::RTE_ETH_DEV_ATTACHED
-	}
-	
-	#[inline(always)]
-	fn is_invalid(port_id: u16) -> bool
-	{
-		!Self::is_valid(port_id)
-	}
-	
 	/// Finds an ethernet port by its device name.
 	///
-	/// A `device_name` is either a formatted PCI Device Address (eg `0000:01:00.0`) or a virtual device name (eg `net_pcap,iface=eth0`). In the case of virtual device, the `device_name` (a) include device arguments and (v) is the same as that passed to RTE init's `--vdev` option.
+	/// A `device_name` is either a formatted PCI Device Address (eg `0000:01:00.0`) or a virtual device name (eg `net_pcap,iface=eth0`)
+	/// In the case of a virtual device, the `device_name` (a) includes device arguments and (b) is the same as that passed to RTE init's `--vdev` option.
 	///
-	/// `device_name` can be upto 64 characters long (excluding the trailing null). This is not checked.
+	/// `device_name` can be upto 64 characters long (excluding the trailing null).
+	/// This is not checked.
 	#[inline(always)]
 	pub fn find_by_device_name(device_name: &CStr) -> Option<Self>
 	{
-		let mut ethernet_port_identifier = unsafe { uninitialized() };
-		let result = unsafe { rte_eth_dev_get_port_by_name(device_name.as_ptr(), &mut ethernet_port_identifier) };
-		if result == 0
-		{
-			if Self::is_valid(ethernet_port_identifier)
-			{
-				Some(EthernetPortIdentifier(ethernet_port_identifier))
-			}
-			else
-			{
-				None
-			}
-		}
-		else
-		{
-			None
-		}
+		let mut potential_ethernet_port_identifier = unsafe { uninitialized() };
+		let result = unsafe { rte_eth_dev_get_port_by_name(device_name.as_ptr(), &mut potential_ethernet_port_identifier) };
+		Self::parse_find_result(potential_ethernet_port_identifier, result)
 	}
 	
 	/// Attaches an ethernet port by its device name and assigns an `EthernetPortIdentifier` for it.
 	///
 	/// Attachment assumes the ethernet port was not attached when the PCI bus was scanned, say (ie after `rte_eal_init()`).
 	///
-	/// A `device_name` is either a formatted PCI Device Address (eg `0000:01:00.0`) or a virtual device name (eg `net_pcap,iface=eth0`). In the case of virtual device, the `device_name` (a) include device arguments and (v) is the same as that passed to RTE init's `--vdev` option.
+	/// A `device_name` is either a formatted PCI Device Address (eg `0000:01:00.0`) or a virtual device name (eg `net_pcap,iface=eth0`).
+	/// In the case of a virtual device, the `device_name` (a) includes device arguments and (b) is the same as that passed to RTE init's `--vdev` option.
 	///
 	/// `device_name` is passed to `rte_eal_parse_devargs_str` then to `rte_eal_dev_attach`.
 	///
-	/// `device_name` can be upto 64 characters long (excluding the trailing null). This is not checked.
+	/// `device_name` can be upto 64 characters long (excluding the trailing null).
+	/// This is not checked.
 	///
 	/// After calling this function call `self.configure_and_start()`.
 	#[inline(always)]
 	pub fn hot_plug_attach_by_device_name(device_name: &CStr) -> Option<Self>
 	{
-		let mut ethernet_port_identifier = unsafe { uninitialized() };
-		let result = unsafe { rte_eth_dev_attach(device_name.as_ptr(), &mut ethernet_port_identifier) };
-		if result == 0
-		{
-			if Self::is_valid(ethernet_port_identifier)
-			{
-				Some(EthernetPortIdentifier(ethernet_port_identifier))
-			}
-			else
-			{
-				None
-			}
-		}
-		else
-		{
-			None
-		}
+		let mut potential_ethernet_port_identifier = unsafe { uninitialized() };
+		let result = unsafe { rte_eth_dev_attach(device_name.as_ptr(), &mut potential_ethernet_port_identifier) };
+		Self::parse_find_result(potential_ethernet_port_identifier, result)
 	}
 	
 	/// Next valid ethernet port.
 	#[inline(always)]
 	pub fn next(self) -> Option<Self>
 	{
-		let mut potentially_next = self.0;
-		while potentially_next <= Self::Maximum as u16
+		let mut potential_ethernet_port_identifier = self.0;
+		while potential_ethernet_port_identifier < Self::Maximum as u16
 		{
-			if Self::is_valid(potentially_next)
+			if Self::is_valid(potential_ethernet_port_identifier)
 			{
-				return Some(EthernetPortIdentifier(potentially_next))
+				return Some(EthernetPortIdentifier(potential_ethernet_port_identifier))
 			}
 			
-			potentially_next += 1;
+			potential_ethernet_port_identifier += 1;
 		}
 		None
 	}
@@ -190,15 +130,15 @@ impl EthernetPortIdentifier
 	#[inline(always)]
 	pub fn previous(self) -> Option<Self>
 	{
-		let mut potentially_previous = self.0;
-		while potentially_previous != 0
+		let mut potential_ethernet_port_identifier = self.0;
+		while potential_ethernet_port_identifier != 0
 		{
-			if Self::is_valid(potentially_previous)
+			if Self::is_valid(potential_ethernet_port_identifier)
 			{
-				return Some(EthernetPortIdentifier(potentially_previous))
+				return Some(EthernetPortIdentifier(potential_ethernet_port_identifier))
 			}
 			
-			potentially_previous -= 1;
+			potential_ethernet_port_identifier -= 1;
 		}
 		None
 	}
@@ -208,19 +148,6 @@ impl EthernetPortIdentifier
 	pub fn ethernet_device(self) -> &'static rte_eth_dev
 	{
 		Self::ethernet_device_from_port_id(self.0)
-	}
-	
-	#[inline(always)]
-	fn ethernet_device_from_port_id(port_id: u16) -> &'static rte_eth_dev
-	{
-		unsafe { &rte_eth_devices[port_id as usize] }
-	}
-	
-	/// Underlying DPDK type.
-	#[inline(always)]
-	fn ethernet_device_mutable(self) -> &'static mut rte_eth_dev
-	{
-		unsafe { &mut rte_eth_devices[self.0 as usize] }
 	}
 	
 	/// Ethernet device capabilities
@@ -261,365 +188,69 @@ impl EthernetPortIdentifier
 		NumaNodeChoice::from_i32(self.data().numa_node)
 	}
 	
-	/// Maximum receive and transmit queue ring sizes.
 	#[inline(always)]
-	pub fn obtain_maximum_receive_and_transmit_queue_ring_sizes(self, ethernet_device_capabilities: &EthernetDeviceCapabilities) -> (ReceiveQueueRingSize, TransmitQueueRingSize)
+	fn try_from_u16_unchecked(potential_ethernet_port_identifier: u16) -> Result<Self, ()>
 	{
-		let mut receive_descriptors = ethernet_device_capabilities.receive_queue_ring_size().into();
-		let mut transmit_descriptors = ethernet_device_capabilities.transmit_queue_ring_size().into();
-		
-		let result = unsafe { rte_eth_dev_adjust_nb_rx_tx_desc(self.0, &mut receive_descriptors, &mut transmit_descriptors) };
-		
-		if likely!(result == 0)
+		if Self::is_invalid(potential_ethernet_port_identifier)
 		{
-			return (ReceiveQueueRingSize(receive_descriptors), TransmitQueueRingSize(transmit_descriptors))
+			Err(())
 		}
-		
-		match result
+		else
 		{
-			NegativeE::ENODEV => panic!("This ethernet port '{}' is not a device", self),
-			NegativeE::ENOTSUP => panic!("rte_eth_dev_adjust_nb_rx_tx_desc is not supported"),
-			NegativeE::EINVAL => panic!("rte_eth_dev_adjust_nb_rx_tx_desc reports bad arguments"),
-			
-			_ => panic!("rte_eth_dev_adjust_nb_rx_tx_desc returned an unknown error '{}'", result)
+			let result = EthernetPortIdentifier(potential_ethernet_port_identifier);
+			debug_assert_eq!(result.data().port_id, potential_ethernet_port_identifier, "Self consistency check failed");
+			Ok(result)
 		}
 	}
 	
-	// TODO: rte_flow_isolate(uint16_t port_id, int set, struct rte_flow_error *error) BEFORE configure.
-	// TODO: do transmit queues before receive queues
-	/// Configure an ethernet device.
 	#[inline(always)]
-	pub fn configure_ethernet_device<'a>(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: TransmitNumberOfQueues, number_of_transmit_queues: TransmitNumberOfQueues, receive_side_scaling_hash_key: Option<&mut ReceiveSideScalingHashKey<'a>>) -> (ReceiveHardwareOffloadingFlags, TransmitHardwareOffloadingFlags)
+	fn parse_find_result(potential_ethernet_port_identifier: u16, result: i32) -> Option<Self>
 	{
-		use self::rte_eth_rx_mq_mode::*;
-		use self::rte_eth_tx_mq_mode::*;
-		use self::rte_fdir_mode::*;
-		use self::rte_fdir_pballoc_type::*;
-		use self::rte_fdir_status_mode::*;
-		
-		let device_receive_offloads =
+		if result == 0
 		{
-			let offload_jumbo_frames_bit = if ethernet_device_capabilities.maximum_receive_packet_length().implies_jumbo_frames()
+			if Self::is_valid(potential_ethernet_port_identifier)
 			{
-				ReceiveHardwareOffloadingFlags::common_flags()
+				Some(EthernetPortIdentifier(potential_ethernet_port_identifier))
 			}
 			else
 			{
-				ReceiveHardwareOffloadingFlags::common_flags_with_jumbo_frames_support()
-			};
-			
-			ethernet_device_capabilities.receive_device_hardware_offloading_flags() & offload_jumbo_frames_bit
-		};
-		
-		let device_transmit_offloads = ethernet_device_capabilities.transmit_device_hardware_offloading_flags() & TransmitHardwareOffloadingFlags::common_flags();
-		
-		let ethernet_configuration = rte_eth_conf
-		{
-			link_speeds: ETH_LINK_SPEED_AUTONEG,
-			
-			lpbk_mode:
-			{
-				const DisableLoopbackOperationModeAsMostNicsDoNotSupportIt: u32 = 0;
-				DisableLoopbackOperationModeAsMostNicsDoNotSupportIt
-			},
-			
-			rxmode:
-			{
-				let mut rxmode = rte_eth_rxmode
-				{
-					mq_mode: if receive_side_scaling_hash_key.is_none()
-					{
-						ETH_MQ_RX_NONE
-					}
-					else
-					{
-						ETH_MQ_RX_RSS
-					},
-					
-					max_rx_pkt_len: ethernet_device_capabilities.maximum_receive_packet_length().into(),
-					
-					split_hdr_size: 0,
-					
-					offloads: device_receive_offloads.bits,
-					
-					bitfield_1:
-					{
-						let legacy_value = BindgenBitfieldUnit::new(unsafe { zeroed() });
-						legacy_value
-					},
-					
-					__bindgen_padding_0: unsafe { uninitialized() },
-				};
-				rxmode.set_ignore_offload_bitfield(1);
-				rxmode
-			},
-			
-			// TODO: If using the flow API, does this matter?
-			rx_adv_conf: rte_eth_conf_1
-			{
-				rss_conf: match receive_side_scaling_hash_key
-				{
-					None => unsafe { zeroed() },
-					Some(receive_side_scaling_hash_key) =>
-					{
-						let (pointer, length) = receive_side_scaling_hash_key.pointer_and_length();
-						rte_eth_rss_conf
-						{
-							rss_key: pointer,
-							rss_key_len: length,
-							rss_hf: ethernet_device_capabilities.receive_side_scaling_offload_flow().bits(),
-						}
-					}
-				},
-				
-				vmdq_dcb_conf: unsafe { zeroed() },
-				
-				dcb_rx_conf: unsafe { zeroed() },
-				
-				vmdq_rx_conf: unsafe { zeroed() },
-			},
-			
-			txmode: rte_eth_txmode
-			{
-				mq_mode: ETH_MQ_TX_NONE,
-				
-				offloads: device_transmit_offloads.bits,
-				
-				pvid:
-				{
-					const NoPortBasedVirtualLanInsertionAsMostNicsDoNotSupportIt: u16 = 0;
-					NoPortBasedVirtualLanInsertionAsMostNicsDoNotSupportIt
-				},
-				
-				bitfield_1:
-				{
-					const DisableHardwareVirtualLanRejectTagged: u8 = 0;
-					const DisableHardwareVirtualLanRejectUntagged: u8 = 0;
-					const DisableHardwareVirtualLanInsertPortBasedVirtualLanIdentifier: u8 = 0;
-					rte_eth_txmode::newbitfield_1(DisableHardwareVirtualLanRejectTagged, DisableHardwareVirtualLanRejectUntagged, DisableHardwareVirtualLanInsertPortBasedVirtualLanIdentifier)
-				},
-				
-				__bindgen_padding_0: unsafe { uninitialized() },
-			},
-			
-			tx_adv_conf: unsafe { zeroed() },
-			
-			dcb_capability_en:
-			{
-				const DisableDataCentreBridgingCapabilityAsMostNicsDoNotSupportIt: u32 = 0;
-				DisableDataCentreBridgingCapabilityAsMostNicsDoNotSupportIt
-			},
-			
-			fdir_conf: rte_fdir_conf
-			{
-				mode: RTE_FDIR_MODE_NONE,
-				pballoc: RTE_FDIR_PBALLOC_64K,
-				status: RTE_FDIR_NO_REPORT_STATUS,
-				drop_queue: 0,
-				mask: unsafe { zeroed() },
-				flex_conf: unsafe { zeroed() },
-			},
-			
-			intr_conf:
-			{
-				const EnableLinkStatusInterrupt: u32 = 1;
-				rte_intr_conf
-				{
-					bitfield_1: rte_intr_conf::newbitfield_1(EnableLinkStatusInterrupt, 0, 0),
-					__bindgen_padding_0: unsafe { uninitialized() },
-					__bindgen_align: unsafe { uninitialized() },
-				}
-			},
-		};
-		
-		let result = unsafe { rte_eth_dev_configure(self.0, number_of_receive_queues.into(), number_of_transmit_queues.into(), &ethernet_configuration) };
-		if likely!(result == 0)
-		{
-			return (device_receive_offloads, device_transmit_offloads)
-		}
-		else if likely!(result < 0)
-		{
-			panic!("rte_eth_dev_configure configure failed with code '{}'", result)
+				None
+			}
 		}
 		else
 		{
-			panic!("rte_eth_dev_configure configure failed with unexpected positive code '{}'", result)
+			None
 		}
 	}
 	
-	/// Configure the default media access control address.
 	#[inline(always)]
-	pub fn configure_default_media_access_control_address(self, mut media_access_control_address: MediaAccessControlAddress)
+	fn is_valid(potential_ethernet_port_identifier: u16) -> bool
 	{
-		let result = unsafe { rte_eth_dev_default_mac_addr_set(self.0, &mut media_access_control_address as *mut MediaAccessControlAddress as *mut ether_addr) };
-		
-		if likely!(result == 0)
+		if unlikely!(potential_ethernet_port_identifier >= Self::Maximum as u16)
 		{
-			return
+			return false
 		}
 		
-		match result
-		{
-			NegativeE::ENODEV => panic!("This ethernet port '{}' is not a device", self),
-			NegativeE::ENOTSUP => panic!("rte_eth_dev_default_mac_addr_set is not supported"),
-			NegativeE::EINVAL => panic!("rte_eth_dev_default_mac_addr_set reports bad arguments"),
-			
-			_ => panic!("rte_eth_dev_default_mac_addr_set returned an unknown error '{}'", result)
-		}
+		Self::ethernet_device_from_port_id(potential_ethernet_port_identifier).state == rte_eth_dev_state::RTE_ETH_DEV_ATTACHED
 	}
 	
-	/// Configure a transmit queue.
-	///
-	/// Should only be called after configuring the network card and before starting it.
-	///
-	/// `queue_ring_numa_node` should ideally be the same as the one for the ethernet port.
 	#[inline(always)]
-	pub fn configure_transmit_queue(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, queue_identifier: TransmitQueueIdentifier, transmit_hardware_offloading_flags: TransmitHardwareOffloadingFlags, queue_ring_size: TransmitQueueRingSize, queue_ring_numa_node: NumaNode) -> TransmitBurst
+	fn is_invalid(potential_ethernet_port_identifier: u16) -> bool
 	{
-		let queue_configuration = rte_eth_txconf
-		{
-			tx_thresh: ethernet_device_capabilities.transmit_threshold(),
-			tx_rs_thresh: ethernet_device_capabilities.transmit_rs_threshold(),
-			tx_free_thresh: ethernet_device_capabilities.transmit_free_threshold(),
-			txq_flags: ETH_TXQ_FLAGS_IGNORE,
-			tx_deferred_start: EthernetDeviceCapabilities::ImmediateStart,
-			offloads: (ethernet_device_capabilities.transmit_queue_hardware_offloading_flags() & transmit_hardware_offloading_flags).bits,
-		};
-		
-		let result = unsafe { rte_eth_tx_queue_setup(self.0, queue_identifier.into(), queue_ring_size.into(), queue_ring_numa_node.into(), &queue_configuration) };
-		
-		if likely!(result == 0)
-		{
-			return TransmitBurst::new(self, ethernet_device_capabilities, queue_identifier)
-		}
-		
-		match result
-		{
-			// NOTE: This is not listed in the documentation but it seems likely to occur.
-			NegativeE::ENODEV => panic!("This ethernet port '{}' is not a device", self),
-			
-			// NOTE: This is not listed in the documentation but it seems likely to occur.
-			NegativeE::EIO => panic!("This ethernet port '{}' is removed", self),
-			
-			NegativeE::ENOMEM => panic!("rte_eth_tx_queue_setup: unable to allocate the transmit ring descriptors"),
-			
-			_ => panic!("rte_eth_rx_queue_setup returned an unknown error '{}'", result)
-		}
+		!Self::is_valid(potential_ethernet_port_identifier)
 	}
 	
-	/// Configure the redirection table.
 	#[inline(always)]
-	pub fn configure_redirection_table(self, redirection_table: &mut RedirectionTable)
+	fn ethernet_device_from_port_id(port_id: u16) -> &'static rte_eth_dev
 	{
-		redirection_table.configure(self)
+		unsafe { &rte_eth_devices[port_id as usize] }
 	}
 	
-	/// Configure a receive queue.
-	///
-	/// Should only be called after configuring the network card and before starting it.
-	///
-	/// `queue_ring_numa_node` should ideally be the same as the one for the ethernet port.
-	///
-	/// `queue_packet_buffer_pool` should ideally be on the numa node `queue_ring_numa_node`.
+	/// Underlying DPDK type.
 	#[inline(always)]
-	pub fn configure_receive_queue(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, queue_identifier: ReceiveQueueIdentifier, receive_hardware_offloading_flags: ReceiveHardwareOffloadingFlags, queue_ring_size: ReceiveQueueRingSize, queue_ring_numa_node: NumaNode, queue_packet_buffer_pool: NonNull<rte_mempool>) -> ReceiveBurst
+	fn ethernet_device_mutable(self) -> &'static mut rte_eth_dev
 	{
-		let queue_configuration =
-		{
-			const DropPacketsIfNoReceiveDescriptorsAreAvailable: u8 = 1;
-			
-			rte_eth_rxconf
-			{
-				rx_thresh: ethernet_device_capabilities.receive_threshold(),
-				rx_free_thresh: ethernet_device_capabilities.receive_free_threshold(),
-				rx_drop_en: DropPacketsIfNoReceiveDescriptorsAreAvailable,
-				rx_deferred_start: EthernetDeviceCapabilities::ImmediateStart,
-				offloads: (ethernet_device_capabilities.receive_queue_hardware_offloading_flags() & receive_hardware_offloading_flags).bits,
-			}
-		};
-		
-		let result = unsafe { rte_eth_rx_queue_setup(self.0, queue_identifier.into(), queue_ring_size.into(), queue_ring_numa_node.into(), &queue_configuration, queue_packet_buffer_pool.as_ptr()) };
-		
-		if likely!(result == 0)
-		{
-			return ReceiveBurst::new(self, ethernet_device_capabilities, queue_identifier)
-		}
-		
-		match result
-		{
-			// NOTE: This is not listed in the documentation but it seems likely to occur.
-			NegativeE::ENODEV => panic!("This ethernet port '{}' is not a device", self),
-			
-			NegativeE::EIO => panic!("This ethernet port '{}' is removed", self),
-			NegativeE::EINVAL => panic!("rte_eth_rx_queue_setup: the size of network buffers which can be allocated from the memory pool does not fit the various buffer sizes allowed by the device controller"),
-			NegativeE::ENOMEM => panic!("rte_eth_rx_queue_setup: unable to allocate the receive ring descriptors or to allocate network packet buffers from the queue_packet_buffer_pool when initializing receive descriptors"),
-			
-			_ => panic!("rte_eth_rx_queue_setup returned an unknown error '{}'", result)
-		}
-	}
-	
-	/// Starts the underlying ethernet device.
-	///
-	/// Returns a device-specific error number in the event of failure.
-	#[inline(always)]
-	pub fn start(self) -> Result<(), u32>
-	{
-		let result = unsafe { rte_eth_dev_start(self.into()) };
-		if likely!(result == 0)
-		{
-			Ok(())
-		}
-		else if unlikely!(result > 0)
-		{
-			panic!("Unexpected result '{}' from rte_eth_dev_start")
-		}
-		else
-		{
-			Err((-result) as u32)
-		}
-	}
-	
-	/// Stops the underlying ethernet device.
-	///
-	/// Never panics.
-	#[inline(always)]
-	pub fn stop(self)
-	{
-		unsafe { rte_eth_dev_stop(self.into()) };
-	}
-	
-	/// Register a handler for link up or link down events.
-	///
-	/// The handler may be run on a service core; generically, it mya be run on any thread.
-	///
-	/// The returned `EthernetPortLinkStatusEventHandlerGuard` guard, when dropped, will unregister the event handler.
-	#[inline(always)]
-	pub fn receive_link_up_or_down_events<Handler: LinkStatusEventHandler>(self, handler: Handler) -> LinkStatusEventHandlerGuard<Handler>
-	{
-		LinkStatusEventHandlerGuard::register(self, handler)
-	}
-	
-	/// Waits for link to come up.
-	///
-	/// Returns early with `None` if should terminate becomes true.
-	///
-	/// Returns with `Some(is_full_duplex, was_auto_negotiated, speed_in_megabits_per_second)` when the link comes up.
-	#[inline(always)]
-	pub fn wait_for_link_to_come_up(self, should_function_terminate: &Arc<ShouldFunctionTerminate>) -> Option<(bool, bool, u32)>
-	{
-		let mut link_status = unsafe { uninitialized() };
-		while
-		{
-			unsafe { rte_eth_link_get_nowait(self.0, &mut link_status) }
-			link_status.is_down()
-		}
-		{
-			if should_function_terminate.sleep_and_check_should_terminate()
-			{
-				return None
-			}
-		}
-		Some(link_status.if_is_up())
+		unsafe { &mut rte_eth_devices[self.0 as usize] }
 	}
 	
 	#[inline(always)]
@@ -695,3 +326,475 @@ impl EthernetPortIdentifier
 		unsafe { &mut * data }
 	}
 }
+
+/// Configuration related functionality.
+impl EthernetPortIdentifier
+{
+	/// Configure the default media access control address.
+	#[inline(always)]
+	pub fn configure_default_media_access_control_address(self, mut media_access_control_address: MediaAccessControlAddress)
+	{
+		let result = unsafe { rte_eth_dev_default_mac_addr_set(self.0, &mut media_access_control_address as *mut MediaAccessControlAddress as *mut ether_addr) };
+		
+		if likely!(result == 0)
+		{
+			return
+		}
+		
+		match result
+		{
+			NegativeE::ENODEV => panic!("This ethernet port '{}' is not a device", self),
+			NegativeE::ENOTSUP => panic!("rte_eth_dev_default_mac_addr_set is not supported"),
+			NegativeE::EINVAL => panic!("rte_eth_dev_default_mac_addr_set reports bad arguments"),
+			
+			_ => panic!("rte_eth_dev_default_mac_addr_set returned an unknown error '{}'", result)
+		}
+	}
+	
+	/// Returns an error message and error number on failure.
+	#[inline(always)]
+	pub fn configure_flow_isolation(self) -> Result<(), (rte_flow_error, i32)>
+	{
+		let mut error = unsafe { zeroed() };
+		
+		const EnterIsolatedMode: i32 = 1;
+		
+		let result = unsafe { rte_flow_isolate(self.0, EnterIsolatedMode, &mut error) };
+		if likely!(result == 0)
+		{
+			Ok(())
+		}
+		else if unlikely!(result > 0)
+		{
+			panic!("result of rte_flow_isolate was positive '{}'", result)
+		}
+		else
+		{
+			Err((error, LogicalCore::current_logical_core_error_number()))
+		}
+	}
+	
+	/// Maximum receive and transmit queue ring sizes.
+	#[inline(always)]
+	pub fn obtain_maximum_receive_and_transmit_queue_ring_sizes(self, ethernet_device_capabilities: &EthernetDeviceCapabilities) -> (ReceiveQueueRingSize, TransmitQueueRingSize)
+	{
+		let mut receive_descriptors = ethernet_device_capabilities.receive_queue_ring_size().into();
+		let mut transmit_descriptors = ethernet_device_capabilities.transmit_queue_ring_size().into();
+		
+		let result = unsafe { rte_eth_dev_adjust_nb_rx_tx_desc(self.0, &mut receive_descriptors, &mut transmit_descriptors) };
+		
+		if likely!(result == 0)
+		{
+			return (ReceiveQueueRingSize(receive_descriptors), TransmitQueueRingSize(transmit_descriptors))
+		}
+		
+		match result
+		{
+			NegativeE::ENODEV => panic!("This ethernet port '{}' is not a device", self),
+			NegativeE::ENOTSUP => panic!("rte_eth_dev_adjust_nb_rx_tx_desc is not supported"),
+			NegativeE::EINVAL => panic!("rte_eth_dev_adjust_nb_rx_tx_desc reports bad arguments"),
+			
+			_ => panic!("rte_eth_dev_adjust_nb_rx_tx_desc returned an unknown error '{}'", result)
+		}
+	}
+	
+//	/// Configure an ethernet device's global hash function.
+//	#[inline(always)]
+//	pub fn configure_receive_side_scaling_hash_function(self)
+//	{
+//		let mut configuration = rte_eth_hash_filter_info
+//		{
+//			info_type: rte_eth_hash_filter_info_type::RTE_ETH_HASH_FILTER_GLOBAL_CONFIG,
+//			info:
+//			{
+//				let mut info = rte_eth_hash_filter_info_1::default();
+//				let global_conf: &mut rte_eth_hash_global_conf = info.global_conf.as_mut();
+//				global_conf.hash_func = rte_eth_hash_function::RTE_ETH_HASH_FUNCTION_TOEPLITZ;
+//				global_conf.sym_hash_enable_mask = [0];
+//				global_conf.valid_bit_mask = [::std::u64::MAX];
+//				info
+//			},
+//		};
+//
+//		let result = unsafe { rte_eth_dev_filter_ctrl(self.0, rte_filter_type::RTE_ETH_FILTER_HASH, rte_filter_op::RTE_ETH_FILTER_SET, &mut configuration as *mut rte_eth_hash_filter_info as *mut _) };
+//
+//		if likely!(result == 0)
+//		{
+//			return
+//		}
+//
+//		match result
+//		{
+//			NegativeE::ENODEV => panic!("This ethernet port '{}' is not a device", self),
+//			NegativeE::ENOTSUP => panic!("rte_eth_dev_filter_ctrl global hash filter setting is not supported"),
+//			NegativeE::EIO => panic!("This ethernet port '{}' is removed", self),
+//
+//			_ => panic!("rte_eth_dev_filter_ctrl global hash filter setting error '{}'", result),
+//		}
+//	}
+	
+	/// Configure an ethernet device.
+	#[inline(always)]
+	pub fn configure_ethernet_device<'a>(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: TransmitNumberOfQueues, number_of_transmit_queues: TransmitNumberOfQueues, receive_side_scaling_hash_key: Option<&mut ReceiveSideScalingHashKey<'a>>) -> (ReceiveHardwareOffloadingFlags, TransmitHardwareOffloadingFlags)
+	{
+		use self::rte_eth_rx_mq_mode::*;
+		use self::rte_eth_tx_mq_mode::*;
+		use self::rte_fdir_mode::*;
+		use self::rte_fdir_pballoc_type::*;
+		use self::rte_fdir_status_mode::*;
+		
+		let device_receive_offloads =
+			{
+				let offload_jumbo_frames_bit = if ethernet_device_capabilities.maximum_receive_packet_length().implies_jumbo_frames()
+				{
+					ReceiveHardwareOffloadingFlags::common_flags()
+				} else {
+					ReceiveHardwareOffloadingFlags::common_flags_with_jumbo_frames_support()
+				};
+				
+				ethernet_device_capabilities.receive_device_hardware_offloading_flags() & offload_jumbo_frames_bit
+			};
+		
+		let device_transmit_offloads = ethernet_device_capabilities.transmit_device_hardware_offloading_flags() & TransmitHardwareOffloadingFlags::common_flags();
+		
+		let ethernet_configuration = rte_eth_conf
+		{
+			link_speeds: ETH_LINK_SPEED_AUTONEG,
+			
+			lpbk_mode:
+			{
+				const DisableLoopbackOperationModeAsMostNicsDoNotSupportIt: u32 = 0;
+				DisableLoopbackOperationModeAsMostNicsDoNotSupportIt
+			},
+			
+			rxmode:
+			{
+				let mut rxmode = rte_eth_rxmode
+				{
+					mq_mode: if receive_side_scaling_hash_key.is_none()
+					{
+						ETH_MQ_RX_NONE
+					} else {
+						ETH_MQ_RX_RSS
+					},
+					
+					max_rx_pkt_len: ethernet_device_capabilities.maximum_receive_packet_length().into(),
+					
+					split_hdr_size: 0,
+					
+					offloads: device_receive_offloads.bits,
+					
+					bitfield_1:
+					{
+						let legacy_value = BindgenBitfieldUnit::new(unsafe { zeroed() });
+						legacy_value
+					},
+					
+					__bindgen_padding_0: unsafe { uninitialized() },
+				};
+				rxmode.set_ignore_offload_bitfield(1);
+				rxmode
+			},
+			
+			// TODO: If using the flow API, does this matter?
+			rx_adv_conf: rte_eth_conf_1
+			{
+				rss_conf: match receive_side_scaling_hash_key
+				{
+					None => unsafe { zeroed() },
+					Some(receive_side_scaling_hash_key) =>
+						{
+							let (pointer, length) = receive_side_scaling_hash_key.pointer_and_length();
+							rte_eth_rss_conf
+							{
+								rss_key: pointer,
+								rss_key_len: length,
+								rss_hf: ethernet_device_capabilities.receive_side_scaling_offload_flow().bits(),
+							}
+						}
+				},
+				
+				vmdq_dcb_conf: unsafe { zeroed() },
+				
+				dcb_rx_conf: unsafe { zeroed() },
+				
+				vmdq_rx_conf: unsafe { zeroed() },
+			},
+			
+			txmode: rte_eth_txmode
+			{
+				mq_mode: ETH_MQ_TX_NONE,
+				
+				offloads: device_transmit_offloads.bits,
+				
+				pvid:
+				{
+					const NoPortBasedVirtualLanInsertionAsMostNicsDoNotSupportIt: u16 = 0;
+					NoPortBasedVirtualLanInsertionAsMostNicsDoNotSupportIt
+				},
+				
+				bitfield_1:
+				{
+					const DisableHardwareVirtualLanRejectTagged: u8 = 0;
+					const DisableHardwareVirtualLanRejectUntagged: u8 = 0;
+					const DisableHardwareVirtualLanInsertPortBasedVirtualLanIdentifier: u8 = 0;
+					rte_eth_txmode::newbitfield_1(DisableHardwareVirtualLanRejectTagged, DisableHardwareVirtualLanRejectUntagged, DisableHardwareVirtualLanInsertPortBasedVirtualLanIdentifier)
+				},
+				
+				__bindgen_padding_0: unsafe { uninitialized() },
+			},
+			
+			tx_adv_conf: unsafe { zeroed() },
+			
+			dcb_capability_en:
+			{
+				const DisableDataCentreBridgingCapabilityAsMostNicsDoNotSupportIt: u32 = 0;
+				DisableDataCentreBridgingCapabilityAsMostNicsDoNotSupportIt
+			},
+			
+			fdir_conf: rte_fdir_conf
+			{
+				mode: RTE_FDIR_MODE_NONE,
+				pballoc: RTE_FDIR_PBALLOC_64K,
+				status: RTE_FDIR_NO_REPORT_STATUS,
+				drop_queue: 0,
+				mask: unsafe { zeroed() },
+				flex_conf: unsafe { zeroed() },
+			},
+			
+			intr_conf:
+			{
+				const EnableLinkStatusInterrupt: u32 = 1;
+				rte_intr_conf
+				{
+					bitfield_1: rte_intr_conf::newbitfield_1(EnableLinkStatusInterrupt, 0, 0),
+					__bindgen_padding_0: unsafe { uninitialized() },
+					__bindgen_align: unsafe { uninitialized() },
+				}
+			},
+		};
+		
+		let result = unsafe { rte_eth_dev_configure(self.0, number_of_receive_queues.into(), number_of_transmit_queues.into(), &ethernet_configuration) };
+		if likely!(result == 0)
+		{
+			return (device_receive_offloads, device_transmit_offloads)
+		} else if likely!(result < 0)
+		{
+			panic!("rte_eth_dev_configure configure failed with code '{}'", result)
+		} else {
+			panic!("rte_eth_dev_configure configure failed with unexpected positive code '{}'", result)
+		}
+	}
+	
+	/// Configure the redirection table.
+	#[inline(always)]
+	pub fn configure_redirection_table(self, redirection_table: &mut RedirectionTable)
+	{
+		redirection_table.configure(self)
+	}
+	
+	/// Configure a transmit queue.
+	///
+	/// Should only be called after configuring the network card and before starting it.
+	///
+	/// `queue_ring_numa_node` should ideally be the same as the one for the ethernet port.
+	#[inline(always)]
+	pub fn configure_transmit_queue(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, queue_identifier: TransmitQueueIdentifier, transmit_hardware_offloading_flags: TransmitHardwareOffloadingFlags, queue_ring_size: TransmitQueueRingSize, queue_ring_numa_node: NumaNode) -> TransmitBurst
+	{
+		let queue_configuration = rte_eth_txconf
+		{
+			tx_thresh: ethernet_device_capabilities.transmit_threshold(),
+			tx_rs_thresh: ethernet_device_capabilities.transmit_rs_threshold(),
+			tx_free_thresh: ethernet_device_capabilities.transmit_free_threshold(),
+			txq_flags: ETH_TXQ_FLAGS_IGNORE,
+			tx_deferred_start: EthernetDeviceCapabilities::ImmediateStart,
+			offloads: (ethernet_device_capabilities.transmit_queue_hardware_offloading_flags() & transmit_hardware_offloading_flags).bits,
+		};
+		
+		let result = unsafe { rte_eth_tx_queue_setup(self.0, queue_identifier.into(), queue_ring_size.into(), queue_ring_numa_node.into(), &queue_configuration) };
+		
+		if likely!(result == 0)
+		{
+			return TransmitBurst::new(self, ethernet_device_capabilities, queue_identifier)
+		}
+		
+		match result
+		{
+			// NOTE: This is not listed in the documentation but it seems likely to occur.
+			NegativeE::ENODEV => panic!("This ethernet port '{}' is not a device", self),
+			
+			// NOTE: This is not listed in the documentation but it seems likely to occur.
+			NegativeE::EIO => panic!("This ethernet port '{}' is removed", self),
+			
+			NegativeE::ENOMEM => panic!("rte_eth_tx_queue_setup: unable to allocate the transmit ring descriptors"),
+			
+			_ => panic!("rte_eth_rx_queue_setup returned an unknown error '{}'", result)
+		}
+	}
+	
+	/// Configure a receive queue.
+	///
+	/// Should only be called after configuring the network card and before starting it.
+	///
+	/// `queue_ring_numa_node` should ideally be the same as the one for the ethernet port.
+	///
+	/// `queue_packet_buffer_pool` should ideally be on the numa node `queue_ring_numa_node`.
+	#[inline(always)]
+	pub fn configure_receive_queue(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, queue_identifier: ReceiveQueueIdentifier, receive_hardware_offloading_flags: ReceiveHardwareOffloadingFlags, queue_ring_size: ReceiveQueueRingSize, queue_ring_numa_node: NumaNode, queue_packet_buffer_pool: NonNull<rte_mempool>) -> ReceiveBurst
+	{
+		let queue_configuration =
+			{
+				const DropPacketsIfNoReceiveDescriptorsAreAvailable: u8 = 1;
+				
+				rte_eth_rxconf
+				{
+					rx_thresh: ethernet_device_capabilities.receive_threshold(),
+					rx_free_thresh: ethernet_device_capabilities.receive_free_threshold(),
+					rx_drop_en: DropPacketsIfNoReceiveDescriptorsAreAvailable,
+					rx_deferred_start: EthernetDeviceCapabilities::ImmediateStart,
+					offloads: (ethernet_device_capabilities.receive_queue_hardware_offloading_flags() & receive_hardware_offloading_flags).bits,
+				}
+			};
+		
+		let result = unsafe { rte_eth_rx_queue_setup(self.0, queue_identifier.into(), queue_ring_size.into(), queue_ring_numa_node.into(), &queue_configuration, queue_packet_buffer_pool.as_ptr()) };
+		
+		if likely!(result == 0)
+		{
+			return ReceiveBurst::new(self, ethernet_device_capabilities, queue_identifier)
+		}
+		
+		match result
+		{
+			// NOTE: This is not listed in the documentation but it seems likely to occur.
+			NegativeE::ENODEV => panic!("This ethernet port '{}' is not a device", self),
+			
+			NegativeE::EIO => panic!("This ethernet port '{}' is removed", self),
+			NegativeE::EINVAL => panic!("rte_eth_rx_queue_setup: the size of network buffers which can be allocated from the memory pool does not fit the various buffer sizes allowed by the device controller"),
+			NegativeE::ENOMEM => panic!("rte_eth_rx_queue_setup: unable to allocate the receive ring descriptors or to allocate network packet buffers from the queue_packet_buffer_pool when initializing receive descriptors"),
+			
+			_ => panic!("rte_eth_rx_queue_setup returned an unknown error '{}'", result)
+		}
+	}
+	
+	/// Register a handler for link up or link down events.
+	///
+	/// The handler may be run on a service core; generically, it mya be run on any thread.
+	///
+	/// The returned `EthernetPortLinkStatusEventHandlerGuard` guard, when dropped, will unregister the event handler.
+	#[inline(always)]
+	pub fn receive_link_up_or_down_events<Handler: LinkStatusEventHandler>(self, handler: Handler) -> LinkStatusEventHandlerGuard<Handler>
+	{
+		LinkStatusEventHandlerGuard::register(self, handler)
+	}
+}
+
+/// Life cycle; start and stop like behaviours.
+impl EthernetPortIdentifier
+{
+	/// Waits for link to come up.
+	///
+	/// Returns early with `None` if should terminate becomes true.
+	///
+	/// Returns with `Some(is_full_duplex, was_auto_negotiated, speed_in_megabits_per_second)` when the link comes up.
+	#[inline(always)]
+	pub fn wait_for_link_to_come_up(self, should_function_terminate: &Arc<ShouldFunctionTerminate>) -> Option<(bool, bool, u32)>
+	{
+		let mut link_status = unsafe { uninitialized() };
+		while
+		{
+			unsafe { rte_eth_link_get_nowait(self.0, &mut link_status) }
+			link_status.is_down()
+		}
+		{
+			if should_function_terminate.sleep_and_check_should_terminate()
+			{
+				return None
+			}
+		}
+		Some(link_status.if_is_up())
+	}
+	
+	/// Starts the underlying ethernet device.
+	///
+	/// Returns a device-specific error number in the event of failure.
+	#[inline(always)]
+	pub fn start(self) -> Result<(), u32>
+	{
+		let result = unsafe { rte_eth_dev_start(self.into()) };
+		if likely!(result == 0)
+		{
+			Ok(())
+		}
+		else if unlikely!(result > 0)
+		{
+			panic!("Unexpected result '{}' from rte_eth_dev_start")
+		}
+		else
+		{
+			Err((-result) as u32)
+		}
+	}
+	
+	/// Stops the underlying ethernet device.
+	///
+	/// Never panics.
+	#[inline(always)]
+	pub fn stop(self)
+	{
+		unsafe { rte_eth_dev_stop(self.into()) };
+	}
+	
+	/// Destroys all flow rules.
+	///
+	/// Returns an error message and error number on failure.
+	#[inline(always)]
+	pub fn destroy_all_flow_rules(self) -> Result<(), (rte_flow_error, i32)>
+	{
+		let mut error = unsafe { uninitialized() };
+		
+		let result = unsafe { rte_flow_flush(self.0, &mut error) };
+		
+		if likely!(result == 0)
+		{
+			Ok(())
+		}
+		else if unlikely!(result > 0)
+		{
+			panic!("result of rte_flow_flush was positive '{}'", result)
+		}
+		else
+		{
+			Err((error, LogicalCore::current_logical_core_error_number()))
+		}
+	}
+}
+
+/// Statistics
+impl EthernetPortIdentifier
+{
+	/// Get simple statistics.
+	#[inline(always)]
+	pub fn get_simple_statistics(self) -> Result<EthernetPortSimpleStatistics, i32>
+	{
+		let mut statistics = unsafe { uninitialized() };
+		let result = unsafe { rte_eth_stats_get(self.0, &mut statistics) };
+		if likely!(result == 0)
+		{
+			Ok(EthernetPortSimpleStatistics::from(statistics))
+		}
+		else
+		{
+			Err(result)
+		}
+	}
+	
+	/// Reset simple statistic counters.
+	#[inline(always)]
+	pub fn reset_simple_statistics(self)
+	{
+		// We ignore any errors as they don't contribute anything useful to the use of this functionality.
+		unsafe { rte_eth_stats_reset(self.0) };
+	}
+}
+
+// TODO: rte_eth_xstats_get / rte_eth_xstats_reset

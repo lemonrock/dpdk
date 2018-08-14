@@ -21,6 +21,7 @@ use self::number_of_queues::*;
 use self::queue_identifiers::*;
 use self::queue_ring_sizes::*;
 use self::receive_side_scaling::*;
+use self::statistics::*;
 use ::dpdk_bus::pci::*;
 use ::dpdk_bus::DpdkVirtualDevice;
 use ::dpdk_core::*;
@@ -41,8 +42,9 @@ use ::std::fmt::Display;
 use ::std::fmt::Formatter;
 use ::std::iter::Step;
 use ::std::mem::replace;
-use ::std::mem::zeroed;
+use ::std::mem::transmute;
 use ::std::mem::uninitialized;
+use ::std::mem::zeroed;
 use ::std::ops::Add;
 use ::std::ops::AddAssign;
 use ::std::ops::Sub;
@@ -74,6 +76,10 @@ pub mod queue_ring_sizes;
 
 /// Receive side scaling.
 pub mod receive_side_scaling;
+
+
+/// Statistics.
+pub mod statistics;
 
 
 include!("EthernetDeviceCapabilities.rs");
