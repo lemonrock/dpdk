@@ -801,18 +801,22 @@ impl EthernetPortIdentifier
 	
 	/// Obtain an `extended_statistics_iterator` from `EthernetDeviceCapabilities.extended_statistics_iterator()`.
 	///
-	/// Resets the `extended_statistics_iterator`.
+	/// Resets the `extended_statistics_iterator` with new statistics ready for iteration.
 	#[inline(always)]
-	pub fn get_extended_statistics<'a>(self, extended_statistics_iterator: &mut ExtendedStatisticsIterator<'a>)
+	pub fn get_extended_statistics<'a>(self, mut extended_statistics_iterator: ExtendedStatisticsIterator<'a>) -> ExtendedStatisticsIterator<'a>
 	{
-		let result = unsafe { rte_eth_xstats_get(self.0, extended_statistics_iterator.extended_statistic_entries.as_mut_ptr(), extended_statistics_iterator.extended_statistic_entries.len() as u32) };
+		let result = unsafe { rte_eth_xstats_get_by_id(self.0, null_mut(), extended_statistics_iterator.values_pointer(), 0) };
 		
 		if unlikely!(result < 0)
 		{
 			panic!("rte_eth_xstats_get failed with error '{}' when trying to retrieve extended statistics", result);
 		}
-		debug_assert!(result == extended_statistics_iterator.extended_statistic_entries.len() as i32, "result '{}' did not match number of extended statistics '{}' when trying to retrieve extended statistic names", result, extended_statistics_iterator.extended_statistic_entries.len());
-		extended_statistics_iterator.index = 0;
+		
+		debug_assert!(result == extended_statistics_iterator.size() as i32, "result '{}' did not match number of extended statistics '{}' when trying to retrieve extended statistic names", result, extended_statistics_iterator.size());
+		
+		extended_statistics_iterator.reset();
+		
+		extended_statistics_iterator
 	}
 	
 	/// Reset extended statistic counters.

@@ -8,8 +8,8 @@
 pub struct ExtendedStatisticsIterator<'a>
 {
 	pub(crate) extended_statistic_names: &'a [&'static str],
-	pub(crate) extended_statistic_entries: Vec<rte_eth_xstat>,
-	pub(crate) index: usize,
+	pub(crate) extended_statistic_statistics: Vec<u64>,
+	pub(crate) identifier: usize,
 }
 
 impl<'a> Iterator for ExtendedStatisticsIterator<'a>
@@ -19,20 +19,19 @@ impl<'a> Iterator for ExtendedStatisticsIterator<'a>
 	#[inline(always)]
 	fn next(&mut self) -> Option<Self::Item>
 	{
-		if self.index == self.extended_statistic_names.len()
+		if self.identifier == self.extended_statistic_names.len()
 		{
 			None
 		}
 		else
 		{
-			let index = self.index;
-			let entry = unsafe { self.extended_statistic_entries.get_unchecked(index) };
-			let name = *self.extended_statistic_names.get(entry.id as usize).unwrap();
-			let statistic = entry.value;
+			let identifier = self.identifier;
+			let name = * unsafe { self.extended_statistic_names.get_unchecked(identifier) };
+			let statistic = * unsafe { self.extended_statistic_statistics.get_unchecked(identifier) };
 			
 			let result = Some((name, statistic));
 			
-			self.index = index + 1;
+			self.identifier = identifier + 1;
 			
 			result
 		}
@@ -47,13 +46,38 @@ impl<'a> ExtendedStatisticsIterator<'a>
 		Self
 		{
 			extended_statistic_names,
-			extended_statistic_entries:
+			extended_statistic_statistics:
 			{
-				let mut extended_statistic_entries = Vec::with_capacity(extended_statistic_names.len());
-				unsafe { extended_statistic_entries.set_len(extended_statistic_names.len()) };
-				extended_statistic_entries
+				let size = extended_statistic_names.len();
+				
+				let mut extended_statistic_statistics = Vec::with_capacity(size);
+				
+				for _ in 0 .. size
+				{
+					extended_statistic_statistics.push(0)
+				}
+				
+				extended_statistic_statistics
 			},
-			index: 0,
+			identifier: 0,
 		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn reset(&mut self)
+	{
+		self.identifier = 0
+	}
+	
+	#[inline(always)]
+	pub(crate) fn size(&self) -> usize
+	{
+		self.extended_statistic_statistics.len()
+	}
+	
+	#[inline(always)]
+	pub(crate) fn values_pointer(&mut self) -> *mut u64
+	{
+		self.extended_statistic_statistics.as_mut_ptr()
 	}
 }
