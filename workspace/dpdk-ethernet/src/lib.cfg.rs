@@ -21,6 +21,7 @@ use self::number_of_queues::*;
 use self::queue_identifiers::*;
 use self::queue_ring_sizes::*;
 use self::receive_side_scaling::*;
+use self::ring_threshold_registers::*;
 use self::statistics::*;
 use ::dpdk_bus::pci::*;
 use ::dpdk_bus::DpdkVirtualDevice;
@@ -32,19 +33,23 @@ use ::network_collections::Array40;
 use ::network_collections::Array52;
 use ::network_collections::NonNullUnifiedArrayVecAndVec;
 use ::network_ethernet::EthernetFrameLength;
+use ::network_ethernet::MaximumTransmissionUnitSize;
 use ::network_ethernet::MediaAccessControlAddress;
 use ::std::borrow::Cow;
 use ::std::cmp::min;
 use ::std::convert::TryFrom;
 use ::std::ffi::CStr;
 use ::std::fmt;
+use ::std::fmt::Debug;
 use ::std::fmt::Display;
 use ::std::fmt::Formatter;
+use ::std::hash::Hash;
 use ::std::iter::Step;
 use ::std::mem::replace;
 use ::std::mem::transmute;
 use ::std::mem::uninitialized;
 use ::std::mem::zeroed;
+use ::std::num::NonZeroU32;
 use ::std::ops::Add;
 use ::std::ops::AddAssign;
 use ::std::ops::Sub;
@@ -79,11 +84,17 @@ pub mod queue_ring_sizes;
 pub mod receive_side_scaling;
 
 
+/// Receive side scaling.
+pub mod ring_threshold_registers;
+
+
 /// Statistics.
 pub mod statistics;
 
 
+include!("DeviceCapabilityFlags.rs");
 include!("EthernetDeviceCapabilities.rs");
 include!("EthernetPortIdentifier.rs");
+include!("InterfaceIndex.rs");
 include!("ReceiveHardwareOffloadingFlags.rs");
 include!("TransmitHardwareOffloadingFlags.rs");

@@ -4,21 +4,34 @@
 
 /// Ethernet device information.
 #[derive(Debug, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
+#[derive(Deserialize, Serialize)]
 pub struct EthernetDeviceCapabilities
 {
 	driver_name: &'static str,
+	interface_index: Option<InterfaceIndex>,
 	maximum_queue_pairs: u16,
 	maximum_receive_packet_length: u16,
 	receive_side_scaling_offload_flow: ReceiveSideScalingOffloadFlow,
 	receive_device_hardware_offloading_flags: ReceiveHardwareOffloadingFlags,
 	receive_queue_hardware_offloading_flags: ReceiveHardwareOffloadingFlags,
+	receive_queue_ring_size: ReceiveQueueRingSize,
+	receive_queue_burst_size: usize,
+	receive_threshold: ReceiveRingThresholdRegisters,
+	receive_free_threshold: u16,
 	transmit_device_hardware_offloading_flags: TransmitHardwareOffloadingFlags,
 	transmit_queue_hardware_offloading_flags: TransmitHardwareOffloadingFlags,
+	transmit_queue_ring_size: TransmitQueueRingSize,
+	transmit_queue_burst_size: usize,
+	transmit_threshold: TransmitRingThresholdRegisters,
+	transmit_free_threshold: u16,
+	transmit_intel_specific_rs_bit_threshold: u16,
 	receive_side_scaling_is_unavailable: bool,
 	receive_side_scaling_hash_key_size: Option<ReceiveSideScalingHashKeySize>,
 	redirection_table_number_of_entries: Option<RedirectionTableNumberOfEntries>,
+	device_capability_flags: DeviceCapabilityFlags,
 	extended_statistics_names: Vec<&'static str>,
-	dpdk_information: rte_eth_dev_info,
+	maximum_transmission_unit: MaximumTransmissionUnitSize,
+	firmware_version: Option<String>,
 }
 
 impl EthernetDeviceCapabilities
@@ -26,7 +39,7 @@ impl EthernetDeviceCapabilities
 	const ImmediateStart: u8 = 0;
 	
 	#[inline(always)]
-	pub(crate) fn from(mut dpdk_information: rte_eth_dev_info, extended_statistics_names: Vec<&'static str>) -> Self
+	pub(crate) fn from(mut dpdk_information: rte_eth_dev_info, extended_statistics_names: Vec<&'static str>, maximum_transmission_unit: MaximumTransmissionUnitSize, firmware_version: Option<String>) -> Self
 	{
 		let driver_name = unsafe { CStr::from_ptr(dpdk_information.driver_name) }.to_str().unwrap();
 		
@@ -35,6 +48,7 @@ impl EthernetDeviceCapabilities
 		Self
 		{
 			driver_name,
+			interface_index: NonZeroU32::new(dpdk_information.if_index).map(|value| InterfaceIndex::from(value)),
 			maximum_queue_pairs:
 			{
 				let maximum_transmit_queue = dpdk_information.max_tx_queues;
@@ -68,8 +82,17 @@ impl EthernetDeviceCapabilities
 			receive_side_scaling_offload_flow: ReceiveSideScalingOffloadFlow::from_bits_truncate(dpdk_information.flow_type_rss_offloads),
 			receive_device_hardware_offloading_flags: ReceiveHardwareOffloadingFlags::from_bits_truncate(dpdk_information.rx_offload_capa),
 			receive_queue_hardware_offloading_flags: ReceiveHardwareOffloadingFlags::from_bits_truncate(dpdk_information.rx_queue_offload_capa),
+			receive_queue_ring_size: ReceiveQueueRingSize(dpdk_information.rx_desc_lim.nb_max),
+			receive_queue_burst_size: dpdk_information.default_rxportconf.burst_size as usize,
+			receive_threshold: ReceiveRingThresholdRegisters::from(dpdk_information.default_rxconf.rx_thresh),
+			receive_free_threshold: dpdk_information.default_rxconf.rx_free_thresh,
 			transmit_device_hardware_offloading_flags: TransmitHardwareOffloadingFlags::from_bits_truncate(dpdk_information.tx_offload_capa),
 			transmit_queue_hardware_offloading_flags: TransmitHardwareOffloadingFlags::from_bits_truncate(dpdk_information.tx_queue_offload_capa),
+			transmit_queue_ring_size: TransmitQueueRingSize(dpdk_information.tx_desc_lim.nb_max),
+			transmit_queue_burst_size: dpdk_information.default_rxportconf.burst_size as usize,
+			transmit_threshold: TransmitRingThresholdRegisters::from(dpdk_information.default_txconf.tx_thresh),
+			transmit_free_threshold: dpdk_information.default_txconf.tx_free_thresh,
+			transmit_intel_specific_rs_bit_threshold: dpdk_information.default_txconf.tx_rs_thresh,
 			receive_side_scaling_is_unavailable,
 			receive_side_scaling_hash_key_size:
 			{
@@ -112,8 +135,10 @@ impl EthernetDeviceCapabilities
 					}
 				}
 			},
+			device_capability_flags: DeviceCapabilityFlags::from_bits_truncate(dpdk_information.dev_capa),
 			extended_statistics_names,
-			dpdk_information,
+			maximum_transmission_unit,
+			firmware_version,
 		}
 	}
 	
@@ -139,16 +164,16 @@ impl EthernetDeviceCapabilities
 	
 	/// Receive threshold.
 	#[inline(always)]
-	pub fn receive_threshold(&self) -> rte_eth_thresh
+	pub fn receive_threshold(&self) -> ReceiveRingThresholdRegisters
 	{
-		self.dpdk_information.default_rxconf.rx_thresh
+		self.receive_threshold
 	}
 	
 	/// Receive free threshold.
 	#[inline(always)]
 	pub fn receive_free_threshold(&self) -> u16
 	{
-		self.dpdk_information.default_rxconf.rx_free_thresh
+		self.receive_free_threshold
 	}
 	
 	/// Receive hardware offloading flags for what the ethernet device supports generally.
@@ -167,7 +192,7 @@ impl EthernetDeviceCapabilities
 	#[inline(always)]
 	pub(crate) fn receive_queue_ring_size(&self) -> ReceiveQueueRingSize
 	{
-		ReceiveQueueRingSize(self.dpdk_information.rx_desc_lim.nb_max)
+		self.receive_queue_ring_size
 	}
 	
 	/// Limits the number of receive queues to the device supported maximum queue pairs.
@@ -181,28 +206,30 @@ impl EthernetDeviceCapabilities
 	#[inline(always)]
 	pub fn receive_burst_maximum_packets(&self) -> usize
 	{
-		self.dpdk_information.default_rxportconf.burst_size as usize
+		self.receive_queue_burst_size
 	}
 	
 	/// Transmit threshold.
 	#[inline(always)]
-	pub fn transmit_threshold(&self) -> rte_eth_thresh
+	pub fn transmit_threshold(&self) -> TransmitRingThresholdRegisters
 	{
-		self.dpdk_information.default_txconf.tx_thresh
+		self.transmit_threshold
 	}
 	
 	/// Transmit free threshold.
 	#[inline(always)]
 	pub fn transmit_free_threshold(&self) -> u16
 	{
-		self.dpdk_information.default_txconf.tx_free_thresh
+		self.transmit_free_threshold
 	}
 	
-	/// Transmit 'RS' threshold.
+	/// Transmit 'RS' bit threshold.
+	///
+	/// Only applies to some Intel hardware.
 	#[inline(always)]
-	pub fn transmit_rs_threshold(&self) -> u16
+	pub fn transmit_intel_specific_rs_bit_threshold(&self) -> u16
 	{
-		self.dpdk_information.default_txconf.tx_rs_thresh
+		self.transmit_intel_specific_rs_bit_threshold
 	}
 	
 	/// Transmit hardware offloading flags for what the ethernet device supports generally.
@@ -221,7 +248,7 @@ impl EthernetDeviceCapabilities
 	#[inline(always)]
 	pub(crate) fn transmit_queue_ring_size(&self) -> TransmitQueueRingSize
 	{
-		TransmitQueueRingSize(self.dpdk_information.tx_desc_lim.nb_max)
+		self.transmit_queue_ring_size
 	}
 	
 	/// Limits the number of transmit queues to the device supported maximum queue pairs.
@@ -235,7 +262,7 @@ impl EthernetDeviceCapabilities
 	#[inline(always)]
 	pub fn transmit_burst_maximum_packets(&self) -> usize
 	{
-		self.dpdk_information.default_txportconf.burst_size as usize
+		self.transmit_queue_burst_size
 	}
 	
 	/// Last receive queue.

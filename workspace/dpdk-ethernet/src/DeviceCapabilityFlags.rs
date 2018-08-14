@@ -2,14 +2,16 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Represents a queue ring size.
-///
-/// Also known as the number of descriptors, such as `nb_rx_desc` for the number of receive descriptors.
-pub trait QueueRingSize: Default + Debug + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + Display + TryFrom<u16> + TryFrom<usize> + Into<u16> + Into<usize>
+bitflags!
 {
-	/// Maximum.
-	const Maximum: usize = ::std::u16::MAX as usize;
-	
-	/// Inclusive Maximum
-	const InclusiveMaximum: Self;
+	/// Generic device capability flags.
+	#[derive(Deserialize, Serialize)]
+	pub struct DeviceCapabilityFlags: u64
+	{
+		/// Receive queue setup is possible after the device has started (ie at runtime).
+		const ReceiveQueueSetupPossibleAfterDeviceStarted = RTE_ETH_DEV_CAPA_RUNTIME_RX_QUEUE_SETUP as u64;
+		
+		/// Transmit queue setup is possible after the device has started (ie at runtime).
+		const RuntimeTransmitQueueSetup = RTE_ETH_DEV_CAPA_RUNTIME_TX_QUEUE_SETUP as u64;
+	}
 }

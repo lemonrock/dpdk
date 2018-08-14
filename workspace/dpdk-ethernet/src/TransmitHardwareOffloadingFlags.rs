@@ -5,6 +5,7 @@
 bitflags!
 {
 	/// Transmit hardware offloading flags.
+	#[derive(Deserialize, Serialize)]
 	pub struct TransmitHardwareOffloadingFlags: u64
 	{
 		/// Inserts an IEEE 802.1Q Virtual LAN tag from `rte_mbuf`'s `vlan_tci` field if the relevant offload flags are set in  `rte_mbuf`'s `ol_flags` field.
@@ -92,6 +93,15 @@ bitflags!
 		///
 		/// An application must ensure that all packets come from the same mempool and the reference count is 1.
 		const PacketBufferFastFree = DEV_TX_OFFLOAD_MBUF_FAST_FREE as u64;
+	}
+}
+
+impl Default for TransmitHardwareOffloadingFlags
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::empty()
 	}
 }
 

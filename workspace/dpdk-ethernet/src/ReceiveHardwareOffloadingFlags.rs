@@ -5,6 +5,7 @@
 bitflags!
 {
 	/// Receive hardware offloading flags.
+	#[derive(Deserialize, Serialize)]
 	pub struct ReceiveHardwareOffloadingFlags: u64
 	{
 		/// Strip IEEE 802.1Q Virtual LAN tag from incoming packet, so packet data appears to start with an Ether type, ie as a normal Ethernet packet.
@@ -83,6 +84,15 @@ bitflags!
 		///
 		/// Allows for more efficient processing by the network card at the expense of making it extremely awkward for software to process a received packet, as various data structures might cross packet boundaries.
 		const ReceivePacketAsAChainOfPackets = DEV_RX_OFFLOAD_SCATTER as u64;
+	}
+}
+
+impl Default for ReceiveHardwareOffloadingFlags
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::empty()
 	}
 }
 

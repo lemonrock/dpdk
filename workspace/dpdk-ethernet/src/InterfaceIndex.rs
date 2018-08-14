@@ -2,23 +2,35 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// A receive side scaling (RSS) hash key.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+/// Represents a Linux or FreeBSD interface index (a value that maps to things like `eth0`).
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct ReceiveSideScalingHashKey<'a>(Either<Cow<'a, ReceiveSideScalingToeplitzHashFunctionKeyData40Bytes>, Cow<'a, ReceiveSideScalingToeplitzHashFunctionKeyData52Bytes>>);
+#[repr(transparent)]
+pub struct InterfaceIndex(NonZeroU32);
 
-impl<'a> ReceiveSideScalingHashKey<'a>
+impl From<NonZeroU32> for InterfaceIndex
 {
 	#[inline(always)]
-	pub(crate) fn pointer_and_length(&mut self) -> (*mut u8, u8)
+	fn from(value: NonZeroU32) -> Self
 	{
-		use self::Either::*;
-		
-		match self.0
-		{
-			Left(ref mut forty_bytes) => (forty_bytes.to_mut().0.as_mut_ptr(), 40),
-			
-			Right(ref mut fifty_two_bytes) => (fifty_two_bytes.to_mut().0.as_mut_ptr(), 52),
-		}
+		InterfaceIndex(value)
+	}
+}
+
+impl Into<NonZeroU32> for InterfaceIndex
+{
+	#[inline(always)]
+	fn into(self) -> NonZeroU32
+	{
+		self.0
+	}
+}
+
+impl Into<u32> for InterfaceIndex
+{
+	#[inline(always)]
+	fn into(self) -> u32
+	{
+		self.0.get()
 	}
 }

@@ -3,7 +3,7 @@
 
 
 /// Represents a queue identifier.
-pub trait QueueIdentifier: Display + TryFrom<u16> + TryFrom<usize> + Into<u16> + Into<usize> +  Step + Add<u16, Output=Self> + Add<usize, Output=Self> + AddAssign<u16> + AddAssign<usize> + Sub<u16, Output=Self> + Sub<usize, Output=Self> + SubAssign<u16> + SubAssign<usize>
+pub trait QueueIdentifier: Default + Debug + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + Display + TryFrom<u16> + TryFrom<usize> + Into<u16> + Into<usize> +  Step + Add<u16, Output=Self> + Add<usize, Output=Self> + AddAssign<u16> + AddAssign<usize> + Sub<u16, Output=Self> + Sub<usize, Output=Self> + SubAssign<u16> + SubAssign<usize>
 {
 	/// Maximum.
 	const Maximum: usize = RTE_MAX_QUEUES_PER_PORT as usize;

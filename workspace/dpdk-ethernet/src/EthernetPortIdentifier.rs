@@ -4,6 +4,7 @@
 
 /// An ethernet port identifier.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Deserialize, Serialize)]
 pub struct EthernetPortIdentifier(pub(crate) u16);
 
 impl Display for EthernetPortIdentifier
@@ -157,9 +158,7 @@ impl EthernetPortIdentifier
 		let mut dpdk_information: rte_eth_dev_info = unsafe { uninitialized() };
 		unsafe { rte_eth_dev_info_get(self.0, &mut dpdk_information) };
 		
-		let extended_statistic_names = self.extended_statistic_names();
-		
-		EthernetDeviceCapabilities::from(dpdk_information, extended_statistic_names)
+		EthernetDeviceCapabilities::from(dpdk_information, self.extended_statistic_names(), self.maximum_transmission_unit(), self.firmware_version())
 	}
 	
 	/// Warning: This method will fail if the device is not PCI-based, eg is virtual.
@@ -328,6 +327,68 @@ impl EthernetPortIdentifier
 		
 		unsafe { &mut * data }
 	}
+	
+	#[inline(always)]
+	fn firmware_version(self) -> Option<String>
+	{
+		let result = unsafe { rte_eth_dev_fw_version_get(self.0, null_mut(), 0) };
+		if likely!(result > 0)
+		{
+			let size = result as usize;
+			let mut buffer: Vec<u8> = Vec::with_capacity(size);
+			unsafe { buffer.set_len(size) };
+			let result = unsafe { rte_eth_dev_fw_version_get(self.0, buffer.as_mut_ptr() as *mut _, size) };
+			
+			if likely!(result == 0)
+			{
+				return Some(CStr::from_bytes_with_nul(&buffer[..]).unwrap().to_str().unwrap().to_owned())
+			}
+			
+			match result
+			{
+				NegativeE::EIO => panic!("rte_eth_dev_fw_version_get for ethernet port '{}' reported device removed", self),
+				
+				_ => panic!("rte_eth_dev_fw_version_get for ethernet port '{}' returned an expected result '{}'", self, result)
+			}
+		}
+		else
+		{
+			match result
+			{
+				NegativeE::ENOTSUP => None,
+				
+				NegativeE::ENODEV => panic!("rte_eth_dev_fw_version_get for ethernet port '{}' reported no device", self),
+				NegativeE::EIO => panic!("rte_eth_dev_fw_version_get for ethernet port '{}' reported device removed", self),
+				
+				0 => panic!("Firmware version string should never be zero length including terminating NUL"),
+				
+				_ => panic!("rte_eth_dev_fw_version_get for ethernet port '{}' returned an expected result '{}'", self, result),
+			}
+		}
+	}
+	
+	#[inline(always)]
+	fn maximum_transmission_unit(self) -> MaximumTransmissionUnitSize
+	{
+		let mut maximum_transmission_unit = unsafe { uninitialized() };
+		let result = unsafe { rte_eth_dev_get_mtu(self.0, &mut maximum_transmission_unit) };
+		if likely!(result == 0)
+		{
+			MaximumTransmissionUnitSize::try_from(maximum_transmission_unit).expect("ethernet device very oddly has a maximum transmission unit (MTU) less than the RFC 791 minimum")
+		}
+		else if unlikely!(result > 0)
+		{
+			panic!("rte_eth_dev_get_mtu for ethernet port '{}' returned a positive result '{}'", self, result)
+		}
+		else
+		{
+			match result
+			{
+				NegativeE::ENODEV => panic!("rte_eth_dev_get_mtu for ethernet port '{}' reported no device", self),
+				_ => panic!("rte_eth_dev_get_mtu for ethernet port '{}' returned an expected result '{}'", self, result),
+			}
+		}
+	}
 }
 
 /// Configuration related functionality.
@@ -447,16 +508,18 @@ impl EthernetPortIdentifier
 		use self::rte_fdir_status_mode::*;
 		
 		let device_receive_offloads =
+		{
+			let offload_jumbo_frames_bit = if ethernet_device_capabilities.maximum_receive_packet_length().implies_jumbo_frames()
 			{
-				let offload_jumbo_frames_bit = if ethernet_device_capabilities.maximum_receive_packet_length().implies_jumbo_frames()
-				{
-					ReceiveHardwareOffloadingFlags::common_flags()
-				} else {
-					ReceiveHardwareOffloadingFlags::common_flags_with_jumbo_frames_support()
-				};
-				
-				ethernet_device_capabilities.receive_device_hardware_offloading_flags() & offload_jumbo_frames_bit
+				ReceiveHardwareOffloadingFlags::common_flags()
+			}
+			else
+			{
+				ReceiveHardwareOffloadingFlags::common_flags_with_jumbo_frames_support()
 			};
+			
+			ethernet_device_capabilities.receive_device_hardware_offloading_flags() & offload_jumbo_frames_bit
+		};
 		
 		let device_transmit_offloads = ethernet_device_capabilities.transmit_device_hardware_offloading_flags() & TransmitHardwareOffloadingFlags::common_flags();
 		
@@ -477,7 +540,9 @@ impl EthernetPortIdentifier
 					mq_mode: if receive_side_scaling_hash_key.is_none()
 					{
 						ETH_MQ_RX_NONE
-					} else {
+					}
+					else
+					{
 						ETH_MQ_RX_RSS
 					},
 					
@@ -506,15 +571,15 @@ impl EthernetPortIdentifier
 				{
 					None => unsafe { zeroed() },
 					Some(receive_side_scaling_hash_key) =>
+					{
+						let (pointer, length) = receive_side_scaling_hash_key.pointer_and_length();
+						rte_eth_rss_conf
 						{
-							let (pointer, length) = receive_side_scaling_hash_key.pointer_and_length();
-							rte_eth_rss_conf
-							{
-								rss_key: pointer,
-								rss_key_len: length,
-								rss_hf: ethernet_device_capabilities.receive_side_scaling_offload_flow().bits(),
-							}
+							rss_key: pointer,
+							rss_key_len: length,
+							rss_hf: ethernet_device_capabilities.receive_side_scaling_offload_flow().bits(),
 						}
+					}
 				},
 				
 				vmdq_dcb_conf: unsafe { zeroed() },
@@ -606,8 +671,8 @@ impl EthernetPortIdentifier
 	{
 		let queue_configuration = rte_eth_txconf
 		{
-			tx_thresh: ethernet_device_capabilities.transmit_threshold(),
-			tx_rs_thresh: ethernet_device_capabilities.transmit_rs_threshold(),
+			tx_thresh: ethernet_device_capabilities.transmit_threshold().into(),
+			tx_rs_thresh: ethernet_device_capabilities.transmit_intel_specific_rs_bit_threshold(),
 			tx_free_thresh: ethernet_device_capabilities.transmit_free_threshold(),
 			txq_flags: ETH_TXQ_FLAGS_IGNORE,
 			tx_deferred_start: EthernetDeviceCapabilities::ImmediateStart,
@@ -660,7 +725,7 @@ impl EthernetPortIdentifier
 			
 			rte_eth_rxconf
 			{
-				rx_thresh: ethernet_device_capabilities.receive_threshold(),
+				rx_thresh: ethernet_device_capabilities.receive_threshold().into(),
 				rx_free_thresh: ethernet_device_capabilities.receive_free_threshold(),
 				rx_drop_en: DropPacketsIfNoReceiveDescriptorsAreAvailable,
 				rx_deferred_start: EthernetDeviceCapabilities::ImmediateStart,

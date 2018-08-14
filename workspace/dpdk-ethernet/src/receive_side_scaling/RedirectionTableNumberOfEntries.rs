@@ -4,6 +4,7 @@
 
 /// Receive Side Scaling (RSS) redirection table (RETA).
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Deserialize, Serialize)]
 pub enum RedirectionTableNumberOfEntries
 {
 	/// 64 entries.

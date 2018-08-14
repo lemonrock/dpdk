@@ -2,9 +2,10 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-// See also comments for ETH_RSS_IPV4 in rte_ethdev.h
 bitflags!
 {
+	/// Receive Side Scaling Offload Flow.
+	#[derive(Deserialize, Serialize)]
 	pub struct ReceiveSideScalingOffloadFlow: u64
 	{
 		const Raw = 1 << RTE_ETH_FLOW_RAW;
@@ -117,5 +118,14 @@ bitflags!
 			| 1 << RTE_ETH_FLOW_VXLAN
 			| 1 << RTE_ETH_FLOW_GENEVE
 			| 1 << RTE_ETH_FLOW_NVGRE;
+	}
+}
+
+impl Default for ReceiveSideScalingOffloadFlow
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		Self::empty()
 	}
 }
