@@ -29,23 +29,8 @@ impl ReceiveQueueConfiguration
 	#[inline(always)]
 	pub(crate) fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, queue_identifier: ReceiveQueueIdentifier, default_ethernet_device_receive_queue_capabilities: &EthernetDeviceReceiveQueueCapabilities, queue_packet_buffer_pool: NonNull<rte_mempool>) -> ReceiveBurst
 	{
-		let ethernet_device_receive_queue_capabilities = if let Some(ref ethernet_device_receive_queue_capabilities) = self.overrride_ethernet_device_receive_queue_capabilities
-		{
-			ethernet_device_receive_queue_capabilities
-		}
-		else
-		{
-			default_ethernet_device_receive_queue_capabilities
-		};
-		
-		let queue_ring_numa_node = if let Some(queue_ring_numa_node) = self.queue_ring_numa_node
-		{
-			queue_ring_numa_node
-		}
-		else
-		{
-			ethernet_port_identifier.numa_node_choice().unwrap_or_default()
-		};
+		let ethernet_device_receive_queue_capabilities = self.overrride_ethernet_device_receive_queue_capabilities.as_ref().unwrap_or(default_ethernet_device_receive_queue_capabilities);
+		let queue_ring_numa_node = self.queue_ring_numa_node.unwrap_or_else(|| ethernet_port_identifier.numa_node_choice().unwrap_or_default());
 		
 		let queue_configuration =
 		{
