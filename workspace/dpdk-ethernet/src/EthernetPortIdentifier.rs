@@ -558,7 +558,6 @@ impl EthernetPortIdentifier
 				rxmode
 			},
 			
-			// TODO: If using the flow API, does this matter?
 			rx_adv_conf: rte_eth_conf_1
 			{
 				rss_conf,
@@ -623,6 +622,7 @@ impl EthernetPortIdentifier
 			intr_conf:
 			{
 				const EnableLinkStatusInterrupt: u32 = 1;
+				
 				rte_intr_conf
 				{
 					bitfield_1: rte_intr_conf::newbitfield_1(EnableLinkStatusInterrupt, 0, 0),
