@@ -16,6 +16,7 @@ extern crate serde;
 
 
 use self::bursts::*;
+use self::ethernet_device_capabilities::*;
 use self::link_status::*;
 use self::number_of_queues::*;
 use self::queue_identifiers::*;
@@ -64,6 +65,10 @@ use ::std::sync::Arc;
 pub mod bursts;
 
 
+/// Ethernet device capabilities.
+pub mod ethernet_device_capabilities;
+
+
 /// Link status.
 pub mod link_status;
 
@@ -92,9 +97,4 @@ pub mod ring_threshold_registers;
 pub mod statistics;
 
 
-include!("DeviceCapabilityFlags.rs");
-include!("EthernetDeviceCapabilities.rs");
 include!("EthernetPortIdentifier.rs");
-include!("InterfaceIndex.rs");
-include!("ReceiveHardwareOffloadingFlags.rs");
-include!("TransmitHardwareOffloadingFlags.rs");

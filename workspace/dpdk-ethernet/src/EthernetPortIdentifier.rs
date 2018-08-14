@@ -438,30 +438,6 @@ impl EthernetPortIdentifier
 		}
 	}
 	
-	/// Maximum receive and transmit queue ring sizes.
-	#[inline(always)]
-	pub fn obtain_maximum_receive_and_transmit_queue_ring_sizes(self, ethernet_device_capabilities: &EthernetDeviceCapabilities) -> (ReceiveQueueRingSize, TransmitQueueRingSize)
-	{
-		let mut receive_descriptors = ethernet_device_capabilities.receive_queue_ring_size().into();
-		let mut transmit_descriptors = ethernet_device_capabilities.transmit_queue_ring_size().into();
-		
-		let result = unsafe { rte_eth_dev_adjust_nb_rx_tx_desc(self.0, &mut receive_descriptors, &mut transmit_descriptors) };
-		
-		if likely!(result == 0)
-		{
-			return (ReceiveQueueRingSize(receive_descriptors), TransmitQueueRingSize(transmit_descriptors))
-		}
-		
-		match result
-		{
-			NegativeE::ENODEV => panic!("This ethernet port '{}' is not a device", self),
-			NegativeE::ENOTSUP => panic!("rte_eth_dev_adjust_nb_rx_tx_desc is not supported"),
-			NegativeE::EINVAL => panic!("rte_eth_dev_adjust_nb_rx_tx_desc reports bad arguments"),
-			
-			_ => panic!("rte_eth_dev_adjust_nb_rx_tx_desc returned an unknown error '{}'", result)
-		}
-	}
-	
 //	/// Configure an ethernet device's global hash function.
 //	#[inline(always)]
 //	pub fn configure_receive_side_scaling_hash_function(self)
@@ -550,7 +526,7 @@ impl EthernetPortIdentifier
 					
 					split_hdr_size: 0,
 					
-					offloads: device_receive_offloads.bits,
+					offloads: device_receive_offloads.bits(),
 					
 					bitfield_1:
 					{
@@ -593,7 +569,7 @@ impl EthernetPortIdentifier
 			{
 				mq_mode: ETH_MQ_TX_NONE,
 				
-				offloads: device_transmit_offloads.bits,
+				offloads: device_transmit_offloads.bits(),
 				
 				pvid:
 				{
@@ -646,10 +622,13 @@ impl EthernetPortIdentifier
 		if likely!(result == 0)
 		{
 			return (device_receive_offloads, device_transmit_offloads)
-		} else if likely!(result < 0)
+		}
+		else if likely!(result < 0)
 		{
 			panic!("rte_eth_dev_configure configure failed with code '{}'", result)
-		} else {
+		}
+		else
+		{
 			panic!("rte_eth_dev_configure configure failed with unexpected positive code '{}'", result)
 		}
 	}
@@ -667,16 +646,16 @@ impl EthernetPortIdentifier
 	///
 	/// `queue_ring_numa_node` should ideally be the same as the one for the ethernet port.
 	#[inline(always)]
-	pub fn configure_transmit_queue(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, queue_identifier: TransmitQueueIdentifier, transmit_hardware_offloading_flags: TransmitHardwareOffloadingFlags, queue_ring_size: TransmitQueueRingSize, queue_ring_numa_node: NumaNode, queue_simple_statistics_counter_index: QueueSimpleStatisticCounterIndex) -> TransmitBurst
+	pub fn configure_transmit_queue(self, ethernet_device_transmit_queue_capabilities: &EthernetDeviceTransmitQueueCapabilities, queue_identifier: TransmitQueueIdentifier, transmit_hardware_offloading_flags: TransmitHardwareOffloadingFlags, queue_ring_size: TransmitQueueRingSize, queue_ring_numa_node: NumaNode, queue_simple_statistics_counter_index: QueueSimpleStatisticCounterIndex) -> TransmitBurst
 	{
 		let queue_configuration = rte_eth_txconf
 		{
-			tx_thresh: ethernet_device_capabilities.transmit_threshold().into(),
-			tx_rs_thresh: ethernet_device_capabilities.transmit_intel_specific_rs_bit_threshold(),
-			tx_free_thresh: ethernet_device_capabilities.transmit_free_threshold(),
+			tx_thresh: ethernet_device_transmit_queue_capabilities.transmit_threshold().into(),
+			tx_rs_thresh: ethernet_device_transmit_queue_capabilities.transmit_intel_specific_rs_bit_threshold(),
+			tx_free_thresh: ethernet_device_transmit_queue_capabilities.transmit_free_threshold(),
 			txq_flags: ETH_TXQ_FLAGS_IGNORE,
 			tx_deferred_start: EthernetDeviceCapabilities::ImmediateStart,
-			offloads: (ethernet_device_capabilities.transmit_queue_hardware_offloading_flags() & transmit_hardware_offloading_flags).bits,
+			offloads: (ethernet_device_transmit_queue_capabilities.transmit_queue_hardware_offloading_flags() & transmit_hardware_offloading_flags).bits(),
 		};
 		
 		let result = unsafe { rte_eth_tx_queue_setup(self.0, queue_identifier.into(), queue_ring_size.into(), queue_ring_numa_node.into(), &queue_configuration) };
@@ -687,7 +666,7 @@ impl EthernetPortIdentifier
 			let result = unsafe { rte_eth_dev_set_tx_queue_stats_mapping(self.0, queue_identifier.into(), into) };
 			if likely!(result == 0)
 			{
-				return TransmitBurst::new(self, ethernet_device_capabilities, queue_identifier)
+				return TransmitBurst::new(self, ethernet_device_transmit_queue_capabilities, queue_identifier)
 			}
 			else
 			{
@@ -717,7 +696,7 @@ impl EthernetPortIdentifier
 	///
 	/// `queue_packet_buffer_pool` should ideally be on the numa node `queue_ring_numa_node`.
 	#[inline(always)]
-	pub fn configure_receive_queue(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, queue_identifier: ReceiveQueueIdentifier, receive_hardware_offloading_flags: ReceiveHardwareOffloadingFlags, queue_ring_size: ReceiveQueueRingSize, queue_ring_numa_node: NumaNode, queue_simple_statistics_counter_index: QueueSimpleStatisticCounterIndex, queue_packet_buffer_pool: NonNull<rte_mempool>) -> ReceiveBurst
+	pub fn configure_receive_queue(self, ethernet_device_receive_queue_capabilities: &EthernetDeviceReceiveQueueCapabilities, queue_identifier: ReceiveQueueIdentifier, receive_hardware_offloading_flags: ReceiveHardwareOffloadingFlags, queue_ring_size: ReceiveQueueRingSize, queue_ring_numa_node: NumaNode, queue_simple_statistics_counter_index: QueueSimpleStatisticCounterIndex, queue_packet_buffer_pool: NonNull<rte_mempool>) -> ReceiveBurst
 	{
 		let queue_configuration =
 		{
@@ -725,11 +704,11 @@ impl EthernetPortIdentifier
 			
 			rte_eth_rxconf
 			{
-				rx_thresh: ethernet_device_capabilities.receive_threshold().into(),
-				rx_free_thresh: ethernet_device_capabilities.receive_free_threshold(),
+				rx_thresh: ethernet_device_receive_queue_capabilities.receive_threshold().into(),
+				rx_free_thresh: ethernet_device_receive_queue_capabilities.receive_free_threshold(),
 				rx_drop_en: DropPacketsIfNoReceiveDescriptorsAreAvailable,
 				rx_deferred_start: EthernetDeviceCapabilities::ImmediateStart,
-				offloads: (ethernet_device_capabilities.receive_queue_hardware_offloading_flags() & receive_hardware_offloading_flags).bits,
+				offloads: (ethernet_device_receive_queue_capabilities.receive_queue_hardware_offloading_flags() & receive_hardware_offloading_flags).bits(),
 			}
 		};
 		
@@ -742,7 +721,7 @@ impl EthernetPortIdentifier
 			
 			if likely!(result == 0)
 			{
-				return ReceiveBurst::new(self, ethernet_device_capabilities, queue_identifier)
+				return ReceiveBurst::new(self, ethernet_device_receive_queue_capabilities, queue_identifier)
 			}
 			else
 			{

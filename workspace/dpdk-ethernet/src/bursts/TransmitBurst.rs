@@ -100,7 +100,7 @@ impl TransmitBurst
 	}
 	
 	#[inline(always)]
-	pub(crate) fn new(ethernet_port_identifier: EthernetPortIdentifier, ethernet_device_capabilities: &EthernetDeviceCapabilities, queue_identifier: TransmitQueueIdentifier) -> TransmitBurst
+	pub(crate) fn new(ethernet_port_identifier: EthernetPortIdentifier, ethernet_device_transmit_queue_capabilities: &EthernetDeviceTransmitQueueCapabilities, queue_identifier: TransmitQueueIdentifier) -> TransmitBurst
 	{
 		let ethernet_device_mutable = ethernet_port_identifier.ethernet_device_mutable();
 		
@@ -119,7 +119,7 @@ impl TransmitBurst
 		{
 			transmit_burst_function_pointer: ethernet_device_mutable.tx_pkt_burst,
 			transmit_queue: ethernet_port_identifier.transmit_queue(queue_identifier),
-			maximum_number_of_packets_which_can_be_transmitted_at_once: ethernet_device_capabilities.transmit_burst_maximum_packets(),
+			maximum_number_of_packets_which_can_be_transmitted_at_once: ethernet_device_transmit_queue_capabilities.transmit_burst_maximum_packets(),
 			transmit_prepare_function_pointer: match ethernet_device_mutable.tx_pkt_prepare
 			{
 				None => TransmitBurst::prepare_is_unsupported,

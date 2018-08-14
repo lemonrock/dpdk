@@ -50,7 +50,7 @@ impl ReceiveBurst
 	}
 	
 	#[inline(always)]
-	pub(crate) fn new(ethernet_port_identifier: EthernetPortIdentifier, ethernet_device_capabilities: &EthernetDeviceCapabilities, queue_identifier: ReceiveQueueIdentifier) -> ReceiveBurst
+	pub(crate) fn new(ethernet_port_identifier: EthernetPortIdentifier, ethernet_device_receive_queue_capabilities: &EthernetDeviceReceiveQueueCapabilities, queue_identifier: ReceiveQueueIdentifier) -> ReceiveBurst
 	{
 		let receive_queue_information = ethernet_port_identifier.receive_queue_information(queue_identifier);
 		debug_assert_eq!(receive_queue_information.scattered_rx, 0, "Packet receive scatter (ie multiple segment, non-contiguous packets) is not supported but this queue has it enabled");
@@ -73,7 +73,7 @@ impl ReceiveBurst
 		{
 			receive_burst_function_pointer: ethernet_device_mutable.rx_pkt_burst,
 			receive_queue: ethernet_port_identifier.receive_queue(queue_identifier),
-			maximum_number_of_packets_which_can_be_received_at_once: ethernet_device_capabilities.receive_burst_maximum_packets(),
+			maximum_number_of_packets_which_can_be_received_at_once: ethernet_device_receive_queue_capabilities.receive_burst_maximum_packets(),
 			receive_memory_pool: unsafe { NonNull::new_unchecked(receive_queue_information.mp) },
 		}
 	}
