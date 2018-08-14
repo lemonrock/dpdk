@@ -475,7 +475,7 @@ impl EthernetPortIdentifier
 	
 	/// Configure an ethernet device.
 	#[inline(always)]
-	pub fn configure_ethernet_device<'a>(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: TransmitNumberOfQueues, number_of_transmit_queues: TransmitNumberOfQueues, receive_side_scaling_hash_key: Option<&mut ReceiveSideScalingHashKey<'a>>)
+	pub fn configure_ethernet_device<'a>(self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: ReceiveNumberOfQueues, number_of_transmit_queues: TransmitNumberOfQueues, receive_side_scaling_toeplitz_hash_function_key_data_strategy: ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy, receive_side_scaling_redirection_table_strategy: &RedirectionTableStategy)
 	{
 		use self::rte_eth_rx_mq_mode::*;
 		use self::rte_eth_tx_mq_mode::*;
@@ -500,23 +500,27 @@ impl EthernetPortIdentifier
 		let device_transmit_offloads = ethernet_device_capabilities.transmit_device_hardware_offloading_flags() & TransmitHardwareOffloadingFlags::common_flags();
 		
 		// TODO: If using the flow API, does this matter?
-		let (mq_mode, rss_conf) = match receive_side_scaling_hash_key
+		let (mq_mode, rss_conf, drop_prevention_when_calling_ffi_function, redirection_table) = match receive_side_scaling_toeplitz_hash_function_key_data_strategy.create(ethernet_device_capabilities, number_of_receive_queues)
 		{
-			None => (ETH_MQ_RX_NONE, unsafe { zeroed() }),
-			Some(receive_side_scaling_hash_key) =>
+			None => (ETH_MQ_RX_NONE, unsafe { zeroed() }, None, None),
+			Some(mut receive_side_scaling_hash_key) => match receive_side_scaling_redirection_table_strategy.create(ethernet_device_capabilities, number_of_receive_queues).expect("If there is a RSS key size")
 			{
-				let rss_conf =
+				None => (ETH_MQ_RX_NONE, unsafe { zeroed() }, None, None),
+				Some(redirection_table) =>
 				{
-					let (pointer, length) = receive_side_scaling_hash_key.pointer_and_length();
-					rte_eth_rss_conf
+					let rss_conf =
 					{
-						rss_key: pointer,
-						rss_key_len: length,
-						rss_hf: ethernet_device_capabilities.receive_side_scaling_offload_flow().bits(),
-					}
-				};
-				
-				(ETH_MQ_RX_RSS, rss_conf)
+						let (pointer, length) = receive_side_scaling_hash_key.pointer_and_length();
+						rte_eth_rss_conf
+						{
+							rss_key: pointer,
+							rss_key_len: length,
+							rss_hf: ethernet_device_capabilities.receive_side_scaling_offload_flow().bits(),
+						}
+					};
+					
+					(ETH_MQ_RX_RSS, rss_conf, Some(receive_side_scaling_hash_key), Some(redirection_table))
+				}
 			}
 		};
 		
@@ -634,8 +638,14 @@ impl EthernetPortIdentifier
 		
 		let result = unsafe { rte_eth_dev_configure(self.0, number_of_receive_queues.into(), number_of_transmit_queues.into(), &ethernet_configuration) };
 		
+		drop(drop_prevention_when_calling_ffi_function);
+		
 		if likely!(result == 0)
 		{
+			if let Some(mut redirection_table) = redirection_table
+			{
+				redirection_table.configure(self)
+			}
 			return
 		}
 		else if likely!(result < 0)
@@ -646,13 +656,6 @@ impl EthernetPortIdentifier
 		{
 			panic!("rte_eth_dev_configure configure failed with unexpected positive code '{}'", result)
 		}
-	}
-	
-	/// Configure the redirection table.
-	#[inline(always)]
-	pub fn configure_redirection_table(self, redirection_table: &mut RedirectionTable)
-	{
-		redirection_table.configure(self)
 	}
 	
 	/// Configure a transmit queue.

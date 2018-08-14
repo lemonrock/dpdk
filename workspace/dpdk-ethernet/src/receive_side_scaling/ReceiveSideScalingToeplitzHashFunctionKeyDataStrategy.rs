@@ -34,7 +34,7 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
 {
 	/// Creates an array of receive side scaling bytes.
 	#[inline(always)]
-	pub fn create<'a>(&'a self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: ReceiveNumberOfQueues) -> Result<ReceiveSideScalingHashKey<'a>, ()>
+	pub fn create<'a>(&'a self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: ReceiveNumberOfQueues) -> Option<ReceiveSideScalingHashKey<'a>>
 	{
 		use self::ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy::*;
 		use self::Cow::*;
@@ -47,7 +47,7 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
 		}
 		else
 		{
-			return Err(())
+			return None
 		};
 		
 		let key = match *self
@@ -73,6 +73,6 @@ impl ReceiveSideScalingToeplitzHashFunctionKeyDataStrategy
 			}
 		};
 		
-		Ok(key)
+		Some(key)
 	}
 }

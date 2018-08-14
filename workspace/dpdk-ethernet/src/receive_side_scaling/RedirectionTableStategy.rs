@@ -29,7 +29,7 @@ impl RedirectionTableStategy
 	///
 	/// If `first_queue >= number_of_receive_queues`, returns an Error.
 	#[inline(always)]
-	pub fn create(&self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: ReceiveNumberOfQueues) -> Result<RedirectionTable, ()>
+	pub fn create(&self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: ReceiveNumberOfQueues) -> Result<Option<RedirectionTable>, ()>
 	{
 		use self::RedirectionTableStategy::*;
 		use self::RedirectionTable::*;
@@ -73,7 +73,7 @@ impl RedirectionTableStategy
 		}
 		else
 		{
-			return Err(())
+			return Ok(None)
 		};
 		
 		match *self
@@ -127,7 +127,7 @@ impl RedirectionTableStategy
 					),
 				};
 				
-				Ok(redirection_table)
+				Ok(Some(redirection_table))
 			}
 		}
 	}
