@@ -8,7 +8,7 @@
 pub struct VirtualDeviceName<V: DeviceDriverName>
 {
 	virtual_device_driver_name: V,
-	index: u8,
+	index: VirtualDeviceIndex,
 }
 
 impl<V: DeviceDriverName> DeviceName for VirtualDeviceName<V>
@@ -22,17 +22,12 @@ impl<V: DeviceDriverName> DeviceName for VirtualDeviceName<V>
 
 impl<V: DeviceDriverName> VirtualDeviceName<V>
 {
-	/// Maximum number of ethernet ports dictates this value.
-	pub const MaximumIndex: u8 = 32;
-	
 	/// New instance.
 	///
 	/// `index` is a 5-bit unsigned integer.
 	#[inline(always)]
-	pub fn new(virtual_device_driver_name: V, index: u8) -> Self
+	pub fn new(virtual_device_driver_name: V, index: VirtualDeviceIndex) -> Self
 	{
-		assert!(index < Self::MaximumIndex, "index '{}' can not equal or exceed MaximumIndex '{}'", index, Self::MaximumIndex);
-
 		VirtualDeviceName
 		{
 			virtual_device_driver_name,
@@ -49,13 +44,13 @@ impl<V: DeviceDriverName> VirtualDeviceName<V>
 	#[inline(always)]
 	fn index_to_base32_lower_case(&self) -> char
 	{
-		let index = self.index;
+		let index = self.index.into();
 		match index
 		{
 			0...9 => (48u8 + index) as char,
 			10...31 => (97u8 + index - 10) as char,
 
-			_ => panic!("index can not be {} or greater, but it was: '{}", Self::MaximumIndex, index),
+			_ => unreachable!(),
 		}
 	}
 }

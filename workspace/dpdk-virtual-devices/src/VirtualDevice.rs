@@ -12,17 +12,15 @@ pub trait VirtualDevice: Debug + Sized
 	const DriverName: Self::V;
 
 	/// Name.
-	///
-	/// The index is a 5-bit unsigned integer.
 	#[inline(always)]
-	fn name(&self, index: u8) -> VirtualDeviceName<Self::V>
+	fn name(&self, index: VirtualDeviceIndex) -> VirtualDeviceName<Self::V>
 	{
 		VirtualDeviceName::new(Self::DriverName, index)
 	}
 
 	#[doc(hidden)]
 	#[inline(always)]
-	fn as_initialization_argument(&self, index: u8) -> String
+	fn as_initialization_argument(&self, index: VirtualDeviceIndex) -> String
 	{
 		format!("{}{}", self.name(index).to_string(), self.formatted_virtual_device_arguments_with_leading_comma())
 	}

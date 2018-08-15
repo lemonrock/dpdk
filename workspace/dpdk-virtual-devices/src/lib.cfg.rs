@@ -14,6 +14,7 @@ use ::dpdk_bus::pci::DpdkPciDeviceAddress;
 use ::dpdk_core::*;
 use ::network_ethernet::MediaAccessControlAddress;
 use ::std::collections::HashSet;
+use ::std::convert::TryFrom;
 use ::std::fmt::Debug;
 use ::std::path::Path;
 
@@ -23,4 +24,5 @@ pub mod net_virtual_devices;
 
 
 include!("VirtualDevice.rs");
+include!("VirtualDeviceIndex.rs");
 include!("VirtualDeviceName.rs");

@@ -19,14 +19,17 @@ pub enum NetVirtualDeviceDriverName
 	/// Packet capture (pcap).
 	PacketCapture,
 	
+	/// Linux TAP.
+	Tap,
+	
+	/// Linux TUN.
+	Tun,
+	
 	/// virtio hypervisor network interface.
 	VirtIoUser,
 	
 	/// vhost hypervisor network interface.
 	VirtualHost,
-	
-	/// Xen hypervisor network interface.
-	Xen,
 }
 
 impl DeviceDriverName for NetVirtualDeviceDriverName
@@ -42,9 +45,10 @@ impl DeviceDriverName for NetVirtualDeviceDriverName
 			Bonding => "net_bonding",
 			KernelNativeInterface => "net_kni",
 			PacketCapture => "net_pcap",
+			Tap => "net_tap",
+			Tun => "net_tun",
 			VirtIoUser => "net_virtio_user",
 			VirtualHost => "net_vhost",
-			Xen => "net_xen",
 		}
 	}
 }
