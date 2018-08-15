@@ -13,8 +13,10 @@ pub struct EthernetDeviceCapabilities
 	maximum_receive_packet_length: u16,
 	receive_device_hardware_offloading_flags: ReceiveHardwareOffloadingFlags,
 	ethernet_device_receive_queue_capabilities: EthernetDeviceReceiveQueueCapabilities,
+	receive_queue_ring_size_constraints: QueueRingSizeConstraints<ReceiveQueueRingSize>,
 	transmit_device_hardware_offloading_flags: TransmitHardwareOffloadingFlags,
 	ethernet_device_transmit_queue_capabilities: EthernetDeviceTransmitQueueCapabilities,
+	transmit_queue_ring_size_constraints: QueueRingSizeConstraints<TransmitQueueRingSize>,
 	receive_side_scaling_offload_flow: ReceiveSideScalingOffloadFlow,
 	receive_side_scaling_is_unavailable: bool,
 	receive_side_scaling_hash_key_size: Option<ReceiveSideScalingHashKeySize>,
@@ -72,8 +74,10 @@ impl EthernetDeviceCapabilities
 			},
 			receive_device_hardware_offloading_flags: ReceiveHardwareOffloadingFlags::from_bits_truncate(dpdk_information.rx_offload_capa),
 			ethernet_device_receive_queue_capabilities: EthernetDeviceReceiveQueueCapabilities::from(&dpdk_information),
+			receive_queue_ring_size_constraints: QueueRingSizeConstraints::from(dpdk_information.rx_desc_lim),
 			transmit_device_hardware_offloading_flags: TransmitHardwareOffloadingFlags::from_bits_truncate(dpdk_information.tx_offload_capa),
 			ethernet_device_transmit_queue_capabilities: EthernetDeviceTransmitQueueCapabilities::from(&dpdk_information),
+			transmit_queue_ring_size_constraints: QueueRingSizeConstraints::from(dpdk_information.tx_desc_lim),
 			receive_side_scaling_offload_flow: ReceiveSideScalingOffloadFlow::from_bits_truncate(dpdk_information.flow_type_rss_offloads),
 			receive_side_scaling_is_unavailable,
 			receive_side_scaling_hash_key_size:
@@ -87,7 +91,7 @@ impl EthernetDeviceCapabilities
 					use self::ReceiveSideScalingHashKeySize::*;
 					match dpdk_information.hash_key_size
 					{
-						// Some drivers, such as Mellanox's ?still report zero when they mean 40.
+						// Some drivers, such as Mellanox's ?still? report zero when they mean 40.
 						0 => Some(Forty),
 						
 						40 => Some(Forty),
@@ -137,11 +141,12 @@ impl EthernetDeviceCapabilities
 		EthernetFrameLength::try_from_with_jumbo_frames(self.maximum_receive_packet_length)
 	}
 	
-	/// Receive side scaling supported offload flows.
+	/// Validate that the number of receive queues does not exceed the number of queue pairs available.
 	#[inline(always)]
-	pub fn receive_side_scaling_offload_flow(&self) -> ReceiveSideScalingOffloadFlow
+	pub fn validate_not_too_many_receive_queues(&self, number_of_receive_queues: usize)
 	{
-		self.receive_side_scaling_offload_flow
+		assert!(number_of_receive_queues <= self.maximum_queue_pairs as usize);
+		panic!("Too many ('{}') receive queues configured (maximum is '{}')", number_of_receive_queues, self.maximum_queue_pairs)
 	}
 	
 	/// Receive hardware offloading flags for what the ethernet device supports generally.
@@ -158,11 +163,19 @@ impl EthernetDeviceCapabilities
 		&self.ethernet_device_receive_queue_capabilities
 	}
 	
-	/// Limits the number of receive queues to the device supported maximum queue pairs.
+	/// Receive queue ring size constraints.
 	#[inline(always)]
-	pub fn limit_number_of_receive_queues(&self, any_number_of_receive_queues: usize) -> ReceiveNumberOfQueues
+	pub fn receive_queue_ring_size_constraints(&self) -> &QueueRingSizeConstraints<ReceiveQueueRingSize>
 	{
-		ReceiveNumberOfQueues(min(self.maximum_queue_pairs as usize, any_number_of_receive_queues) as u16)
+		&self.receive_queue_ring_size_constraints
+	}
+	
+	/// Validate that the number of transmit queues does not exceed the number of queue pairs available.
+	#[inline(always)]
+	pub fn validate_not_too_many_transmit_queues(&self, number_of_transmit_queues: usize)
+	{
+		assert!(number_of_transmit_queues <= self.maximum_queue_pairs as usize);
+		panic!("Too many ('{}') transmit queues configured (maximum is '{}')", number_of_transmit_queues, self.maximum_queue_pairs)
 	}
 	
 	/// Transmit hardware offloading flags for what the ethernet device supports generally.
@@ -179,11 +192,11 @@ impl EthernetDeviceCapabilities
 		&self.ethernet_device_transmit_queue_capabilities
 	}
 	
-	/// Limits the number of transmit queues to the device supported maximum queue pairs.
+	/// Transmit queue ring size constraints.
 	#[inline(always)]
-	pub fn limit_number_of_transmit_queues(&self, any_number_of_transmit_queues: usize) -> TransmitNumberOfQueues
+	pub fn transmit_queue_ring_size_constraints(&self) -> &QueueRingSizeConstraints<TransmitQueueRingSize>
 	{
-		TransmitNumberOfQueues(min(self.maximum_queue_pairs as usize, any_number_of_transmit_queues) as u16)
+		&self.transmit_queue_ring_size_constraints
 	}
 	
 	/// Last receive queue.
@@ -206,6 +219,13 @@ impl EthernetDeviceCapabilities
 		
 		let last_receive_queue = min(first_receive_queue.saturating_add(limit_number_of_receive_queues), limit_number_of_receive_queues - 1);
 		Some(ReceiveQueueIdentifier(last_receive_queue))
+	}
+	
+	/// Receive side scaling supported offload flows.
+	#[inline(always)]
+	pub fn receive_side_scaling_offload_flow(&self) -> ReceiveSideScalingOffloadFlow
+	{
+		self.receive_side_scaling_offload_flow
 	}
 	
 	/// Is receive side scaling unavailable?
@@ -234,5 +254,12 @@ impl EthernetDeviceCapabilities
 	pub fn redirection_table_number_of_entries(&self) -> Option<RedirectionTableNumberOfEntries>
 	{
 		self.redirection_table_number_of_entries
+	}
+	
+	/// Limits the number of receive queues to the device supported maximum queue pairs.
+	#[inline(always)]
+	fn limit_number_of_receive_queues(&self, any_number_of_receive_queues: usize) -> ReceiveNumberOfQueues
+	{
+		ReceiveNumberOfQueues(min(self.maximum_queue_pairs as usize, any_number_of_receive_queues) as u16)
 	}
 }

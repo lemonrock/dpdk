@@ -33,7 +33,7 @@ pub struct ReceiveQueueConfiguration
 impl ReceiveQueueConfiguration
 {
 	/// `queue_packet_buffer_pool` should ideally be on the same NUMA node as that used for the ethernet port.
-	pub(crate) fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, queue_identifier: ReceiveQueueIdentifier, default_ethernet_device_receive_queue_capabilities: &EthernetDeviceReceiveQueueCapabilities, default_packet_buffer_pools: &HashMap<NumaNode, PacketBufferPoolReference>, packet_buffer_pools: &HashMap<PacketBufferPoolReference, PacketBufferPool>) -> ReceiveBurst
+	pub(crate) fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, queue_identifier: ReceiveQueueIdentifier, default_ethernet_device_receive_queue_capabilities: &EthernetDeviceReceiveQueueCapabilities, queue_ring_size_constraints: &QueueRingSizeConstraints<ReceiveQueueRingSize>, default_packet_buffer_pools: &HashMap<NumaNode, PacketBufferPoolReference>, packet_buffer_pools: &HashMap<PacketBufferPoolReference, PacketBufferPool>) -> ReceiveBurst
 	{
 		let ethernet_device_receive_queue_capabilities = self.overrride_ethernet_device_receive_queue_capabilities.as_ref().unwrap_or(default_ethernet_device_receive_queue_capabilities);
 		let queue_ring_numa_node = self.queue_ring_numa_node.unwrap_or_else(|| ethernet_port_identifier.numa_node_choice().unwrap_or_default());
@@ -58,7 +58,7 @@ impl ReceiveQueueConfiguration
 			packet_buffer_pools.get(&packet_buffer_pool_reference).expect(&format!("packet buffer pool reference '{:?}' not created", packet_buffer_pool_reference)).as_ptr()
 		};
 		
-		let result = unsafe { rte_eth_rx_queue_setup(ethernet_port_identifier.into(), queue_identifier.into(), ethernet_device_receive_queue_capabilities.queue_ring_size().into(), queue_ring_numa_node.into(), &queue_configuration, packet_buffer_pool) };
+		let result = unsafe { rte_eth_rx_queue_setup(ethernet_port_identifier.into(), queue_identifier.into(), ethernet_device_receive_queue_capabilities.queue_ring_size(queue_ring_size_constraints).into(), queue_ring_numa_node.into(), &queue_configuration, packet_buffer_pool) };
 		
 		if likely!(result == 0)
 		{

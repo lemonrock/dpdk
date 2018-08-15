@@ -52,9 +52,9 @@ impl EthernetDeviceReceiveQueueCapabilities
 	
 	/// Receive queue ring size.
 	#[inline(always)]
-	pub fn queue_ring_size(&self) -> ReceiveQueueRingSize
+	pub fn queue_ring_size(&self, queue_ring_size_constraints: &QueueRingSizeConstraints<ReceiveQueueRingSize>) -> ReceiveQueueRingSize
 	{
-		self.queue_ring_size
+		queue_ring_size_constraints.constrain(self.queue_ring_size)
 	}
 	
 	/// Receive burst maximum packets.

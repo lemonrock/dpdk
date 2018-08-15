@@ -40,6 +40,9 @@ impl EthernetPortConfiguration
 	{
 		let ethernet_device_capabilities = ethernet_port_identifier.ethernet_device_capabilities();
 		
+		ethernet_device_capabilities.validate_not_too_many_receive_queues(self.receive_queue_configurations.len());
+		ethernet_device_capabilities.validate_not_too_many_transmit_queues(self.transmit_queue_configurations.len());
+		
 		if let Some(media_access_control_address) = self.media_access_control_address
 		{
 			ethernet_port_identifier.configure_default_media_access_control_address(media_access_control_address);
@@ -67,7 +70,7 @@ impl EthernetPortConfiguration
 		let mut transmit_bursts = Vec::with_capacity(self.transmit_queue_configurations.len());
 		for transmit_queue_configuration in self.transmit_queue_configurations.iter()
 		{
-			transmit_bursts.push(transmit_queue_configuration.configure(ethernet_port_identifier, queue_identifier, default_ethernet_device_transmit_queue_capabilities));
+			transmit_bursts.push(transmit_queue_configuration.configure(ethernet_port_identifier, queue_identifier, default_ethernet_device_transmit_queue_capabilities, ethernet_device_capabilities.transmit_queue_ring_size_constraints()));
 			queue_identifier += 1u16;
 		}
 		transmit_bursts.into_boxed_slice()
@@ -83,7 +86,7 @@ impl EthernetPortConfiguration
 		let mut receive_bursts = Vec::with_capacity(self.receive_queue_configurations.len());
 		for receive_queue_configuration in self.receive_queue_configurations.iter()
 		{
-			receive_bursts.push(receive_queue_configuration.configure(ethernet_port_identifier, queue_identifier, default_ethernet_device_receive_queue_capabilities, &packet_buffer_pool_references, packet_buffer_pools));
+			receive_bursts.push(receive_queue_configuration.configure(ethernet_port_identifier, queue_identifier, default_ethernet_device_receive_queue_capabilities, ethernet_device_capabilities.receive_queue_ring_size_constraints(), &packet_buffer_pool_references, packet_buffer_pools));
 			queue_identifier += 1u16;
 		}
 		receive_bursts.into_boxed_slice()

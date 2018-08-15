@@ -40,9 +40,9 @@ impl EthernetDeviceTransmitQueueCapabilities
 	
 	/// Transmit queue ring size.
 	#[inline(always)]
-	pub fn queue_ring_size(&self) -> TransmitQueueRingSize
+	pub fn queue_ring_size(&self, queue_ring_size_constraints: &QueueRingSizeConstraints<TransmitQueueRingSize>) -> TransmitQueueRingSize
 	{
-		self.queue_ring_size
+		queue_ring_size_constraints.constrain(self.queue_ring_size)
 	}
 	
 	/// Transmit burst maximum packets.

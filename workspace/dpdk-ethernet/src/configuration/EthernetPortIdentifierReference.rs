@@ -20,8 +20,8 @@ impl EthernetPortIdentifierReference
 	///
 	/// Only works after configuration of the DPDK environment.
 	#[inline(always)]
-	fn ethernet_port_identifier(&self) -> EthernetPortIdentifier
+	pub(crate) fn ethernet_port_identifier(&self) -> EthernetPortIdentifier
 	{
-		unimplemented!()
+		panic!();
 	}
 }

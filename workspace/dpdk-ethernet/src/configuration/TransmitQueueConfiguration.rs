@@ -26,7 +26,7 @@ pub struct TransmitQueueConfiguration
 
 impl TransmitQueueConfiguration
 {
-	pub(crate) fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, queue_identifier: TransmitQueueIdentifier, default_ethernet_device_transmit_queue_capabilities: &EthernetDeviceTransmitQueueCapabilities) -> TransmitBurst
+	pub(crate) fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, queue_identifier: TransmitQueueIdentifier, default_ethernet_device_transmit_queue_capabilities: &EthernetDeviceTransmitQueueCapabilities, queue_ring_size_constraints: &QueueRingSizeConstraints<TransmitQueueRingSize>) -> TransmitBurst
 	{
 		let ethernet_device_transmit_queue_capabilities = self.overrride_ethernet_device_transmit_queue_capabilities.as_ref().unwrap_or(default_ethernet_device_transmit_queue_capabilities);
 		let queue_ring_numa_node = self.queue_ring_numa_node.unwrap_or_else(|| ethernet_port_identifier.numa_node_choice().unwrap_or_default());
@@ -41,7 +41,7 @@ impl TransmitQueueConfiguration
 			offloads: (ethernet_device_transmit_queue_capabilities.queue_hardware_offloading_flags() & self.hardware_offloading_flags).bits(),
 		};
 		
-		let result = unsafe { rte_eth_tx_queue_setup(ethernet_port_identifier.into(), queue_identifier.into(), ethernet_device_transmit_queue_capabilities.queue_ring_size().into(), queue_ring_numa_node.into(), &queue_configuration) };
+		let result = unsafe { rte_eth_tx_queue_setup(ethernet_port_identifier.into(), queue_identifier.into(), ethernet_device_transmit_queue_capabilities.queue_ring_size(queue_ring_size_constraints).into(), queue_ring_numa_node.into(), &queue_configuration) };
 		
 		if likely!(result == 0)
 		{

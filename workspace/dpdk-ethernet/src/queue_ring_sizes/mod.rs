@@ -6,5 +6,6 @@ use super::*;
 
 
 include!("QueueRingSize.rs");
+include!("QueueRingSizeConstraints.rs");
 include!("ReceiveQueueRingSize.rs");
 include!("TransmitQueueRingSize.rs");
