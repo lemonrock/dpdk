@@ -15,6 +15,16 @@ impl Display for TransmitQueueIdentifier
 	}
 }
 
+impl From<u8> for TransmitQueueIdentifier
+{
+	#[inline(always)]
+	fn from(value: u8) -> Self
+	{
+		debug_assert!(Self::Maximum >= ::std::u8::MAX as usize, "Invariant violated");
+		TransmitQueueIdentifier(value as u16)
+	}
+}
+
 impl TryFrom<u16> for TransmitQueueIdentifier
 {
 	type Error = ();

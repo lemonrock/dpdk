@@ -18,6 +18,8 @@ pub enum HashFunctionKeyDataStrategy
 	},
 	
 	/// Generate a Layer 4 hash key using the number of queues as an input.
+	///
+	/// Only really suitable for a Toeplitz hash function.
 	ForNumberOfQueues,
 }
 

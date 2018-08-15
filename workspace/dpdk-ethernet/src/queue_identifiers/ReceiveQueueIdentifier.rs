@@ -15,6 +15,16 @@ impl Display for ReceiveQueueIdentifier
 	}
 }
 
+impl From<u8> for ReceiveQueueIdentifier
+{
+	#[inline(always)]
+	fn from(value: u8) -> Self
+	{
+		debug_assert!(Self::Maximum >= ::std::u8::MAX as usize, "Invariant violated");
+		ReceiveQueueIdentifier(value as u16)
+	}
+}
+
 impl TryFrom<u16> for ReceiveQueueIdentifier
 {
 	type Error = ();
