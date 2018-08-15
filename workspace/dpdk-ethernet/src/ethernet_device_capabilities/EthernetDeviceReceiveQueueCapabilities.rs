@@ -46,7 +46,8 @@ impl EthernetDeviceReceiveQueueCapabilities
 				let ring_size = if recommended_ring_size == 0
 				{
 					let maximum_queue_size = dpdk_information.rx_desc_lim.nb_max;
-					debug_assert_eq!(maximum_queue_size, 0, "dpdk_information.rx_desc_lim.nb_max is zero!")
+					debug_assert_eq!(maximum_queue_size, 0, "dpdk_information.rx_desc_lim.nb_max is zero!");
+					maximum_queue_size
 				}
 				else
 				{
@@ -64,12 +65,12 @@ impl EthernetDeviceReceiveQueueCapabilities
 				}
 				else
 				{
-					recommended_burst_size
+					recommended_burst_size as usize
 				};
 				unsafe { NonZeroUsize::new_unchecked(burst_size) }
 			},
 			threshold: ReceiveRingThresholdRegisters::from(dpdk_information.default_rxconf.rx_thresh),
-			free_threshold: dpdk_information.default_rxconf.rx_free_thresh,
+			free_threshold: NonZeroU16::new(dpdk_information.default_rxconf.rx_free_thresh).expect("dpdk_information.default_rxconf.rx_free_thresh was zero"),
 		}
 	}
 	

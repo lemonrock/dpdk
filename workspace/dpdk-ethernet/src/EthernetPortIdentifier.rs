@@ -190,6 +190,30 @@ impl EthernetPortIdentifier
 		NumaNodeChoice::from_i32(self.data().numa_node)
 	}
 	
+	/// Current maximum transmission unit.
+	#[inline(always)]
+	pub fn maximum_transmission_unit(self) -> MaximumTransmissionUnitSize
+	{
+		let mut maximum_transmission_unit = unsafe { uninitialized() };
+		let result = unsafe { rte_eth_dev_get_mtu(self.0, &mut maximum_transmission_unit) };
+		if likely!(result == 0)
+		{
+			MaximumTransmissionUnitSize::try_from(maximum_transmission_unit).expect("ethernet device very oddly has a maximum transmission unit (MTU) less than the RFC 791 minimum")
+		}
+		else if unlikely!(result > 0)
+		{
+			panic!("rte_eth_dev_get_mtu for ethernet port '{}' returned a positive result '{}'", self, result)
+		}
+		else
+		{
+			match result
+			{
+				NegativeE::ENODEV => panic!("rte_eth_dev_get_mtu for ethernet port '{}' reported no device", self),
+				_ => panic!("rte_eth_dev_get_mtu for ethernet port '{}' returned an expected result '{}'", self, result),
+			}
+		}
+	}
+	
 	#[inline(always)]
 	fn try_from_u16_unchecked(potential_ethernet_port_identifier: u16) -> Result<Self, ()>
 	{
@@ -363,29 +387,6 @@ impl EthernetPortIdentifier
 				0 => panic!("Firmware version string should never be zero length including terminating NUL"),
 				
 				_ => panic!("rte_eth_dev_fw_version_get for ethernet port '{}' returned an expected result '{}'", self, result),
-			}
-		}
-	}
-	
-	#[inline(always)]
-	fn maximum_transmission_unit(self) -> MaximumTransmissionUnitSize
-	{
-		let mut maximum_transmission_unit = unsafe { uninitialized() };
-		let result = unsafe { rte_eth_dev_get_mtu(self.0, &mut maximum_transmission_unit) };
-		if likely!(result == 0)
-		{
-			MaximumTransmissionUnitSize::try_from(maximum_transmission_unit).expect("ethernet device very oddly has a maximum transmission unit (MTU) less than the RFC 791 minimum")
-		}
-		else if unlikely!(result > 0)
-		{
-			panic!("rte_eth_dev_get_mtu for ethernet port '{}' returned a positive result '{}'", self, result)
-		}
-		else
-		{
-			match result
-			{
-				NegativeE::ENODEV => panic!("rte_eth_dev_get_mtu for ethernet port '{}' reported no device", self),
-				_ => panic!("rte_eth_dev_get_mtu for ethernet port '{}' returned an expected result '{}'", self, result),
 			}
 		}
 	}

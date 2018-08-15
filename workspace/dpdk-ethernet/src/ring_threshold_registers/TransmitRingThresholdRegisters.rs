@@ -3,7 +3,7 @@
 
 
 /// Ring threshold registers for transmit queues.
-#[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(C)]
 pub struct TransmitRingThresholdRegisters

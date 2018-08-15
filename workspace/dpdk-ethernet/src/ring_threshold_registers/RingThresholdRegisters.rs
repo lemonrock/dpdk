@@ -3,6 +3,6 @@
 
 
 /// Ring threshold registers.
-pub trait RingThresholdRegisters: Default + Debug + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + From<rte_eth_thresh> + Into<rte_eth_thresh>
+pub trait RingThresholdRegisters: Debug + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + From<rte_eth_thresh> + Into<rte_eth_thresh>
 {
 }

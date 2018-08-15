@@ -15,7 +15,7 @@ bitflags!
 		const IsABondedSlave = RTE_ETH_DEV_BONDED_SLAVE;
 		
 		/// Supports removal ('rmv').
-		const SupportsLinkStatusInterrupt = RTE_ETH_DEV_INTR_RMV;
+		const SupportsRemoval = RTE_ETH_DEV_INTR_RMV;
 		
 		/// Is a switch port representor.
 		const IsASwitchPortRepresentor = RTE_ETH_DEV_REPRESENTOR;

@@ -20,7 +20,6 @@ impl DeviceName for EthernetPortIdentifierReference
 	fn to_string(&self) -> String
 	{
 		use self::EthernetPortIdentifierReference::*;
-		use self::IndirectPciDeviceIdentifier::*;
 		
 		match *self
 		{
@@ -41,23 +40,19 @@ impl EthernetPortIdentifierReference
 	{
 		let device_name = self.to_device_name();
 		
-		for potential_ethernet_port_identifier in 0 .. RTE_MAX_ETHPORTS
+		for potential_ethernet_port_identifier in 0u16 .. RTE_MAX_ETHPORTS as u16
 		{
-			if let Some(ethernet_port_identifier) = Self::try_from_u16_unchecked(potential_ethernet_port_identifier)
+			if let Ok(ethernet_port_identifier) = EthernetPortIdentifier::try_from_u16_unchecked(potential_ethernet_port_identifier)
 			{
-				let ethernet_port_name = ethernet_port_identifier.data().name;
+				let ethernet_port_name = &ethernet_port_identifier.data().name[..];
 				
-				if unlikely!(ethernet_port_name.is_null())
-				{
-					continue
-				}
-				if (unsafe { strcmp(ethernet_port_name, device_name.as_ptr()) }) == 0
+				if (unsafe { strcmp(ethernet_port_name.as_ptr(), device_name.as_ptr()) }) == 0
 				{
 					return ethernet_port_identifier
 				}
 			}
 		}
 		
-		None
+		panic!("No matching ethernet port identifier")
 	}
 }

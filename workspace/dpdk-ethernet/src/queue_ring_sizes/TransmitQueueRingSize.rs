@@ -12,7 +12,7 @@ impl Default for TransmitQueueRingSize
 	#[inline(always)]
 	fn default() -> Self
 	{
-		ReceiveQueueRingSize(RTE_ETH_DEV_FALLBACK_TX_RINGSIZE as u16)
+		TransmitQueueRingSize(RTE_ETH_DEV_FALLBACK_TX_RINGSIZE as u16)
 	}
 }
 
