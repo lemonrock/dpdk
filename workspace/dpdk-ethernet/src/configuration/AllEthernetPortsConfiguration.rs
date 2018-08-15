@@ -11,11 +11,11 @@ pub struct AllEthernetPortsConfiguration
 	pub packet_buffer_pool_definitions: HashMap<PacketBufferPoolReference, PacketBufferPoolConfiguration>,
 	
 	/// Packet buffer pools by NUMA node.
-	#[serde(default)]
+	#[serde(default = "AllEthernetPortsConfiguration::packet_buffer_pools_by_numa_node_default")]
 	pub packet_buffer_pools_by_numa_node: [PacketBufferPoolReference; NumaNode::Maximum],
 	
-	/// BROKEN - ethernet port identifier is unknowable.
-	pub ethernet_ports: HashMap<EthernetPortIdentifier, EthernetPortConfiguration>,
+	/// Configurations by device name.
+	pub ethernet_ports: HashMap<EthernetPortIdentifierReference, EthernetPortConfiguration>,
 }
 
 impl AllEthernetPortsConfiguration
@@ -27,9 +27,9 @@ impl AllEthernetPortsConfiguration
 		
 		let mut ethernet_ports = HashMap::with_capacity(self.ethernet_ports.len());
 		
-		for (ethernet_port_identifier, ethernet_port_configuration) in self.ethernet_ports.iter()
+		for (device_name, ethernet_port_configuration) in self.ethernet_ports.iter()
 		{
-			let ethernet_port_identifier = *ethernet_port_identifier;
+			let ethernet_port_identifier = device_name.ethernet_port_identifier();
 			ethernet_ports.insert(ethernet_port_identifier, ethernet_port_configuration.configure(ethernet_port_identifier, &self.packet_buffer_pools_by_numa_node, &packet_buffer_pools_to_not_drop));
 		}
 		
@@ -51,5 +51,20 @@ impl AllEthernetPortsConfiguration
 		}
 		
 		packet_buffer_pools_to_not_drop
+	}
+	
+	#[inline(always)]
+	const fn packet_buffer_pools_by_numa_node_default() -> [PacketBufferPoolReference; NumaNode::Maximum]
+	{
+		[
+			PacketBufferPoolReference::new(0),
+			PacketBufferPoolReference::new(1),
+			PacketBufferPoolReference::new(2),
+			PacketBufferPoolReference::new(3),
+			PacketBufferPoolReference::new(4),
+			PacketBufferPoolReference::new(5),
+			PacketBufferPoolReference::new(6),
+			PacketBufferPoolReference::new(7),
+		]
 	}
 }

@@ -5,11 +5,11 @@
 /// PCI network devices configuration.
 #[derive(Default, Debug)]
 #[derive(Deserialize)]
-#[serde(default)]
 pub struct PciNetDevicesConfiguration
 {
 	/// PCI network devices (ethernet cards) to PCI kernel drivers and NUMA node fix (if necessary).
-	pub pci_net_devices: HashMap<IndirectPciDeviceIdentifier, (PciKernelDriver, Option<u8>)>,
+	#[serde(default)]
+	pub pci_net_devices: HashMap<IndirectPciDeviceIdentifier, (PciKernelDriver, Option<NumaNode>)>,
 }
 
 impl PciNetDevicesConfiguration
@@ -92,7 +92,8 @@ impl PciNetDevicesConfiguration
 				{
 					if let Some(numa_node_fix) = numa_node_fix
 					{
-						pci_device.set_numa_node_swallowing_errors_as_this_is_brittle(sys_path, *numa_node_fix);
+						let into = (*numa_node_fix).into();
+						pci_device.set_numa_node_swallowing_errors_as_this_is_brittle(sys_path, into);
 					}
 				}
 				

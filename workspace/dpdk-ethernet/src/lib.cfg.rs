@@ -6,6 +6,7 @@
 extern crate dpdk_bus;
 extern crate dpdk_core;
 extern crate dpdk_sys;
+extern crate dpdk_virtual_devices;
 extern crate either;
 extern crate libc;
 #[macro_use] extern crate likely;
@@ -29,6 +30,7 @@ use ::dpdk_bus::pci::*;
 use ::dpdk_bus::DpdkVirtualDevice;
 use ::dpdk_core::*;
 use ::dpdk_sys::*;
+use ::dpdk_virtual_devices::net_virtual_devices::NetVirtualDeviceName;
 pub use ::either::*;
 use ::libc::*;
 use ::network_collections::Array40;

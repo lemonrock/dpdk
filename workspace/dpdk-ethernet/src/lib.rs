@@ -4,7 +4,7 @@
 
 #![allow(non_upper_case_globals)]
 #![allow(renamed_and_removed_lints)]
-#![cfg_attr(any(all(target_os = "linux", any(target_arch = "aarch64", target_arch = "arm", target_arch = "powerpc64", target_arch = "x86_64")), all(target_os = "freebsd", target_arch = "x86_64")), feature(core_intrinsics, step_trait, try_from))]
+#![cfg_attr(any(all(target_os = "linux", any(target_arch = "aarch64", target_arch = "arm", target_arch = "powerpc64", target_arch = "x86_64")), all(target_os = "freebsd", target_arch = "x86_64")), feature(const_fn, core_intrinsics, step_trait, try_from))]
 #![deny(missing_docs)]
 
 

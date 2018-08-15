@@ -30,7 +30,7 @@ bitflags!
 		
 		/// Calculate Internet Protocol (IP) version 4 checksum in hardware.
 		///
-		/// This is widely supported, including by tun/tap.
+		/// This is widely supported, including by TUN/TAP.
 		const CalculateInternetProtocolVersion4CheckSum = DEV_TX_OFFLOAD_IPV4_CKSUM as u64;
 		
 		/// Calculate outer tunnel's Internet Protocol (IP) version 4 checksum in hardware.
@@ -38,12 +38,12 @@ bitflags!
 		
 		/// Calculate User Datagram Protocol (UDP) checksum in hardware.
 		///
-		/// This is widely supported, including by tun/tap.
+		/// This is widely supported, including by TUN/TAP.
 		const CalculateUserDatagramProtocolCheckSum = DEV_TX_OFFLOAD_UDP_CKSUM as u64;
 		
 		/// Calculate Transmission Control Protocol (TCP) checksum in hardware.
 		///
-		/// This is widely supported, including by tun/tap.
+		/// This is widely supported, including by TUN/TAP.
 		const CalculateTransmissionControlProtocolCheckSum = DEV_TX_OFFLOAD_TCP_CKSUM as u64;
 		
 		/// Calculate Stream Control Transmission Protocol (SCTP) checksum in hardware.
@@ -86,7 +86,7 @@ bitflags!
 		
 		/// A driver can send a chain (singly linked list) of packet buffers (segments).
 		///
-		/// This is widely supported, including by tun/tap.
+		/// This is widely supported, including by TUN/TAP.
 		const PacketBufferChainsSupported = DEV_TX_OFFLOAD_MULTI_SEGS as u64;
 		
 		/// A driver can use the `rte_mbuf` fast free methods.

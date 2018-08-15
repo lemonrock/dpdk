@@ -9,6 +9,24 @@
 #[derive(Deserialize, Serialize)]
 pub struct PacketBufferPoolReference(u16);
 
+impl From<u16> for PacketBufferPoolReference
+{
+	#[inline(always)]
+	fn from(value: u16) -> Self
+	{
+		PacketBufferPoolReference(value)
+	}
+}
+
+impl Into<u16> for PacketBufferPoolReference
+{
+	#[inline(always)]
+	fn into(self) -> u16
+	{
+		self.0
+	}
+}
+
 impl PacketBufferPoolReference
 {
 	/// Finds a memory pool.
@@ -26,5 +44,12 @@ impl PacketBufferPoolReference
 	{
 		let name = format!("PacketBufferPool{}", self.0);
 		CString::new(name.as_str()).unwrap()
+	}
+	
+	/// Create a new instance.
+	#[inline(always)]
+	pub const fn new(value: u16) -> Self
+	{
+		PacketBufferPoolReference(value)
 	}
 }

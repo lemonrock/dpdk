@@ -9,38 +9,26 @@
 pub struct DpdkConfiguration
 {
 	/// Linux `AFPACKET` virtual network devices by index.
-	///
-	/// Only 2^8 - 1 entries are supported.
-	pub af_packet_net_virtual_devices: BTreeMap<u8, AfPacketNetVirtualDevice>,
+	pub af_packet_net_virtual_devices: BTreeMap<VirtualDeviceIndex, AfPacketNetVirtualDevice>,
 	
 	/// Bonded virtual network devices by index.
-	///
-	/// Only 2^8 - 1 entries are supported.
-	pub bonding_net_virtual_devices: BTreeMap<u8, BondingNetVirtualDevice>,
+	pub bonding_net_virtual_devices: BTreeMap<VirtualDeviceIndex, BondingNetVirtualDevice>,
 	
 	/// Linux Kernel Native Interface (KNI) virtual network devices by index.
 	///
 	/// Internally a `ctrl` thread may be created for these (see `rte_ctrl_thread_create`).
-	///
-	/// Only 2^8 - 1 entries are supported.
-	pub kernel_native_interface_net_virtual_devices: BTreeMap<u8, KernelNativeInterfaceNetVirtualDevice>,
+	pub kernel_native_interface_net_virtual_devices: BTreeMap<VirtualDeviceIndex, KernelNativeInterfaceNetVirtualDevice>,
 	
 	/// Packet capture (`pcap`) virtual network devices by index.
-	///
-	/// Only 2^8 - 1 entries are supported.
-	pub packet_capture_net_virtual_devices: BTreeMap<u8, PacketCaptureNetVirtualDevice>,
+	pub packet_capture_net_virtual_devices: BTreeMap<VirtualDeviceIndex, PacketCaptureNetVirtualDevice>,
 	
 	/// `VirtIO` virtual network devices by index.
-	///
-	/// Only 2^8 - 1 entries are supported.
-	pub virt_io_net_virtual_devices: BTreeMap<u8, VirtIoNetVirtualDevice>,
+	pub virt_io_net_virtual_devices: BTreeMap<VirtualDeviceIndex, VirtIoNetVirtualDevice>,
 	
 	/// `vhost` host virtual network devices by index.
 	///
-	/// Only 2^8 - 1 entries are supported.
-	///
 	/// Internally several `ctrl` threads may be created for these (see `rte_ctrl_thread_create`).
-	pub virtual_host_net_virtual_devices: BTreeMap<u8, VirtualHostNetVirtualDevice>,
+	pub virtual_host_net_virtual_devices: BTreeMap<VirtualDeviceIndex, VirtualHostNetVirtualDevice>,
 	
 	/// Can be changed from default (`None`).
 	pub memory_channels: Option<MemoryChannels>,

@@ -23,6 +23,7 @@ bitflags = "^1.0"
 dpdk-bus = { path = "../dpdk-bus", version = "^0.1" }
 dpdk-core = { path = "../dpdk-core", version = "^0.1" }
 dpdk-sys = { path = "../dpdk-sys", version = "^0.1" }
+dpdk-virtual-devices = { path = "../dpdk-virtual-devices", version = "^0.1" }
 either = { version = "^1.5", features = ["serde"] }
 libc = "^0.2"
 likely = "^0.1"
