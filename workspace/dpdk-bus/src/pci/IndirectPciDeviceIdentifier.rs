@@ -14,6 +14,15 @@ pub enum IndirectPciDeviceIdentifier
 	ByNetworkInterfaceName(NetworkInterfaceName),
 }
 
+impl DeviceName for IndirectPciDeviceIdentifier
+{
+	#[inline]
+	fn to_string(&self) -> String
+	{
+		self.to_pci_device().to_string()
+	}
+}
+
 impl IndirectPciDeviceIdentifier
 {
 	/// Converts to a PCI device.
