@@ -5,6 +5,7 @@
 /// Represents a number of receive queues for a particular ethernet device.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct ReceiveNumberOfQueues(pub(crate) u16);
 
 impl Display for ReceiveNumberOfQueues

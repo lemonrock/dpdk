@@ -5,6 +5,7 @@
 /// Represents a number of transmit queues for a particular ethernet device.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct TransmitNumberOfQueues(pub(crate) u16);
 
 impl Display for TransmitNumberOfQueues

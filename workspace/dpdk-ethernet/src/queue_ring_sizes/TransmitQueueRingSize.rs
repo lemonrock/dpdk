@@ -5,6 +5,7 @@
 /// An ethernet port's transmit queue ring size.
 #[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct TransmitQueueRingSize(pub(crate) u16);
 
 impl Default for TransmitQueueRingSize

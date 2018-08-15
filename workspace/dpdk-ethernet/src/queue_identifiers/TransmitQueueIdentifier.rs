@@ -5,6 +5,7 @@
 /// An ethernet port's transmit queue (TX) identifier.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct TransmitQueueIdentifier(pub(crate) u16);
 
 impl Display for TransmitQueueIdentifier

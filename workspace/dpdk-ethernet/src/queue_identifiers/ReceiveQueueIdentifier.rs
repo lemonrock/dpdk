@@ -5,6 +5,7 @@
 /// An ethernet port's receive queue (RX) identifier.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
+#[repr(transparent)]
 pub struct ReceiveQueueIdentifier(pub(crate) u16);
 
 impl Display for ReceiveQueueIdentifier
