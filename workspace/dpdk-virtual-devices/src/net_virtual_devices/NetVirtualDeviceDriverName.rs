@@ -16,6 +16,9 @@ pub enum NetVirtualDeviceDriverName
 	/// Linux KNI.
 	KernelNativeInterface,
 	
+	/// Microsoft Hyper-V NetVSC devices.
+	NetVSC,
+	
 	/// Packet capture (pcap).
 	PacketCapture,
 	
@@ -44,6 +47,7 @@ impl DeviceDriverName for NetVirtualDeviceDriverName
 			AfPacket => "net_af_packet",
 			Bonding => "net_bonding",
 			KernelNativeInterface => "net_kni",
+			NetVSC => "net_vdev_netvsc",
 			PacketCapture => "net_pcap",
 			Tap => "net_tap",
 			Tun => "net_tun",

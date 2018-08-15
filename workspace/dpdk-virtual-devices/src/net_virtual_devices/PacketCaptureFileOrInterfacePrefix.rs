@@ -17,6 +17,15 @@ pub enum PacketCaptureFileOrInterfacePrefix
 	Both,
 }
 
+impl Default for PacketCaptureFileOrInterfacePrefix
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		PacketCaptureFileOrInterfacePrefix::Both
+	}
+}
+
 impl PacketCaptureFileOrInterfacePrefix
 {
 	#[inline(always)]

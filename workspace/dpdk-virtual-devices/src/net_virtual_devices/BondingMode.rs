@@ -20,11 +20,20 @@ pub enum BondingMode
 	Broadcast = 3,
 	
 	/// IEEE 802.23ad Link Aggregation Control Protocol (LACP).
-	Lacp = 4,
+	LinkAggregationControlProtocol = 4,
 	
 	/// Adaptive transmit load-balancing.
 	AdaptiveTransmitLoadBalancing = 5,
 	
 	/// Load-balancing.
 	AdaptiveLoadBalancing = 6,
+}
+
+impl Default for BondingMode
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		BondingMode::AdaptiveTransmitLoadBalancing
+	}
 }

@@ -7,11 +7,17 @@
 #[derive(Serialize, Deserialize)]
 pub struct TapNetVirtualDevice
 {
-	network_interface_name: Option<NetworkInterfaceName>,
+	/// Use a non-default network interface name.
+	#[serde(default)]
+	pub network_interface_name: Option<NetworkInterfaceName>,
 	
-	media_access_control_address: TapMediaAccessControlAddress,
-
-	remote: Option<NetworkInterfaceName>,
+	/// Media access control (MAC) address.
+	#[serde(default)]
+	pub media_access_control_address: TapMediaAccessControlAddress,
+	
+	/// Connect to a remote netdevice.
+	#[serde(default)]
+	pub remote: Option<NetworkInterfaceName>,
 }
 
 impl VirtualDevice for TapNetVirtualDevice

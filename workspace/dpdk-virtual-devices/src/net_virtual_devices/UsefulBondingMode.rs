@@ -20,13 +20,22 @@ pub enum UsefulBondingMode
 	Broadcast,
 	
 	/// IEEE 802.23ad Link Aggregation Control Protocol (LACP).
-	Lacp,
+	LinkAggregationControlProtocol,
 	
 	/// Adaptive transmit load-balancing.
 	AdaptiveTransmitLoadBalancing,
 	
 	/// Load-balancing.
 	AdaptiveLoadBalancing,
+}
+
+impl Default for UsefulBondingMode
+{
+	#[inline]
+	fn default() -> Self
+	{
+		UsefulBondingMode::AdaptiveTransmitLoadBalancing
+	}
 }
 
 impl UsefulBondingMode
@@ -47,7 +56,7 @@ impl UsefulBondingMode
 			
 			Broadcast => (BondingMode::Broadcast, None, None),
 			
-			Lacp => (BondingMode::Lacp, None, None),
+			LinkAggregationControlProtocol => (BondingMode::LinkAggregationControlProtocol, None, None),
 			
 			AdaptiveTransmitLoadBalancing => (BondingMode::AdaptiveTransmitLoadBalancing, None, None),
 			

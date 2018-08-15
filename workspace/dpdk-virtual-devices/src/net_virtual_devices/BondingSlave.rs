@@ -18,7 +18,7 @@ pub enum BondingSlave
 	ByVirtualDeviceName(NetVirtualDeviceName),
 	
 	/// By ethernet port identifier.
-	ByEthernetPortIdentifier(u32),
+	ByEthernetPortIdentifier(u16),
 }
 
 impl BondingSlave

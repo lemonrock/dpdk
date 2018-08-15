@@ -17,3 +17,12 @@ pub enum BalanceBondingModeTransmitPolicy
 	/// Layers 3 and 4.
 	Layers3And4 = 2,
 }
+
+impl Default for BalanceBondingModeTransmitPolicy
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		BalanceBondingModeTransmitPolicy::Layers3And4
+	}
+}

@@ -7,7 +7,9 @@
 #[derive(Serialize, Deserialize)]
 pub struct TunNetVirtualDevice
 {
-	network_interface_name: Option<NetworkInterfaceName>,
+	/// Use a non-default network interface name.
+	#[serde(default)]
+	pub network_interface_name: Option<NetworkInterfaceName>,
 }
 
 impl VirtualDevice for TunNetVirtualDevice

@@ -7,8 +7,16 @@
 #[derive(Serialize, Deserialize)]
 pub struct VirtualHostNetVirtualDevice
 {
-	interface: String,
-	queues: u8,
+	/// A vhost interface file.
+	pub location_of_interface_file: PathBuf,
+	
+	/// Number of queues.
+	///
+	/// Can not be zero (0).
+	///
+	/// Defaults to one (1).
+	#[serde(default = "VirtualHostNetVirtualDevice::number_of_queues_default")]
+	pub number_of_queues: u8,
 }
 
 impl VirtualDevice for VirtualHostNetVirtualDevice
@@ -20,7 +28,7 @@ impl VirtualDevice for VirtualHostNetVirtualDevice
 	#[inline(always)]
 	fn formatted_virtual_device_arguments_with_leading_comma(&self) -> String
 	{
-		format!(",iface={},queues={}", self.interface, self.queues)
+		format!(",iface={},queues={}", self.location_of_interface_file.to_str().unwrap(), min(1, self.number_of_queues))
 	}
 }
 
@@ -30,18 +38,9 @@ impl NetVirtualDevice for VirtualHostNetVirtualDevice
 
 impl VirtualHostNetVirtualDevice
 {
-	/// Creates a new instance.
-	///
-	/// `queues` can not be zero.
-	pub fn new(interface: &Path, queues: u8) -> Self
+	#[inline(always)]
+	const fn number_of_queues_default() -> u8
 	{
-		assert!(interface.exists(), "interface '{:?}' does not exist", interface);
-		assert_ne!(queues, 0, "queues can not be zero");
-
-		VirtualHostNetVirtualDevice
-		{
-			interface: interface.to_str().expect("interface is not a valid UTF-8 string").to_owned(),
-			queues,
-		}
+		1
 	}
 }

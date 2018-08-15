@@ -7,11 +7,40 @@
 #[derive(Serialize, Deserialize)]
 pub struct AfPacketNetVirtualDevice
 {
-	network_interface_name: NetworkInterfaceName,
-	number_of_queue_pairs: u8,
-	block_size: u32,
-	frame_size: u32,
-	frame_count: u32,
+	/// Network interface name.
+	pub network_interface_name: NetworkInterfaceName,
+	
+	/// Number of queue pairs.
+	///
+	/// Maximum is 16; default is 1.
+	///
+	/// Can not be zero (0).
+	#[serde(default = "AfPacketNetVirtualDevice::number_of_queue_pairs_default")]
+	pub number_of_queue_pairs: u8,
+	
+	/// Block size in bytes.
+	///
+	/// Should be a power of 2.
+	///
+	/// Default is 1 << 12.
+	#[serde(default = "AfPacketNetVirtualDevice::block_size_default")]
+	pub block_size: u32,
+	
+	/// Frame size.
+	///
+	/// Should be a power of 2.
+	///
+	/// Default is 1 << 11.
+	#[serde(default = "AfPacketNetVirtualDevice::frame_size_default")]
+	pub frame_size: u32,
+	
+	/// Frame count.
+	///
+	/// Should be a power of 2.
+	///
+	/// Default is 1 << 9.
+	#[serde(default = "AfPacketNetVirtualDevice::frame_count_default")]
+	pub frame_count: u32,
 }
 
 impl VirtualDevice for AfPacketNetVirtualDevice
@@ -24,7 +53,12 @@ impl VirtualDevice for AfPacketNetVirtualDevice
 	#[inline(always)]
 	fn formatted_virtual_device_arguments_with_leading_comma(&self) -> String
 	{
-		format!(",iface={},qpairs={},blocksz={},framesz={},framecnt={}", self.network_interface_name.text(), self.number_of_queue_pairs, self.block_size, self.frame_size, self.frame_count)
+		let number_of_queue_pairs = min(Self::MaximumNumberOfQueuePairs, max(self.number_of_queue_pairs, 1));
+		let block_size = cap_u32_to_u31_maximum_power_of_two(self.block_size);
+		let frame_size = cap_u32_to_u31_maximum_power_of_two(self.frame_size);
+		let frame_count = cap_u32_to_u31_maximum_power_of_two(self.frame_count);
+		
+		format!(",iface={},qpairs={},blocksz={},framesz={},framecnt={}", self.network_interface_name.text(), number_of_queue_pairs, block_size, frame_size, frame_count)
 	}
 }
 
@@ -34,54 +68,29 @@ impl NetVirtualDevice for AfPacketNetVirtualDevice
 
 impl AfPacketNetVirtualDevice
 {
-	#[allow(missing_docs)]
-	pub const MaximumNumberOfQueuePairs: u8 = 16;
+	const MaximumNumberOfQueuePairs: u8 = 16;
 	
-	#[allow(missing_docs)]
-	pub const DefaultNumberOfQueuePairs: u8 = 1;
-	
-	#[allow(missing_docs)]
-	pub const DefaultBlockSize: u32 = 1 << 12;
-	
-	#[allow(missing_docs)]
-	pub const DefaultFrameSize: u32 = 1 << 11;
-	
-	#[allow(missing_docs)]
-	pub const DefaultFrameCount: u32 = 1 << 9;
-	
-	/// New instance with defaults.
 	#[inline(always)]
-	pub fn defaultish(network_interface_name: NetworkInterfaceName) -> Self
+	const fn number_of_queue_pairs_default() -> u8
 	{
-		Self::slightly_defaultish(network_interface_name, Self::DefaultNumberOfQueuePairs)
+		1
 	}
 	
-	/// New instance with most defaults.
-	///
-	/// `number_of_queue_pairs` is a 4-bit unsigned integer, but can not be zero.
 	#[inline(always)]
-	pub fn slightly_defaultish(network_interface_name: NetworkInterfaceName, number_of_queue_pairs: u8) -> Self
+	const fn block_size_default() -> u32
 	{
-		Self::new(network_interface_name, number_of_queue_pairs, Self::DefaultBlockSize, Self::DefaultFrameSize, Self::DefaultFrameCount)
+		1 << 12
 	}
-
-	/// New instance.
-	///
-	/// `number_of_queue_pairs` is a 4-bit unsigned integer, but can not be zero.
-	/// `block_size`, `frame_size` and `frame_count` are all 31-bit unsigned integer.
+	
 	#[inline(always)]
-	pub fn new(network_interface_name: NetworkInterfaceName, number_of_queue_pairs: u8, block_size: u32, frame_size: u32, frame_count: u32) -> Self
+	const fn frame_size_default() -> u32
 	{
-		assert_ne!(number_of_queue_pairs, 0, "number_of_queue_pairs can not be zero");
-		assert!(number_of_queue_pairs < Self::MaximumNumberOfQueuePairs, "number_of_queue_pairs '{}' equals or exceeds MaximumNumberOfQueuePairs of '{}'", number_of_queue_pairs, Self::MaximumNumberOfQueuePairs);
-
-		Self
-		{
-			network_interface_name,
-			number_of_queue_pairs,
-			block_size,
-			frame_size,
-			frame_count,
-		}
+		1 << 11
+	}
+	
+	#[inline(always)]
+	const fn frame_count_default() -> u32
+	{
+		1 << 9
 	}
 }

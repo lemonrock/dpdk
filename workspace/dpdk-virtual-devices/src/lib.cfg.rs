@@ -13,10 +13,13 @@ use ::dpdk_bus::NetworkInterfaceName;
 use ::dpdk_bus::pci::DpdkPciDeviceAddress;
 use ::dpdk_core::*;
 use ::network_ethernet::MediaAccessControlAddress;
+use ::std::cmp::max;
+use ::std::cmp::min;
 use ::std::collections::HashSet;
 use ::std::convert::TryFrom;
 use ::std::fmt::Debug;
-use ::std::path::Path;
+use ::std::num::NonZeroU32;
+use ::std::path::PathBuf;
 
 
 /// Net(work) virtual devices.

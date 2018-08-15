@@ -9,13 +9,36 @@
 #[derive(Serialize, Deserialize)]
 pub struct BondingNetVirtualDevice
 {
-	slaves: HashSet<BondingSlave>,
-	mode: UsefulBondingMode,
-	numa_node: NumaNode,
-	media_access_control_address: MediaAccessControlAddress,
-	lsc_poll_period_milliseconds: u32,
-	up_delay_milliseconds: u32,
-	down_delay_milliseconds: u32,
+	/// Slaves.
+	pub slaves: HashSet<BondingSlave>,
+	
+	/// Bonding mode.
+	#[serde(default)]
+	pub mode: UsefulBondingMode,
+	
+	/// NUMA node for data structures for bonded device.
+	#[serde(default)]
+	pub numa_node: NumaNode,
+	
+	/// Media access control (MAC) address.
+	pub media_access_control_address: MediaAccessControlAddress,
+	
+	/// Link status change poll period in milliseconds.
+	///
+	/// Maximum value is 2^31 - 1.
+	pub link_status_change_poll_period_milliseconds: NonZeroU32,
+	
+	/// Delay coming up in milliseconds.
+	///
+	/// Maximum value is 2^31 - 1.
+	#[serde(default)]
+	pub up_delay_milliseconds: u32,
+	
+	/// Delay going down in milliseconds.
+	///
+	/// Maximum value is 2^31 - 1.
+	#[serde(default)]
+	pub down_delay_milliseconds: u32,
 }
 
 impl VirtualDevice for BondingNetVirtualDevice
@@ -27,8 +50,15 @@ impl VirtualDevice for BondingNetVirtualDevice
 	#[inline(always)]
 	fn formatted_virtual_device_arguments_with_leading_comma(&self) -> String
 	{
+		assert!(self.slaves.len() >= 2, "there must be at least two slaves");
+		
+		if let Some(has_primary_slave) = self.mode.has_primary_slave(&self.slaves)
+		{
+			assert!(has_primary_slave, "slaves does not contain Active-Backup primary slave");
+		}
+		
 		let mut result = String::with_capacity(256);
-
+		
 		for slave in &self.slaves
 		{
 			result.push_str(&format!(",slave={}", slave.as_dpdk_string()));
@@ -60,9 +90,9 @@ impl VirtualDevice for BondingNetVirtualDevice
 		result.push_str(&format!(",socket_id={}", socket_id));
 		result.push_str(&format!(",mac={}", self.media_access_control_address));
 
-		result.push_str(&format!(",lsc_poll_period_ms={}", self.lsc_poll_period_milliseconds));
-		result.push_str(&format!(",up_delay={}", self.lsc_poll_period_milliseconds));
-		result.push_str(&format!(",down_delay={}", self.lsc_poll_period_milliseconds));
+		result.push_str(&format!(",lsc_poll_period_ms={}", cap_u32_to_u31(self.link_status_change_poll_period_milliseconds.get())));
+		result.push_str(&format!(",up_delay={}", cap_u32_to_u31(self.link_status_change_poll_period_milliseconds.get())));
+		result.push_str(&format!(",down_delay={}", cap_u32_to_u31(self.link_status_change_poll_period_milliseconds.get())));
 
 		result
 	}
@@ -70,37 +100,4 @@ impl VirtualDevice for BondingNetVirtualDevice
 
 impl NetVirtualDevice for BondingNetVirtualDevice
 {
-}
-
-impl BondingNetVirtualDevice
-{
-	/// Maximum Ethernet Ports is 32 (ie 31 ports), and since this is an ethernet port, there can be only 30 slaves (in theory).
-	/// In practice, more than 4 makes little sense (as this is typically the maximum number of ports for most ethernet cards).
-	/// Bonded ports must match in speed and duplex; settings are inherited from first added slave.
-	/// Configuration should happen via the bonded device only.
-	pub const MaximumSlaves: usize = 31;
-	
-	/// Creates a new instance.
-	///
-	/// `lsc_poll_period_milliseconds`, `up_delay_milliseconds`, and `down_delay_milliseconds` are 31-bit unsigned integers.
-	pub fn new(slaves: HashSet<BondingSlave>, mode: UsefulBondingMode, numa_node: NumaNode, media_access_control_address: MediaAccessControlAddress, lsc_poll_period_milliseconds: u32, up_delay_milliseconds: u32, down_delay_milliseconds: u32) -> Self
-	{
-		assert_ne!(slaves.len(), 0, "slaves can not be empty");
-		assert!(slaves.len() < Self::MaximumSlaves, "slaves '{}' can not equal or exceed MaximumSlaves '{}'", slaves.len(), Self::MaximumSlaves);
-		if let Some(has_primary_slave) = mode.has_primary_slave(&slaves)
-		{
-			assert!(has_primary_slave, "Slaves do not contain Active-Backup primary slave");
-		}
-
-		Self
-		{
-			slaves,
-			mode,
-			numa_node,
-			media_access_control_address,
-			lsc_poll_period_milliseconds,
-			up_delay_milliseconds,
-			down_delay_milliseconds,
-		}
-	}
 }

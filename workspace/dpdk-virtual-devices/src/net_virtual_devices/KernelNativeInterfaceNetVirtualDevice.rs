@@ -3,11 +3,13 @@
 
 
 /// Linux Kernel Native Interface (KNI) net(work) virtual device.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Serialize, Deserialize)]
 pub struct KernelNativeInterfaceNetVirtualDevice
 {
-	no_request_thread: bool,
+	/// No request thread.
+	#[serde(default)]
+	pub no_request_thread: bool,
 }
 
 impl VirtualDevice for KernelNativeInterfaceNetVirtualDevice
@@ -33,17 +35,4 @@ impl VirtualDevice for KernelNativeInterfaceNetVirtualDevice
 
 impl NetVirtualDevice for KernelNativeInterfaceNetVirtualDevice
 {
-}
-
-impl KernelNativeInterfaceNetVirtualDevice
-{
-	/// New instance.
-	#[inline(always)]
-	pub fn new(no_request_thread: bool) -> Self
-	{
-		Self
-		{
-			no_request_thread,
-		}
-	}
 }
