@@ -3,8 +3,6 @@
 
 
 /// How to choose a bonding slave.
-///
-/// Enum constants are listed in the order preferred by the Ethernet Bonding parse code parse_port_id in rte_eth_bond_args.c
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Serialize, Deserialize)]
 pub enum BondingSlave
@@ -30,7 +28,7 @@ impl BondingSlave
 		
 		match *self
 		{
-			ByDpdkPciDeviceAddress(ref device_address) => device_address.to_pci_device().to_string(),
+			ByDpdkPciDeviceAddress(ref indirect_pci_device_identifier) => indirect_pci_device_identifier.to_pci_device().to_string(),
 			
 			ByVirtualDeviceName(ref virtual_device_name) =>
 			{
