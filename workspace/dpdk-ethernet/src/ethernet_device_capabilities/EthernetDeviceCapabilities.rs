@@ -22,9 +22,10 @@ pub struct EthernetDeviceCapabilities
 	receive_side_scaling_hash_key_size: Option<ReceiveSideScalingHashKeySize>,
 	redirection_table_number_of_entries: Option<RedirectionTableNumberOfEntries>,
 	device_capability_flags: DeviceCapabilityFlags,
+	device_information_flags: DeviceInformationFlags,
 	extended_statistics_names: Vec<&'static str>,
-	maximum_transmission_unit: MaximumTransmissionUnitSize,
 	firmware_version: Option<String>,
+	maximum_transmission_unit: MaximumTransmissionUnitSize,
 }
 
 impl EthernetDeviceCapabilities
@@ -32,7 +33,7 @@ impl EthernetDeviceCapabilities
 	pub(crate) const ImmediateStart: u8 = 0;
 	
 	#[inline(always)]
-	pub(crate) fn from(mut dpdk_information: rte_eth_dev_info, extended_statistics_names: Vec<&'static str>, maximum_transmission_unit: MaximumTransmissionUnitSize, firmware_version: Option<String>) -> Self
+	pub(crate) fn from(mut dpdk_information: rte_eth_dev_info, extended_statistics_names: Vec<&'static str>, firmware_version: Option<String>, data: &rte_eth_dev_data) -> Self
 	{
 		let driver_name = unsafe { CStr::from_ptr(dpdk_information.driver_name) }.to_str().unwrap();
 		
@@ -122,10 +123,12 @@ impl EthernetDeviceCapabilities
 				}
 			},
 			device_capability_flags: DeviceCapabilityFlags::from_bits_truncate(dpdk_information.dev_capa),
+			device_information_flags: DeviceInformationFlags::from_bits_truncate(data.dev_flags),
 			extended_statistics_names,
-			maximum_transmission_unit,
 			firmware_version,
+			maximum_transmission_unit: MaximumTransmissionUnitSize::try_from(data.mtu).expect("ethernet device very oddly has a maximum transmission unit (MTU) less than the RFC 791 minimum"),
 		}
+		
 	}
 	
 	/// An ExtendedStatisticsIterator is slightly expensive to construct, so it should be re-used.

@@ -3,9 +3,18 @@
 
 
 /// An ethernet port's transmit queue ring size.
-#[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
+#[derive(Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 pub struct TransmitQueueRingSize(pub(crate) u16);
+
+impl Default for TransmitQueueRingSize
+{
+	#[inline(always)]
+	fn default() -> Self
+	{
+		ReceiveQueueRingSize(RTE_ETH_DEV_FALLBACK_TX_RINGSIZE as u16)
+	}
+}
 
 impl Display for TransmitQueueRingSize
 {

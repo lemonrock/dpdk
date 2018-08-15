@@ -56,8 +56,10 @@ use ::std::mem::replace;
 use ::std::mem::transmute;
 use ::std::mem::uninitialized;
 use ::std::mem::zeroed;
+use ::std::num::NonZeroU8;
 use ::std::num::NonZeroU16;
 use ::std::num::NonZeroU32;
+use ::std::num::NonZeroUsize;
 use ::std::ops::Add;
 use ::std::ops::AddAssign;
 use ::std::ops::Sub;
@@ -109,3 +111,4 @@ pub mod statistics;
 
 
 include!("EthernetPortIdentifier.rs");
+include!("EthernetPortIdentifierReference.rs");

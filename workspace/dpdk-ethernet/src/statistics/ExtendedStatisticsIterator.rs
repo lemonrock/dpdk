@@ -5,6 +5,10 @@
 /// Represents an iterator over extended statistics.
 ///
 /// Obtain using `EthernetDeviceCapabilities`.
+///
+/// Iterates over tuples of `(extended statistic name, value)`.
+///
+/// Extended statistic names are currently not longer than 63 bytes but it doesn't seem wise to rely on that.
 pub struct ExtendedStatisticsIterator<'a>
 {
 	pub(crate) extended_statistic_names: &'a [&'static str],

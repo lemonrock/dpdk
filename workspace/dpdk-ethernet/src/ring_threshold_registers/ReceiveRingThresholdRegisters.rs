@@ -8,9 +8,14 @@
 #[repr(C)]
 pub struct ReceiveRingThresholdRegisters
 {
-	ring_prefetch_threshold: u8,
-	ring_host_threshold: u8,
-	ring_write_back_threshold: u8,
+	/// Prefetch threshold.
+	pub prefetch_threshold: NonZeroU8,
+	
+	/// Host threshold.
+	pub host_threshold: NonZeroU8,
+	
+	/// Write-back threshold.
+	pub write_back_threshold: NonZeroU8,
 }
 
 impl From<rte_eth_thresh> for ReceiveRingThresholdRegisters

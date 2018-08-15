@@ -7,11 +7,28 @@
 #[derive(Deserialize, Serialize)]
 pub enum EthernetPortIdentifierReference
 {
-	/// PCI device.
-	Pci(IndirectPciDeviceIdentifier),
+	/// Physical PCI device.
+	PhysicalPci(IndirectPciDeviceIdentifier),
 	
 	/// Virtual device.
 	Virtual(NetVirtualDeviceName),
+}
+
+impl DeviceName for EthernetPortIdentifierReference
+{
+	#[inline(always)]
+	fn to_string(&self) -> String
+	{
+		use self::EthernetPortIdentifierReference::*;
+		use self::IndirectPciDeviceIdentifier::*;
+		
+		match *self
+		{
+			PhysicalPci(ref indirect_pci_device_identifier) => indirect_pci_device_identifier.to_string(),
+			
+			Virtual(ref net_virtual_device_name) => net_virtual_device_name.to_string(),
+		}
+	}
 }
 
 impl EthernetPortIdentifierReference
@@ -22,6 +39,25 @@ impl EthernetPortIdentifierReference
 	#[inline(always)]
 	pub(crate) fn ethernet_port_identifier(&self) -> EthernetPortIdentifier
 	{
-		panic!();
+		let device_name = self.to_device_name();
+		
+		for potential_ethernet_port_identifier in 0 .. RTE_MAX_ETHPORTS
+		{
+			if let Some(ethernet_port_identifier) = Self::try_from_u16_unchecked(potential_ethernet_port_identifier)
+			{
+				let ethernet_port_name = ethernet_port_identifier.data().name;
+				
+				if unlikely!(ethernet_port_name.is_null())
+				{
+					continue
+				}
+				if (unsafe { strcmp(ethernet_port_name, device_name.as_ptr()) }) == 0
+				{
+					return ethernet_port_identifier
+				}
+			}
+		}
+		
+		None
 	}
 }

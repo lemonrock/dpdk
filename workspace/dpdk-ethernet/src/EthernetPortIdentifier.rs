@@ -157,8 +157,8 @@ impl EthernetPortIdentifier
 	{
 		let mut dpdk_information: rte_eth_dev_info = unsafe { uninitialized() };
 		unsafe { rte_eth_dev_info_get(self.0, &mut dpdk_information) };
-		
-		EthernetDeviceCapabilities::from(dpdk_information, self.extended_statistic_names(), self.maximum_transmission_unit(), self.firmware_version())
+
+		EthernetDeviceCapabilities::from(dpdk_information, self.extended_statistic_names(), self.firmware_version(), self.data())
 	}
 	
 	/// Warning: This method will fail if the device is not PCI-based, eg is virtual.

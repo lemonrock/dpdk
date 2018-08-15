@@ -7,11 +7,28 @@
 #[derive(Deserialize, Serialize)]
 pub struct EthernetDeviceReceiveQueueCapabilities
 {
-	queue_hardware_offloading_flags: ReceiveHardwareOffloadingFlags,
-	queue_ring_size: ReceiveQueueRingSize,
-	queue_burst_size: usize,
-	threshold: ReceiveRingThresholdRegisters,
-	free_threshold: u16,
+	/// Defaults to `ReceiveHardwareOffloadingFlags::default()` which is currently the `ReceiveHardwareOffloadingFlags::common_flags()`.
+	///
+	/// Support for Jumbo frames is added automatically during configuration and does not need to be specified.
+	#[serde(default)]
+	pub queue_hardware_offloading_flags: ReceiveHardwareOffloadingFlags,
+	
+	/// Queue ring size.
+	///
+	/// Defaults to `ReceiveQueueRingSize::default()` (currently `RTE_ETH_DEV_FALLBACK_RX_RINGSIZE` which is 512).
+	///
+	/// If constructed from `rte_eth_dev_info` uses `rte_eth_dev_info.default_rxportconf.ring_size` rather than `rte_eth_dev_info.rx_desc_lim.nb_max`.
+	#[serde(default)]
+	pub queue_ring_size: ReceiveQueueRingSize,
+	
+	/// The ideal number of packets to receive in a 'burst'.
+	pub queue_burst_size: NonZeroUsize,
+	
+	/// Thresholds for packet memory management.
+	pub threshold: ReceiveRingThresholdRegisters,
+	
+	/// Threshold for freeing packets.
+	pub free_threshold: NonZeroU16,
 }
 
 impl EthernetDeviceReceiveQueueCapabilities
@@ -22,7 +39,7 @@ impl EthernetDeviceReceiveQueueCapabilities
 		Self
 		{
 			queue_hardware_offloading_flags: ReceiveHardwareOffloadingFlags::from_bits_truncate(dpdk_information.rx_queue_offload_capa),
-			queue_ring_size: ReceiveQueueRingSize(dpdk_information.rx_desc_lim.nb_max),
+			queue_ring_size: ReceiveQueueRingSize(dpdk_information.default_rxportconf.ring_size),
 			queue_burst_size: dpdk_information.default_rxportconf.burst_size as usize,
 			threshold: ReceiveRingThresholdRegisters::from(dpdk_information.default_rxconf.rx_thresh),
 			free_threshold: dpdk_information.default_rxconf.rx_free_thresh,
@@ -47,7 +64,7 @@ impl EthernetDeviceReceiveQueueCapabilities
 	#[inline(always)]
 	pub fn free_threshold(&self) -> u16
 	{
-		self.free_threshold
+		self.free_threshold.get()
 	}
 	
 	/// Receive queue ring size.
@@ -61,6 +78,6 @@ impl EthernetDeviceReceiveQueueCapabilities
 	#[inline(always)]
 	pub fn burst_maximum_packets(&self) -> usize
 	{
-		self.queue_burst_size
+		self.queue_burst_size.get()
 	}
 }

@@ -4,14 +4,20 @@
 
 bitflags!
 {
-	/// Generic device capability flags.
+	/// Generic device information flags.
 	#[derive(Deserialize, Serialize)]
-	pub struct DeviceCapabilityFlags: u64
+	pub struct DeviceInformationFlags: u32
 	{
-		/// Receive queue setup is possible after the device has started (ie at runtime).
-		const ReceiveQueueSetupPossibleAfterDeviceStarted = RTE_ETH_DEV_CAPA_RUNTIME_RX_QUEUE_SETUP as u64;
+		/// Supports link status interrupt ('lsc').
+		const SupportsLinkStatusInterrupt = RTE_ETH_DEV_INTR_LSC;
 		
-		/// Transmit queue setup is possible after the device has started (ie at runtime).
-		const RuntimeTransmitQueueSetup = RTE_ETH_DEV_CAPA_RUNTIME_TX_QUEUE_SETUP as u64;
+		/// Is a bonded slave, ie should not be used directly.
+		const IsABondedSlave = RTE_ETH_DEV_BONDED_SLAVE;
+		
+		/// Supports removal ('rmv').
+		const SupportsLinkStatusInterrupt = RTE_ETH_DEV_INTR_RMV;
+		
+		/// Is a switch port representor.
+		const IsASwitchPortRepresentor = RTE_ETH_DEV_REPRESENTOR;
 	}
 }

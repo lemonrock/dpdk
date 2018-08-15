@@ -7,12 +7,29 @@
 #[derive(Deserialize, Serialize)]
 pub struct EthernetDeviceTransmitQueueCapabilities
 {
-	queue_hardware_offloading_flags: TransmitHardwareOffloadingFlags,
-	queue_ring_size: TransmitQueueRingSize,
-	queue_burst_size: usize,
-	threshold: TransmitRingThresholdRegisters,
-	free_threshold: u16,
-	intel_specific_rs_bit_threshold: u16,
+	/// Defaults to `TransmitHardwareOffloadingFlags::default()` which is currently the `TransmitHardwareOffloadingFlags::common_flags()`.
+	#[serde(default)]
+	pub queue_hardware_offloading_flags: TransmitHardwareOffloadingFlags,
+	
+	/// Queue ring size.
+	///
+	/// Defaults to `ReceiveQueueRingSize::default()` (currently `RTE_ETH_DEV_FALLBACK_TX_RINGSIZE` which is 512).
+	///
+	/// If constructed from `rte_eth_dev_info` uses `rte_eth_dev_info.default_txportconf.ring_size` rather than `rte_eth_dev_info.tx_desc_lim.nb_max`.
+	#[serde(default)]
+	pub queue_ring_size: TransmitQueueRingSize,
+	
+	/// The ideal number of packets to receive in a 'burst'.
+	pub queue_burst_size: NonZeroUsize,
+	
+	/// Thresholds for packet memory management.
+	pub threshold: TransmitRingThresholdRegisters,
+	
+	/// Threshold for freeing packets.
+	pub free_threshold: NonZeroU16,
+	
+	/// Something Intel specific, called the 'RS' bit.
+	pub intel_specific_rs_bit_threshold: u16,
 }
 
 impl EthernetDeviceTransmitQueueCapabilities
@@ -23,8 +40,8 @@ impl EthernetDeviceTransmitQueueCapabilities
 		Self
 		{
 			queue_hardware_offloading_flags: TransmitHardwareOffloadingFlags::from_bits_truncate(dpdk_information.tx_queue_offload_capa),
-			queue_ring_size: TransmitQueueRingSize(dpdk_information.tx_desc_lim.nb_max),
-			queue_burst_size: dpdk_information.default_rxportconf.burst_size as usize,
+			queue_ring_size: ReceiveQueueRingSize(dpdk_information.default_txportconf.ring_size),
+			queue_burst_size: dpdk_information.default_txportconf.burst_size as usize,
 			threshold: TransmitRingThresholdRegisters::from(dpdk_information.default_txconf.tx_thresh),
 			free_threshold: dpdk_information.default_txconf.tx_free_thresh,
 			intel_specific_rs_bit_threshold: dpdk_information.default_txconf.tx_rs_thresh,
@@ -49,7 +66,7 @@ impl EthernetDeviceTransmitQueueCapabilities
 	#[inline(always)]
 	pub fn burst_maximum_packets(&self) -> usize
 	{
-		self.queue_burst_size
+		self.queue_burst_size.get()
 	}
 	
 	/// Transmit threshold.
@@ -63,7 +80,7 @@ impl EthernetDeviceTransmitQueueCapabilities
 	#[inline(always)]
 	pub fn free_threshold(&self) -> u16
 	{
-		self.free_threshold
+		self.free_threshold.get()
 	}
 	
 	/// Transmit 'RS' bit threshold.

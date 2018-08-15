@@ -6,6 +6,7 @@ use super::*;
 
 
 include!("DeviceCapabilityFlags.rs");
+include!("DeviceInformationFlags.rs");
 include!("EthernetDeviceCapabilities.rs");
 include!("EthernetDeviceReceiveQueueCapabilities.rs");
 include!("EthernetDeviceTransmitQueueCapabilities.rs");
