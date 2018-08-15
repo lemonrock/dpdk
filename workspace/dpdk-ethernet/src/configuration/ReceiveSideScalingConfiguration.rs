@@ -10,12 +10,12 @@ pub struct ReceiveSideScalingConfiguration
 	/// Number of receive queues to use for receive side scaling.
 	pub number_of_receive_queues: ReceiveNumberOfQueues,
 	
-	/// Toeplitz hash function key data strategy.
+	/// Hash function key data strategy.
 	///
 	/// ie How to generate the key data bytes.
-	pub toeplitz_hash_function_key_data_strategy: ToeplitzHashFunctionKeyDataStrategy,
+	pub hash_function_key_data_strategy: HashFunctionKeyDataStrategy,
 	
-	/// Redirection table strategy, ie how to direct different toeplitz hash results to receive queues.
+	/// Redirection table strategy, ie how to direct different hash results to receive queues.
 	pub redirection_table_strategy: RedirectionTableStategy,
 }
 
@@ -41,7 +41,7 @@ impl ReceiveSideScalingConfiguration
 		}
 		else
 		{
-			match self.toeplitz_hash_function_key_data_strategy.create(ethernet_device_capabilities, self.number_of_receive_queues)
+			match self.hash_function_key_data_strategy.create(ethernet_device_capabilities, self.number_of_receive_queues)
 			{
 				None => Self::no_receive_side_scaling(),
 				Some(mut receive_side_scaling_hash_key) => match self.redirection_table_strategy.create(ethernet_device_capabilities, self.number_of_receive_queues).expect("If there is a RSS key size")

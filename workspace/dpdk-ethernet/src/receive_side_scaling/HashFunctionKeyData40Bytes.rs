@@ -2,26 +2,26 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Receive side scaling toeplitz hash function key data (40 byte variants).
+/// Receive side scaling hash function key data (40 byte variants).
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct ToeplitzHashFunctionKeyData40Bytes(Array40<u8>);
+pub struct HashFunctionKeyData40Bytes(Array40<u8>);
 
-impl Default for ToeplitzHashFunctionKeyData40Bytes
+impl Default for HashFunctionKeyData40Bytes
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
-		ToeplitzHashFunctionKeyData40Bytes::Symmetric
+		HashFunctionKeyData40Bytes::Symmetric
 	}
 }
 
-impl ToeplitzHashFunctionKeyData40Bytes
+impl HashFunctionKeyData40Bytes
 {
 	/// Microsoft key, found at <http://www.ran-lifshitz.com/2014/08/28/symmetric-rss-receive-side-scaling/>.
 	/// Also the Intel key for ixgbe, E1000, FM10K and LiquidIO and VMWare vmnet3.
 	/// Good distribution apparently.
-	pub const Microsoft: Self = ToeplitzHashFunctionKeyData40Bytes
+	pub const Microsoft: Self = HashFunctionKeyData40Bytes
 	(
 		Array40
 		(
@@ -38,7 +38,7 @@ impl ToeplitzHashFunctionKeyData40Bytes
 	/// Symmetric with good queue distribution, found at <http://www.ran-lifshitz.com/2014/08/28/symmetric-rss-receive-side-scaling/> and <https://galsagie.github.io/2015/02/26/dpdk-tips-1/>.
 	///
 	/// Essential when applying RSS to both sides of a TCP or UDP connection, eg if one is a man-in-the-middle.
-	pub const Symmetric: Self = ToeplitzHashFunctionKeyData40Bytes
+	pub const Symmetric: Self = HashFunctionKeyData40Bytes
 	(
 		Array40
 		(
@@ -53,7 +53,7 @@ impl ToeplitzHashFunctionKeyData40Bytes
 	);
 	
 	/// Default Mellanox key.
-	pub const Mellanox: Self = ToeplitzHashFunctionKeyData40Bytes
+	pub const Mellanox: Self = HashFunctionKeyData40Bytes
 	(
 		Array40
 		(
@@ -74,7 +74,7 @@ impl ToeplitzHashFunctionKeyData40Bytes
 		let into: u16 = number_of_receive_queues.into();
 		let variable_byte = (into.next_power_of_two() & 0xFF) as u8;
 		
-		ToeplitzHashFunctionKeyData40Bytes
+		HashFunctionKeyData40Bytes
 		(
 			Array40
 			(

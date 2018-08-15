@@ -5,12 +5,12 @@
 use super::*;
 
 
+include!("HashFunctionKeyData40Bytes.rs");
+include!("HashFunctionKeyData52Bytes.rs");
+include!("HashFunctionKeyDataStrategy.rs");
 include!("ReceiveSideScalingHashKey.rs");
 include!("ReceiveSideScalingHashKeySize.rs");
 include!("ReceiveSideScalingOffloadFlow.rs");
 include!("RedirectionTable.rs");
 include!("RedirectionTableNumberOfEntries.rs");
 include!("RedirectionTableStategy.rs");
-include!("ToeplitzHashFunctionKeyData40Bytes.rs");
-include!("ToeplitzHashFunctionKeyData52Bytes.rs");
-include!("ToeplitzHashFunctionKeyDataStrategy.rs");

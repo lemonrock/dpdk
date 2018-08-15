@@ -2,24 +2,24 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Receive side scaling toeplitz hash function key data (52 byte variants for Intel i40e).
+/// Receive side scaling hash function key data (52 byte variants for Intel i40e).
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct ToeplitzHashFunctionKeyData52Bytes(Array52<u8>);
+pub struct HashFunctionKeyData52Bytes(Array52<u8>);
 
-impl Default for ToeplitzHashFunctionKeyData52Bytes
+impl Default for HashFunctionKeyData52Bytes
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
-		ToeplitzHashFunctionKeyData52Bytes::IntelI40EDefault
+		HashFunctionKeyData52Bytes::IntelI40EDefault
 	}
 }
 
-impl ToeplitzHashFunctionKeyData52Bytes
+impl HashFunctionKeyData52Bytes
 {
 	/// Intel i40e default key.
-	pub const IntelI40EDefault: Self = ToeplitzHashFunctionKeyData52Bytes
+	pub const IntelI40EDefault: Self = HashFunctionKeyData52Bytes
 	(
 		Array52
 		(
@@ -42,7 +42,7 @@ impl ToeplitzHashFunctionKeyData52Bytes
 		let into: u16 = number_of_receive_queues.into();
 		let variable_byte = (into.next_power_of_two() & 0xFF) as u8;
 		
-		ToeplitzHashFunctionKeyData52Bytes
+		HashFunctionKeyData52Bytes
 		(
 			Array52
 			(

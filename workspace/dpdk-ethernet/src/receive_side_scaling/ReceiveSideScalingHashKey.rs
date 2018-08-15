@@ -5,7 +5,7 @@
 /// A receive side scaling (RSS) hash key.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct ReceiveSideScalingHashKey<'a>(Either<Cow<'a, ToeplitzHashFunctionKeyData40Bytes>, Cow<'a, ToeplitzHashFunctionKeyData52Bytes>>);
+pub struct ReceiveSideScalingHashKey<'a>(Either<Cow<'a, HashFunctionKeyData40Bytes>, Cow<'a, HashFunctionKeyData52Bytes>>);
 
 impl<'a> ReceiveSideScalingHashKey<'a>
 {
