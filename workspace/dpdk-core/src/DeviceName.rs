@@ -6,6 +6,17 @@
 pub trait DeviceName: Hash + PartialEq + Eq + Sized
 {
 	/// Name as a string.
+	///
+	/// Only works after configuration of the DPDK environment.
 	#[inline(always)]
 	fn to_string(&self) -> String;
+	
+	/// DPDK device name.
+	///
+	/// Only works after configuration of the DPDK environment.
+	#[inline(always)]
+	fn to_device_name(&self) -> CString
+	{
+		CString::new(self.to_string().as_str()).unwrap()
+	}
 }
