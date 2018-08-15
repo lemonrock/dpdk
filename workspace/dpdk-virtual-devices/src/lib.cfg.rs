@@ -10,7 +10,7 @@ extern crate serde;
 
 
 use ::dpdk_bus::NetworkInterfaceName;
-use ::dpdk_bus::pci::DpdkPciDeviceAddress;
+use ::dpdk_bus::pci::IndirectPciDeviceIdentifier;
 use ::dpdk_core::*;
 use ::network_ethernet::MediaAccessControlAddress;
 use ::std::cmp::max;
