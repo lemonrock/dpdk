@@ -4,7 +4,11 @@
 
 bitflags!
 {
-	/// Receive Side Scaling Offload Flow.
+	/// Receive Side Scaling Offload Flow bitflags.
+	///
+	/// Most of these are not supported.
+	///
+	/// Defaults to `Self::common_flags()`.
 	#[derive(Deserialize, Serialize)]
 	pub struct ReceiveSideScalingOffloadFlow: u64
 	{
@@ -34,6 +38,7 @@ bitflags!
 		
 		const NonFragmentingInternetProtocolVersion6Other = 1 << RTE_ETH_FLOW_NONFRAG_IPV6_OTHER;
 		
+		/// Is rarely supported.
 		const Layer2Payload = 1 << RTE_ETH_FLOW_L2_PAYLOAD;
 		
 		const InternetProtocolVersion6Extended = 1 << RTE_ETH_FLOW_IPV6_EX;
@@ -42,7 +47,8 @@ bitflags!
 		
 		const InternetProtocolVersion6UserDatagramProtocolExtended = 1 << RTE_ETH_FLOW_IPV6_UDP_EX;
 		
-		const Port = 1 << RTE_ETH_FLOW_PORT;
+		/// Is rarely supported.
+		const DevicePortNumber = 1 << RTE_ETH_FLOW_PORT;
 		
 		/// Virtual eXtensible Local Area Network (VXLAN) tunnel.
 		const VXLAN = 1 << RTE_ETH_FLOW_VXLAN;
@@ -126,6 +132,16 @@ impl Default for ReceiveSideScalingOffloadFlow
 	#[inline(always)]
 	fn default() -> Self
 	{
-		Self::empty()
+		Self::common_flags()
+	}
+}
+
+impl ReceiveSideScalingOffloadFlow
+{
+	/// Commonly supported and desired flag combination of `InternetProtocol`, `UserDatagramProtocol` and `TransmissionControlProtocol`.
+	#[inline(always)]
+	pub fn common_flags() -> Self
+	{
+		Self::InternetProtocol | Self::UserDatagramProtocol | Self::TransmissionControlProtocol
 	}
 }

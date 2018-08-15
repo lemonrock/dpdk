@@ -58,6 +58,10 @@ impl EthernetDeviceCapabilities
 					"rte_ixgbe_pmd" => min(possibly_buggy_max_rx_queues, 16),
 					"rte_ixgbevf_pmd" => min(possibly_buggy_max_rx_queues, 4),
 					
+					// The e1000 82576 supports 16 receive queues, but the RSS rte_flow action only supports 8.
+					// This is probably a bug.
+					"rte_igb_pmd" | "rte_igbvf_pmd" => min(possibly_buggy_max_rx_queues, 8),
+					
 					_ => possibly_buggy_max_rx_queues,
 				};
 				dpdk_information.max_rx_queues = maximum_receieve_queues;
@@ -261,7 +265,7 @@ impl EthernetDeviceCapabilities
 	
 	/// Limits the number of receive queues to the device supported maximum queue pairs.
 	#[inline(always)]
-	fn limit_number_of_receive_queues(&self, any_number_of_receive_queues: usize) -> ReceiveNumberOfQueues
+	pub fn limit_number_of_receive_queues(&self, any_number_of_receive_queues: usize) -> ReceiveNumberOfQueues
 	{
 		ReceiveNumberOfQueues(min(self.maximum_queue_pairs as usize, any_number_of_receive_queues) as u16)
 	}

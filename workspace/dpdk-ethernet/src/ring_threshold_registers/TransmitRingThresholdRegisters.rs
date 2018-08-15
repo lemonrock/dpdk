@@ -15,7 +15,9 @@ pub struct TransmitRingThresholdRegisters
 	pub host_threshold: NonZeroU8,
 	
 	/// Write-back threshold.
-	pub write_back_threshold: NonZeroU8,
+	///
+	/// Should be zero (0) if `EthernetDeviceTransmitQueueCapabilities.intel_specific_report_status_bit_threshold` is Some.
+	pub write_back_threshold: u8,
 }
 
 impl From<rte_eth_thresh> for TransmitRingThresholdRegisters

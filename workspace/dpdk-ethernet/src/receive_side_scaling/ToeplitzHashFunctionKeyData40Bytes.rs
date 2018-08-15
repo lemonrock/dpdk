@@ -19,7 +19,7 @@ impl Default for ToeplitzHashFunctionKeyData40Bytes
 impl ToeplitzHashFunctionKeyData40Bytes
 {
 	/// Microsoft key, found at <http://www.ran-lifshitz.com/2014/08/28/symmetric-rss-receive-side-scaling/>.
-	///
+	/// Also the Intel key for ixgbe, E1000, FM10K and LiquidIO and VMWare vmnet3.
 	/// Good distribution apparently.
 	pub const Microsoft: Self = ToeplitzHashFunctionKeyData40Bytes
 	(

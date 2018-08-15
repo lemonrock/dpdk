@@ -26,10 +26,19 @@ pub struct EthernetDeviceTransmitQueueCapabilities
 	pub threshold: TransmitRingThresholdRegisters,
 	
 	/// Threshold for freeing packets.
+	///
+	/// This is a *minimum*.
+	#[serde(default = "EthernetDeviceTransmitQueueCapabilities::free_threshold_default")]
 	pub free_threshold: NonZeroU16,
 	
-	/// Something Intel specific, called the 'RS' bit.
-	pub intel_specific_rs_bit_threshold: u16,
+	/// Intel specific Report Status (RS) bit.
+	///
+	/// This is a *minimum*.
+	///
+	/// See DPDK's `docs/guides/prog_guide/poll_mode.drv` document, section `Configuration of Transmit Queues` for more details.
+	///
+	/// When specified, the default is 32 and `self.threshold.write_back_threshold should be zero`.
+	pub intel_specific_report_status_bit_threshold: Option<NonZeroU16>,
 }
 
 impl EthernetDeviceTransmitQueueCapabilities
@@ -40,11 +49,41 @@ impl EthernetDeviceTransmitQueueCapabilities
 		Self
 		{
 			queue_hardware_offloading_flags: TransmitHardwareOffloadingFlags::from_bits_truncate(dpdk_information.tx_queue_offload_capa),
-			queue_ring_size: ReceiveQueueRingSize(dpdk_information.default_txportconf.ring_size),
-			queue_burst_size: dpdk_information.default_txportconf.burst_size as usize,
+			queue_ring_size:
+			{
+				let recommended_ring_size = dpdk_information.default_txportconf.ring_size;
+				let ring_size = if recommended_ring_size == 0
+				{
+					let maximum_queue_size = dpdk_information.tx_desc_lim.nb_max;
+					debug_assert_eq!(maximum_queue_size, 0, "dpdk_information.tx_desc_lim.nb_max is zero!")
+				}
+				else
+				{
+					recommended_ring_size
+				};
+				TransmitQueueRingSize(ring_size)
+			},
+			queue_burst_size:
+			{
+				let recommended_burst_size = dpdk_information.default_txportconf.burst_size;
+				let burst_size = if recommended_burst_size == 0
+				{
+					const BestGuessForPollModeDriverThatHasNotBeenUpdatedRecentlyForThisApi: usize = 8;
+					BestGuessForPollModeDriverThatHasNotBeenUpdatedRecentlyForThisApi
+				}
+				else
+				{
+					recommended_burst_size
+				};
+				unsafe { NonZeroUsize::new_unchecked(burst_size) }
+			},
 			threshold: TransmitRingThresholdRegisters::from(dpdk_information.default_txconf.tx_thresh),
 			free_threshold: dpdk_information.default_txconf.tx_free_thresh,
-			intel_specific_rs_bit_threshold: dpdk_information.default_txconf.tx_rs_thresh,
+			intel_specific_report_status_bit_threshold: match dpdk_information.default_txconf.tx_rs_thresh
+			{
+				0 => None,
+				value @ _ => Some(unsafe { NonZeroU16::new_unchecked(value) }),
+			},
 		}
 	}
 	
@@ -89,6 +128,16 @@ impl EthernetDeviceTransmitQueueCapabilities
 	#[inline(always)]
 	pub fn intel_specific_rs_bit_threshold(&self) -> u16
 	{
-		self.intel_specific_rs_bit_threshold
+		match self.intel_specific_report_status_bit_threshold
+		{
+			None => 0,
+			Some(non_zero_value) => non_zero_value.get(),
+		}
+	}
+	
+	#[inline(always)]
+	const fn free_threshold_default() -> NonZeroU16
+	{
+		unsafe { NonZeroU16::new_unchecked(32) }
 	}
 }

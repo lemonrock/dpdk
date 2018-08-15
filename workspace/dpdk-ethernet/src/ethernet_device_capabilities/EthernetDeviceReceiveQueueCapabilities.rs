@@ -17,11 +17,12 @@ pub struct EthernetDeviceReceiveQueueCapabilities
 	///
 	/// Defaults to `ReceiveQueueRingSize::default()` (currently `RTE_ETH_DEV_FALLBACK_RX_RINGSIZE` which is 512).
 	///
-	/// If constructed from `rte_eth_dev_info` uses `rte_eth_dev_info.default_rxportconf.ring_size` rather than `rte_eth_dev_info.rx_desc_lim.nb_max`.
-	#[serde(default)]
+	/// If constructed from `rte_eth_dev_info` uses `rte_eth_dev_info.default_rxportconf.ring_size`, and, if that is zero (because some PMD driver authors write sh*t code), then `rte_eth_dev_info.rx_desc_lim.nb_max`.
 	pub queue_ring_size: ReceiveQueueRingSize,
 	
 	/// The ideal number of packets to receive in a 'burst'.
+	///
+	/// This should ALWAYS be smaller or equal to the queue ring size to avoid wasted effort.
 	pub queue_burst_size: NonZeroUsize,
 	
 	/// Thresholds for packet memory management.
@@ -39,8 +40,34 @@ impl EthernetDeviceReceiveQueueCapabilities
 		Self
 		{
 			queue_hardware_offloading_flags: ReceiveHardwareOffloadingFlags::from_bits_truncate(dpdk_information.rx_queue_offload_capa),
-			queue_ring_size: ReceiveQueueRingSize(dpdk_information.default_rxportconf.ring_size),
-			queue_burst_size: dpdk_information.default_rxportconf.burst_size as usize,
+			queue_ring_size:
+			{
+				let recommended_ring_size = dpdk_information.default_rxportconf.ring_size;
+				let ring_size = if recommended_ring_size == 0
+				{
+					let maximum_queue_size = dpdk_information.rx_desc_lim.nb_max;
+					debug_assert_eq!(maximum_queue_size, 0, "dpdk_information.rx_desc_lim.nb_max is zero!")
+				}
+				else
+				{
+					recommended_ring_size
+				};
+				ReceiveQueueRingSize(ring_size)
+			},
+			queue_burst_size:
+			{
+				let recommended_burst_size = dpdk_information.default_rxportconf.burst_size;
+				let burst_size = if recommended_burst_size == 0
+				{
+					const BestGuessForPollModeDriverThatHasNotBeenUpdatedRecentlyForThisApi: usize = 8;
+					BestGuessForPollModeDriverThatHasNotBeenUpdatedRecentlyForThisApi
+				}
+				else
+				{
+					recommended_burst_size
+				};
+				unsafe { NonZeroUsize::new_unchecked(burst_size) }
+			},
 			threshold: ReceiveRingThresholdRegisters::from(dpdk_information.default_rxconf.rx_thresh),
 			free_threshold: dpdk_information.default_rxconf.rx_free_thresh,
 		}
