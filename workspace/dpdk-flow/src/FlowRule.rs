@@ -68,6 +68,7 @@ impl FlowRuleConfiguration for FlowRule
 				ActiveFlowRule
 				{
 					ethernet_port_identifier,
+					counter_actions: self.actions.counters_to_hash_map(),
 					reference: unsafe { NonNull::new_unchecked(result) },
 				}
 			)

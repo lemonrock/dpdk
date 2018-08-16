@@ -50,6 +50,7 @@ use ::serde::de::Visitor;
 use ::std::any::Any;
 use ::std::collections::BTreeMap;
 use ::std::collections::BTreeSet;
+use ::std::collections::HashMap;
 use ::std::cmp::Ordering;
 use ::std::fmt;
 use ::std::hash::Hash;

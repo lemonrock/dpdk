@@ -27,20 +27,37 @@ impl CounterActions
 					type_: rte_flow_action_type::RTE_FLOW_ACTION_TYPE_COUNT,
 					conf:
 					{
-						const Reserved: u32 = 0;
-						
 						box_configuration
 						(
 							drop_prevention,
-							rte_flow_action_count
-							{
-								bitfield_1: rte_flow_action_count::newbitfield_1(counter_sharing.to_bitfield_value(), Reserved),
-								id: *counter_identifier,
-							}
+							Self::rte_flow_action_count(*counter_identifier, counter_sharing)
 						)
 					}
 				}
 			)
 		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn rte_flow_action_count(counter_identifier: CounterIdentifier, counter_sharing: &CounterSharing) -> rte_flow_action_count
+	{
+		const Reserved: u32 = 0;
+		
+		rte_flow_action_count
+		{
+			bitfield_1: rte_flow_action_count::newbitfield_1(counter_sharing.to_bitfield_value(), Reserved),
+			id: counter_identifier,
+		}
+	}
+	
+	#[inline(always)]
+	pub(crate) fn to_hash_map(&self) -> HashMap<CounterIdentifier, CounterSharing>
+	{
+		let mut hash_map = HashMap::with_capacity(self.len());
+		for (key, value) in self.0.iter()
+		{
+			hash_map.insert(*key, *value);
+		}
+		hash_map
 	}
 }

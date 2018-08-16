@@ -103,4 +103,10 @@ impl FlowActions
 		
 		actions
 	}
+	
+	#[inline(always)]
+	pub(crate) fn counters_to_hash_map(&self) -> HashMap<CounterIdentifier, CounterSharing>
+	{
+		self.counters.to_hash_map()
+	}
 }
