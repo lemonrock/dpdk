@@ -8,7 +8,7 @@
 #[derive(Debug, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub struct ActiveFlowRule
 {
-	port_identifier: u16,
+	ethernet_port_identifier: EthernetPortIdentifier,
 	reference: NonNull<rte_flow>,
 }
 
@@ -17,7 +17,7 @@ impl Drop for ActiveFlowRule
 	#[inline(always)]
 	fn drop(&mut self)
 	{
-		unsafe { rte_flow_destroy(self.port_identifier, self.reference.as_ptr(), null_mut()) };
+		unsafe { rte_flow_destroy(self.ethernet_port_identifier.into(), self.reference.as_ptr(), null_mut()) };
 	}
 }
 
@@ -28,7 +28,7 @@ impl ActiveFlowRule
 	pub fn try_to_drop(self) -> Result<(), (Self, (i32, rte_flow_error))>
 	{
 		let mut error = unsafe { zeroed() };
-		let result = unsafe { rte_flow_destroy(self.port_identifier, self.reference.as_ptr(), &mut error) };
+		let result = unsafe { rte_flow_destroy(self.ethernet_port_identifier.into(), self.reference.as_ptr(), &mut error) };
 		
 		if likely!(result == 0)
 		{

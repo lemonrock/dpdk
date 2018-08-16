@@ -26,7 +26,7 @@
 /// * `NVGRE_DECAP`
 ///
 /// Note that the `END` DPDK action is applied automatically.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, Hash)]
 #[derive(Deserialize, Serialize)]
 pub struct FlowActions
 {

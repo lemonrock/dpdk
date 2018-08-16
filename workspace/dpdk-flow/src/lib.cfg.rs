@@ -23,6 +23,7 @@ use self::patterns::*;
 use ::arrayvec::ArrayVec;
 use ::dpdk_core::*;
 use ::dpdk_ethernet::EthernetPortIdentifier;
+use ::dpdk_ethernet::configuration::FlowRuleConfiguration;
 use ::dpdk_ethernet::ethernet_device_capabilities::*;
 use ::dpdk_ethernet::number_of_queues::*;
 use ::dpdk_ethernet::queue_identifiers::*;

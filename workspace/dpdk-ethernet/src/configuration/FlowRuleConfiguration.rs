@@ -2,14 +2,13 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("AllEthernetPortsConfiguration.rs");
-include!("EthernetPortConfiguration.rs");
-include!("FlowRuleConfiguration.rs");
-include!("PacketBufferPoolReference.rs");
-include!("PacketBufferPoolConfiguration.rs");
-include!("ReceiveQueueConfiguration.rs");
-include!("ReceiveSideScalingConfiguration.rs");
-include!("TransmitQueueConfiguration.rs");
+/// Flow rule configuration.
+pub trait FlowRuleConfiguration: Default + Debug + Clone + PartialEq + Eq + Hash
+{
+	/// Returned for a successfully configured flow rule.
+	type ActiveFlowRuleHandle;
+	
+	/// Configure.
+	#[inline(always)]
+	fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, ethernet_device_capabilities: &EthernetDeviceCapabilities) -> Result<Self::ActiveFlowRuleHandle, rte_flow_error>;
+}

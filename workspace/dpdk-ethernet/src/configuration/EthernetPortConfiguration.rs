@@ -5,11 +5,15 @@
 /// Ethernet port configuration.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Deserialize, Serialize)]
-pub struct EthernetPortConfiguration
+pub struct EthernetPortConfiguration<FRC: FlowRuleConfiguration>
 {
 	/// Receive side scaling configuration.
-	#[serde(default = "EthernetPortConfiguration::isolate_flow_rules_default")]
+	#[serde(default = "EthernetPortConfiguration::<FRC>::isolate_flow_rules_default")]
 	pub isolate_flow_rules: bool,
+	
+	/// Flow rules.
+	#[serde(default)]
+	pub flow_rules: IndexSet<FRC>,
 	
 	/// Set a specifc media access control address.
 	///
@@ -32,11 +36,11 @@ pub struct EthernetPortConfiguration
 	pub receive_side_scaling_configuration: Option<ReceiveSideScalingConfiguration>,
 }
 
-impl EthernetPortConfiguration
+impl<FRC: FlowRuleConfiguration> EthernetPortConfiguration<FRC>
 {
 	/// Configure.
 	#[cold]
-	pub fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, packet_buffer_pools_by_numa_node: &[PacketBufferPoolReference; NumaNode::Maximum], packet_buffer_pools: &HashMap<PacketBufferPoolReference, PacketBufferPool>) -> (EthernetDeviceCapabilities, Box<[ReceiveBurst]>, Box<[TransmitBurst]>)
+	pub fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, packet_buffer_pools_by_numa_node: &[PacketBufferPoolReference; NumaNode::Maximum], packet_buffer_pools: &HashMap<PacketBufferPoolReference, PacketBufferPool>) -> (EthernetDeviceCapabilities, Box<[ReceiveBurst]>, Box<[TransmitBurst]>, Vec<FRC::ActiveFlowRuleHandle>)
 	{
 		let ethernet_device_capabilities = ethernet_port_identifier.ethernet_device_capabilities();
 		
@@ -59,7 +63,9 @@ impl EthernetPortConfiguration
 		
 		let receive_bursts = self.configure_receive_queues(ethernet_port_identifier, &ethernet_device_capabilities, packet_buffer_pools_by_numa_node, packet_buffer_pools);
 		
-		(ethernet_device_capabilities, receive_bursts, transmit_bursts)
+		let active_flow_rule_handles = self.configure_flow_rules(ethernet_port_identifier, &ethernet_device_capabilities);
+		
+		(ethernet_device_capabilities, receive_bursts, transmit_bursts, active_flow_rule_handles)
 	}
 	
 	#[inline(always)]
@@ -90,6 +96,18 @@ impl EthernetPortConfiguration
 			queue_identifier += 1u16;
 		}
 		receive_bursts.into_boxed_slice()
+	}
+	
+	#[inline(always)]
+	fn configure_flow_rules(&self, ethernet_port_identifier: EthernetPortIdentifier, ethernet_device_capabilities: &EthernetDeviceCapabilities) -> Vec<FRC::ActiveFlowRuleHandle>
+	{
+		let mut active_flow_rules = Vec::with_capacity(self.flow_rules.len());
+		for flow_rule_configuration in self.flow_rules.iter()
+		{
+			let active_flow_rule = flow_rule_configuration.configure(ethernet_port_identifier, ethernet_device_capabilities).expect("Could not configure flow rule");
+			active_flow_rules.push(active_flow_rule);
+		}
+		active_flow_rules
 	}
 	
 	#[inline(always)]

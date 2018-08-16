@@ -24,6 +24,7 @@ dpdk-bus = { path = "../dpdk-bus", version = "^0.1" }
 dpdk-core = { path = "../dpdk-core", version = "^0.1" }
 dpdk-sys = { path = "../dpdk-sys", version = "^0.1" }
 dpdk-virtual-devices = { path = "../dpdk-virtual-devices", version = "^0.1" }
+indexmap = { version = "^1.0", features = ["serde-1"] }
 libc = "^0.2"
 likely = "^0.1"
 network-collections = "^0.1"

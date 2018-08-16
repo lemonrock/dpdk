@@ -3,7 +3,7 @@
 
 
 /// Flow rule.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, PartialEq, Eq, Hash)]
 #[derive(Deserialize, Serialize)]
 pub struct FlowRule
 {
@@ -30,17 +30,21 @@ pub struct FlowRule
 	pub transfer: bool,
 	
 	/// Patterns.
+	#[serde(default)]
 	pub patterns: ArrayVec<[Box<Pattern>; Pattern::MaximumPatterns]>,
 
 	/// Actions.
+	#[serde(default)]
 	pub actions: FlowActions,
 }
 
-impl FlowRule
+impl FlowRuleConfiguration for FlowRule
 {
+	type ActiveFlowRuleHandle = ActiveFlowRule;
+	
 	/// Creates an active flow rule.
 	#[inline(always)]
-	pub fn activate(&self, port_identifier: u16, ethernet_device_capabilities: &EthernetDeviceCapabilities) -> Result<ActiveFlowRule, rte_flow_error>
+	fn configure(&self, ethernet_port_identifier: EthernetPortIdentifier, ethernet_device_capabilities: &EthernetDeviceCapabilities) -> Result<Self::ActiveFlowRuleHandle, rte_flow_error>
 	{
 		let attributes = self.create_flow_attributes();
 		let mut error = unsafe { zeroed() };
@@ -53,7 +57,7 @@ impl FlowRule
 		
 		let actions = self.actions.rte_flow_actions(ethernet_device_capabilities, &mut drop_prevention);
 		
-		let result = unsafe { rte_flow_create(port_identifier, &attributes, patterns.as_ptr(), actions.as_ptr(), &mut error) };
+		let result = unsafe { rte_flow_create(ethernet_port_identifier.into(), &attributes, patterns.as_ptr(), actions.as_ptr(), &mut error) };
 		
 		drop(drop_prevention);
 		
@@ -63,7 +67,7 @@ impl FlowRule
 			(
 				ActiveFlowRule
 				{
-					port_identifier,
+					ethernet_port_identifier,
 					reference: unsafe { NonNull::new_unchecked(result) },
 				}
 			)
@@ -81,7 +85,7 @@ impl FlowRule
 				// Not enough memory to execute the function, or if the device supports resource validation, resource limitation on the device.
 				NegativeE::ENOMEM => Err(error),
 				
-				NegativeE::EIO => panic!("underlying deevice '{}' is removed", port_identifier),
+				NegativeE::EIO => panic!("underlying deevice '{}' is removed", ethernet_port_identifier),
 				NegativeE::EINVAL => panic!("unknown or invalid rule specification"),
 				NegativeE::EEXIST => panic!("collision with an existing rule. Only returned if device supports flow rule collision checking and there was a flow rule collision. Not receiving this return code is no guarantee that creating the rule will not fail due to a collision"),
 				NegativeE::EBUSY => panic!("action cannot be performed due to busy device resources, may succeed if the affected queues or even the entire port are in a stopped state (see `rte_eth_dev_rx_queue_stop()` and `rte_eth_dev_stop()`)"),
@@ -90,7 +94,10 @@ impl FlowRule
 			}
 		}
 	}
-	
+}
+
+impl FlowRule
+{
 	#[inline(always)]
 	fn create_flow_attributes(&self) -> rte_flow_attr
 	{

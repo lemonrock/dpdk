@@ -5,23 +5,23 @@
 /// All ethernet ports configuration.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[derive(Deserialize, Serialize)]
-pub struct AllEthernetPortsConfiguration
+pub struct AllEthernetPortsConfiguration<FRC: FlowRuleConfiguration>
 {
 	/// Packet buffer pool definitions.
 	pub packet_buffer_pool_definitions: HashMap<PacketBufferPoolReference, PacketBufferPoolConfiguration>,
 	
 	/// Packet buffer pools by NUMA node.
-	#[serde(default = "AllEthernetPortsConfiguration::packet_buffer_pools_by_numa_node_default")]
+	#[serde(default = "AllEthernetPortsConfiguration::<FRC>::packet_buffer_pools_by_numa_node_default")]
 	pub packet_buffer_pools_by_numa_node: [PacketBufferPoolReference; NumaNode::Maximum],
 	
 	/// Configurations by device name.
-	pub ethernet_ports: HashMap<EthernetPortIdentifierReference, EthernetPortConfiguration>,
+	pub ethernet_ports: HashMap<EthernetPortIdentifierReference, EthernetPortConfiguration<FRC>>,
 }
 
-impl AllEthernetPortsConfiguration
+impl<FRC: FlowRuleConfiguration> AllEthernetPortsConfiguration<FRC>
 {
 	/// Configure.
-	pub fn configure(&self) -> (HashMap<PacketBufferPoolReference, PacketBufferPool>, HashMap<EthernetPortIdentifier, (EthernetDeviceCapabilities, Box<[ReceiveBurst]>, Box<[TransmitBurst]>)>)
+	pub fn configure(&self) -> (HashMap<PacketBufferPoolReference, PacketBufferPool>, HashMap<EthernetPortIdentifier, (EthernetDeviceCapabilities, Box<[ReceiveBurst]>, Box<[TransmitBurst]>, Vec<FRC::ActiveFlowRuleHandle>)>)
 	{
 		let packet_buffer_pools_to_not_drop = self.configure_packet_buffer_pools();
 		
