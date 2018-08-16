@@ -2,17 +2,11 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-use super::*;
-
-
-include!("box_configuration.rs");
-include!("CounterActions.rs");
-include!("CounterIdentifier.rs");
-include!("CounterSharing.rs");
-include!("FinalAction.rs");
-include!("MeterReference.rs");
-include!("QueueActions.rs");
-include!("ReceiveSideScalingAction.rs");
-include!("ReceiveSideScalingHashFunctionAlgorithm.rs");
-include!("ReceiveSideScalingLevel.rs");
-include!("TagAction.rs");
+#[inline(always)]
+pub(crate) fn box_configuration<T: 'static>(drop_prevention: &mut Vec<Box<Any>>, configuration: T) -> *const c_void
+{
+	let boxed = Box::new(configuration);
+	let pointer = boxed.as_ref() as *const T as *const c_void;
+	drop_prevention.push(boxed);
+	pointer
+}

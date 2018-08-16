@@ -24,3 +24,18 @@ impl Default for CounterSharing
 		CounterSharing::FlowUnique
 	}
 }
+
+impl CounterSharing
+{
+	pub(crate) fn to_bitfield_value(&self) -> u32
+	{
+		use self::CounterSharing::*;
+		
+		match *self
+		{
+			FlowUnique => 0,
+			
+			GloballyShared => 1,
+		}
+	}
+}

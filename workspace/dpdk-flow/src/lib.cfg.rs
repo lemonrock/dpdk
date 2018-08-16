@@ -4,7 +4,9 @@
 
 extern crate arrayvec;
 extern crate dpdk_core;
+extern crate dpdk_ethernet;
 extern crate dpdk_sys;
+extern crate libc;
 #[macro_use] extern crate likely;
 extern crate network_address_resolution_protocol;
 extern crate network_check_sum;
@@ -16,12 +18,17 @@ extern crate serde;
 #[macro_use] extern crate serde_derive;
 
 
-use self::pattern_item_implementations::*;
+use self::actions::*;
+use self::patterns::*;
 use ::arrayvec::ArrayVec;
 use ::dpdk_core::*;
-use ::dpdk_core::receive_side_scaling::*;
+use ::dpdk_ethernet::EthernetPortIdentifier;
+use ::dpdk_ethernet::ethernet_device_capabilities::*;
+use ::dpdk_ethernet::number_of_queues::*;
+use ::dpdk_ethernet::queue_identifiers::*;
+use ::dpdk_ethernet::receive_side_scaling::*;
 use ::dpdk_sys::*;
-#[allow(unused_imports)] use ::mem_cmp::*;
+use ::libc::c_void;
 use ::network_address_resolution_protocol::*;
 use ::network_check_sum::*;
 use ::network_endian::*;
@@ -32,12 +39,16 @@ use ::network_internet_protocol::version_4::*;
 use ::network_internet_protocol::version_6::*;
 use ::network_internet_control_message_protocol::version_4::*;
 use ::network_internet_control_message_protocol::version_6::*;
+use ::network_internet_control_message_protocol::version_6::types::*;
 use ::serde::Deserialize;
 use ::serde::Deserializer;
 use ::serde::de::Error as DeserializerError;
 use ::serde::de::MapAccess;
 use ::serde::de::SeqAccess;
 use ::serde::de::Visitor;
+use ::std::any::Any;
+use ::std::collections::BTreeMap;
+use ::std::collections::BTreeSet;
 use ::std::cmp::Ordering;
 use ::std::fmt;
 use ::std::hash::Hash;
@@ -49,6 +60,7 @@ use ::std::mem::uninitialized;
 use ::std::mem::zeroed;
 use ::std::ptr::copy_nonoverlapping;
 use ::std::ptr::NonNull;
+use ::std::ptr::null;
 use ::std::ptr::null_mut;
 
 
@@ -56,11 +68,16 @@ include!("bitwise_clone.rs");
 include!("custom_deserialize.rs");
 
 
+/// Action implementations.
+pub mod actions;
+
+
 /// Pattern implementations.
 pub mod patterns;
 
 
 include!("ActiveFlowRule.rs");
+include!("FlowActions.rs");
 include!("FlowRule.rs");
 include!("FlowRulePriorityGroup.rs");
 include!("Pattern.rs");

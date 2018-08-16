@@ -129,12 +129,12 @@ pub enum Pattern
 	/// As a device property, the list of allowed values as well as the value associated with a `port_id` should be retrieved by other means.
 	PhysicalPort(MaskedPatternFields<u32, u32>),
 	
-	/// Matches traffic originating from (ingress) or going to (egress) a given DPDK port identifier (also known as `port_id` and 'port ID').
+	/// Matches traffic originating from (ingress) or going to (egress) a given DPDK port identifier (also known as `port_id` and 'port ID') or `EthernetPortIdentifier`.
 	///
 	/// Normally only supported if the port identifier in question is known by the underlying PMD and related to the device the flow rule is created against.
 	///
 	/// A port identifier is the application-side way of referring to 'ethernet' connections and getting reference to `eth_dev` structures.
-	PortIdentifier(MaskedPatternFields<u32, u32>),
+	PortIdentifier(MaskedPatternFields<EthernetPortIdentifier, u16>),
 	
 	/// Matches a byte string of a given length at a given offset.
 	///
@@ -171,17 +171,14 @@ impl Pattern
 {
 	const MaximumPatterns: usize = 16;
 	
-	/// Flow items.
-	///
-	/// Resultant array is only valid as long as `packet_matchers` is valid.
 	#[inline(always)]
-	pub fn rte_flow_items(packet_matchers: &ArrayVec<[Pattern; Self::MaximumPatterns]>) -> ArrayVec<[rte_flow_item; Self::MaximumPatterns]>
+	pub(crate) fn rte_flow_items(packet_matchers: &ArrayVec<[Box<Pattern>; Self::MaximumPatterns]>, drop_prevention: &mut Vec<Box<Any>>) -> ArrayVec<[rte_flow_item; Self::MaximumPatterns]>
 	{
 		let mut items: ArrayVec<[rte_flow_item; Self::MaximumPatterns]> = ArrayVec::new();
 		
 		for packet_matcher in packet_matchers
 		{
-			items.push(packet_matcher.rte_flow_item());
+			items.push(packet_matcher.rte_flow_item(drop_prevention));
 		}
 		
 		items.push(Self::unspecified_rte_flow_item(rte_flow_item_type::RTE_FLOW_ITEM_TYPE_END));
@@ -190,7 +187,7 @@ impl Pattern
 	}
 	
 	#[inline(always)]
-	fn rte_flow_item(&self) -> rte_flow_item
+	fn rte_flow_item(&self, drop_prevention: &mut Vec<Box<Any>>) -> rte_flow_item
 	{
 		use self::Pattern::*;
 		use self::rte_flow_item_type::*;
@@ -229,7 +226,34 @@ impl Pattern
 			
 			PhysicalPort(ref masked_packet_matched_fields) => masked_packet_matched_fields.trivially_cast_as_rte_flow_item::<rte_flow_item_phy_port>(RTE_FLOW_ITEM_TYPE_PHY_PORT),
 			
-			PortIdentifier(ref masked_packet_matched_fields) => masked_packet_matched_fields.trivially_cast_as_rte_flow_item::<rte_flow_item_port_id>(RTE_FLOW_ITEM_TYPE_PORT_ID),
+			PortIdentifier(ref masked_packet_matched_fields) =>
+			{
+				#[inline(always)]
+				fn from_ethernet_port_identifier(ethernet_port_identifier: EthernetPortIdentifier, drop_prevention: &mut Vec<Box<::std::any::Any>>) -> *const c_void
+				{
+					to_u32_pointer(ethernet_port_identifier.into(), drop_prevention)
+				}
+				
+				#[inline(always)]
+				fn to_u32_pointer(value: Box<u32>, drop_prevention: &mut Vec<Box<::std::any::Any>>) -> *const c_void
+				{
+					let pointer = value.as_ref() as *const u32 as *const c_void;
+					drop_prevention.push(value);
+					pointer
+				}
+				
+				rte_flow_item
+				{
+					type_: RTE_FLOW_ITEM_TYPE_PORT_ID,
+					spec: from_ethernet_port_identifier(masked_packet_matched_fields.from_specification, drop_prevention),
+					last: match masked_packet_matched_fields.to_specification
+					{
+						None => null_mut(),
+						Some(specification) => from_ethernet_port_identifier(specification, drop_prevention),
+					},
+					mask: to_u32_pointer(Box::new(masked_packet_matched_fields.mask as u32), drop_prevention),
+				}
+			}
 			
 			Raw(ref specification, ref mask) =>
 			{

@@ -7,9 +7,9 @@
 #[derive(Deserialize, Serialize)]
 pub struct MaskedPatternFields<S, M>
 {
-	from_specification: S,
-	to_specification: Option<S>,
-	mask: M,
+	pub(crate) from_specification: S,
+	pub(crate) to_specification: Option<S>,
+	pub(crate) mask: M,
 }
 
 impl<S> MaskedPatternFields<S, S>
