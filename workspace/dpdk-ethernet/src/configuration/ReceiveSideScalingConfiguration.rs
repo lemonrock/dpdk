@@ -21,7 +21,7 @@ pub struct ReceiveSideScalingConfiguration
 
 impl ReceiveSideScalingConfiguration
 {
-	pub(crate) fn create<'a>(this: Option<&'a Self>, ethernet_device_capabilities: &EthernetDeviceCapabilities, receive_queue_configurations: &[ReceiveQueueConfiguration]) -> (rte_eth_rx_mq_mode, rte_eth_rss_conf, Option<ReceiveSideScalingHashKey<'a>>, Option<RedirectionTable>)
+	pub(crate) fn create(this: Option<&Self>, ethernet_device_capabilities: &EthernetDeviceCapabilities, receive_queue_configurations: &[ReceiveQueueConfiguration]) -> (rte_eth_rx_mq_mode, rte_eth_rss_conf, Option<ReceiveSideScalingHashKey>, Option<RedirectionTable>)
 	{
 		match this
 		{
@@ -31,7 +31,7 @@ impl ReceiveSideScalingConfiguration
 	}
 	
 	#[inline(always)]
-	fn create_internal<'a>(&'a self, ethernet_device_capabilities: &EthernetDeviceCapabilities, receive_queue_configurations: &[ReceiveQueueConfiguration]) -> (rte_eth_rx_mq_mode, rte_eth_rss_conf, Option<ReceiveSideScalingHashKey<'a>>, Option<RedirectionTable>)
+	fn create_internal(&self, ethernet_device_capabilities: &EthernetDeviceCapabilities, receive_queue_configurations: &[ReceiveQueueConfiguration]) -> (rte_eth_rx_mq_mode, rte_eth_rss_conf, Option<ReceiveSideScalingHashKey>, Option<RedirectionTable>)
 	{
 		assert!(receive_queue_configurations.len() >= self.number_of_receive_queues.into(), "Not enough receive queue configurations for receive side scaling");
 		
@@ -68,7 +68,7 @@ impl ReceiveSideScalingConfiguration
 	}
 	
 	#[inline(always)]
-	fn no_receive_side_scaling<'a>() -> (rte_eth_rx_mq_mode, rte_eth_rss_conf, Option<ReceiveSideScalingHashKey<'a>>, Option<RedirectionTable>)
+	fn no_receive_side_scaling() -> (rte_eth_rx_mq_mode, rte_eth_rss_conf, Option<ReceiveSideScalingHashKey>, Option<RedirectionTable>)
 	{
 		(rte_eth_rx_mq_mode::ETH_MQ_RX_NONE, unsafe { zeroed() }, None, None)
 	}

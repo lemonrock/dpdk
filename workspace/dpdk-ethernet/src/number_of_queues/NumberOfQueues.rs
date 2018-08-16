@@ -3,10 +3,16 @@
 
 
 /// Represents a number of queues for a particular ethernet device.
-pub trait NumberOfQueues: Default + Debug + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + Display + Into<u16> + Into<usize>
+pub trait NumberOfQueues: Default + Debug + Copy + Clone + PartialEq + Eq + PartialOrd + Ord + Hash + Display + Into<u16> + Into<u32> + Into<usize>
 {
 	/// Zero.
 	const Zero: Self;
+	
+	/// One.
+	const One: Self;
+	
+	/// Two.
+	const Two: Self;
 	
 	/// Is zero?
 	#[inline(always)]

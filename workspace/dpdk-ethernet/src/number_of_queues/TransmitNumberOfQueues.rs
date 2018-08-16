@@ -25,6 +25,15 @@ impl Into<u16> for TransmitNumberOfQueues
 	}
 }
 
+impl Into<u32> for TransmitNumberOfQueues
+{
+	#[inline(always)]
+	fn into(self) -> u32
+	{
+		self.0 as u32
+	}
+}
+
 impl Into<usize> for TransmitNumberOfQueues
 {
 	#[inline(always)]
@@ -37,4 +46,8 @@ impl Into<usize> for TransmitNumberOfQueues
 impl NumberOfQueues for TransmitNumberOfQueues
 {
 	const Zero: Self = TransmitNumberOfQueues(0);
+	
+	const One: Self = TransmitNumberOfQueues(1);
+	
+	const Two: Self = TransmitNumberOfQueues(2);
 }

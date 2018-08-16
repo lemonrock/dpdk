@@ -70,6 +70,15 @@ impl Into<u16> for ReceiveQueueRingSize
 	}
 }
 
+impl Into<u32> for ReceiveQueueRingSize
+{
+	#[inline(always)]
+	fn into(self) -> u32
+	{
+		self.0 as u32
+	}
+}
+
 impl Into<usize> for ReceiveQueueRingSize
 {
 	#[inline(always)]

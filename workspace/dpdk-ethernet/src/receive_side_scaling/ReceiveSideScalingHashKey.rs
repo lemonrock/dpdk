@@ -2,23 +2,32 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+// NOTE: It is tempting to wrap the values in a `Cow`, however, since DPDK often wants a mutable reference to this data and, internally, the `Cow.to_mut()` makes a clone, there is no advantage.
 /// A receive side scaling (RSS) hash key.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct ReceiveSideScalingHashKey<'a>(Either<Cow<'a, HashFunctionKeyData40Bytes>, Cow<'a, HashFunctionKeyData52Bytes>>);
-
-impl<'a> ReceiveSideScalingHashKey<'a>
+pub enum ReceiveSideScalingHashKey
 {
+	/// Forty (40) byte key.
+	Forty(HashFunctionKeyData40Bytes),
+	
+	/// Fifty-two (52) byte key.
+	FiftyTwo(HashFunctionKeyData52Bytes),
+}
+
+impl ReceiveSideScalingHashKey
+{
+	/// Pointer and length.
 	#[inline(always)]
-	pub(crate) fn pointer_and_length(&mut self) -> (*mut u8, u8)
+	pub fn pointer_and_length(&mut self) -> (*mut u8, u8)
 	{
-		use self::Either::*;
+		use self::ReceiveSideScalingHashKey::*;
 		
-		match self.0
+		match *self
 		{
-			Left(ref mut forty_bytes) => (forty_bytes.to_mut().0.as_mut_ptr(), 40),
+			Forty(ref mut forty_bytes) => (forty_bytes.0.as_mut_ptr(), 40),
 			
-			Right(ref mut fifty_two_bytes) => (fifty_two_bytes.to_mut().0.as_mut_ptr(), 52),
+			FiftyTwo(ref mut fifty_two_bytes) => (fifty_two_bytes.0.as_mut_ptr(), 52),
 		}
 	}
 }

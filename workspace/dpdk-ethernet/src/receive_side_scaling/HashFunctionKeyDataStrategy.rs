@@ -36,13 +36,11 @@ impl HashFunctionKeyDataStrategy
 {
 	/// Creates an array of receive side scaling bytes.
 	#[inline(always)]
-	pub fn create<'a>(&'a self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: ReceiveNumberOfQueues) -> Option<ReceiveSideScalingHashKey<'a>>
+	pub fn create(&self, ethernet_device_capabilities: &EthernetDeviceCapabilities, number_of_receive_queues: ReceiveNumberOfQueues) -> Option<ReceiveSideScalingHashKey>
 	{
 		use self::HashFunctionKeyDataStrategy::*;
-		use self::Cow::*;
-		use self::Either::*;
-		
 		use self::ReceiveSideScalingHashKeySize::*;
+		
 		let receive_side_scaling_hash_key_size = if let Some(receive_side_scaling_hash_key_size) = ethernet_device_capabilities.receive_side_scaling_hash_key_size()
 		{
 			receive_side_scaling_hash_key_size
@@ -54,13 +52,13 @@ impl HashFunctionKeyDataStrategy
 		
 		let key = match *self
 		{
-			Fixed { ref forty, ref fifty_two } =>
+			Fixed { forty, fifty_two } =>
 			{
 				match receive_side_scaling_hash_key_size
 				{
-					Forty => ReceiveSideScalingHashKey(Left(Borrowed(forty))),
+					Forty => ReceiveSideScalingHashKey::Forty(forty),
 					
-					FiftyTwo => ReceiveSideScalingHashKey(Right(Borrowed(fifty_two))),
+					FiftyTwo => ReceiveSideScalingHashKey::FiftyTwo(fifty_two),
 				}
 			}
 			
@@ -68,9 +66,9 @@ impl HashFunctionKeyDataStrategy
 			{
 				match receive_side_scaling_hash_key_size
 				{
-					Forty => ReceiveSideScalingHashKey(Left(Owned(HashFunctionKeyData40Bytes::for_layer_4_one_way_for_number_of_queues(number_of_receive_queues)))),
+					Forty => ReceiveSideScalingHashKey::Forty(HashFunctionKeyData40Bytes::for_layer_4_one_way_for_number_of_queues(number_of_receive_queues)),
 					
-					FiftyTwo => ReceiveSideScalingHashKey(Right(Owned(HashFunctionKeyData52Bytes::for_layer_4_one_way_for_number_of_queues(number_of_receive_queues)))),
+					FiftyTwo => ReceiveSideScalingHashKey::FiftyTwo(HashFunctionKeyData52Bytes::for_layer_4_one_way_for_number_of_queues(number_of_receive_queues)),
 				}
 			}
 		};

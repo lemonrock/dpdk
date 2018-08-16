@@ -156,6 +156,21 @@ impl EthernetDeviceCapabilities
 		panic!("Too many ('{}') receive queues configured (maximum is '{}')", number_of_receive_queues, self.maximum_queue_pairs)
 	}
 	
+	/// Limits the number of receive queues to the device supported maximum queue pairs.
+	#[inline(always)]
+	pub fn limit_number_of_receive_queues(&self, any_number_of_receive_queues: usize) -> ReceiveNumberOfQueues
+	{
+		ReceiveNumberOfQueues(min(self.maximum_queue_pairs as usize, any_number_of_receive_queues) as u16)
+	}
+	
+	/// Validate that the receive queue identifier does not exceed the number of queue pairs available.
+	#[inline(always)]
+	pub fn is_receive_queue_identifier_supported(&self, receive_queue_identifier: ReceiveQueueIdentifier) -> bool
+	{
+		let into: u16 = receive_queue_identifier.into();
+		into < self.maximum_queue_pairs
+	}
+	
 	/// Receive hardware offloading flags for what the ethernet device supports generally.
 	#[inline(always)]
 	pub fn receive_device_hardware_offloading_flags(&self) -> ReceiveHardwareOffloadingFlags
@@ -183,6 +198,21 @@ impl EthernetDeviceCapabilities
 	{
 		assert!(number_of_transmit_queues <= self.maximum_queue_pairs as usize);
 		panic!("Too many ('{}') transmit queues configured (maximum is '{}')", number_of_transmit_queues, self.maximum_queue_pairs)
+	}
+	
+	/// Limits the number of transmit queues to the device supported maximum queue pairs.
+	#[inline(always)]
+	pub fn limit_number_of_transmit_queues(&self, any_number_of_transmit_queues: usize) -> TransmitNumberOfQueues
+	{
+		TransmitNumberOfQueues(min(self.maximum_queue_pairs as usize, any_number_of_transmit_queues) as u16)
+	}
+	
+	/// Validate that the transmit queue identifier does not exceed the number of queue pairs available.
+	#[inline(always)]
+	pub fn is_transmit_queue_identifier_supported(&self, transmit_queue_identifier: TransmitQueueIdentifier) -> bool
+	{
+		let into: u16 = transmit_queue_identifier.into();
+		into < self.maximum_queue_pairs
 	}
 	
 	/// Transmit hardware offloading flags for what the ethernet device supports generally.
@@ -261,12 +291,5 @@ impl EthernetDeviceCapabilities
 	pub fn redirection_table_number_of_entries(&self) -> Option<RedirectionTableNumberOfEntries>
 	{
 		self.redirection_table_number_of_entries
-	}
-	
-	/// Limits the number of receive queues to the device supported maximum queue pairs.
-	#[inline(always)]
-	pub fn limit_number_of_receive_queues(&self, any_number_of_receive_queues: usize) -> ReceiveNumberOfQueues
-	{
-		ReceiveNumberOfQueues(min(self.maximum_queue_pairs as usize, any_number_of_receive_queues) as u16)
 	}
 }

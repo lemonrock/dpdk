@@ -60,12 +60,30 @@ impl Into<u16> for EthernetPortIdentifier
 	}
 }
 
+impl Into<u32> for EthernetPortIdentifier
+{
+	#[inline(always)]
+	fn into(self) -> u32
+	{
+		self.0 as u32
+	}
+}
+
 impl Into<usize> for EthernetPortIdentifier
 {
 	#[inline(always)]
 	fn into(self) -> usize
 	{
 		self.0 as usize
+	}
+}
+
+impl Into<Box<u32>> for EthernetPortIdentifier
+{
+	#[inline(always)]
+	fn into(self) -> Box<u32>
+	{
+		Box::new(self.0 as u32)
 	}
 }
 
