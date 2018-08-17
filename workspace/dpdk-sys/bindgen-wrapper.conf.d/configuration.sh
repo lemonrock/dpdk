@@ -16,7 +16,7 @@ macosXHomebrewPackageNames=''
 alpineLinuxPackageNames='rsync make gcc linux-headers libunwind-dev linux-grsec-dev'
 clangAdditionalArguments="-I${rootOutputFolderPath}/extra-musl-headers -I${temporaryFolderPath}/includes -I${outputFolderPath}/.."
 headersFolderPath='DESTDIR/usr/include/dpdk'
-link="$(_extract_from_linker_script "$rootOutputFolderPath"/DESTDIR/usr/lib/libdpdk.a) tle_misc tle_dring tle_timer tle_l4p"
+link="$(_extract_from_linker_script "$rootOutputFolderPath"/DESTDIR/usr/lib/libdpdk.a)"
 link_kind='static-nobundle'
 
 bindgen_wrapper_generateStaticFunctions()
