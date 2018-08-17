@@ -3,16 +3,3 @@
 
 
 use super::*;
-
-
-include!("BitRate.rs");
-include!("BitRateStatistics.rs");
-include!("BitRateStatisticsState.rs");
-include!("BitStatistics.rs");
-include!("BitStatisticsState.rs");
-include!("BytesCounter.rs");
-include!("EthernetPortSimpleStatistics.rs");
-include!("EthernetPortSimpleStatisticsOverview.rs");
-include!("ExtendedStatisticsIterator.rs");
-include!("PacketsCounter.rs");
-include!("QueueSimpleStatisticCounterIndex.rs");

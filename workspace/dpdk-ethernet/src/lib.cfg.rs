@@ -12,6 +12,7 @@ extern crate libc;
 #[macro_use] extern crate likely;
 extern crate network_collections;
 extern crate network_ethernet;
+extern crate network_time;
 extern crate serde;
 #[macro_use] extern crate serde_derive;
 
@@ -39,6 +40,7 @@ use ::network_collections::NonNullUnifiedArrayVecAndVec;
 use ::network_ethernet::EthernetFrameLength;
 use ::network_ethernet::MaximumTransmissionUnitSize;
 use ::network_ethernet::MediaAccessControlAddress;
+use ::network_time::*;
 use ::std::cmp::max;
 use ::std::cmp::min;
 use ::std::collections::HashMap;
