@@ -5,6 +5,7 @@
 use super::*;
 
 
+include!("BitsCount.rs");
 include!("BytesCount.rs");
 include!("Count.rs");
 include!("PacketsCount.rs");

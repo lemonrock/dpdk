@@ -2,7 +2,11 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Represents a counter of bytes received or transmitted.
+/// Represents a count of bytes received, transmitted, etc.
+///
+/// Use `From / Into` impls to convert to or from a BitsCount.
+///
+/// Conversions round down, so aren't communitative.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
@@ -23,6 +27,17 @@ impl From<i64> for BytesCount
 	fn from(value: i64) -> Self
 	{
 		BytesCount(value as u64)
+	}
+}
+
+impl From<BitsCount> for BytesCount
+{
+	#[inline(always)]
+	fn from(value: BitsCount) -> Self
+	{
+		const BitsPerBytes: u64 = 8;
+		
+		BytesCount(value.0 / BitsPerBytes)
 	}
 }
 
@@ -71,19 +86,5 @@ impl Count for BytesCount
 	fn is_zero(self) -> bool
 	{
 		self.0 == 0
-	}
-}
-
-impl BytesCount
-{
-	/// To a bits value.
-	///
-	/// Incorrect if the number of bytes >= 2 ^ 61.
-	#[inline(always)]
-	pub fn to_bits(self) -> u64
-	{
-		const BitsPerBytes: u64 = 8;
-		
-		self.0 * BitsPerBytes
 	}
 }

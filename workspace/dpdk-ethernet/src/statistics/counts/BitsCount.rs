@@ -2,31 +2,46 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Represents a count of packets received, transmitted, dropped, etc.
+/// Represents a count of bits received, transmitted, etc.
+///
+/// Use `From / Into` impls to convert to or from a BytesCount.
+///
+/// Conversions round down, so aren't communitative.
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct PacketsCount(pub u64);
+pub struct BitsCount(pub u64);
 
-impl From<u64> for PacketsCount
+impl From<u64> for BitsCount
 {
 	#[inline(always)]
 	fn from(value: u64) -> Self
 	{
-		PacketsCount(value)
+		BitsCount(value)
 	}
 }
 
-impl From<i64> for PacketsCount
+impl From<i64> for BitsCount
 {
 	#[inline(always)]
 	fn from(value: i64) -> Self
 	{
-		PacketsCount(value as u64)
+		BitsCount(value as u64)
 	}
 }
 
-impl Into<u64> for PacketsCount
+impl From<BytesCount> for BitsCount
+{
+	#[inline(always)]
+	fn from(value: BytesCount) -> Self
+	{
+		const BitsPerBytes: u64 = 8;
+		
+		BitsCount(value.0 * BitsPerBytes)
+	}
+}
+
+impl Into<u64> for BitsCount
 {
 	#[inline(always)]
 	fn into(self) -> u64
@@ -35,7 +50,7 @@ impl Into<u64> for PacketsCount
 	}
 }
 
-impl Into<i64> for PacketsCount
+impl Into<i64> for BitsCount
 {
 	#[inline(always)]
 	fn into(self) -> i64
@@ -44,7 +59,7 @@ impl Into<i64> for PacketsCount
 	}
 }
 
-impl Display for PacketsCount
+impl Display for BitsCount
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -53,19 +68,19 @@ impl Display for PacketsCount
 	}
 }
 
-impl Sub for PacketsCount
+impl Sub for BitsCount
 {
 	type Output = Self;
 	
 	fn sub(self, rhs: Self) -> Self::Output
 	{
-		PacketsCount(self.0 - rhs.0)
+		BitsCount(self.0 - rhs.0)
 	}
 }
 
-impl Count for PacketsCount
+impl Count for BitsCount
 {
-	const ZeroOrSimpleStatisticNotSupportedByEthernetDevice: Self = PacketsCount(0);
+	const ZeroOrSimpleStatisticNotSupportedByEthernetDevice: Self = BitsCount(0);
 	
 	#[inline(always)]
 	fn is_zero(self) -> bool

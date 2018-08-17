@@ -5,6 +5,10 @@
 /// An interval of `Self::InfiniteInterval` (zero) is infinite.
 ///
 /// A rate is `count / interval`.
+///
+/// Use `From / Into` impls to convert CountRate<BytesCount> to CountRate<BitsCount> and vice versa.
+///
+/// Both round down, so aren't communitative.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 pub struct CountRate<C: Count>
@@ -14,6 +18,30 @@ pub struct CountRate<C: Count>
 	
 	/// Interval.
 	pub interval: MillisecondDuration,
+}
+
+impl From<CountRate<BytesCount>> for CountRate<BitsCount>
+{
+	fn from(value: CountRate<BytesCount>) -> Self
+	{
+		Self
+		{
+			count: value.count.into(),
+			interval: value.interval,
+		}
+	}
+}
+
+impl From<CountRate<BitsCount>> for CountRate<BytesCount>
+{
+	fn from(value: CountRate<BitsCount>) -> Self
+	{
+		Self
+		{
+			count: value.count.into(),
+			interval: value.interval,
+		}
+	}
 }
 
 impl<C: Count> CountRate<C>
