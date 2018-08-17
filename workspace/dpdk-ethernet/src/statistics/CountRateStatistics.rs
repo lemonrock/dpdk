@@ -19,7 +19,7 @@ pub struct CountRateStatistics<C: Count>
 	
 	/// An iteratively calculated Exponentially Weighted Moving Average (EWMA) that uses a weighting factor of `AlphaPercent` (currently 20%).
 	///
-	/// Divide by the time taken since the last sample of statistics was made to get the  Exponentially Weighted Moving Average count rate.
+	/// Divide by the time taken since the last sample of statistics was made to get the Exponentially Weighted Moving Average count rate.
 	pub exponentionally_weighted_moving_average: CountRate<C>,
 }
 
