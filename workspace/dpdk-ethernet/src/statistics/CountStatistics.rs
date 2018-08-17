@@ -2,7 +2,7 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Represents bit statistics.
+/// Represents count statistics.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 struct CountStatistics<C: Count>
@@ -59,11 +59,11 @@ impl<C: Count> CountStatistics<C>
 	}
 	
 	#[inline(always)]
-	pub(crate) fn adjust_exponentionally_weighted_moving_average_bits(&mut self, interval_count: C)
+	pub(crate) fn adjust_exponentionally_weighted_moving_average_count(&mut self, interval_count: C)
 	{
-		let exponentionally_weighted_moving_average_bits: i64 = self.exponentionally_weighted_moving_average_count.into();
+		let exponentionally_weighted_moving_average_count: i64 = self.exponentionally_weighted_moving_average_count.into();
 		
-		let delta: i64 = { let into: i64 = interval_count.into(); into } - exponentionally_weighted_moving_average_bits;
+		let delta: i64 = { let into: i64 = interval_count.into(); into } - exponentionally_weighted_moving_average_count;
 		
 		// The +50 / -50 fixes integer rounding (down) during division.
 		const AlphaPercent: i64 = 20;
@@ -83,7 +83,7 @@ impl<C: Count> CountStatistics<C>
 		}
 		else
 		{
-			self.exponentionally_weighted_moving_average_count = C::from(exponentionally_weighted_moving_average_bits + increment);
+			self.exponentionally_weighted_moving_average_count = C::from(exponentionally_weighted_moving_average_count + increment);
 		}
 	}
 }

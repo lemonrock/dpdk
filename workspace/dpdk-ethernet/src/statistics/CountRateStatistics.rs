@@ -2,24 +2,24 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// Represents bit rate statistics.
+/// Represents count rate statistics.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 pub struct CountRateStatistics<C: Count>
 {
 	/// Peak.
 	///
-	/// Divide by the time taken since the last sample of statistics was made to get the peak bit rate.
+	/// Divide by the time taken since the last sample of statistics was made to get the peak count rate.
 	pub peak: CountRate<C>,
 	
 	/// Unsmoothed mean for just the current time delta.
 	///
-	/// Divide by the time taken since the last sample of statistics was made to get the unsmoothed mean bit rate.
+	/// Divide by the time taken since the last sample of statistics was made to get the unsmoothed mean count rate.
 	pub unsmoothed_mean: CountRate<C>,
 	
 	/// An iteratively calculated Exponentially Weighted Moving Average (EWMA) that uses a weighting factor of `AlphaPercent` (currently 20%).
 	///
-	/// Divide by the time taken since the last sample of statistics was made to get the  Exponentially Weighted Moving Average bit rate.
+	/// Divide by the time taken since the last sample of statistics was made to get the  Exponentially Weighted Moving Average count rate.
 	pub exponentionally_weighted_moving_average: CountRate<C>,
 }
 

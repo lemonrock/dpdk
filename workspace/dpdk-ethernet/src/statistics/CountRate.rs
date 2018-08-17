@@ -4,7 +4,7 @@
 
 /// An interval of `Self::InfiniteInterval` (zero) is infinite.
 ///
-/// A rate is `bits / interval`.
+/// A rate is `count / interval`.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 pub struct CountRate<C: Count>

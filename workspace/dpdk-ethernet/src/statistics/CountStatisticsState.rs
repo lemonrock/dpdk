@@ -21,7 +21,7 @@ impl<C: Count> CountStatisticsState<C>
 		let statistics = &mut self.statistics;
 		statistics.update_peak(interval_count);
 		statistics.set_unsmoothed_mean(interval_count);
-		statistics.adjust_exponentionally_weighted_moving_average_bits(interval_count)
+		statistics.adjust_exponentionally_weighted_moving_average_count(interval_count)
 	}
 	
 	#[inline(always)]

@@ -2,7 +2,7 @@
 // Copyright © 2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-/// State for bit rate statistics.
+/// State for count rate statistics.
 ///
 /// Pass to `EthernetPortSimpleStatistics.update_count_rate_statistics()` to update.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
