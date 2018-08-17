@@ -90,9 +90,9 @@ impl EthernetPortSimpleStatistics
 	
 	/// Update count rate statistics.
 	#[inline(always)]
-	pub fn update_count_rate_statistics<C: Count>(&self, count_rate_statistics_state: &mut CountRateStatisticsState<C>, sampled_at: MonotonicMillisecondTimestamp)
+	pub fn update_count_rate_statistics(&self, count_rate_statistics_state: &mut CountRateStatisticsState, sampled_at: MonotonicMillisecondTimestamp)
 	{
-		C::calculate_count_rates(count_rate_statistics_state, self, sampled_at)
+		count_rate_statistics_state.calculate_rates(self, sampled_at)
 	}
 	
 	/// Total number of successfully received packets by queue counter.

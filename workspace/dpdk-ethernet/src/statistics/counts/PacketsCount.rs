@@ -72,10 +72,4 @@ impl Count for PacketsCount
 	{
 		self.0 == 0
 	}
-	
-	#[inline(always)]
-	fn calculate_count_rates(count_rate_statistics_state: &mut CountRateStatisticsState<Self>, ethernet_port_simple_statistics: &EthernetPortSimpleStatistics, sampled_at: MonotonicMillisecondTimestamp)
-	{
-		count_rate_statistics_state.calculate_count_rates(ethernet_port_simple_statistics, sampled_at)
-	}
 }

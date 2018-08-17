@@ -11,7 +11,6 @@ pub mod counts;
 
 
 include!("CountRate.rs");
-
 include!("CountRateStatistics.rs");
 include!("CountRateStatisticsState.rs");
 include!("CountStatistics.rs");

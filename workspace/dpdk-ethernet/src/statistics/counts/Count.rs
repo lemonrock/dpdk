@@ -11,8 +11,4 @@ pub trait Count : Default + Debug + Copy + Clone + PartialEq + Eq + PartialOrd +
 	/// Is zero?
 	#[inline(always)]
 	fn is_zero(self) -> bool;
-	
-	#[doc(hidden)]
-	#[inline(always)]
-	fn calculate_count_rates(count_rate_statistics_state: &mut CountRateStatisticsState<Self>, ethernet_port_simple_statistics: &EthernetPortSimpleStatistics, sampled_at: MonotonicMillisecondTimestamp);
 }
