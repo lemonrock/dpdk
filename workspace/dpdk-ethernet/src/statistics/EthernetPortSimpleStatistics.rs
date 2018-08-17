@@ -16,46 +16,46 @@ pub struct EthernetPortSimpleStatistics
 	/// Total number of unsuccessfully received packets.
 	///
 	/// (`rte_eth_stats.ierrors`).
-	pub total_number_of_unsuccessfully_received_packets: PacketsCounter,
+	pub total_number_of_unsuccessfully_received_packets: PacketsCount,
 	
 	/// Total number of unsuccessfully transmitted packets.
 	///
 	/// (`rte_eth_stats.oerrors`).
-	pub total_number_of_unsuccessfully_transmitted_packets: PacketsCounter,
+	pub total_number_of_unsuccessfully_transmitted_packets: PacketsCount,
 	
 	/// Total number of packets received but for which a receive packet buffer (`rte_mbuf`) could not be allocated from the receive queue's memory pool.
 	///
 	/// A typical cause is being out-of-memory in the memory pool.
 	///
 	/// (`rte_eth_stats.rx_nombuf`).
-	pub total_number_of_receive_allocation_failures: PacketsCounter,
+	pub total_number_of_receive_allocation_failures: PacketsCount,
 	
 	/// For a QueueSimpleStatisticCounterIndex (0 to QueueSimpleStatisticCounterIndex::Maximum exclusive) associated with a queue, the total number of successfully received packets.
 	///
 	/// (`rte_eth_stats.q_ipackets`).
-	total_number_of_successfully_received_packets_by_queue_counter: [PacketsCounter; QueueSimpleStatisticCounterIndex::Maximum as usize],
+	total_number_of_successfully_received_packets_by_queue_counter: [PacketsCount; QueueSimpleStatisticCounterIndex::Maximum as usize],
 	
 	/// For a QueueSimpleStatisticCounterIndex (0 to QueueSimpleStatisticCounterIndex::Maximum exclusive) associated with a queue, the total number of successfully transmitted packets.
 	///
 	/// (`rte_eth_stats.q_opackets`).
-	total_number_of_successfully_transmitted_packets_by_queue_counter: [PacketsCounter; QueueSimpleStatisticCounterIndex::Maximum as usize],
+	total_number_of_successfully_transmitted_packets_by_queue_counter: [PacketsCount; QueueSimpleStatisticCounterIndex::Maximum as usize],
 	
 	/// For a QueueSimpleStatisticCounterIndex (0 to QueueSimpleStatisticCounterIndex::Maximum exclusive) associated with a queue, the total number of successfully received bytes.
 	///
 	/// (`rte_eth_stats.q_ibytes`).
-	total_number_of_successfully_received_bytes_by_queue_counter: [BytesCounter; QueueSimpleStatisticCounterIndex::Maximum as usize],
+	total_number_of_successfully_received_bytes_by_queue_counter: [BytesCount; QueueSimpleStatisticCounterIndex::Maximum as usize],
 	
 	/// For a QueueSimpleStatisticCounterIndex (0 to QueueSimpleStatisticCounterIndex::Maximum exclusive) associated with a queue, the total number of successfully transmitted bytes.
 	///
 	/// (`rte_eth_stats.q_obytes`).
-	total_number_of_successfully_transmitted_bytes_by_queue_counter: [BytesCounter; QueueSimpleStatisticCounterIndex::Maximum as usize],
+	total_number_of_successfully_transmitted_bytes_by_queue_counter: [BytesCount; QueueSimpleStatisticCounterIndex::Maximum as usize],
 	
 	/// For a QueueSimpleStatisticCounterIndex (0 to QueueSimpleStatisticCounterIndex::Maximum exclusive) associated with a queue, the total number of packets received but dropped before reaching software because there was no available received buffer.
 	///
 	/// Causes include there not being enough receive descriptors (ie the queue ring size aka queue depth was reached) and the received packet being larger, including headroom, than the receive queue's memory pool has been configured to support.
 	///
 	/// (`rte_eth_stats.q_errors`).
-	total_number_of_packets_received_but_dropped_by_queue_counter: [PacketsCounter; QueueSimpleStatisticCounterIndex::Maximum as usize],
+	total_number_of_packets_received_but_dropped_by_queue_counter: [PacketsCount; QueueSimpleStatisticCounterIndex::Maximum as usize],
 }
 
 impl From<rte_eth_stats> for EthernetPortSimpleStatistics
@@ -88,44 +88,44 @@ impl EthernetPortSimpleStatistics
 		}
 	}
 	
-	/// Update bit rate statistics.
+	/// Update count rate statistics.
 	#[inline(always)]
-	pub fn update_bit_rate_statistics(&self, bit_rate_statistics_state: &mut BitRateStatisticsState, sampled_at: MonotonicMillisecondTimestamp)
+	pub fn update_count_rate_statistics<C: Count>(&self, count_rate_statistics_state: &mut CountRateStatisticsState<C>, sampled_at: MonotonicMillisecondTimestamp)
 	{
-		bit_rate_statistics_state.calculate_bit_rates(self, sampled_at)
+		C::calculate_count_rates(count_rate_statistics_state, self, sampled_at)
 	}
 	
 	/// Total number of successfully received packets by queue counter.
 	#[inline(always)]
-	pub fn total_number_of_successfully_received_packets_by_queue_counter(&self, counter_index: QueueSimpleStatisticCounterIndex) -> PacketsCounter
+	pub fn total_number_of_successfully_received_packets_by_queue_counter(&self, counter_index: QueueSimpleStatisticCounterIndex) -> PacketsCount
 	{
 		counter_index.get_value(&self.total_number_of_successfully_received_packets_by_queue_counter)
 	}
 	
 	/// Total number of successfully transmitted packets by queue counter.
 	#[inline(always)]
-	pub fn total_number_of_successfully_transmitted_packets_by_queue_counter(&self, counter_index: QueueSimpleStatisticCounterIndex) -> PacketsCounter
+	pub fn total_number_of_successfully_transmitted_packets_by_queue_counter(&self, counter_index: QueueSimpleStatisticCounterIndex) -> PacketsCount
 	{
 		counter_index.get_value(&self.total_number_of_successfully_transmitted_packets_by_queue_counter)
 	}
 	
 	/// Total number of successfully received bytes by queue counter.
 	#[inline(always)]
-	pub fn total_number_of_successfully_received_bytes_by_queue_counter(&self, counter_index: QueueSimpleStatisticCounterIndex) -> BytesCounter
+	pub fn total_number_of_successfully_received_bytes_by_queue_counter(&self, counter_index: QueueSimpleStatisticCounterIndex) -> BytesCount
 	{
 		counter_index.get_value(&self.total_number_of_successfully_received_bytes_by_queue_counter)
 	}
 	
 	/// Total number of successfully transmitted bytes by queue counter.
 	#[inline(always)]
-	pub fn total_number_of_successfully_transmitted_bytes_by_queue_counter(&self, counter_index: QueueSimpleStatisticCounterIndex) -> BytesCounter
+	pub fn total_number_of_successfully_transmitted_bytes_by_queue_counter(&self, counter_index: QueueSimpleStatisticCounterIndex) -> BytesCount
 	{
 		counter_index.get_value(&self.total_number_of_successfully_transmitted_bytes_by_queue_counter)
 	}
 	
 	/// Total number of packets but dropped by queue counter.
 	#[inline(always)]
-	pub fn total_number_of_packets_received_but_dropped_by_queue_counter(&self, counter_index: QueueSimpleStatisticCounterIndex) -> PacketsCounter
+	pub fn total_number_of_packets_received_but_dropped_by_queue_counter(&self, counter_index: QueueSimpleStatisticCounterIndex) -> PacketsCount
 	{
 		counter_index.get_value(&self.total_number_of_packets_received_but_dropped_by_queue_counter)
 	}

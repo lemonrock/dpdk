@@ -5,34 +5,34 @@
 /// Represents bit rate statistics.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct BitRateStatistics
+pub struct CountRateStatistics<C: Count>
 {
-	/// Peak bits.
+	/// Peak.
 	///
 	/// Divide by the time taken since the last sample of statistics was made to get the peak bit rate.
-	pub peak: BitRate,
+	pub peak: CountRate<C>,
 	
 	/// Unsmoothed mean for just the current time delta.
 	///
 	/// Divide by the time taken since the last sample of statistics was made to get the unsmoothed mean bit rate.
-	pub unsmoothed_mean: BitRate,
+	pub unsmoothed_mean: CountRate<C>,
 	
 	/// An iteratively calculated Exponentially Weighted Moving Average (EWMA) that uses a weighting factor of `AlphaPercent` (currently 20%).
 	///
 	/// Divide by the time taken since the last sample of statistics was made to get the  Exponentially Weighted Moving Average bit rate.
-	pub exponentionally_weighted_moving_average: BitRate,
+	pub exponentionally_weighted_moving_average: CountRate<C>,
 }
 
-impl BitRateStatistics
+impl<C: Count> CountRateStatistics<C>
 {
 	#[inline(always)]
-	fn new(statistics: &BitStatistics, interval: MillisecondDuration) -> Self
+	fn new(statistics: &CountStatistics<C>, interval: MillisecondDuration) -> Self
 	{
 		Self
 		{
-			peak: statistics.peak_bit_rate(interval),
-			unsmoothed_mean: statistics.unsmoothed_mean_bit_rate(interval),
-			exponentionally_weighted_moving_average: statistics.exponentionally_weighted_moving_average_bit_rate(interval),
+			peak: statistics.peak_rate(interval),
+			unsmoothed_mean: statistics.unsmoothed_mean_rate(interval),
+			exponentionally_weighted_moving_average: statistics.exponentionally_weighted_moving_average_rate(interval),
 		}
 	}
 }

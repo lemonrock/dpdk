@@ -6,18 +6,27 @@
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
 #[repr(transparent)]
-pub struct PacketsCounter(pub u64);
+pub struct PacketsCount(pub u64);
 
-impl From<u64> for PacketsCounter
+impl From<u64> for PacketsCount
 {
 	#[inline(always)]
 	fn from(value: u64) -> Self
 	{
-		PacketsCounter(value)
+		PacketsCount(value)
 	}
 }
 
-impl Into<u64> for PacketsCounter
+impl From<i64> for PacketsCount
+{
+	#[inline(always)]
+	fn from(value: i64) -> Self
+	{
+		PacketsCount(value as u64)
+	}
+}
+
+impl Into<u64> for PacketsCount
 {
 	#[inline(always)]
 	fn into(self) -> u64
@@ -26,7 +35,16 @@ impl Into<u64> for PacketsCounter
 	}
 }
 
-impl Display for PacketsCounter
+impl Into<i64> for PacketsCount
+{
+	#[inline(always)]
+	fn into(self) -> i64
+	{
+		self.0 as i64
+	}
+}
+
+impl Display for PacketsCount
 {
 	#[inline(always)]
 	fn fmt(&self, f: &mut Formatter) -> fmt::Result
@@ -35,18 +53,29 @@ impl Display for PacketsCounter
 	}
 }
 
-impl Sub for PacketsCounter
+impl Sub for PacketsCount
 {
 	type Output = Self;
 	
 	fn sub(self, rhs: Self) -> Self::Output
 	{
-		PacketsCounter(self.0 - rhs.0)
+		PacketsCount(self.0 - rhs.0)
 	}
 }
 
-impl PacketsCounter
+impl Count for PacketsCount
 {
-	/// Some ethernet devices do not support some simple statistics; they record these as zero, rather than use a sentinel or Option.
-	pub const ZeroOrSimpleStatisticNotSupportedByEthernetDevice: PacketsCounter = PacketsCounter(0);
+	const ZeroOrSimpleStatisticNotSupportedByEthernetDevice: Self = PacketsCount(0);
+	
+	#[inline(always)]
+	fn is_zero(self) -> bool
+	{
+		self.0 == 0
+	}
+	
+	#[inline(always)]
+	fn calculate_count_rates(count_rate_statistics_state: &mut CountRateStatisticsState<Self>, ethernet_port_simple_statistics: &EthernetPortSimpleStatistics, sampled_at: MonotonicMillisecondTimestamp)
+	{
+		count_rate_statistics_state.calculate_count_rates(ethernet_port_simple_statistics, sampled_at)
+	}
 }

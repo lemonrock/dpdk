@@ -4,46 +4,48 @@
 
 /// An interval of `Self::InfiniteInterval` (zero) is infinite.
 ///
-/// A bit rate is `bits / interval`.
+/// A rate is `bits / interval`.
 #[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize, Serialize)]
-pub struct BitRate
+pub struct CountRate<C: Count>
 {
-	/// Bits.
-	pub bits: u64,
+	/// Count.
+	pub count: C,
 	
 	/// Interval.
 	pub interval: MillisecondDuration,
 }
 
-impl BitRate
+impl<C: Count> CountRate<C>
 {
 	/// An infinite interval.
 	pub const InfiniteInterval: MillisecondDuration = MillisecondDuration::Zero;
 	
 	#[inline(always)]
-	pub(crate) const fn new(bits: u64, interval: MillisecondDuration) -> Self
+	pub(crate) const fn new(count: C, interval: MillisecondDuration) -> Self
 	{
 		Self
 		{
-			bits,
+			count,
 			interval,
 		}
 	}
 	
-	/// Rate in bits per millisecond, rounded down.
+	/// Rate per millisecond, rounded down.
 	#[inline(always)]
-	pub fn rate_in_bits_per_millisecond_rounded_down(&self) -> Option<u64>
+	pub fn rate_per_millisecond_rounded_down(&self) -> Option<u64>
 	{
-		let into: u64 = self.interval.into();
-		self.bits.checked_div(into)
+		let count: u64 = self.count.into();
+		let interval: u64 = self.interval.into();
+		count.checked_div(interval)
 	}
 	
-	/// Rate in bits per second, rounded down.
+	/// Rate per second, rounded down.
 	#[inline(always)]
-	pub fn rate_in_bits_per_second_rounded_down(&self) -> Option<u64>
+	pub fn rate_per_second_rounded_down(&self) -> Option<u64>
 	{
-		let into: u64 = self.interval.into();
-		self.bits.checked_div(into / 1000)
+		let count: u64 = self.count.into();
+		let interval: u64 = self.interval.into();
+		count.checked_div(interval / 1000)
 	}
 }

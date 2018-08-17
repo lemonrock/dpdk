@@ -15,27 +15,27 @@ pub struct EthernetPortSimpleStatisticsOverview
 	/// Total number of successfully received packets.
 	///
 	/// (`rte_eth_stats.ipackets`).
-	pub total_number_of_successfully_received_packets: PacketsCounter,
+	pub total_number_of_successfully_received_packets: PacketsCount,
 	
 	/// Total number of successfully transmitted packets.
 	///
 	/// (`rte_eth_stats.opackets`).
-	pub total_number_of_successfully_transmitted_packets: PacketsCounter,
+	pub total_number_of_successfully_transmitted_packets: PacketsCount,
 	
 	/// Total number of successfully received packets.
 	///
 	/// (`rte_eth_stats.ibytes`).
-	pub total_number_of_successfully_received_bytes: BytesCounter,
+	pub total_number_of_successfully_received_bytes: BytesCount,
 	
 	/// Total number of successfully transmitted packets.
 	///
 	/// (`rte_eth_stats.obytes`).
-	pub total_number_of_successfully_transmitted_bytes: BytesCounter,
+	pub total_number_of_successfully_transmitted_bytes: BytesCount,
 	
 	/// Total number of packets received but dropped before reaching software because there was no available received buffer.
 	///
 	/// Causes include there not being enough receive descriptors (ie the queue ring size aka queue depth was reached) and the received packet being larger, including headroom, than the receive queue's memory pool has been configured to support.
 	///
 	/// (`rte_eth_stats.imissed`).
-	pub total_number_of_packets_received_but_dropped: PacketsCounter,
+	pub total_number_of_packets_received_but_dropped: PacketsCount,
 }

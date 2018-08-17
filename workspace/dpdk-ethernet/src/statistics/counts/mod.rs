@@ -3,20 +3,8 @@
 
 
 use super::*;
-use self::counts::*;
 
 
-/// Counts.
-pub mod counts;
-
-
-include!("CountRate.rs");
-
-include!("CountRateStatistics.rs");
-include!("CountRateStatisticsState.rs");
-include!("CountStatistics.rs");
-include!("CountStatisticsState.rs");
-include!("EthernetPortSimpleStatistics.rs");
-include!("EthernetPortSimpleStatisticsOverview.rs");
-include!("ExtendedStatisticsIterator.rs");
-include!("QueueSimpleStatisticCounterIndex.rs");
+include!("BytesCount.rs");
+include!("Count.rs");
+include!("PacketsCount.rs");
