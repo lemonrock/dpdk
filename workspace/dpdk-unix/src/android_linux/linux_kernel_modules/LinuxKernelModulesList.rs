@@ -6,18 +6,17 @@
 ///
 /// Is *not* updated if a module is loaded or unloaded.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct LinuxKernelModulesList(HashSet<String>);
+pub struct LinuxKernelModulesList(HashSet<Box<[u8]>>);
 
 impl LinuxKernelModulesList
 {
-	//noinspection SpellCheckingInspection
 	/// Unloads a Linux kernel module.
 	///
 	/// Does not use `modprobe`.
 	///
 	/// true if unloaded.
 	/// false if does not exist.
-	pub fn unload_linux_kernel_module(linux_kernel_module_name: &str) -> Result<bool, io::Error>
+	pub fn unload_linux_kernel_module(linux_kernel_module_name: &[u8]) -> Result<bool, io::Error>
 	{
 		use self::ErrorKind::*;
 		
@@ -83,7 +82,7 @@ impl LinuxKernelModulesList
 	/// Returns false if already loaded.
 	///
 	/// Updates the list of loaded modules.
-	pub fn load_linux_kernel_module_if_absent_from_ko_file(&mut self, linux_kernel_module_name: &str, module_file_base_name: &str, linux_kernel_modules_path: &Path) -> Result<bool, io::Error>
+	pub fn load_linux_kernel_module_if_absent_from_ko_file(&mut self, linux_kernel_module_name: &[u8], module_file_base_name: &str, linux_kernel_modules_path: &Path) -> Result<bool, io::Error>
 	{
 		if self.is_linux_kernel_module_is_loaded(linux_kernel_module_name)
 		{
@@ -94,7 +93,7 @@ impl LinuxKernelModulesList
 			let mut linux_kernel_module_path = PathBuf::from(linux_kernel_modules_path);
 			linux_kernel_module_path.push(format!("{}.ko", module_file_base_name));
 			let loaded = Self::load_linux_kernel_module_from_ko_file(&linux_kernel_module_path)?;
-			self.0.insert(linux_kernel_module_name.to_owned());
+			self.0.insert(linux_kernel_module_name.to_vec().into_boxed_slice());
 			Ok(loaded)
 		}
 	}
@@ -104,7 +103,7 @@ impl LinuxKernelModulesList
 	/// Uses `modprobe`.
 	///
 	/// Updates the list of loaded modules.
-	pub fn load_linux_kernel_module_if_absent_using_modprobe(&mut self, linux_kernel_module_name: &str, module_file_base_name: &str) -> Result<bool, ModProbeError>
+	pub fn load_linux_kernel_module_if_absent_using_modprobe(&mut self, linux_kernel_module_name: &[u8], module_file_base_name: &[u8]) -> Result<bool, ModProbeError>
 	{
 		if self.is_linux_kernel_module_is_loaded(linux_kernel_module_name)
 		{
@@ -113,13 +112,13 @@ impl LinuxKernelModulesList
 		else
 		{
 			modprobe(module_file_base_name)?;
-			self.0.insert(linux_kernel_module_name.to_owned());
+			self.0.insert(linux_kernel_module_name.to_vec().into_boxed_slice());
 			Ok(true)
 		}
 	}
 	
 	/// Is the `linux_kernel_module_name` loaded?
-	pub fn is_linux_kernel_module_is_loaded(&self, linux_kernel_module_name: &str) -> bool
+	pub fn is_linux_kernel_module_is_loaded(&self, linux_kernel_module_name: &[u8]) -> bool
 	{
 		self.0.contains(linux_kernel_module_name)
 	}
@@ -130,29 +129,28 @@ impl LinuxKernelModulesList
 		let mut reader = BufReader::with_capacity(4096, File::open(file_path)?);
 		
 		let mut modules_list = HashSet::new();
-		let mut line_number = 0;
-		let mut line = String::with_capacity(512);
-		while reader.read_line(&mut line)? > 0
+		let mut zero_based_line_number = 0;
+		for line in reader.split(b'\n')
 		{
 			{
-				let mut split = line.splitn(2, ' ');
+				let mut line = line?;
+				let mut split = splitn(&line, 2, b' ');
 
 				let linux_kernel_module_name = split.next().unwrap();
 				
 				if linux_kernel_module_name.is_empty()
 				{
-					return Err(LinuxKernelModulesListParseError::CouldNotParseEmptyModuleName(line_number))
+					return Err(LinuxKernelModulesListParseError::CouldNotParseEmptyModuleName { zero_based_line_number })
 				}
 				
-				let is_original = modules_list.insert(linux_kernel_module_name.to_owned());
+				let is_original = modules_list.insert(linux_kernel_module_name.to_vec().into_boxed_slice());
 				if !is_original
 				{
-					 return Err(LinuxKernelModulesListParseError::DuplicateModuleName(line_number, linux_kernel_module_name.to_owned()));
+					 return Err(LinuxKernelModulesListParseError::DuplicateModuleName { zero_based_line_number, linux_kernel_module_name: linux_kernel_module_name.to_vec().into_boxed_slice() });
 				}
 			}
-			
-			line.clear();
-			line_number += 1;
+
+			zero_based_line_number += 1;
 		}
 		
 		Ok(LinuxKernelModulesList(modules_list))

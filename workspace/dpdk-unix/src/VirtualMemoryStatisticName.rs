@@ -49,57 +49,57 @@ pub enum VirtualMemoryStatisticName
 	NumaOtherNode,
 	
 	/// This is for all other possibilities.
-	Unknown(String),
+	Unknown(Box<[u8]>),
 }
 
 impl VirtualMemoryStatisticName
 {
 	#[inline]
-	pub(crate) fn parse(name: &str) -> Self
+	pub(crate) fn parse(name: &[u8]) -> Self
 	{
 		use self::VirtualMemoryStatisticName::*;
 		
 		match name
 		{
-			"nr_free_pages" => NumberOFreePages,
-			"nr_alloc_batch" => NumberOfBatchAllocatedPages,
-			"nr_inactive_anon" => NumberOfInactiveAnonymousPages,
-			"nr_active_anon" => NumberOfActiveAnonymousPages,
-			"nr_inactive_file" => NumberOfInactiveFilePages,
-			"nr_active_file" => NumberOfActiveFilePages,
-			"nr_unevictable" => NumberOfUnevictablePages,
-			"nr_mlock" => NumberOfLockedPages,
-			"nr_anon_pages" => NumberOfAnonymousPages,
-			"nr_mapped" => NumberOfMappedPages,
-			"nr_file_pages" => NumberOfFilePages,
-			"nr_dirty" => NumberOfDirtyPages,
-			"nr_writeback" => NumberOfWritebackPages,
-			"nr_slab_reclaimable" => NumberOfReclaimableSlabPages,
-			"nr_slab_unreclaimable" => NumberOfUnreclaimableSlabPages,
-			"nr_page_table_pages" => NumberOfPageTablePages,
-			"nr_kernel_stack" => NumberOfKernelStackPages,
-			"nr_unstable" => NumberOfUnstablePages,
-			"nr_bounce" => NumberOfBouncePages,
-			"nr_vmscan_write" => NumberOfVirtualMemoryWritePages,
-			"nr_vmscan_immediate_reclaim" => NumberOfVirtualMemoryImmediateReclaimPages,
-			"nr_writeback_temp" => NumberOfWritebackTemporaryPages,
-			"nr_isolated_anon" => NumberOfIsolatedAnonymousPages,
-			"nr_isolated_file" => NumberOfIsolatedFilePages,
-			"nr_shmem" => NumberOfShmemPages,
-			"nr_dirtied" => NumberOfDirtiedPages,
-			"nr_written" => NumberOfWrittenPages,
-			"nr_anon_transparent_hugepages" => NumberOfAnonymousTransparentHugePages,
-			"nr_free_cma" => NumberOfFreeCmaPages,
+			b"nr_free_pages" => NumberOFreePages,
+			b"nr_alloc_batch" => NumberOfBatchAllocatedPages,
+			b"nr_inactive_anon" => NumberOfInactiveAnonymousPages,
+			b"nr_active_anon" => NumberOfActiveAnonymousPages,
+			b"nr_inactive_file" => NumberOfInactiveFilePages,
+			b"nr_active_file" => NumberOfActiveFilePages,
+			b"nr_unevictable" => NumberOfUnevictablePages,
+			b"nr_mlock" => NumberOfLockedPages,
+			b"nr_anon_pages" => NumberOfAnonymousPages,
+			b"nr_mapped" => NumberOfMappedPages,
+			b"nr_file_pages" => NumberOfFilePages,
+			b"nr_dirty" => NumberOfDirtyPages,
+			b"nr_writeback" => NumberOfWritebackPages,
+			b"nr_slab_reclaimable" => NumberOfReclaimableSlabPages,
+			b"nr_slab_unreclaimable" => NumberOfUnreclaimableSlabPages,
+			b"nr_page_table_pages" => NumberOfPageTablePages,
+			b"nr_kernel_stack" => NumberOfKernelStackPages,
+			b"nr_unstable" => NumberOfUnstablePages,
+			b"nr_bounce" => NumberOfBouncePages,
+			b"nr_vmscan_write" => NumberOfVirtualMemoryWritePages,
+			b"nr_vmscan_immediate_reclaim" => NumberOfVirtualMemoryImmediateReclaimPages,
+			b"nr_writeback_temp" => NumberOfWritebackTemporaryPages,
+			b"nr_isolated_anon" => NumberOfIsolatedAnonymousPages,
+			b"nr_isolated_file" => NumberOfIsolatedFilePages,
+			b"nr_shmem" => NumberOfShmemPages,
+			b"nr_dirtied" => NumberOfDirtiedPages,
+			b"nr_written" => NumberOfWrittenPages,
+			b"nr_anon_transparent_hugepages" => NumberOfAnonymousTransparentHugePages,
+			b"nr_free_cma" => NumberOfFreeCmaPages,
 
 			// found in '/sys/devices/system/node/nodeX/vmstat' and '/sys/devices/system/node/nodeX/numastat'
-			"numa_hit" => NumaHit,
-			"numa_miss" => NumaMiss,
-			"numa_foreign" => NumaForeign,
-			"interleave_hit" => NumaInterleaveHit,
-			"local_node" => NumaLocalNode,
-			"other_node" => NumaOtherNode,
+			b"numa_hit" => NumaHit,
+			b"numa_miss" => NumaMiss,
+			b"numa_foreign" => NumaForeign,
+			b"interleave_hit" => NumaInterleaveHit,
+			b"local_node" => NumaLocalNode,
+			b"other_node" => NumaOtherNode,
 			
-			other @ _ => Unknown(other.to_owned()),
+			other @ _ => Unknown(other.to_vec().into_boxed_slice()),
 		}
 	}
 }

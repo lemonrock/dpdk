@@ -5,7 +5,6 @@
 extern crate dpdk_core;
 extern crate dpdk_sys;
 #[macro_use] extern crate likely;
-#[macro_use] extern crate quick_error;
 extern crate network_collections;
 
 

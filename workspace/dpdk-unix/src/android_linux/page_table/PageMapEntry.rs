@@ -108,6 +108,6 @@ impl PageMapEntry
 		let mut buffer: [u8; 8] = unsafe { uninitialized() };
 		file.read_exact(&mut buffer)?;
 		
-		Ok(PageMapEntry(u64::from_bytes(buffer)))
+		Ok(PageMapEntry(u64::from_ne_bytes(buffer)))
 	}
 }

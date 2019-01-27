@@ -246,7 +246,7 @@ impl NumaNodeChoice
 	
 	/// Memory information.
 	#[inline(always)]
-	pub fn memory_information(&self, sys_path: &SysPath, proc_path: &ProcPath, memory_information_name_prefix: &str) -> Result<MemoryInformation, MemoryInformationParseError>
+	pub fn memory_information(&self, sys_path: &SysPath, proc_path: &ProcPath, memory_information_name_prefix: &[u8]) -> Result<MemoryInformation, MemoryInformationParseError>
 	{
 		use self::NumaNodeChoice::*;
 		

@@ -2,29 +2,63 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-quick_error!
+/// Cause of error when modprobe fails.
+#[derive(Debug)]
+pub enum ModProbeError
 {
-	/// Cause of error when modprobe fails.
-	#[derive(Debug)]
-	pub enum ModProbeError
+	/// Could not open file list of Linux kernel linux_kernel_modules.
+	InputOutputError(io::Error),
+
+	/// A module name was empty.
+	SignalTerminatedExitCode
 	{
-		/// Input / Output error.
-		InputOutputError(cause: Error)
+		/// The Linux kernel module name (not necessarily UTF-8).
+		linux_kernel_module_name: Box<[u8]>,
+	},
+
+	/// A module name was duplicated.
+	NonZeroExitCode
+	{
+		/// The Linux kernel module name (not necessarily UTF-8).
+		linux_kernel_module_name: Box<[u8]>,
+
+		/// Exit code.
+		exit_code: i32,
+	},
+}
+
+impl Display for ModProbeError
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		<ModProbeError as Debug>::fmt(self, f)
+	}
+}
+
+impl error::Error for ModProbeError
+{
+	#[inline(always)]
+	fn source(&self) ->  Option<&(error::Error + 'static)>
+	{
+		use self::ModProbeError::*;
+
+		match self
 		{
-			cause(cause)
-			from()
+			&InputOutputError(ref error) => Some(error),
+
+			&SignalTerminatedExitCode { .. } => None,
+
+			&NonZeroExitCode { .. } => None,
 		}
-		
-		/// Signal-terminated modprobe.
-		SignalTerminatedExitCode(linux_kernel_module_name: String)
-		{
-			display("modprobe return a signal terminated exit for module '{}'", linux_kernel_module_name)
-		}
-		
-		/// Non-zero exit code.
-		NonZeroExitCode(exit_code: i32, linux_kernel_module_name: String)
-		{
-			display("modprobe returned a non-zero exit code of '{}' for module '{}'", exit_code, linux_kernel_module_name)
-		}
+	}
+}
+
+impl From<io::Error> for ModProbeError
+{
+	#[inline(always)]
+	fn from(error: io::Error) -> Self
+	{
+		ModProbeError::InputOutputError(error)
 	}
 }

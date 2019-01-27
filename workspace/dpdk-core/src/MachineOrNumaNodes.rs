@@ -100,7 +100,7 @@ impl MachineOrNumaNodes<()>
 			(number_of_pages, MegaBytes::from(total_free).scale_by(number_of_pages))
 		}
 		
-		const MemoryInformationNamePrefix: &'static str = "";
+		const MemoryInformationNamePrefix: &'static u8 = b"";
 		
 		let largest_supported_huge_page_size = HugePageSize::largest_supported_huge_page_size(sys_path);
 		

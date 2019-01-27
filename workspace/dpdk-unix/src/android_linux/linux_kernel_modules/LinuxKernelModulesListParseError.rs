@@ -2,29 +2,63 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-quick_error!
+/// Cause of error when trying to parse list of Linux linux_kernel_modules.
+#[derive(Debug)]
+pub enum LinuxKernelModulesListParseError
 {
-	/// Cause of error when trying to parse list of Linux linux_kernel_modules.
-	#[derive(Debug)]
-	pub enum LinuxKernelModulesListParseError
+	/// Could not open file list of Linux kernel linux_kernel_modules.
+	CouldNotOpenFile(io::Error),
+
+	/// A module name was empty.
+	CouldNotParseEmptyModuleName
 	{
-		/// Could not open file list of Linux kernel linux_kernel_modules.
-		CouldNotOpenFile(cause: Error)
+		/// Zero-based line number in the file the error occurred at.
+		zero_based_line_number: usize,
+	},
+
+	/// A module name was duplicated.
+	DuplicateModuleName
+	{
+		/// Zero-based line number in the file the error occurred at.
+		zero_based_line_number: usize,
+
+		/// The Linux kernel module name (not necessarily UTF-8).
+		linux_kernel_module_name: Box<[u8]>,
+	},
+}
+
+impl Display for LinuxKernelModulesListParseError
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
+	{
+		<LinuxKernelModulesListParseError as Debug>::fmt(self, f)
+	}
+}
+
+impl error::Error for LinuxKernelModulesListParseError
+{
+	#[inline(always)]
+	fn source(&self) ->  Option<&(error::Error + 'static)>
+	{
+		use self::LinuxKernelModulesListParseError::*;
+
+		match self
 		{
-			cause(cause)
-			from()
+			&CouldNotOpenFile(ref error) => Some(error),
+
+			&CouldNotParseEmptyModuleName { .. } => None,
+
+			&DuplicateModuleName { .. } => None,
 		}
-		
-		/// A module name was empty.
-		CouldNotParseEmptyModuleName(zero_based_line_number: usize)
-		{
-			display("Zero-based line number '{}' could not be parsed as a module name because it is empty", zero_based_line_number)
-		}
-		
-		/// A module name was duplicated.
-		DuplicateModuleName(zero_based_line_number: usize, linux_kernel_module_name: String)
-		{
-			display("Zero-based line number '{}' module name '{:?}' was duplicated", zero_based_line_number, linux_kernel_module_name)
-		}
+	}
+}
+
+impl From<io::Error> for LinuxKernelModulesListParseError
+{
+	#[inline(always)]
+	fn from(error: io::Error) -> Self
+	{
+		LinuxKernelModulesListParseError::CouldNotOpenFile(error)
 	}
 }

@@ -20,6 +20,14 @@ impl Default for ProcPath
 
 impl ProcPath
 {
+//	/// Status key-value pairs (from `/proc/self/status`).
+//	#[inline(always)]
+//	#[cfg(any(target_os = "android", target_os = "linux"))]
+//	pub fn status(&self) -> io::Result<HashMap<StatusStatisticName, Vec<u8>>>
+//	{
+//		self.file_path("self/status").parse_key_value_file()
+//	}
+
 	/// Memory statistics (from `/proc/vmstat`).
 	///
 	/// Interpret this by multiplying counts by page size.
@@ -29,11 +37,11 @@ impl ProcPath
 	{
 		self.file_path("vmstat").parse_virtual_memory_statistics_file()
 	}
-	
+
 	/// Memory information (from `/proc/meminfo`).
 	#[inline(always)]
 	#[cfg(any(target_os = "android", target_os = "linux"))]
-	pub fn memory_information(&self, memory_information_name_prefix: &str) -> Result<MemoryInformation, MemoryInformationParseError>
+	pub fn memory_information(&self, memory_information_name_prefix: &[u8]) -> Result<MemoryInformation, MemoryInformationParseError>
 	{
 		self.file_path("meminfo").parse_memory_information_file(memory_information_name_prefix)
 	}

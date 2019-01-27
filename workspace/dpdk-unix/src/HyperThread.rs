@@ -153,11 +153,11 @@ impl HyperThread
 	#[inline(always)]
 	pub fn is_online(self, sys_path: &SysPath) -> bool
 	{
-		match &self.online_file_path(sys_path).read_string_without_line_feed().unwrap()[..]
+		match &self.online_file_path(sys_path).read_raw_without_line_feed().unwrap()[..]
 		{
-			"0" => false,
-			"1" => true,
-			invalid @ _ => panic!("Invalid value for CPU online '{}'", invalid),
+			b"0" => false,
+			b"1" => true,
+			invalid @ _ => panic!("Invalid value for CPU online '{:?}'", invalid),
 		}
 	}
 	

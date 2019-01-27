@@ -2,20 +2,38 @@
 // Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-quick_error!
+/// An error occurred when inserting the packet buffer.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum CouldNotInsertPacketBufferForReordering
 {
-	/// An error occurred when inserting the packet buffer.
-	#[derive(Debug)]
-	pub enum CouldNotInsertPacketBufferForReordering
+	/// Call `drain()` and try again.
+	CanNotMoveExistingPacketBuffersToAcccommodateUnlessDrainIsCalled,
+
+	/// Too early or late packet buffer which is vastly out of range of the expected window.
+	OutOfWindowRange,
+}
+
+impl Display for CouldNotInsertPacketBufferForReordering
+{
+	#[inline(always)]
+	fn fmt(&self, f: &mut Formatter) -> fmt::Result
 	{
-		/// Call `drain()` and try again.
-		CanNotMoveExistingPacketBuffersToAcccommodateUnlessDrainIsCalled
+		<CouldNotInsertPacketBufferForReordering as Debug>::fmt(self, f)
+	}
+}
+
+impl error::Error for CouldNotInsertPacketBufferForReordering
+{
+	#[inline(always)]
+	fn source(&self) ->  Option<&(error::Error + 'static)>
+	{
+		use self::CouldNotInsertPacketBufferForReordering::*;
+
+		match self
 		{
-		}
-		
-		///  Too early or late packet buffer which is vastly out of range of the expected window.
-		OutOfWindowRange
-		{
+			&CanNotMoveExistingPacketBuffersToAcccommodateUnlessDrainIsCalled => None,
+
+			&OutOfWindowRange => None,
 		}
 	}
 }

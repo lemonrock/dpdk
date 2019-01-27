@@ -23,4 +23,3 @@ dpdk-core = { path = "../dpdk-core", version = "^0.1" }
 dpdk-sys = { path = "../dpdk-sys", version = "^0.1" }
 likely = "^0.1"
 network-collections = "^0.1"
-quick-error = "^1.2"

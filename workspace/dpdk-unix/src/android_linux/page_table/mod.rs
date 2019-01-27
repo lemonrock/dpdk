@@ -3,11 +3,6 @@
 
 
 use super::*;
-use ::memory_information::PhysicalPageFrameNumber;
-use ::std::mem::uninitialized;
-use ::std::fs::File;
-use ::std::io;
-use ::std::io::prelude::*;
 
 
 include!("HasVirtualAddress.rs");

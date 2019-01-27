@@ -3,18 +3,6 @@
 
 
 use super::*;
-#[cfg(any(target_os = "android", target_os = "linux"))] use super::android_linux::page_table::*;
-use ::std::collections::HashMap;
-use ::std::io::Error;
-#[cfg(any(target_os = "android", target_os = "linux"))] use ::std::io::SeekFrom;
-#[cfg(any(target_os = "android", target_os = "linux"))] use ::std::mem::size_of;
-use ::std::num::ParseIntError;
-use ::std::ops::Add;
-use ::std::ops::AddAssign;
-use ::std::ops::Sub;
-use ::std::ops::SubAssign;
-use ::std::ptr::NonNull;
-use ::HugePageSize;
 
 
 include!("MemoryInformationName.rs");

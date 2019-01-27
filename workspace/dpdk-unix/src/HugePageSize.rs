@@ -135,6 +135,26 @@ impl HugePageSize
 		}
 	}
 	
+	/// String description including unit.
+	#[inline(always)]
+	pub fn to_bytes(&self) -> &'static [u8]
+	{
+		use self::HugePageSize::*;
+		
+		match *self
+		{
+			_1MB => b"1MB",
+			_2MB => b"2MB",
+			_4MB => b"4MB",
+			_16MB => b"16MB",
+			_256MB => b"256MB",
+			_512MB => b"512MB",
+			_1GB => b"1GB",
+			_2GB => b"2GB",
+			_16GB => b"16GB",
+		}
+	}
+	
 	/// Supported huge page sizes, sorted smallest to largest.
 	#[inline(always)]
 	pub fn largest_supported_huge_page_size(sys_path: &SysPath) -> Self

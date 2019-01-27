@@ -105,31 +105,31 @@ impl HugePageMountSettings
 	
 	//noinspection SpellCheckingInspection
 	#[inline(always)]
-	fn as_mount_options(&self, override_default_huge_page_size: Option<HugePageSize>) -> HashMap<String, Option<String>>
+	fn as_mount_options(&self, override_default_huge_page_size: Option<HugePageSize>) -> HashMap<Box<[u8]>, Option<Box<[u8]>>>
 	{
 		let mut mount_options = HashMap::with_capacity(8);
-		mount_options.insert("uid".to_owned(), Some(format!("{}", self.user_id)));
-		mount_options.insert("gid".to_owned(), Some(format!("{}", self.group_id)));
-		mount_options.insert("mode".to_owned(), Some(format!("{:04o}", self.mode)));
+		mount_options.insert(b"uid".to_vec().into_boxed_slice(), Some(format!("{}", self.user_id).as_bytes().to_vec().into_boxed_slice()));
+		mount_options.insert(b"gid".to_vec().into_boxed_slice(), Some(format!("{}", self.group_id).as_bytes().to_vec().into_boxed_slice()));
+		mount_options.insert(b"mode".to_vec().into_boxed_slice(), Some(format!("{:04o}", self.mode).as_bytes().to_vec().into_boxed_slice()));
 		
 		if let Some(huge_page_size) = override_default_huge_page_size
 		{
-			mount_options.insert("pagesize".to_owned(), Some(huge_page_size.to_str().to_owned()));
+			mount_options.insert(b"pagesize".to_vec().into_boxed_slice(), Some(huge_page_size.to_bytes().to_vec().into_boxed_slice()));
 		}
 		
-		if let Some(maximumvalue_of_memory_in_bytes) = self.maximum_value_of_memory_in_bytes
+		if let Some(maximum_value_of_memory_in_bytes) = self.maximum_value_of_memory_in_bytes
 		{
-			mount_options.insert("size".to_owned(), Some(format!("{}", maximumvalue_of_memory_in_bytes)));
+			mount_options.insert(b"size".to_vec().into_boxed_slice(), Some(format!("{}", maximum_value_of_memory_in_bytes).as_bytes().to_vec().into_boxed_slice()));
 		}
 		
-		if let Some(minimumvalue_of_memory_in_bytes) = self.minimum_value_of_memory_in_bytes
+		if let Some(minimum_value_of_memory_in_bytes) = self.minimum_value_of_memory_in_bytes
 		{
-			mount_options.insert("min_size".to_owned(), Some(format!("{}", minimumvalue_of_memory_in_bytes)));
+			mount_options.insert(b"min_size".to_vec().into_boxed_slice(), Some(format!("{}", minimum_value_of_memory_in_bytes).as_bytes().to_vec().into_boxed_slice()));
 		}
 		
 		if let Some(maximum_number_of_inodes) = self.maximum_number_of_inodes
 		{
-			mount_options.insert("nr_inodes".to_owned(), Some(format!("{}", maximum_number_of_inodes)));
+			mount_options.insert(b"nr_inodes".to_vec().into_boxed_slice(), Some(format!("{}", maximum_number_of_inodes).as_bytes().to_vec().into_boxed_slice()));
 		}
 		
 		mount_options

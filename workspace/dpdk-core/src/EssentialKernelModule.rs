@@ -6,8 +6,8 @@
 #[derive(Debug, Copy, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub struct EssentialKernelModule
 {
-	module_name: &'static str,
-	file_base_name: &'static str,
+	module_name: &'static [u8],
+	file_base_name: &'static [u8],
 	is_provided_by_dpdk: bool,
 	depends_on_uio: bool,
 }
@@ -18,8 +18,8 @@ impl EssentialKernelModule
 	#[cfg(target_os = "linux")]
 	pub const Uio: Self = Self
 	{
-		module_name: "uio",
-		file_base_name: "uio",
+		module_name: b"uio",
+		file_base_name: b"uio",
 		is_provided_by_dpdk: false,
 		depends_on_uio: false,
 	};
@@ -30,8 +30,8 @@ impl EssentialKernelModule
 	#[cfg(target_os = "linux")]
 	pub const IgbUio: Self = Self
 	{
-		module_name: "igb_uio",
-		file_base_name: "igb_uio",
+		module_name: b"igb_uio",
+		file_base_name: b"igb_uio",
 		is_provided_by_dpdk: true,
 		depends_on_uio: true,
 	};
@@ -40,8 +40,8 @@ impl EssentialKernelModule
 	#[cfg(target_os = "linux")]
 	pub const UioPciGeneric: Self = Self
 	{
-		module_name: "uio_pci_generic",
-		file_base_name: "uio_pci_generic",
+		module_name: b"uio_pci_generic",
+		file_base_name: b"uio_pci_generic",
 		is_provided_by_dpdk: false,
 		depends_on_uio: true,
 	};
@@ -52,8 +52,8 @@ impl EssentialKernelModule
 	#[cfg(target_os = "linux")]
 	pub const RteKni: Self = Self
 	{
-		module_name: "rte_kni",
-		file_base_name: "rte_kni",
+		module_name: b"rte_kni",
+		file_base_name: b"rte_kni",
 		is_provided_by_dpdk: true,
 		depends_on_uio: false,
 	};
@@ -64,8 +64,8 @@ impl EssentialKernelModule
 	#[cfg(target_os = "linux")]
 	pub const VfioPci: Self = Self
 	{
-		module_name: "vfio-pci",
-		file_base_name: "vfio_pci", // sic: There is an underscore here.
+		module_name: b"vfio-pci",
+		file_base_name: b"vfio_pci", // sic: There is an underscore here.
 		is_provided_by_dpdk: false,
 		depends_on_uio: false,
 	};

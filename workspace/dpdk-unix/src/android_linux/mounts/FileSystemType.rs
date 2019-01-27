@@ -41,13 +41,13 @@ pub enum FileSystemType
 	securityfs,
 	vfat,
 
-	Unrecognised(String)
+	Unrecognised(Box<[u8]>)
 }
 
 impl FileSystemType
 {
-	//noinspection SpellCheckingInspection
 	/// To `CString`.
+	#[inline(always)]
 	pub fn to_c_string(&self) -> CString
 	{
 		use self::FileSystemType::*;
@@ -58,7 +58,7 @@ impl FileSystemType
 			rootfs => "rootfs",
 			ramfs => "ramfs",
 			bdev => "bdev",
-			_proc => "_proc",
+			_proc => "proc",
 			cpuset => "cpuset",
 			cgroup => "cgroup",
 			tmpfs => "tmpfs",
@@ -85,96 +85,59 @@ impl FileSystemType
 			securityfs => "securityfs",
 			vfat => "vfat",
 			
-			Unrecognised(ref value) => value,
+			Unrecognised(ref value) => return CString::new(value.clone()).unwrap(),
 		};
 		
 		CString::new(ref_value.to_owned()).expect("file system type should not contain interior ASCII NULs")
 	}
 	
-	//noinspection SpellCheckingInspection
 	/// From string.
-	pub fn from_string(value: String) -> Self
+	#[inline(always)]
+	pub fn from_c_str(value: &CStr) -> Self
 	{
-		use self::FileSystemType::*;
-		
-		match &value[..]
-		{
-			"sysfs" => sysfs,
-			"rootfs" => rootfs,
-			"ramfs" => ramfs,
-			"bdev" => bdev,
-			"proc" => _proc,
-			"cpuset" => cpuset,
-			"cgroup" => cgroup,
-			"tmpfs" => tmpfs,
-			"devtmpfs" => devtmpfs,
-			"security" => security,
-			"sockfs" => sockfs,
-			"pipefs" => pipefs,
-			"devpts" => devpts,
-			"hugetlbfs" => hugetlbfs,
-			"pstore" => pstore,
-			"mqueue" => mqueue,
-			"ext2" => ext2,
-			"ext3" => ext3,
-			"ext4" => ext4,
-			
-			"anon_inodefs" => anon_inodefs,
-			"binfmt_misc" => binfmt_misc,
-			"debugfs" => debugfs,
-			"ecryptfs" => ecryptfs,
-			"fuse" => fuse,
-			"fuseblk" => fuseblk,
-			"fusectl" => fusectl,
-			"prl_fs" => prl_fs,
-			"securityfs" => securityfs,
-			"vfat" => vfat,
-
-			_ => Unrecognised(value)
-		}
+		Self::from_byte_slice(value.to_bytes())
 	}
 	
-	//noinspection SpellCheckingInspection
 	/// From str.
 	#[inline(always)]
-	pub fn from_str(value: &str) -> FileSystemType
+	pub fn from_byte_slice(value: &[u8]) -> FileSystemType
 	{
 		use self::FileSystemType::*;
 		
 		match value
 		{
-			"sysfs" => sysfs,
-			"rootfs" => rootfs,
-			"ramfs" => ramfs,
-			"bdev" => bdev,
-			"proc" => _proc,
-			"cpuset" => cpuset,
-			"cgroup" => cgroup,
-			"tmpfs" => tmpfs,
-			"devtmpfs" => devtmpfs,
-			"security" => security,
-			"sockfs" => sockfs,
-			"pipefs" => pipefs,
-			"devpts" => devpts,
-			"hugetlbfs" => hugetlbfs,
-			"pstore" => pstore,
-			"mqueue" => mqueue,
-			"ext2" => ext2,
-			"ext3" => ext3,
-			"ext4" => ext4,
+			b"sysfs" => sysfs,
+			b"rootfs" => rootfs,
+			b"ramfs" => ramfs,
+			b"bdev" => bdev,
+			b"proc" => _proc,
+			b"cpuset" => cpuset,
+			b"cgroup" => cgroup,
+			b"tmpfs" => tmpfs,
+			b"devtmpfs" => devtmpfs,
+			b"security" => security,
+			b"sockfs" => sockfs,
+			b"pipefs" => pipefs,
+			b"devpts" => devpts,
+			b"hugetlbfs" => hugetlbfs,
+			b"pstore" => pstore,
+			b"mqueue" => mqueue,
+			b"ext2" => ext2,
+			b"ext3" => ext3,
+			b"ext4" => ext4,
 			
-			"anon_inodefs" => anon_inodefs,
-			"binfmt_misc" => binfmt_misc,
-			"debugfs" => debugfs,
-			"ecryptfs" => ecryptfs,
-			"fuse" => fuse,
-			"fuseblk" => fuseblk,
-			"fusectl" => fusectl,
-			"prl_fs" => prl_fs,
-			"securityfs" => securityfs,
-			"vfat" => vfat,
+			b"anon_inodefs" => anon_inodefs,
+			b"binfmt_misc" => binfmt_misc,
+			b"debugfs" => debugfs,
+			b"ecryptfs" => ecryptfs,
+			b"fuse" => fuse,
+			b"fuseblk" => fuseblk,
+			b"fusectl" => fusectl,
+			b"prl_fs" => prl_fs,
+			b"securityfs" => securityfs,
+			b"vfat" => vfat,
 			
-			_ => Unrecognised(value.to_owned())
+			_ => Unrecognised(value.to_vec().into_boxed_slice())
 		}
 	}
 }

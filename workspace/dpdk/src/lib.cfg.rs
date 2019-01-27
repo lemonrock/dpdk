@@ -16,7 +16,6 @@ extern crate libnuma_sys;
 extern crate linked_list_allocator;
 extern crate lock_free_multi_producer_single_consumer_ring_buffer;
 #[macro_use] extern crate log;
-#[macro_use] extern crate quick_error;
 extern crate raw_cpuid;
 extern crate rust_extra;
 #[macro_use] extern crate stderr_logging;

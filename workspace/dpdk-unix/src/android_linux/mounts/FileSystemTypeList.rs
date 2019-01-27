@@ -32,23 +32,25 @@ impl FileSystemTypeList
 		let mut file_systems_map = HashMap::new();
 		let mut line_number = 0;
 		let mut line = String::with_capacity(32);
-		while reader.read_line(&mut line)? > 0
+
+		for line in reader.split(b'\n')
 		{
 			{
-				let mut split = line.splitn(2, '\t');
+				let line = line?;
+				let mut split = splitn(&line, 2, b'\t');
 				
 				let has_no_associated_device = match split.next().unwrap()
 				{
-					"" => false,
-					"nodev" => true,
+					b"" => false,
+					b"nodev" => true,
 					
-					unrecognised @ _ => return Err(io::Error::new(InvalidData, format!("Zero-based line number '{}' has a first column value of '{}' which isn't recognised", line_number, unrecognised.to_owned()))),
+					unrecognised @ _ => return Err(io::Error::new(InvalidData, format!("Zero-based line number '{}' has a first column value of '{:?}' which isn't recognised", line_number, unrecognised))),
 				};
 				
 				let file_system_type = match split.next()
 				{
 					None => return Err(io::Error::new(InvalidData, format!("Zero-based line number '{}' does not have second column", line_number))),
-					Some(value) => FileSystemType::from_str(value),
+					Some(value) => FileSystemType::from_byte_slice(value),
 				};
 				
 				if let Some(_) = file_systems_map.insert(file_system_type, has_no_associated_device)
@@ -57,7 +59,6 @@ impl FileSystemTypeList
 				}
 			}
 			
-			line.clear();
 			line_number += 1;
 		}
 		

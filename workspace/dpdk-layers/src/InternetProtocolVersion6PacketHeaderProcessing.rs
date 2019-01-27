@@ -608,7 +608,7 @@ impl InternetProtocolVersion6PacketHeaderProcessing for InternetProtocolVersion6
 		
 		// TODO: Source address may be 0.0.0.0 for DHCPDISCOVER broadcast; there might be something analogous in IPv6?
 		xxx;
-		if unlikely(source_address.is_not_valid_unicast())
+		if unlikely!(source_address.is_not_valid_unicast())
 		{
 			drop!(InternetProtocolVersion6SourceAddressNotValidUnicast { ethernet_addresses, header }, packet_processing, packet)
 		}

@@ -4,7 +4,7 @@
 
 /// Kernel modules, previously loaded, that should be unloaded at application exit to make execution idempotent.
 #[derive(Debug)]
-pub struct EssentialKernelModulesToUnload(Vec<&'static str>);
+pub struct EssentialKernelModulesToUnload(Vec<&'static [u8]>);
 
 impl EssentialKernelModulesToUnload
 {

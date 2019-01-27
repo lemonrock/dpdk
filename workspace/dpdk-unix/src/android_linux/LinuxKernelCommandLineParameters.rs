@@ -10,7 +10,7 @@
 ///
 /// See <https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html> and <https://www.kernel.org/doc/Documentation/x86/x86_64/boot-options.txt>.
 #[derive(Default, Debug, Clone)]
-pub struct LinuxKernelCommandLineParameters(HashMap<String, Vec<Option<String>>>);
+pub struct LinuxKernelCommandLineParameters(HashMap<Box<[u8]>, Vec<Option<Box<[u8]>>>>);
 
 impl LinuxKernelCommandLineParameters
 {
@@ -18,13 +18,13 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn numa_balancing(&self) -> Option<bool>
 	{
-		self.get_value("numa_balancing").map(|value|
+		self.get_value(b"numa_balancing").map(|value|
 		{
 			match value
 			{
-				"enable" => true,
-				"disable" => false,
-				_ => panic!("numa_balancing '{}' is unrecognised", value)
+				b"enable" => true,
+				b"disable" => false,
+				_ => panic!("numa_balancing '{:?}' is unrecognised", value)
 			}
 		})
 	}
@@ -33,13 +33,13 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn noexec(&self) -> Option<bool>
 	{
-		self.get_value("noexec").map(|value|
+		self.get_value(b"noexec").map(|value|
 		{
 			match value
 			{
-				"on" => true,
-				"off" => false,
-				_ => panic!("noexec '{}' is unrecognised", value)
+				b"on" => true,
+				b"off" => false,
+				_ => panic!("noexec '{:?}' is unrecognised", value)
 			}
 		})
 	}
@@ -48,13 +48,13 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn noexec32(&self) -> Option<bool>
 	{
-		self.get_value("noexec32").map(|value|
+		self.get_value(b"noexec32").map(|value|
 		{
 			match value
 			{
-				"on" => true,
-				"off" => false,
-				_ => panic!("noexec32 '{}' is unrecognised", value)
+				b"on" => true,
+				b"off" => false,
+				_ => panic!("noexec32 '{:?}' is unrecognised", value)
 			}
 		})
 	}
@@ -63,13 +63,13 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn skew_tick(&self) -> Option<bool>
 	{
-		self.get_value("skew_tick").map(|value|
+		self.get_value(b"skew_tick").map(|value|
 		{
 			match value
 			{
-				"0" => false,
-				"1" => true,
-				_ => panic!("skew_tick '{}' is unrecognised", value)
+				b"0" => false,
+				b"1" => true,
+				_ => panic!("skew_tick '{:?}' is unrecognised", value)
 			}
 		})
 	}
@@ -78,13 +78,13 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn hpet_mmap(&self) -> Option<bool>
 	{
-		self.get_value("hpet_mmap").map(|value|
+		self.get_value(b"hpet_mmap").map(|value|
 		{
 			match value
 			{
-				"0" => false,
-				"1" => true,
-				_ => panic!("hpet_mmap '{}' is unrecognised", value)
+				b"0" => false,
+				b"1" => true,
+				_ => panic!("hpet_mmap '{:?}' is unrecognised", value)
 			}
 		})
 	}
@@ -93,13 +93,13 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn vdso(&self) -> Option<bool>
 	{
-		self.get_value("vdso").map(|value|
+		self.get_value(b"vdso").map(|value|
 		{
 			match value
 			{
-				"0" => false,
-				"1" => true,
-				_ => panic!("vdso '{}' is unrecognised", value)
+				b"0" => false,
+				b"1" => true,
+				_ => panic!("vdso '{:?}' is unrecognised", value)
 			}
 		})
 	}
@@ -108,25 +108,25 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn vdso32(&self) -> Option<bool>
 	{
-		self.get_value("vdso32").map(|value|
+		self.get_value(b"vdso32").map(|value|
 		{
 			match value
 			{
-				"0" => false,
-				"1" => true,
-				"2" => false,
-				_ => panic!("vdso32 '{}' is unrecognised", value)
+				b"0" => false,
+				b"1" => true,
+				b"2" => false,
+				_ => panic!("vdso32 '{:?}' is unrecognised", value)
 			}
 		})
 	}
 	
 	/// CPUs isolated from the Linux scheduler.
 	///
-	/// eg "0-9,10-20:2/5" and "nohz,domain,0-9,10-20:2/5". Note in the latter example there isn't a separate delimiter separating the flags from the list, so one either has to be know all possible flags (unlikely and subject to change) or have some trully revolting parsing code, which is what we do below (`Self::split_flags_and_cpu_list`). For extra brownie points the Linux kernel treats the values as ASCII not UTF-8.
+	/// eg "0-9,10-20:2/5" and "nohz,domain,0-9,10-20:2/5". Note in the latter example there isn't a separate delimiter separating the flags from the list, so one either has to be know all possible flags (unlikely and subject to change) or have some truly revolting parsing code, which is what we do below (`Self::split_flags_and_cpu_list`). For extra brownie points the Linux kernel treats the values as ASCII not UTF-8.
 	#[inline(always)]
-	pub fn isolcpus(&self) -> Option<(HashSet<&str>, BTreeSet<u16>)>
+	pub fn isolcpus(&self) -> Option<(HashSet<&[u8]>, BTreeSet<u16>)>
 	{
-		self.get_value("isolcpus").map(|value|
+		self.get_value(b"isolcpus").map(|value|
 		{
 			let (flags_to_split, cpu_list) = Self::split_flags_and_cpu_list(value);
 			
@@ -135,12 +135,12 @@ impl LinuxKernelCommandLineParameters
 			{
 				None =>
 				{
-					flags.insert("domain");
+					flags.insert(b"domain");
 				}
 				
 				Some(flags_to_split) =>
 				{
-					for flag in flags_to_split.split(',')
+					for flag in split(flags_to_split, b',')
 					{
 						flags.insert(flag);
 					}
@@ -152,23 +152,24 @@ impl LinuxKernelCommandLineParameters
 	}
 	
 	#[inline(always)]
-	fn split_flags_and_cpu_list(value: &str) -> (Option<&str>, &str)
+	fn split_flags_and_cpu_list(value: &[u8]) -> (Option<&[u8]>, &[u8])
 	{
 		#[inline(always)]
-		fn index_of_split_between_flags_and_cpu_list(value: &str) -> Option<usize>
+		fn index_of_split_between_flags_and_cpu_list(value: &[u8]) -> Option<usize>
 		{
 			#[inline(always)]
-			fn is_ascii_alpha(character: char) -> bool
+			fn is_ascii_alpha(character: u8) -> bool
 			{
 				character.is_ascii_uppercase() || character.is_ascii_lowercase()
 			}
 			
 			let mut index = 0;
-			let mut previous_previous_character = '\0';
-			let mut previous_character = '\0';
-			for character in value.chars()
+			let mut previous_previous_character = b'\0';
+			let mut previous_character = b'\0';
+			for character in value.iter()
 			{
-				if character.is_ascii_digit() && previous_character == ',' && is_ascii_alpha(previous_previous_character)
+				let character = *character;
+				if character.is_ascii_digit() && previous_character == b',' && is_ascii_alpha(previous_previous_character)
 				{
 					return Some(index)
 				}
@@ -201,7 +202,7 @@ impl LinuxKernelCommandLineParameters
 	}
 	
 	#[inline(always)]
-	fn parse_cpu_list(list: &str) -> BTreeSet<u16>
+	fn parse_cpu_list(list: &[u8]) -> BTreeSet<u16>
 	{
 		ListParseError::parse_linux_list_string(list, |value| value).unwrap()
 	}
@@ -212,7 +213,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn rcu_nocbs(&self) -> Option<BTreeSet<u16>>
 	{
-		self.get_value("rcu_nocbs").map(Self::parse_cpu_list)
+		self.get_value(b"rcu_nocbs").map(Self::parse_cpu_list)
 	}
 	
 	/// CPUs isolated from the Linux scheduler.
@@ -221,7 +222,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn nohz_full(&self) -> Option<BTreeSet<u16>>
 	{
-		self.get_value("nohz_full").map(Self::parse_cpu_list)
+		self.get_value(b"nohz_full").map(Self::parse_cpu_list)
 	}
 	
 	/// CPUs in the default IRQ affinity mask.
@@ -230,7 +231,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn irqaffinity(&self) -> Option<BTreeSet<u16>>
 	{
-		self.get_value("irqaffinity").map(Self::parse_cpu_list)
+		self.get_value(b"irqaffinity").map(Self::parse_cpu_list)
 	}
 	
 	/// `nosmp`.
@@ -243,7 +244,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn nosmp(&self) -> bool
 	{
-		self.is_present_with_no_value("nosmp")
+		self.is_present_with_no_value(b"nosmp")
 	}
 	
 	/// `maxcpus`.
@@ -260,7 +261,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn maxcpus(&self) -> Option<u16>
 	{
-		self.get_value("maxcpus").map(|value| value.parse().unwrap())
+		self.get_value_parsed(b"maxcpus")
 	}
 	
 	/// `nr_cpus`.
@@ -273,7 +274,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn nr_cpus(&self) -> Option<u16>
 	{
-		self.get_value("nr_cpus").map(|value| value.parse().unwrap())
+		self.get_value_parsed(b"nr_cpus")
 	}
 	
 	/// `possible_cpus`.
@@ -286,31 +287,43 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn possible_cpus(&self) -> Option<u16>
 	{
-		self.get_value("possible_cpus").map(|value| value.parse().unwrap())
+		self.get_value_parsed(b"possible_cpus")
 	}
-	
+
+	/// Gets a value and parses it.
+	#[inline(always)]
+	pub fn get_value_parsed<F: FromStr>(&self, name: &'static [u8]) -> Option<F>
+	where F::Err: Debug
+	{
+		self.get_value(name).map(|value|
+		{
+			let str_value = from_utf8(value).unwrap();
+			str_value.parse::<F>().unwrap()
+		})
+	}
+
 	/// NUMA `hashdist`.
 	#[inline(always)]
 	pub fn hashdist(&self) -> Option<bool>
 	{
-		self.get_value("hashdist").map(|value|
+		self.get_value(b"hashdist").map(|value|
 		{
 			match value
 			{
-				"0" => false,
-				"1" => true,
-				_ => panic!("Unknown hashdist value '{}'", value),
+				b"0" => false,
+				b"1" => true,
+				_ => panic!("Unknown hashdist value '{:?}'", value),
 			}
 		})
 	}
 	
 	/// `pci`.
 	#[inline(always)]
-	pub fn pci(&self) -> Option<HashSet<&str>>
+	pub fn pci(&self) -> Option<HashSet<&[u8]>>
 	{
-		self.get_value("pci").map(|value|
+		self.get_value(b"pci").map(|value|
 		{
-			value.split(',').collect()
+			split(value, b',').collect()
 		})
 	}
 	
@@ -318,32 +331,32 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Do not confuse this with `noapic`, which is something different entirely.
 	#[inline(always)]
-	pub fn acpi(&self) -> Option<&str>
+	pub fn acpi(&self) -> Option<&[u8]>
 	{
-		self.get_value("acpi")
+		self.get_value(b"acpi")
 	}
 	
 	/// `iommu`.
 	#[inline(always)]
-	pub fn iommu(&self) -> Option<&str>
+	pub fn iommu(&self) -> Option<&[u8]>
 	{
-		self.get_value("iommu")
+		self.get_value(b"iommu")
 	}
 	
 	/// `intel_iommu`.
 	#[inline(always)]
-	pub fn intel_iommu(&self) -> Option<&str>
+	pub fn intel_iommu(&self) -> Option<&[u8]>
 	{
-		self.get_value("intel_iommu")
+		self.get_value(b"intel_iommu")
 	}
 	
 	/// `numa_zonelist_order`.
 	///
 	/// Deprecated according to Linux source code.
 	#[inline(always)]
-	pub fn numa_zonelist_order(&self) -> Option<&str>
+	pub fn numa_zonelist_order(&self) -> Option<&[u8]>
 	{
-		self.get_value("numa_zonelist_order")
+		self.get_value(b"numa_zonelist_order")
 	}
 	
 	/// `numa`.
@@ -357,11 +370,11 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// See <https://www.kernel.org/doc/Documentation/x86/x86_64/boot-options.txt>.
 	#[inline(always)]
-	pub fn numa(&self) -> Option<(&str, Option<&str>)>
+	pub fn numa(&self) -> Option<(&[u8], Option<&[u8]>)>
 	{
-		self.get_value("numa").map(|value|
+		self.get_value(b"numa").map(|value|
 		{
-			let mut split = value.splitn(2, '=');
+			let mut split = splitn(value, 2, b'=');
 			(split.next().unwrap(), split.last())
 		})
 	}
@@ -370,9 +383,9 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// See <https://www.kernel.org/doc/Documentation/x86/x86_64/boot-options.txt>.
 	#[inline(always)]
-	pub fn idle(&self) -> Option<&str>
+	pub fn idle(&self) -> Option<&[u8]>
 	{
-		self.get_value("idle")
+		self.get_value(b"idle")
 	}
 	
 	/// `nopcid`.
@@ -381,7 +394,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn nopcid(&self) -> bool
 	{
-		self.is_present_with_no_value("nopcid")
+		self.is_present_with_no_value(b"nopcid")
 	}
 	
 	/// `noinvpcid`.
@@ -390,7 +403,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn noinvpcid(&self) -> bool
 	{
-		self.is_present_with_no_value("noinvpcid")
+		self.is_present_with_no_value(b"noinvpcid")
 	}
 	
 	/// `norandmaps`.
@@ -399,7 +412,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn norandmaps(&self) -> bool
 	{
-		self.is_present_with_no_value("norandmaps")
+		self.is_present_with_no_value(b"norandmaps")
 	}
 	
 	/// `noapic`.
@@ -410,7 +423,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn noapic(&self) -> bool
 	{
-		self.is_present_with_no_value("noapic")
+		self.is_present_with_no_value(b"noapic")
 	}
 	
 	/// `disableapic`.
@@ -419,7 +432,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn disableapic(&self) -> bool
 	{
-		self.is_present_with_no_value("disableapic")
+		self.is_present_with_no_value(b"disableapic")
 	}
 	
 	/// `nolapic`.
@@ -428,7 +441,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn nolapic(&self) -> bool
 	{
-		self.is_present_with_no_value("nolapic")
+		self.is_present_with_no_value(b"nolapic")
 	}
 	
 	/// `noapictimer`.
@@ -437,7 +450,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn noapictimer(&self) -> bool
 	{
-		self.is_present_with_no_value("noapictimer")
+		self.is_present_with_no_value(b"noapictimer")
 	}
 	
 	/// `nox2apic`.
@@ -448,7 +461,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn nox2apic(&self) -> bool
 	{
-		self.is_present_with_no_value("nox2apic")
+		self.is_present_with_no_value(b"nox2apic")
 	}
 	
 	/// `nopat`.
@@ -457,7 +470,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn nopat(&self) -> bool
 	{
-		self.is_present_with_no_value("nopat")
+		self.is_present_with_no_value(b"nopat")
 	}
 	
 	/// `noxsaveopt`.
@@ -466,7 +479,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn noxsaveopt(&self) -> bool
 	{
-		self.is_present_with_no_value("noxsaveopt")
+		self.is_present_with_no_value(b"noxsaveopt")
 	}
 	
 	/// NUMA `noaliencache`.
@@ -475,7 +488,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn noaliencache(&self) -> bool
 	{
-		self.is_present_with_no_value("noaliencache")
+		self.is_present_with_no_value(b"noaliencache")
 	}
 	
 	/// NUMA `movable_node`.
@@ -484,7 +497,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn movable_node(&self) -> bool
 	{
-		self.is_present_with_no_value("movable_node")
+		self.is_present_with_no_value(b"movable_node")
 	}
 	
 	/// `nokaslr`.
@@ -493,7 +506,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn nokaslr(&self) -> bool
 	{
-		self.is_present_with_no_value("nokaslr")
+		self.is_present_with_no_value(b"nokaslr")
 	}
 	
 	/// `nospectre_v2`.
@@ -504,14 +517,14 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn nospectre_v2(&self) -> bool
 	{
-		self.is_present_with_no_value("nospectre_v2")
+		self.is_present_with_no_value(b"nospectre_v2")
 	}
 	
 	/// `spectre_v2`.
 	#[inline(always)]
-	pub fn spectre_v2(&self) -> Option<&str>
+	pub fn spectre_v2(&self) -> Option<&[u8]>
 	{
-		self.get_value("spectre_v2")
+		self.get_value(b"spectre_v2")
 	}
 	
 	/// `nopti`.
@@ -522,21 +535,21 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn nopti(&self) -> bool
 	{
-		self.is_present_with_no_value("nopti")
+		self.is_present_with_no_value(b"nopti")
 	}
 	
 	/// `pti`.
 	#[inline(always)]
-	pub fn pti(&self) -> Option<&str>
+	pub fn pti(&self) -> Option<&[u8]>
 	{
-		self.get_value("pti")
+		self.get_value(b"pti")
 	}
 	
 	/// `vsyscall`.
 	#[inline(always)]
-	pub fn vsyscall(&self) -> Option<&str>
+	pub fn vsyscall(&self) -> Option<&[u8]>
 	{
-		self.get_value("vsyscall")
+		self.get_value(b"vsyscall")
 	}
 	
 	/// `nohugeiomap`.
@@ -547,7 +560,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn nohugeiomap(&self) -> bool
 	{
-		self.is_present_with_no_value("nohugeiomap")
+		self.is_present_with_no_value(b"nohugeiomap")
 	}
 	
 	/// `notsc`.
@@ -558,7 +571,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn notsc(&self) -> bool
 	{
-		self.is_present_with_no_value("notsc")
+		self.is_present_with_no_value(b"notsc")
 	}
 	
 	/// `notsc`.
@@ -569,7 +582,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn nohpet(&self) -> bool
 	{
-		self.is_present_with_no_value("nohpet")
+		self.is_present_with_no_value(b"nohpet")
 	}
 	
 	/// `panic` in seconds.
@@ -578,16 +591,16 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn panic(&self) -> Option<i64>
 	{
-		self.get_value("panic").map(|value| value.parse().unwrap())
+		self.get_value_parsed(b"panic")
 	}
 	
 	/// Default `locale`.
 	///
 	/// Typically passed to `init`.
 	#[inline(always)]
-	pub fn locale(&self) -> Option<&str>
+	pub fn locale(&self) -> Option<&[u8]>
 	{
-		self.get_value("locale")
+		self.get_value(b"locale")
 	}
 	
 	/// Parses `root`:-
@@ -595,11 +608,11 @@ impl LinuxKernelCommandLineParameters
 	/// * If it is of the form `root=/dev/sda`, returns `(None, "/dev/sda")`.
 	/// * If it is of the form `root=UUID=59ca0b21-9bf6-4ccc-a06b-fdecc91bf2aa`, returns `(Some("UUID"), "59ca0b21-9bf6-4ccc-a06b-fdecc91bf2aa")`.
 	#[inline(always)]
-	pub fn root(&self) -> Option<(Option<&str>, &str)>
+	pub fn root(&self) -> Option<(Option<&[u8]>, &[u8])>
 	{
-		self.get_value("root").map(|root|
+		self.get_value(b"root").map(|root|
 		{
-			let mut key_value = root.splitn(2, '=');
+			let mut key_value = splitn(root, 2, b'=');
 			let key_or_value = key_value.next().unwrap();
 			match key_value.next()
 			{
@@ -611,36 +624,36 @@ impl LinuxKernelCommandLineParameters
 	
 	/// `default_hugepagesz`.
 	#[inline(always)]
-	pub fn default_hugepagesz(&self) -> Option<&str>
+	pub fn default_hugepagesz(&self) -> Option<&[u8]>
 	{
-		self.get_value("default_hugepagesz")
+		self.get_value(b"default_hugepagesz")
 	}
 	
 	/// `hugepagesz`.
 	#[inline(always)]
-	pub fn hugepagesz(&self) -> Option<Vec<&str>>
+	pub fn hugepagesz(&self) -> Option<Vec<&[u8]>>
 	{
-		self.get_values("hugepagesz")
+		self.get_values(b"hugepagesz")
 	}
 	
 	/// `hugepages`.
 	#[inline(always)]
-	pub fn hugepages(&self) -> Option<Vec<&str>>
+	pub fn hugepages(&self) -> Option<Vec<&[u8]>>
 	{
-		self.get_values("hugepages")
+		self.get_values(b"hugepages")
 	}
 	
 	/// Detects if SELinux is enabled or disabled.
 	#[inline(always)]
 	pub fn selinux(&self) -> Option<bool>
 	{
-		self.get_value("selinux").map(|selinux|
+		self.get_value(b"selinux").map(|selinux|
 		{
 			match selinux
 			{
-				"0" => false,
-				"1" => true,
-				_ => panic!("Invalid value of selinux '{}'", selinux),
+				b"0" => false,
+				b"1" => true,
+				_ => panic!("Invalid value of selinux '{:?}'", selinux),
 			}
 		})
 	}
@@ -649,12 +662,12 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Returns a list of modules.
 	#[inline(always)]
-	pub fn modules(&self) -> Option<Vec<&str>>
+	pub fn modules(&self) -> Option<Vec<&[u8]>>
 	{
-		self.get_value("modules").map(|modules|
+		self.get_value(b"modules").map(|modules|
 		{
 			let mut set = Vec::new();
-			for module in modules.split(',')
+			for module in split(modules, b',')
 			{
 				set.push(module)
 			}
@@ -666,14 +679,14 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn nomodeset(&self) -> bool
 	{
-		self.is_present_with_no_value("nomodeset")
+		self.is_present_with_no_value(b"nomodeset")
 	}
 	
 	/// `quiet`.
 	#[inline(always)]
 	pub fn quiet(&self) -> bool
 	{
-		self.is_present_with_no_value("quiet")
+		self.is_present_with_no_value(b"quiet")
 	}
 	
 	/// Single-user mode.
@@ -681,7 +694,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn S(&self) -> bool
 	{
-		self.is_present_with_no_value("S")
+		self.is_present_with_no_value(b"S")
 	}
 	
 	/// Single-user mode.
@@ -690,28 +703,28 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn single(&self) -> bool
 	{
-		self.is_present_with_no_value("single")
+		self.is_present_with_no_value(b"single")
 	}
 	
 	/// Kernel debugging is enabled.
 	#[inline(always)]
 	pub fn debug(&self) -> bool
 	{
-		self.is_present_with_no_value("debug")
+		self.is_present_with_no_value(b"debug")
 	}
 	
 	/// Mount root file system read only, `ro`.
 	#[inline(always)]
 	pub fn ro(&self) -> bool
 	{
-		self.is_present_with_no_value("ro")
+		self.is_present_with_no_value(b"ro")
 	}
 	
 	/// Mount root file system read write, `rw`.
 	#[inline(always)]
 	pub fn rw(&self) -> bool
 	{
-		self.is_present_with_no_value("rw")
+		self.is_present_with_no_value(b"rw")
 	}
 	
 	/// `nogbpages`.
@@ -720,7 +733,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn nogbpages(&self) -> bool
 	{
-		self.is_present_with_no_value("nogbpages")
+		self.is_present_with_no_value(b"nogbpages")
 	}
 	
 	/// `gbpages`.
@@ -729,16 +742,16 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn gbpages(&self) -> bool
 	{
-		self.is_present_with_no_value("gbpages")
+		self.is_present_with_no_value(b"gbpages")
 	}
 	
 	/// `initrd`.
 	///
 	/// Returns eg `initramfs-hardened`.
 	#[inline(always)]
-	pub fn initrd(&self) -> Option<&str>
+	pub fn initrd(&self) -> Option<&[u8]>
 	{
-		self.get_value("initrd")
+		self.get_value(b"initrd")
 	}
 	
 	/// `init`.
@@ -747,7 +760,7 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn init(&self) -> Option<PathBuf>
 	{
-		self.get_value("init").map(|value| PathBuf::from(value))
+		self.get_value(b"init").map(|value| PathBuf::from(OsString::from_vec(value.to_vec())))
 	}
 	
 	/// `rootfstype`.
@@ -756,21 +769,21 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub fn rootfstype(&self) -> Option<FileSystemType>
 	{
-		self.get_value("rootfstype").map(|value| FileSystemType::from_str(value))
+		self.get_value(b"rootfstype").map(|value| FileSystemType::from_byte_slice(value))
 	}
 	
 	/// `console`.
 	#[inline(always)]
-	pub fn console(&self) -> Option<Vec<&str>>
+	pub fn console(&self) -> Option<Vec<&[u8]>>
 	{
-		self.get_values("console")
+		self.get_values(b"console")
 	}
 	
 	/// Is this 'boolean' parameter present?
 	///
 	/// Panics if present with a value.
 	#[inline(always)]
-	pub fn is_present_with_no_value<'a>(&self, parameter_name: &'a str) -> bool
+	pub fn is_present_with_no_value<'a>(&self, parameter_name: &'a [u8]) -> bool
 	{
 		match self.get(parameter_name)
 		{
@@ -790,7 +803,7 @@ impl LinuxKernelCommandLineParameters
 	///
 	/// Panics if present without a value or if multiple values are present.
 	#[inline(always)]
-	pub fn get_value<'a>(&self, parameter_name: &'a str) -> Option<&str>
+	pub fn get_value<'a>(&self, parameter_name: &'a [u8]) -> Option<&[u8]>
 	{
 		match self.get(parameter_name)
 		{
@@ -802,14 +815,14 @@ impl LinuxKernelCommandLineParameters
 				debug_assert_ne!(list.len(), 0, "list has no elements");
 				assert_eq!(list.len(), 1, "more than one value for parameter");
 				
-				(unsafe { list.get_unchecked(0) }).as_ref().map(|value| value.as_str())
+				(unsafe { list.get_unchecked(0) }).as_ref().map(|value| &value[..])
 			}
 		}
 	}
 	
 	/// Gets the values of this parameter.
 	#[inline(always)]
-	pub fn get_values<'a>(&self, parameter_name: &'a str) -> Option<Vec<&str>>
+	pub fn get_values<'a>(&self, parameter_name: &'a [u8]) -> Option<Vec<&[u8]>>
 	{
 		match self.get(parameter_name)
 		{
@@ -822,7 +835,7 @@ impl LinuxKernelCommandLineParameters
 				
 				for index in 0 .. list.len()
 				{
-					strings.push((unsafe { list.get_unchecked(index) }).as_ref().map(|value| value.as_str()).unwrap())
+					strings.push((unsafe { list.get_unchecked(index) }).as_ref().map(|value| &value[..]).unwrap())
 				}
 				
 				Some(strings)
@@ -833,19 +846,19 @@ impl LinuxKernelCommandLineParameters
 	#[inline(always)]
 	pub(crate) fn parse(file_path: &Path) -> Result<Self, io::Error>
 	{
-		let line_of_parameters = file_path.read_string_without_line_feed()?;
+		let line_of_parameters = file_path.read_raw_without_line_feed()?;
 		
 		let mut map = HashMap::with_capacity(32);
 		
-		for parameter in line_of_parameters.split(' ')
+		for parameter in split(&line_of_parameters, b' ')
 		{
-			let mut key_value = parameter.splitn(2, '=');
+			let mut key_value = splitn(parameter, 2, b'=');
 			let key = key_value.next().expect("There is no key");
 			if key.is_empty()
 			{
 				continue
 			}
-			let key = key.replace('-', "_");
+			let key = key.replace(b'-', b"_");
 			
 			let entry = map.entry(key).or_insert_with(|| Vec::with_capacity(1));
 			
@@ -858,7 +871,7 @@ impl LinuxKernelCommandLineParameters
 			
 			let potentially_quoted = raw_value.unwrap();
 			
-			let value = if potentially_quoted.len() >= 2 && potentially_quoted.starts_with('"') && potentially_quoted.ends_with('"')
+			let value = if potentially_quoted.len() >= 2 && potentially_quoted.starts_with(b"\"") && potentially_quoted.ends_with(b"\"")
 			{
 				&potentially_quoted[1 .. (potentially_quoted.len() - 1)]
 			}
@@ -867,7 +880,7 @@ impl LinuxKernelCommandLineParameters
 				potentially_quoted
 			};
 			
-			entry.push(Some(value.to_owned()));
+			entry.push(Some(value.to_vec().into_boxed_slice()));
 		}
 		
 		// strictly speaking, should be a multi-map because of `console=tty1 console=hvc0`
@@ -878,7 +891,7 @@ impl LinuxKernelCommandLineParameters
 	}
 	
 	#[inline(always)]
-	fn get<'a>(&self, parameter_name: &'a str) -> Option<&Vec<Option<String>>>
+	fn get<'a>(&self, parameter_name: &'a [u8]) -> Option<&Vec<Option<Box<[u8]>>>>
 	{
 		self.0.get(parameter_name)
 	}

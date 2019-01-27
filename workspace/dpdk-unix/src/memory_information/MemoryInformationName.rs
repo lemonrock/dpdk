@@ -75,7 +75,7 @@ pub enum MemoryInformationName
 	ShmemHugePageUsage,
 	ShmemMemoryMappedIntoUserSpaceUsingHugePages,
 	
-	Unknown(String),
+	Unknown(Box<[u8]>),
 }
 
 impl MemoryInformationName
@@ -85,78 +85,78 @@ impl MemoryInformationName
 	///
 	/// This list is NOT definitive; names come and go.
 	#[inline(always)]
-	pub(crate) fn parse(value: &str, memory_information_name_prefix: &str) -> MemoryInformationName
+	pub(crate) fn parse(value: &[u8], memory_information_name_prefix: &[u8]) -> MemoryInformationName
 	{
 		use self::MemoryInformationName::*;
-		
+
 		if !value.starts_with(memory_information_name_prefix)
 		{
-			return Unknown(value.to_owned());
+			return Unknown(value.to_vec().into_boxed_slice())
 		}
-		
-		match &value[memory_information_name_prefix.len()..]
+
+		match &value[memory_information_name_prefix.len() .. ]
 		{
-			"MemTotal" => TotalPhysicalRam,
-			"MemFree" => FreePhysicalRam,
-			"MemAvailable" => AvailablePhysicalRam,
-			"Buffers" => UsedAsFileBuffersPhysicalRam,
-			"Cached" => UsedAsCachePhysicalRam,
+			b"MemTotal" => TotalPhysicalRam,
+			b"MemFree" => FreePhysicalRam,
+			b"MemAvailable" => AvailablePhysicalRam,
+			b"Buffers" => UsedAsFileBuffersPhysicalRam,
+			b"Cached" => UsedAsCachePhysicalRam,
 			
-			"SwapTotal" => TotalSwap,
-			"SwapFree" => FreeSwap,
-			"SwapCached" => UsedAsCacheSwap,
+			b"SwapTotal" => TotalSwap,
+			b"SwapFree" => FreeSwap,
+			b"SwapCached" => UsedAsCacheSwap,
 			
-			"Active" => ActiveFileBufferAndCacheInUse,
-			"Inactive" => InactiveFileBufferAndCacheAvailable,
-			"Active(anon" => AnonymousActive,
-			"Inactive(anon" => AnonymousInactive,
-			"Active(file" => FileActive,
-			"Inactive(file" => FileInactive,
+			b"Active" => ActiveFileBufferAndCacheInUse,
+			b"Inactive" => InactiveFileBufferAndCacheAvailable,
+			b"Active(anon" => AnonymousActive,
+			b"Inactive(anon" => AnonymousInactive,
+			b"Active(file" => FileActive,
+			b"Inactive(file" => FileInactive,
 			
-			"Unevictable" => Unevictable,
+			b"Unevictable" => Unevictable,
 			
-			"Dirty" => WaitingToBeWrittenBackToDisks,
-			"Writeback" => CurrentlyBeingWrittenBackToDisks,
-			"Bounce" => UsedForBlockDeviceBounceBuffers,
-			"NFS_Unstable" => NetworkFileSystemUnstablePagesSentToServerButNotYetCommittedToStableStorage,
-			"WritebackTmp" => MemoryUsedByFuseForTemporaryWritebackBuffers,
+			b"Dirty" => WaitingToBeWrittenBackToDisks,
+			b"Writeback" => CurrentlyBeingWrittenBackToDisks,
+			b"Bounce" => UsedForBlockDeviceBounceBuffers,
+			b"NFS_Unstable" => NetworkFileSystemUnstablePagesSentToServerButNotYetCommittedToStableStorage,
+			b"WritebackTmp" => MemoryUsedByFuseForTemporaryWritebackBuffers,
 			
-			"AnonPages" => AnonymousMemoryMappedUsingMmap,
-			"Mapped" => FilesMappedUsingMmap,
-			"Shmem" => Shmem,
-			"Mlocked" => LockedByMlock,
+			b"AnonPages" => AnonymousMemoryMappedUsingMmap,
+			b"Mapped" => FilesMappedUsingMmap,
+			b"Shmem" => Shmem,
+			b"Mlocked" => LockedByMlock,
 			
-			"Slab" => Slab,
-			"SReclaimable" => SlabReclaimable,
-			"SUnreclaim" => SlabUnreclaimable,
+			b"Slab" => Slab,
+			b"SReclaimable" => SlabReclaimable,
+			b"SUnreclaim" => SlabUnreclaimable,
 			
-			"KernelStack" => KernelStack,
-			"PageTables" => MemoryDedicatedToLowestPageTableLevel,
-			"CommitLimit" => CommitLimit,
-			"Committed_AS" => WorstCaseScenarioMemoryRequiredToCompleteWorkloadIncludingSwapMemory,
+			b"KernelStack" => KernelStack,
+			b"PageTables" => MemoryDedicatedToLowestPageTableLevel,
+			b"CommitLimit" => CommitLimit,
+			b"Committed_AS" => WorstCaseScenarioMemoryRequiredToCompleteWorkloadIncludingSwapMemory,
 			
-			"VmallocTotal" => TotalVirtualAddressSpaceEgByMalloc,
-			"VmallocUsed" => UsedVirtualAddressSpaceEgByMalloc,
-			"VmallocChunk" => LargestContiguousChunkInVirtualAddressSpaceEgByMalloc,
+			b"VmallocTotal" => TotalVirtualAddressSpaceEgByMalloc,
+			b"VmallocUsed" => UsedVirtualAddressSpaceEgByMalloc,
+			b"VmallocChunk" => LargestContiguousChunkInVirtualAddressSpaceEgByMalloc,
 			
-			"HugePages_Total" => TotalNumberOfHugePages,
-			"HugePages_Free" => FreeNumberOfHugePages,
-			"HugePages_Rsvd" => ReservedNumberOfHugePages,
-			"HugePages_Surp" => SurplusNumberOfHugePages,
-			"Hugepagesize" => SizeOfAHugePage,
-			"AnonHugePages" => TransparentHugePagesMemoryUsage,
-			"DirectMap4k" => DirectMap4k,
-			"DirectMap2M" => DirectMap2M,
+			b"HugePages_Total" => TotalNumberOfHugePages,
+			b"HugePages_Free" => FreeNumberOfHugePages,
+			b"HugePages_Rsvd" => ReservedNumberOfHugePages,
+			b"HugePages_Surp" => SurplusNumberOfHugePages,
+			b"Hugepagesize" => SizeOfAHugePage,
+			b"AnonHugePages" => TransparentHugePagesMemoryUsage,
+			b"DirectMap4k" => DirectMap4k,
+			b"DirectMap2M" => DirectMap2M,
 			
-			"HardwareCorrupted" => HardwareCorrupted,
-			"HighTotal" => TotalHighNotDirectlyMappedIntoKernelSpace,
-			"HighFree" => FreeHighNotDirectlyMappedIntoKernelSpace,
-			"LowTotal" => TotalLowDirectlyMappedIntoKernelSpace,
-			"LowFree" => FreeLowDirectlyMappedIntoKernelSpace,
-			"ShmemHugePages" => ShmemHugePageUsage,
-			"ShmemPmdMapped" => ShmemMemoryMappedIntoUserSpaceUsingHugePages,
+			b"HardwareCorrupted" => HardwareCorrupted,
+			b"HighTotal" => TotalHighNotDirectlyMappedIntoKernelSpace,
+			b"HighFree" => FreeHighNotDirectlyMappedIntoKernelSpace,
+			b"LowTotal" => TotalLowDirectlyMappedIntoKernelSpace,
+			b"LowFree" => FreeLowDirectlyMappedIntoKernelSpace,
+			b"ShmemHugePages" => ShmemHugePageUsage,
+			b"ShmemPmdMapped" => ShmemMemoryMappedIntoUserSpaceUsingHugePages,
 			
-			name @ _ => Unknown(name.to_owned()),
+			name @ _ => Unknown(name.to_vec().into_boxed_slice()),
 		}
 	}
 	
