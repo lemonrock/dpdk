@@ -154,5 +154,6 @@ include!("PathExt.rs");
 include!("ProcPath.rs");
 include!("set_current_thread_name.rs");
 include!("SetCurrentThreadNameError.rs");
+include!("StatusStatistic.rs");
 include!("SysPath.rs");
 include!("VirtualMemoryStatisticName.rs");
