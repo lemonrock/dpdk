@@ -27,11 +27,10 @@ impl FileSystemTypeList
 	{
 		use self::ErrorKind::InvalidData;
 		
-		let mut reader = BufReader::with_capacity(4096, File::open(file_path)?);
+		let reader = BufReader::with_capacity(4096, File::open(file_path)?);
 		
 		let mut file_systems_map = HashMap::new();
 		let mut line_number = 0;
-		let mut line = String::with_capacity(32);
 
 		for line in reader.split(b'\n')
 		{

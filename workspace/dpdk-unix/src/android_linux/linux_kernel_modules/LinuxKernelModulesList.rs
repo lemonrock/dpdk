@@ -126,7 +126,7 @@ impl LinuxKernelModulesList
 	/// Parses the list of loaded Linux Kernel modules.
 	pub(crate) fn parse(file_path: &Path) -> Result<Self, LinuxKernelModulesListParseError>
 	{
-		let mut reader = BufReader::with_capacity(4096, File::open(file_path)?);
+		let reader = BufReader::with_capacity(4096, File::open(file_path)?);
 		
 		let mut modules_list = HashSet::new();
 		let mut zero_based_line_number = 0;

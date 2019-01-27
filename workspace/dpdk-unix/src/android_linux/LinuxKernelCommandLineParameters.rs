@@ -130,7 +130,7 @@ impl LinuxKernelCommandLineParameters
 		{
 			let (flags_to_split, cpu_list) = Self::split_flags_and_cpu_list(value);
 			
-			let mut flags = HashSet::with_capacity(2);
+			let mut flags: HashSet<&[u8]> = HashSet::with_capacity(2);
 			match flags_to_split
 			{
 				None =>
@@ -858,7 +858,8 @@ impl LinuxKernelCommandLineParameters
 			{
 				continue
 			}
-			let key = key.replace(b'-', b"_");
+
+			let key = replace(key, b'-', b'_');
 			
 			let entry = map.entry(key).or_insert_with(|| Vec::with_capacity(1));
 			

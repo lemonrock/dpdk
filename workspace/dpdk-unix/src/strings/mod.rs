@@ -6,5 +6,6 @@ use super::*;
 
 
 include!("c_string_pointer_to_path_buf.rs");
+include!("replace.rs");
 include!("split.rs");
 include!("splitn.rs");

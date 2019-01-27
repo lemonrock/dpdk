@@ -6,7 +6,6 @@
 #![allow(renamed_and_removed_lints)]
 #![deny(missing_docs)]
 #![feature(core_intrinsics)]
-#![feature(int_to_from_bytes)]
 
 
 //! #dpdk-unix
@@ -92,8 +91,8 @@ use ::std::io;
 use ::std::io::BufRead;
 use ::std::io::BufReader;
 use ::std::io::ErrorKind;
-use ::std::io::Read;
-use ::std::io::Seek;
+#[allow(unused_imports)] use ::std::io::Read;
+#[allow(unused_imports)] use ::std::io::Seek;
 use ::std::io::SeekFrom;
 use ::std::io::Write;
 use ::std::mem::size_of;
@@ -107,7 +106,7 @@ use ::std::ops::SubAssign;
 #[cfg(unix)] use ::std::os::unix::io::RawFd;
 #[cfg(unix)] use ::std::os::unix::io::AsRawFd;
 #[cfg(unix)] use ::std::os::unix::ffi::OsStrExt;
-#[cfg(unix)] use ::std::os::unix::ffi::OsStringExt;
+#[cfg(unix)] #[allow(unused_imports)] use ::std::os::unix::ffi::OsStringExt;
 #[cfg(unix)] use ::std::os::unix::fs::PermissionsExt;
 use ::std::process;
 use ::std::process::Command;

@@ -304,11 +304,10 @@ impl PathExt for Path
 	{
 		let file = File::open(self)?;
 		
-		let mut reader = BufReader::with_capacity(4096, file);
+		let reader = BufReader::with_capacity(4096, file);
 		
 		let mut statistics = HashMap::with_capacity(6);
 		let mut zero_based_line_number = 0;
-		let mut line = String::with_capacity(64);
 
 		for line in reader.split(b'\n')
 		{
@@ -356,11 +355,10 @@ impl PathExt for Path
 	/// Parses the `meminfo` file.
 	fn parse_memory_information_file(&self, memory_information_name_prefix: &[u8]) -> Result<MemoryInformation, MemoryInformationParseError>
 	{
-		let mut reader = BufReader::with_capacity(4096, File::open(self)?);
+		let reader = BufReader::with_capacity(4096, File::open(self)?);
 		
 		let mut map = HashMap::new();
 		let mut zero_based_line_number = 0;
-		let mut line = String::with_capacity(512);
 
 		use self::MemoryInformationParseError::*;
 

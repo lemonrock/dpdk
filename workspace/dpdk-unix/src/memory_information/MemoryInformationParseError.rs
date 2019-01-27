@@ -31,6 +31,7 @@ pub enum MemoryInformationParseError
 		/// Bad value.
 		bad_value: Box<[u8]>,
 
+		/// Cause.
 		cause: Utf8Error,
 	},
 
