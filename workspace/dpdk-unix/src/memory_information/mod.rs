@@ -5,11 +5,14 @@
 use super::*;
 
 
+include!("HugePageSize.rs");
 include!("MemoryInformationName.rs");
 include!("MemoryInformationUnit.rs");
 include!("MemoryInformation.rs");
 include!("MemoryInformationParseError.rs");
+#[cfg(unix)] include!("page_size.rs");
 include!("PhysicalAddress.rs");
 include!("PhysicalPageFrameNumber.rs");
 include!("VirtualAddress.rs");
+include!("VirtualMemoryStatisticName.rs");
 include!("VirtualPageFrameNumber.rs");

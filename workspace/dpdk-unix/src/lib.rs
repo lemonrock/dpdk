@@ -31,7 +31,9 @@ extern crate rust_extra;
 #[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::mounts::*;
 #[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::page_table::*;
 #[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::linux_kernel_modules::*;
+use self::hyper_thread::*;
 use self::memory_information::*;
+use self::numa::*;
 use self::process_status::*;
 use self::strings::*;
 use ::const_cstr_fork::ConstCStr;
@@ -130,8 +132,20 @@ use ::std::str::Utf8Error;
 pub mod android_linux;
 
 
+/// Daemonization support.
+pub mod daemonize;
+
+
+/// HyperThread support.
+pub mod hyper_thread;
+
+
 /// Memory Information.
 pub mod memory_information;
+
+
+/// NUMA (non-uniform memory architecture) information.
+pub mod numa;
 
 
 /// Process status.
@@ -146,21 +160,10 @@ pub(crate) mod strings;
 
 
 include!("assert_effective_user_id_is_root.rs");
-include!("Daemonize.rs");
-include!("DaemonizeCleanUpOnExit.rs");
 include!("get_program_name.rs");
-include!("HugePageSize.rs");
-include!("HyperThread.rs");
-include!("HyperThreadBitmask.rs");
-include!("InterruptRequest.rs");
 include!("ListParseError.rs");
-include!("NumaNode.rs");
-include!("NumaNodeBitmask.rs");
-include!("OsStrExtMore.rs");
-#[cfg(unix)] include!("page_size.rs");
 include!("PathExt.rs");
 include!("ProcPath.rs");
 include!("set_current_thread_name.rs");
 include!("SetCurrentThreadNameError.rs");
 include!("SysPath.rs");
-include!("VirtualMemoryStatisticName.rs");

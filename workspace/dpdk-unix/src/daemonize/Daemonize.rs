@@ -1,8 +1,5 @@
 // This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
-// Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
-
-
-// TODO: Consider handling `SIGINFO`.
+// Copyright © 2016-2019 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
 /// An object that can be used with a configuration file (eg via Serde) to configure a daemon.
@@ -63,6 +60,22 @@ impl Daemonize
 	/// Daemonizes the current process.
 	///
 	/// Returns an object that needs to have `clean_up()` called on it just before process exit.
+	/// 
+	/// Does the following:-
+	/// 
+	/// * Verifies we are not running `setuid`.
+	/// * Sets an initial sane umask (`0000`).
+	/// * Switches user to `self.user_name`.
+	/// * Sets up a PID file in `self.pid_folder_path`.
+	/// * Changes the current working directory to `self.working_folder_path`.
+	/// * Redirects standard in, standard out and standard error to `/dev/null` before (only on Linux) trying to redirect FILE stream handles to syslog.
+	/// * Forks.
+	/// * Creates a process group, and detaches from the session's controlling terminal.
+	/// * Forks.
+	/// * Populates the PID file.
+	/// * Makes sure the `IFS` environment variable is sane (`\t\n`).
+	/// * Makes sure the `PATH` environment variable is `/usr/local/bin:/usr/bin`.
+	/// * Returns an object that needs to have `clean_up()` called on it just before process exit.
 	#[inline(always)]
 	pub fn daemonize(self) -> DaemonizeCleanUpOnExit
 	{
@@ -78,7 +91,7 @@ impl Daemonize
 		
 		Self::fork();
 		
-		Self::create_a_new_progress_group_and_session_detach_controlling_terminal();
+		Self::create_a_new_process_group_and_session_detach_controlling_terminal();
 		
 		Self::fork();
 		
@@ -203,7 +216,7 @@ impl Daemonize
 	}
 	
 	#[inline(always)]
-	fn create_a_new_progress_group_and_session_detach_controlling_terminal()
+	fn create_a_new_process_group_and_session_detach_controlling_terminal()
 	{
 		assert!(unsafe { setsid() } >= 0, "setsid failed because '{}'", Self::os_error());
 	}
