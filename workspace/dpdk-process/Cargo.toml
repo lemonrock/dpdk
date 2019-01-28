@@ -24,7 +24,7 @@ dpdk-core = { path = "../dpdk-core", version = "^0.1" }
 dpdk-global-allocator = { path = "../dpdk-global-allocator", version = "^0.1" }
 dpdk-sys = { path = "../dpdk-sys", version = "^0.1" }
 dpdk-time = { path = "../dpdk-time", version = "^0.1" }
-dpdk-unix = { path = "../dpdk-unix", version = "^0.1" }
+dpdk-unix = { path = "../dpdk-unix", version = "^0.2" }
 dpdk-virtual-devices = { path = "../dpdk-virtual-devices", version = "^0.1" }
 libc = "^0.2"
 maplit = "^1.0"

@@ -23,7 +23,7 @@ bitflags = "^1.0"
 const-cstr-fork = "^0.2"
 dpdk-core = { path = "../dpdk-core", version = "^0.1" }
 dpdk-sys = { path = "../dpdk-sys", version = "^0.1" }
-dpdk-unix = { path = "../dpdk-unix", version = "^0.1" }
+dpdk-unix = { path = "../dpdk-unix", version = "^0.2" }
 libc = "^0.2"
 likely = "0.1"
 quick-error = "^1.2"

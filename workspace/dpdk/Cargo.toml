@@ -25,7 +25,7 @@ const-cstr-fork = "^0.2"
 dpdk-bus = { path = "../dpdk-bus", version = "^0.1" }
 dpdk-core = { path = "../dpdk-core", version = "^0.1" }
 dpdk-sys = { path = "../dpdk-sys", version = "^0.1" }
-dpdk-unix = { path = "../dpdk-unix", version = "^0.1" }
+dpdk-unix = { path = "../dpdk-unix", version = "^0.2" }
 hyper-thread-random = "0.4"
 indexmap = "1.0"
 lazy_static = { version = "1.0", features = ["nightly"] }
