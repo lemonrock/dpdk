@@ -252,7 +252,7 @@ pub struct ProcessStatusStatistics
 	/// Thread's `no_new_privs` bit (see `man 2 prctl` description for `PR_GET_NO_NEW_PRIVS`).
 	///
 	/// Known as `NoNewPrivs`.
-	pub thread_no_new_privileges_bit: Option<Bitmask>,
+	pub thread_no_new_privileges_bit: Option<bool>,
 
 	/// Seccomp mode.
 	///
@@ -690,7 +690,10 @@ impl ProcessStatusStatistics
 						}
 						else
 						{
-							//self.$struct_field = Some($parse_expr($statistic_value)?);
+							let result = $parse_expr($statistic_value);
+							let parsed_value = result?;
+							let some = Some(parsed_value);
+							self.$struct_field = some;
 							Ok(())
 						},
 					)*
@@ -717,6 +720,7 @@ impl ProcessStatusStatistics
 
 			b"Name" => process_name @ parse_token,
 			b"Umask" => file_mode_creation_mask @ parse_mode,
+			b"State" => state @ parse_process_state,
 			b"Tgid" => thread_group_identifier @ parse_pid,
 			b"Ngid" => numa_group_identifier @ parse_numa_node,
 			b"Pid" => process_identifier @ parse_pid,
