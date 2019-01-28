@@ -20,13 +20,21 @@ impl Default for ProcPath
 
 impl ProcPath
 {
-//	/// Status key-value pairs (from `/proc/self/status`).
-//	#[inline(always)]
-//	#[cfg(any(target_os = "android", target_os = "linux"))]
-//	pub fn status(&self) -> io::Result<HashMap<StatusStatisticName, Vec<u8>>>
-//	{
-//		self.file_path("self/status").parse_key_value_file()
-//	}
+	/// Status information from `/proc/self/status`.
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn self_status(&self) -> Result<ProcessStatusStatistics, ProcessStatusFileParseError>
+	{
+		self.file_path("self/status").parse_process_status_file()
+	}
+
+	/// Status information from `/proc/<IDENTIFIER>/status` where `<IDENTIFIER>` is `identifier`.
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn process_status(&self, identifier: pid_t) -> Result<ProcessStatusStatistics, ProcessStatusFileParseError>
+	{
+		self.file_path(&format!("{}/status", identifier)).parse_process_status_file()
+	}
 
 	/// Memory statistics (from `/proc/vmstat`).
 	///
