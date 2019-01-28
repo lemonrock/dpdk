@@ -156,7 +156,12 @@ pub mod process_status;
 #[cfg(unix)] pub mod signals;
 
 
-pub(crate) mod strings;
+/// String utilties.
+pub mod strings;
+
+
+/// Thread support.
+pub mod thread;
 
 
 include!("assert_effective_user_id_is_root.rs");
@@ -164,6 +169,4 @@ include!("get_program_name.rs");
 include!("ListParseError.rs");
 include!("PathExt.rs");
 include!("ProcPath.rs");
-include!("set_current_thread_name.rs");
-include!("SetCurrentThreadNameError.rs");
 include!("SysPath.rs");
