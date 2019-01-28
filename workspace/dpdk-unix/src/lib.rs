@@ -43,7 +43,7 @@ use ::libc::gid_t;
 use ::libc::mode_t;
 use ::libc::mount;
 use ::libc::uid_t;
-use ::libc::umount2;
+#[cfg(any(target_os = "android", target_os = "linux"))] use ::libc::umount2;
 #[cfg(any(target_os = "android", target_os = "linux"))] use ::libc_extra::android_linux::linux::capability;
 #[cfg(any(target_os = "android", target_os = "linux"))] use ::libc_extra::android_linux::linux::ethtool::*;
 #[cfg(any(target_os = "android", target_os = "linux"))] use ::libc_extra::android_linux::linux::seccomp::SECCOMP_MODE_STRICT;
