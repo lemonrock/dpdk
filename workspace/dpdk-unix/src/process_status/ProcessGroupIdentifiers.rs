@@ -1,0 +1,21 @@
+// This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubgroupcontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
+// Copyright © 2016-2019 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubgroupcontent.com/lemonrock/dpdk/master/COPYRIGHT.
+//
+
+
+/// Group identifiers (GIDs).
+#[derive(Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct ProcessGroupIdentifiers
+{
+	/// Real group identifier (GID).
+	pub real: uid_t,
+
+	/// Effective group identifier (GID).
+	pub effective: uid_t,
+
+	/// Saved set group identifier (GID).
+	pub saved_set: uid_t,
+
+	/// File system group identifier (GID).
+	pub file_system: uid_t,
+}

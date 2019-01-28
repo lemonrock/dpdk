@@ -32,6 +32,7 @@ extern crate rust_extra;
 #[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::page_table::*;
 #[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::linux_kernel_modules::*;
 use self::memory_information::*;
+use self::process_status::*;
 use self::strings::*;
 use ::const_cstr_fork::ConstCStr;
 use ::errno::errno;
@@ -133,6 +134,10 @@ pub mod android_linux;
 pub mod memory_information;
 
 
+/// Process status.
+pub mod process_status;
+
+
 /// Support for signals.
 #[cfg(unix)] pub mod signals;
 
@@ -146,14 +151,16 @@ include!("DaemonizeCleanUpOnExit.rs");
 include!("get_program_name.rs");
 include!("HugePageSize.rs");
 include!("HyperThread.rs");
+include!("HyperThreadBitmask.rs");
 include!("InterruptRequest.rs");
 include!("ListParseError.rs");
+include!("NumaNode.rs");
+include!("NumaNodeBitmask.rs");
 include!("OsStrExtMore.rs");
 #[cfg(unix)] include!("page_size.rs");
 include!("PathExt.rs");
 include!("ProcPath.rs");
 include!("set_current_thread_name.rs");
 include!("SetCurrentThreadNameError.rs");
-include!("StatusStatistic.rs");
 include!("SysPath.rs");
 include!("VirtualMemoryStatisticName.rs");

@@ -56,9 +56,9 @@ impl InterruptRequest
 	/// Default interrupt request affinity hyper thread mask.
 	#[inline(always)]
 	#[cfg(any(target_os = "android", target_os = "linux"))]
-	pub fn read_default_interrupt_request_affinity_hyper_thread_mask(proc_path: &ProcPath) -> Result<u32, io::Error>
+	pub fn read_default_interrupt_request_affinity_hyper_thread_bitmask(proc_path: &ProcPath) -> Result<HyperThreadBitmask, io::Error>
 	{
-		proc_path.file_path("irq/default_smp_affinity").parse_linux_core_or_numa_mask()
+		proc_path.file_path("irq/default_smp_affinity").parse_linux_core_or_numa_bitmask()
 	}
 	
 	/// We ignore failures as the `/proc` for interrupt requests is brittle.

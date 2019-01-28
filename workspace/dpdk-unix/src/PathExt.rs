@@ -71,11 +71,11 @@ pub trait PathExt
 	
 	/// Reads and parses a linux core or numa mask string from a file.
 	#[inline(always)]
-	fn parse_linux_core_or_numa_mask(&self) -> Result<u32, io::Error>;
+	fn parse_linux_core_or_numa_bitmask(&self) -> Result<u32, io::Error>;
 
-	/// Parses a key-value file, such as `/proc/status/self`.
+	/// Parses a process status, such as `/proc/status/self`.
 	#[inline(always)]
-	fn parse_key_value_file(&self) -> io::Result<HashMap<Box<u8>, Vec<u8>>>;
+	fn parse_process_status_file(&self) -> Result<ProcessStatusStatistics, ProcessStatusFileParseError>;
 	
 	/// Parses a virtual memory statistics file (`vmstat`).
 	#[inline(always)]
@@ -233,7 +233,7 @@ impl PathExt for Path
 	}
 	
 	#[inline(always)]
-	fn parse_linux_core_or_numa_mask(&self) -> Result<u32, io::Error>
+	fn parse_linux_core_or_numa_bitmask(&self) -> Result<u32, io::Error>
 	{
 		let without_line_feed = self.read_string_without_line_feed()?;
 		
@@ -246,57 +246,13 @@ impl PathExt for Path
 	}
 
 	#[inline(always)]
-	fn parse_key_value_file(&self) -> io::Result<HashMap<Discriminant<StatusStatistic>, StatusStatistic>>
+	fn parse_process_status_file(&self) -> Result<ProcessStatusStatistics, ProcessStatusFileParseError>
 	{
 		let file = File::open(self)?;
 
-		let mut reader = BufReader::with_capacity(4096, file);
+		let reader = BufReader::with_capacity(4096, file);
 
-		let mut statistics = HashMap::with_capacity(6);
-		let mut zero_based_line_number = 0;
-		let mut line = String::with_capacity(64);
-		while reader.read_line(&mut line)? > 0
-		{
-			let line = if line[line.len() - 1] == '\n'
-			{
-				&mut line[0 .. line.len() - 1]
-			}
-			else
-			{
-				line
-			};
-
-			{
-				use self::ErrorKind::InvalidData;
-
-				let mut split = line.splitn(2, ":\t");
-
-				let statistic_name = StatusStatisticName::parse(split.next().unwrap());
-
-				let statistic_value = match split.next()
-				{
-					None => return Err(io::Error::new(InvalidData, format!("Zero based line '{}' does not have a value second column", zero_based_line_number))),
-					Some(value) =>
-					{
-						match value.parse::<u64>()
-						{
-							Err(parse_error) => return Err(io::Error::new(InvalidData, parse_error)),
-							Ok(value) => value,
-						}
-					}
-				};
-
-				if let Some(previous) = statistics.insert(statistic_name, statistic_value)
-				{
-					return Err(io::Error::new(InvalidData, format!("Zero based line '{}' has a duplicate statistic (was '{}')", zero_based_line_number, previous)))
-				}
-			}
-
-			line.clear();
-			zero_based_line_number += 1;
-		}
-
-		Ok(statistics)
+		ProcessStatusStatistics::parse(reader)
 	}
 	
 	#[inline(always)]

@@ -4,7 +4,7 @@
 
 /// Represents a logical hyper thread, which in Operating System terms is usually a logical CPU (core).
 ///
-/// These usually map 1:1 with `LogicalCore`s
+/// These usually map 1:1 with `LogicalCore`s.
 #[derive(Default, Debug, Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash)]
 #[derive(Deserialize, Serialize)]
 pub struct HyperThread(u16);
