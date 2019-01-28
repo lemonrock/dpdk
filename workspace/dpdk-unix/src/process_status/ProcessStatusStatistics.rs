@@ -269,7 +269,7 @@ pub struct ProcessStatusStatistics
 	/// Known as `Cpus_allowed`.
 	///
 	/// May have bits set well beyond those than the number of cores on the system.
-	pub cpus_allowed_bitmask: Option<HyperThreadBitmask>,
+	pub cpus_allowed_bitmasks: Option<Vec<HyperThreadBitmask>>,
 
 	/// CPUs (actually, hyper threaded cores) allowed for the current process.
 	///
@@ -283,7 +283,7 @@ pub struct ProcessStatusStatistics
 	/// Known as `Mems_allowed`.
 	///
 	/// Linux defines the config option `NODES_SHIFT` (aka `CONFIG_NODES_SHIFT`) to be 1 to 10 if defined and 0 if not defined, giving a maximum of 2^10 (1024) NUMA nodes, if defaults to 6 (ie 64 NUMA nodes) on x86-64.
-	pub numa_nodes_allowed_bitmask: Option<NumaNodeBitmask>,
+	pub numa_nodes_allowed_bitmasks: Option<Vec<NumaNodeBitmask>>,
 
 	/// NUMA nodes allowed for the current process.
 	///
@@ -653,16 +653,23 @@ impl ProcessStatusStatistics
 		}
 
 		#[inline(always)]
-		fn parse_cpus_or_numa_nodes_allowed_bitmask(value: &[u8]) -> Result<u32, ProcessStatusStatisticParseError>
+		fn parse_cpus_or_numa_nodes_allowed_bitmasks(value: &[u8]) -> Result<Vec<u32>, ProcessStatusStatisticParseError>
 		{
-			if likely!(value.len() <= 8 && value.len() != 0)
+			let iterator = split(value, b',');
+			let mut bitmasks = Vec::with_capacity(1);
+
+			for raw_value in iterator
 			{
-				Ok(u32::from_str_radix(from_utf8(value)?, 16)?)
+				if likely!(raw_value.len() <= 8 && raw_value.len() != 0)
+				{
+					bitmasks.push(u32::from_str_radix(from_utf8(value)?, 16)?);
+				}
+				else
+				{
+					return Err(ProcessStatusStatisticParseError::InvalidLength)
+				}
 			}
-			else
-			{
-				Err(ProcessStatusStatisticParseError::InvalidLength)
-			}
+			Ok(bitmasks)
 		}
 
 		#[inline(always)]
@@ -766,9 +773,9 @@ impl ProcessStatusStatistics
 			b"NoNewPrivs" => thread_no_new_privileges_bit @ parse_bool,
 			b"Seccomp" => seccomp_mode @ parse_seccomp_mode,
 			b"Speculation_Store_Bypass" => speculation_store_bypass @ parse_speculation_store_bypass,
-			b"Cpus_allowed" => cpus_allowed_bitmask @ parse_cpus_or_numa_nodes_allowed_bitmask,
+			b"Cpus_allowed" => cpus_allowed_bitmasks @ parse_cpus_or_numa_nodes_allowed_bitmasks,
 			b"Cpus_allowed_list" => cpus_allowed_list @ parse_cpus_allowed_list,
-			b"Mems_allowed" => numa_nodes_allowed_bitmask @ parse_cpus_or_numa_nodes_allowed_bitmask,
+			b"Mems_allowed" => numa_nodes_allowed_bitmasks @ parse_cpus_or_numa_nodes_allowed_bitmasks,
 			b"Mems_allowed_list" => numa_nodes_allowed_list @ parse_numa_nodes_allowed_list,
 			b"voluntary_ctxt_switches" => voluntary_context_switches @ parse_u64,
 			b"nonvoluntary_ctxt_switches" => involuntary_context_switches @ parse_u64,
