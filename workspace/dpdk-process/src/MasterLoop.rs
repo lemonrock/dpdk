@@ -91,12 +91,6 @@ macro_rules! wait_for_signals
 
 impl MasterLoop
 {
-	/// An exit code that is for normal software exits.
-	pub const EXIT_SUCCESS: i32 = 0;
-	
-	/// An exit code that is for software failures (ie panics).
-	pub const EX_SOFTWARE: i32 = 70;
-	
 	/// Creates a new instance.
 	///
 	/// The `hybrid_global_allocator` should be declared globally in `main.rs` as `#[global_allocator] static ALLOCATOR: HybridGlobalAllocator = HybridGlobalAllocator::new();`.
@@ -113,90 +107,103 @@ impl MasterLoop
 	/// Executes a program which uses DPDK.
 	///
 	/// The number of logical cores used is calculated by examining the Linux command line kernel parameters.
-	///
-	/// It is recommended that Linux run with at least 2 cores assigned to the Kernel; one of these will be used as a master logical core, and the other will be used for control threads as necessary. Neither usage is particularly high or critical.
-	///
-	/// If running interactively `SIGINT` and `SIGQUIT` are intercepted and will be re-raised (using libc's `raise()`) after handling so that any parent shell can behave correctly.
-	///
-	/// Always returns normally; panics are handled and logged.
-	///
-	/// The return value is an exit code in the range 0 - 127 inclusive which should be passed to `std::process::exit()`. Currenty values are:-
-	///
-	/// * `0`: successful
-	/// * `70`: (aka `EX_SOFTWARE`) - something panicked
-	///
-	/// Notes:-
-	///
-	/// * The daemon `irqbalance` should not really be run when this program is running. It isn't incompatible per se, but it isn't useful.
-	/// * It is recommended to boot the kernel with the command line parameter `irqaffinity` set to the inverse of `isolcpus`.
-	/// * If running causes Linux Kernel modules to load, these are **not** unloaded at process exit as we no longer have the permissions to do so,
-	/// * Likewise, if we mount `hugeltbfs` it is not unmounted (and, if we created its mount point folder, this is not deleted) at process exit.
 	#[cold]
-	pub fn execute(&self, master_loop_configuration: &MasterLoopConfiguration) -> i32
+	pub fn execute(self, master_loop_configuration: &MasterLoopConfiguration) -> i32
 	{
-		master_loop_configuration.start_logging();
-		
-		let exit_code_or_error = catch_unwind(AssertUnwindSafe(||
-		{
-			let reraise_signal = master_loop_configuration.daemonize_if_required(|| self.execute_after_daemonizing(master_loop_configuration));
-			
-			if let Some(reraise_signal_number) = reraise_signal
+		master_loop_configuration.process_common_configuration.execute
+		(
+			self.power_to_maximum,
+
+			||
 			{
-				master_loop_configuration.stop_logging();
-				unsafe { raise(reraise_signal_number) };
-			}
-			
-			Self::EXIT_SUCCESS
-		}));
-		
-		master_loop_configuration.stop_logging();
-		
-		match exit_code_or_error
-		{
-			Ok(exit_code) => exit_code,
-			Err(panicked_with) =>
+				master_loop_configuration.load_kernel_modules()
+			},
+
+			|linux_kernel_command_line_parameters|
 			{
-				SysLog::caught_unwind(panicked_with.as_ref());
-				
-				Self::EX_SOFTWARE
-			}
-		}
+				let (uses_igb_uio, uses_vfio_pci) = self.pci_net_devices_configuration.uses_ugb_uio_or_pci_vfio();
+				Self::validate_dpdk_pci_drivers(linux_kernel_command_line_parameters, uses_igb_uio, uses_vfio_pci)
+			},
+
+			|_online_shared_hyper_threads, online_isolated_hyper_threads, master_logical_core|
+			{
+				InterruptRequest::force_all_interrupt_requests_to_just_these_hyper_threads(online_shared_hyper_threads, self.proc_path())?;
+
+				let (slave_logical_cores, service_logical_cores) = master_loop_configuration.divide_logical_cores_into_slave_logical_cores_and_service_logical_cores(online_isolated_hyper_threads);
+
+				let (hugetlbfs_mount_path, memory_limits) = master_loop_configuration.configure_huge_pages()?;
+
+				let pci_devices_and_original_driver_names = master_loop_configuration.pci_devices_and_original_driver_names();
+
+				let success_or_failure = catch_unwind(AssertUnwindSafe(|| self.execute_after_pci_devices_bound_to_drivers(master_loop_configuration, &pci_devices_and_original_driver_names, hugetlbfs_mount_path, memory_limits, master_logical_core, &slave_logical_cores, &service_logical_cores)));
+
+				PciNetDevicesConfiguration::release_all_from_use_with_dpdk(master_loop_configuration.sys_path(), pci_devices_and_original_driver_names);
+
+				match success_or_failure
+				{
+					Err(failure) => resume_unwind(failure),
+					Ok(reraise_signal) => Ok(reraise_signal),
+				}
+			},
+		).unwrap()
 	}
-	
+
 	#[inline(always)]
-	fn execute_after_daemonizing(&self, master_loop_configuration: &MasterLoopConfiguration) -> Option<SignalNumber>
+	fn validate_dpdk_pci_drivers(linux_kernel_command_line_parameters: &LinuxKernelCommandLineParameters, uses_igb_uio: bool, uses_vfio_pci: bool) -> Result<(), String>
 	{
-		master_loop_configuration.set_maximum_resource_limits();
-		
-		master_loop_configuration.load_kernel_modules();
-		
-		master_loop_configuration.write_system_control_values();
-		
-		let cpu_features = master_loop_configuration.validate_minimal_cpu_features();
-		
-		let isolated_hyper_threads_including_those_offline = master_loop_configuration.validate_kernel_command_line(&cpu_features);
-		
-		let (online_shared_hyper_threads, online_isolated_hyper_threads) = master_loop_configuration.online_shared_and_isolated_hyper_threads(isolated_hyper_threads_including_those_offline);
-		
-		let master_logical_core = master_loop_configuration.find_master_logical_core_and_tell_linux_to_use_shared_hyper_threads_for_all_needs(&online_shared_hyper_threads);
-		
-		let (slave_logical_cores, service_logical_cores) = master_loop_configuration.divide_logical_cores_into_slave_logical_cores_and_service_logical_cores(online_isolated_hyper_threads);
-		
-		let (hugetlbfs_mount_path, memory_limits) = master_loop_configuration.configure_huge_pages();
-		
-		let pci_devices_and_original_driver_names = master_loop_configuration.pci_devices_and_original_driver_names();
-		
-		let success_or_failure = catch_unwind(AssertUnwindSafe(|| self.execute_after_pci_devices_bound_to_drivers(master_loop_configuration, &pci_devices_and_original_driver_names, hugetlbfs_mount_path, memory_limits, master_logical_core, &slave_logical_cores, &service_logical_cores)));
-		
-		PciNetDevicesConfiguration::release_all_from_use_with_dpdk(&master_loop_configuration.path_configuration.sys_path, pci_devices_and_original_driver_names);
-		
-		match success_or_failure
+		macro_rules! fail
 		{
-			Err(failure) => resume_unwind(failure),
-			Ok(reraise_signal) => return reraise_signal,
+			($message: literal) =>
+			{
+				return Err($message.to_string())
+			}
 		}
+
+		if uses_igb_uio
+		{
+			if let Some(iommu_setting) = linux_kernel_command_line_parameters.iommu()
+			{
+				if iommu_setting != "pt"
+				{
+					fail!("Using igb_uio driver and iommu Linux Kernel command line parameter `iommu` is not `iommu=pt` (pass through)");
+				}
+			}
+			else
+			{
+				fail!("Using igb_uio driver and iommu Linux Kernel command line parameter `iommu=pt` (pass through) was not specified");
+			}
+
+			if let Some(intel_iommu_setting) = linux_kernel_command_line_parameters.intel_iommu()
+			{
+				if intel_iommu_setting != "on"
+				{
+					fail!("Using igb_uio driver and iommu Linux Kernel command line parameter `intel_iommu` is not `intel_iommu=on`");
+				}
+			}
+			else
+			{
+				fail!("Using igb_uio driver and iommu Linux Kernel command line parameter `intel_iommu=on` was not specified");
+			}
+		}
+
+		if uses_vfio_pci
+		{
+			if let Some(iommu_setting) = linux_kernel_command_line_parameters.iommu()
+			{
+				if iommu_setting != "pt" || iommu_setting != "on"
+				{
+					fail!("Using igb_uio driver and iommu Linux Kernel command line parameter `iommu` is not `iommu=pt` (pass through) or `iommu=on`");
+				}
+			}
+			else
+			{
+				fail!("Using igb_uio driver and iommu Linux Kernel command line parameter `iommu=pt` (pass through) or `iommu=on` was not specified");
+			}
+		}
+
+		Ok(())
 	}
-	
+
 	#[inline(always)]
 	fn execute_after_pci_devices_bound_to_drivers(&self, master_loop_configuration: &MasterLoopConfiguration, pci_devices: &HashMap<PciDevice, Option<String>>, hugetlbfs_mount_path: PathBuf, memory_limits: Option<MachineOrNumaNodes<MegaBytes>>, master_logical_core: HyperThread, slave_logical_cores: &BTreeSet<HyperThread>, service_logical_cores: &BTreeSet<HyperThread>) -> Option<SignalNumber>
 	{
@@ -221,7 +228,7 @@ impl MasterLoop
 	#[inline(always)]
 	fn execute_after_dpdk_initialized(&self, master_loop_configuration: &MasterLoopConfiguration, slave_logical_cores_to_uses: &HashMap<LogicalCore, Box<Fn(LogicalCore, &Arc<ShouldFunctionTerminate>)>>) -> Option<SignalNumber>
 	{
-		master_loop_configuration.lock_down_security();
+		ProcessCommonConfiguration::lock_down_security();
 		
 		let logical_core_power_managers = master_loop_configuration.logical_core_power_to_maximum();
 		

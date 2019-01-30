@@ -1,5 +1,6 @@
 // This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
-// Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
+// Copyright © 2016-2019 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
+//
 
 
 /// Represents a DPDK syslog priority.
@@ -9,7 +10,7 @@
 #[derive(Serialize, Deserialize)]
 #[allow(missing_docs)]
 #[repr(i32)]
-pub enum DpdkSyslogPriority
+pub enum SyslogPriority
 {
 	emergency = LOG_EMERG,
 	alert = LOG_ALERT,
@@ -21,12 +22,12 @@ pub enum DpdkSyslogPriority
 	debug = LOG_DEBUG,
 }
 
-impl Default for DpdkSyslogPriority
+impl Default for SyslogPriority
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
-		use self::DpdkSyslogPriority::*;
+		use self::SyslogPriority::*;
 		
 		if cfg!(debug_assertions)
 		{
@@ -39,12 +40,13 @@ impl Default for DpdkSyslogPriority
 	}
 }
 
-impl DpdkSyslogPriority
+impl SyslogPriority
 {
+	/// As an initialization argument for DPDK.
 	#[inline(always)]
-	pub(crate) fn as_initialization_argument(self) -> ConstCStr
+	pub fn as_initialization_argument(self) -> ConstCStr
 	{
-		use self::DpdkSyslogPriority::*;
+		use self::SyslogPriority::*;
 		
 		match self
 		{

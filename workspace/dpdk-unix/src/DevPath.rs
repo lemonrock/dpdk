@@ -18,6 +18,21 @@ impl Default for DevPath
 
 impl DevPath
 {
+	/// `/dev/null`.
+	#[inline(always)]
+	pub fn null(&self) -> PathBuf
+	{
+		self.file_path("null")
+	}
+
+	#[inline(always)]
+	fn file_path(&self, file_name: &str) -> PathBuf
+	{
+		let mut path = self.path();
+		path.push(file_name);
+		path
+	}
+
 	#[inline(always)]
 	fn path(&self) -> PathBuf
 	{

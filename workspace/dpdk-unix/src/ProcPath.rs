@@ -20,6 +20,51 @@ impl Default for ProcPath
 
 impl ProcPath
 {
+	/// Is autogroup active? (from `/proc/sys/kernel/sched_autogroup_enabled`).
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn is_autogroup_active(&self) -> Result<bool, io::Error>
+	{
+		let value = self.sched_autogroup_enabled_file_path().read_raw_without_line_feed()?;
+		match &value[..]
+		{
+			b"0" => Ok(false),
+			b"1" => Ok(true),
+			_ => Err(io::Error::from(ErrorKind::InvalidData)),
+		}
+	}
+
+	/// Enable the autogroup feature (requires Root).
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn enable_autogroup(&self) -> Result<(), io::Error>
+	{
+		self.sched_autogroup_enabled_file_path().write_value("1")
+	}
+
+	/// Disable the autogroup feature (requires Root).
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn disable_autogroup(&self) -> Result<(), io::Error>
+	{
+		self.sched_autogroup_enabled_file_path().write_value("0")
+	}
+
+	/// Adjust the autogroup setting of nice for the current process.
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn adjust_autogroup_nice_value_for_self(&self, nice_value: Nice) -> Result<(), io::Error>
+	{
+		self.file_path("self/autogroup").write_value(nice_value)
+	}
+
+	#[inline(always)]
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	fn sched_autogroup_enabled_file_path(&self) -> PathBuf
+	{
+		self.file_path("sys/kernel/sched_autogroup_enabled")
+	}
+
 	/// Status information from `/proc/self/status`.
 	#[inline(always)]
 	#[cfg(any(target_os = "android", target_os = "linux"))]
@@ -112,7 +157,6 @@ impl ProcPath
 		self.file_path("sys/fs/nr_open").read_value()
 	}
 	
-	#[cfg(any(target_os = "android", target_os = "linux"))]
 	#[inline(always)]
 	fn file_path(&self, file_name: &str) -> PathBuf
 	{

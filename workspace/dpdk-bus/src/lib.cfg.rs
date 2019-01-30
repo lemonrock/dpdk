@@ -3,7 +3,6 @@
 
 
 #[macro_use] extern crate bitflags;
-extern crate const_cstr_fork;
 extern crate dpdk_core;
 extern crate dpdk_sys;
 extern crate dpdk_unix;
@@ -16,12 +15,12 @@ extern crate serde;
 
 use self::pci::DpdkPciDeviceAddress;
 use self::pci::DpdkPciDeviceAddressStringParseError;
-use ::const_cstr_fork::ConstCStr;
 use ::dpdk_core::*;
 use ::dpdk_core::print_information::PrintAllInformation;
 use ::dpdk_sys::*;
 use ::dpdk_unix::*;
 use ::dpdk_unix::android_linux::pci::PciBusInformation;
+use ::dpdk_unix::strings::ConstCStr;
 use ::libc::*;
 use ::std::collections::BTreeSet;
 use ::std::cmp::Ordering;

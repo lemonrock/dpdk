@@ -1,5 +1,5 @@
 // This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
-// Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
+// Copyright © 2016-2019 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
 /// Logging configuration.
@@ -9,12 +9,12 @@
 pub struct LoggingConfiguration
 {
 	/// Defaults to `auth`.
-	pub syslog_facility: DpdkSyslogFacility,
+	pub syslog_facility: SyslogFacility,
 	
 	/// Defaults to `debug` for debug builds and `warning` for production builds.
 	///
 	/// DPDK also supports specifying either a regex or a pattern; this is not supported by `LoggingConfiguration` at this time.
-	pub syslog_priority: DpdkSyslogPriority,
+	pub syslog_priority: SyslogPriority,
 
 	/// Up to 31 bytes (more are ignored) identifying the source of log messages.
 	///
@@ -46,21 +46,38 @@ impl LoggingConfiguration
 	#[inline(always)]
 	pub fn warn(name: &str, message: String)
 	{
-		let name = SysLog::to_c_string_robustly(name);
-		let message = SysLog::to_c_string_robustly(message);
-		unsafe { syslog(LOG_WARNING, ConstCStr(b"%s:%s\0").as_ptr(), name.as_ptr(), message.as_ptr()) };
+		let name = to_c_string_robustly(name);
+		let message = to_c_string_robustly(message);
+		unsafe { syslog(LOG_WARNING, b"%s:%s\0".as_ptr() as *const _ as *const _, name.as_ptr(), message.as_ptr()) };
 	}
 	
 	#[inline(always)]
 	fn caught_panic(source_file: &str, line_number: u32, column_number: u32, cause: &str)
 	{
-		let source_file = SysLog::to_c_string_robustly(source_file);
-		let cause = SysLog::to_c_string_robustly(cause);
-		unsafe { syslog(LOG_CRIT, ConstCStr(b"File:%s:Line:%u:Column:%u:Cause:%s\0").as_ptr(), source_file, line_number, column_number, cause) }
+		let source_file = to_c_string_robustly(source_file);
+		let cause = to_c_string_robustly(cause);
+		unsafe { syslog(LOG_CRIT, b"File:%s:Line:%u:Column:%u:Cause:%s\0".as_ptr() as *const _ as *const _, source_file, line_number, column_number, cause) }
 	}
-	
+
+	/// Start logging.
 	#[inline(always)]
-	pub(crate) fn configure_rust_stack_back_traces(&self)
+	pub fn start_logging(&self, running_interactively: bool)
+	{
+		self.configure_rust_stack_back_traces();
+		self.configure_syslog(running_interactively);
+		self.configure_panic_hook()
+	}
+
+	/// Stop logging.
+	#[inline(always)]
+	pub fn stop_logging(&self)
+	{
+		drop(take_hook());
+		unsafe { closelog() }
+	}
+
+	#[inline(always)]
+	fn configure_rust_stack_back_traces(&self)
 	{
 		let setting = if self.enable_full_rust_stack_back_traces
 		{
@@ -72,9 +89,9 @@ impl LoggingConfiguration
 		};
 		set_var("RUST_BACKTRACE", setting);
 	}
-	
+
 	#[inline(always)]
-	pub(crate) fn configure_syslog(&self, running_interactively_so_also_log_to_standard_error: bool)
+	fn configure_syslog(&self, running_interactively_so_also_log_to_standard_error: bool)
 	{
 		unsafe { setlogmask(self.syslog_priority.log_upto()) };
 		
@@ -88,9 +105,9 @@ impl LoggingConfiguration
 		let identity = CString::new(self.identity.as_str()).unwrap();
 		unsafe { openlog(identity.as_ptr(), log_options, self.syslog_facility as i32) }
 	}
-	
+
 	#[inline(always)]
-	pub(crate) fn configure_panic_hook(&self)
+	fn configure_panic_hook(&self)
 	{
 		set_hook(Box::new(|panic_info|
 		{
@@ -100,21 +117,9 @@ impl LoggingConfiguration
 				Some(location) => (location.file(), location.line(), location.column())
 			};
 			
-			let cause = SysLog::panic_payload_to_cause(panic_info.payload());
+			let cause = panic_payload_to_cause(panic_info.payload());
 			
 			Self::caught_panic(source_file, line_number, column_number, &cause)
 		}));
-	}
-	
-	#[inline(always)]
-	pub(crate) fn stop_panic_hook(&self)
-	{
-		drop(take_hook());
-	}
-	
-	#[inline(always)]
-	pub(crate) fn stop_logging(&self)
-	{
-		unsafe { closelog() }
 	}
 }

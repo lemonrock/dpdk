@@ -95,7 +95,7 @@ impl WarningsToSuppress
 	}
 	
 	#[inline(always)]
-	pub(crate) fn kernel_warn_without_check<F: FnOnce() -> bool>(&self, name: &str, message: &str)
+	pub(crate) fn kernel_warn_without_check(&self, name: &str, message: &str)
 	{
 		if self.suppress_warnings_for_kernel_features.contains(name)
 		{
@@ -113,20 +113,20 @@ impl WarningsToSuppress
 		
 		self.cpu_warn("has_prefetchw", "Your CPU does not support the PRETFCHW instruction, which is optimal for some memory moves and copies", || extended_function_information.has_prefetchw());
 		
-		self.cpu_warn("has_ss", "Your CPU does not support self-snoop of the cache (which nearly all should), which is important for efficient cache mamangement in this application", || feature_information.has_ss());
+		self.cpu_warn("has_ss", "Your CPU does not support self-snoop of the cache (which nearly all should), which is important for efficient cache management in this application", || feature_information.has_ss());
 		
-		self.cpu_warn("has_working_xsave", "CPU architecture either lacks XSAVE support or the Linux kernel has disabled XSAVE support", || feature_information.has_xsave() && feature_information.has_oxsave());
+		self.cpu_warn("has_working_xsave", "CPU architecture either lacks XSAVE support or the Linux kernel has disabled XSAVE support", || feature_information.has_xsave() && feature_information.has_oxsave())
 	}
 	
 	#[inline(always)]
 	pub(crate) fn performance_warnings_for_new_features(&self, feature_information: &FeatureInfo, _extended_function_information: &ExtendedFunctionInfo, extended_feature_information: &ExtendedFeatures)
 	{
-		self.cpu_warn("has_invpcid", "Your CPU does not support the INVPCID instruction, which is important for efficient mitigation of the Meltdown and Spectre security vulnerabilities", || feature_information.has_xsave() && extended_feature_information.has_invpcid());
+		self.cpu_warn("has_invpcid", "Your CPU does not support the INVPCID instruction, which is important for efficient mitigation of the Meltdown and Spectre security vulnerabilities", || feature_information.has_xsave() && extended_feature_information.has_invpcid())
 	}
 	
 	#[inline(always)]
 	pub(crate) fn security_warnings_for_new_features(&self, _feature_information: &FeatureInfo, _extended_function_information: &ExtendedFunctionInfo, extended_feature_information: &ExtendedFeatures)
 	{
-		self.cpu_warn("has_smap", "Your CPU does not support the Supervisor-Mode Access Prevention (SMAP) instructions CLAC and STAC, which are important for securing modern Linux systems", || extended_feature_information.has_smap());
+		self.cpu_warn("has_smap", "Your CPU does not support the Supervisor-Mode Access Prevention (SMAP) instructions CLAC and STAC, which are important for securing modern Linux systems", || extended_feature_information.has_smap())
 	}
 }

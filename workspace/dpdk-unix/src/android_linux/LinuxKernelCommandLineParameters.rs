@@ -29,6 +29,13 @@ impl LinuxKernelCommandLineParameters
 		})
 	}
 	
+	/// `noautogroup`.
+	#[inline(always)]
+	pub fn noautogroup(&self) -> bool
+	{
+		self.is_present_with_no_value(b"noautogroup")
+	}
+
 	/// `noexec`.
 	#[inline(always)]
 	pub fn noexec(&self) -> Option<bool>

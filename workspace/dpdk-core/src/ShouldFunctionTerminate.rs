@@ -51,7 +51,7 @@ impl ShouldFunctionTerminate
 	#[inline(always)]
 	pub fn we_panicked(&self, payload: &(Any + 'static + Send))
 	{
-		SysLog::caught_unwind(payload);
+		caught_unwind_and_log_it_to_syslog(payload);
 		
 		self.0.store(true, SeqCst)
 	}
@@ -60,7 +60,17 @@ impl ShouldFunctionTerminate
 	#[inline(always)]
 	pub fn exit_signalled(&self, signal_number: Option<SignalNumber>)
 	{
-		SysLog::exit_signalled(signal_number);
+		#[inline(always)]
+		fn log_exit_signalled_to_syslog(signal_number: Option<SignalNumber>)
+		{
+			match signal_number
+			{
+				None => unsafe { syslog(LOG_NOTICE, b"ExitSignalled:Other\0".as_ptr() as *const _) },
+
+				Some(signal_number) => unsafe { syslog(LOG_NOTICE, b"ExitSignalled:%s\0".as_ptr() as *const _, strsignal(signal_number)) },
+	}
+}
+		log_exit_signalled_to_syslog(signal_number);
 		
 		self.0.store(true, SeqCst)
 	}

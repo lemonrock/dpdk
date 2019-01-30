@@ -4,7 +4,6 @@
 
 extern crate arrayvec;
 #[macro_use] extern crate bitflags;
-#[macro_use] extern crate const_cstr_fork;
 #[macro_use] pub extern crate dpdk_serde;
 pub extern crate dpdk_sys;
 #[cfg(unix)] pub extern crate dpdk_unix;
@@ -26,9 +25,9 @@ extern crate treebitmap;
 
 
 use ::arrayvec::ArrayVec;
-use ::const_cstr_fork::ConstCStr;
 use ::dpdk_unix::*;
 use ::dpdk_unix::signals::*;
+use ::dpdk_unix::strings::*;
 #[cfg(target_os = "linux")] use ::dpdk_unix::android_linux::capabilities::*;
 #[cfg(target_os = "linux")] use ::dpdk_unix::android_linux::pci::PciBusInformation;
 #[cfg(target_os = "linux")] use ::dpdk_unix::android_linux::process_control::*;

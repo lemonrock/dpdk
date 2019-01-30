@@ -77,7 +77,7 @@ impl Daemonize
 	/// * Makes sure the `PATH` environment variable is `/usr/local/bin:/usr/bin`.
 	/// * Returns an object that needs to have `clean_up()` called on it just before process exit.
 	#[inline(always)]
-	pub fn daemonize(self) -> DaemonizeCleanUpOnExit
+	pub fn daemonize(self, dev_path: &DevPath) -> DaemonizeCleanUpOnExit
 	{
 		Self::verify_not_running_with_set_uid_bit_set();
 		
@@ -87,7 +87,7 @@ impl Daemonize
 		
 		self.change_current_working_directory();
 		
-		self.redirect_standard_in_out_and_error();
+		self.redirect_standard_in_out_and_error(dev_path);
 		
 		Self::fork();
 		
@@ -197,14 +197,13 @@ impl Daemonize
 	#[inline(always)]
 	fn make_environment_variables_match_user(user_name: NonNull<c_char>, home_folder_path: NonNull<c_char>)
 	{
-		const_cstr!
-		{
-			USER = "USER";
-			LOGNAME = "LOGNAME";
-			HOME = "HOME";
-		}
+		const USER: ConstCStr = ConstCStr(b"USER\0");
 		Self::set_environment_variable(USER, user_name);
+
+		const LOGNAME: ConstCStr = ConstCStr(b"LOGNAME\0");
 		Self::set_environment_variable(LOGNAME, user_name);
+
+		const HOME: ConstCStr = ConstCStr(b"HOME\0");
 		Self::set_environment_variable(HOME, home_folder_path);;
 	}
 	
@@ -235,21 +234,20 @@ impl Daemonize
 	}
 	
 	#[inline(always)]
-	fn redirect_standard_in_out_and_error(&self)
+	fn redirect_standard_in_out_and_error(&self, dev_path: &DevPath)
 	{
-		Self::redirect_to_dev_null(&io::stdin());
-		Self::redirect_to_dev_null(&io::stdout());
-		Self::redirect_to_dev_null(&io::stderr());
+		let dev_null = dev_path.null().as_os_str().os_str_to_c_string();
+
+		Self::redirect_to_dev_null(&io::stdin(), &dev_null);
+		Self::redirect_to_dev_null(&io::stdout(), &dev_null);
+		Self::redirect_to_dev_null(&io::stderr(), &dev_null);
 		
 		#[cfg(target_os = "linux")]
 		{
 			#[inline(always)]
 			fn write_to_syslog(priority: c_int, data: *const c_char, length: size_t) -> ssize_t
 			{
-				const_cstr!
-				{
-					SyslogFormat = "%s:%s";
-				}
+				const SyslogFormat: ConstCStr = ConstCStr(b"%s:%s\0");
 				
 				unsafe { syslog(priority, SyslogFormat.as_ptr(), length, program_invocation_short_name, data) };
 				length as ssize_t
@@ -270,11 +268,8 @@ impl Daemonize
 			{
 				let mut functions = cookie_io_functions_t::default();
 				functions.write = callback;
-				
-				const_cstr!
-				{
-					w = "w";
-				}
+
+				const w: ConstCStr = ConstCStr(b"w\0");
 				
 				let file = unsafe { fopencookie(null_mut(), w.as_ptr(), functions) };
 				assert!(!file.is_null(), "file is null from fopencookie");
@@ -288,15 +283,10 @@ impl Daemonize
 	}
 	
 	#[inline(always)]
-	fn redirect_to_dev_null<A: AsRawFd>(a: &A)
+	fn redirect_to_dev_null<A: AsRawFd>(a: &A, dev_null: &CStr)
 	{
-		const_cstr!
-		{
-			DevNull = "/dev/null";
-		}
-		
 		let file_descriptor = a.as_raw_fd();
-		let null_file_descriptor = unsafe { open(DevNull.as_ptr(), O_WRONLY) };
+		let null_file_descriptor = unsafe { open(dev_null.as_ptr(), O_WRONLY) };
 		assert!(null_file_descriptor >= 0, "Could not open /dev/null because '{}'", Self::os_error());
 		assert_eq!(unsafe { dup2(null_file_descriptor, file_descriptor)}, 0, "Could not dup2 because '{}'", Self::os_error());
 		assert_eq!(unsafe { close(null_file_descriptor) }, 0, "Could not close null file descriptor because '{}'", Self::os_error());

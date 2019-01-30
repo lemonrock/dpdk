@@ -1,5 +1,6 @@
 // This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
-// Copyright © 2016-2018 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
+// Copyright © 2016-2019 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
+//
 
 
 /// Represents a DPDK syslog facility.
@@ -9,7 +10,7 @@
 #[derive(Serialize, Deserialize)]
 #[allow(missing_docs)]
 #[repr(i32)]
-pub enum DpdkSyslogFacility
+pub enum SyslogFacility
 {
 	auth = LOG_AUTH,
 	cron = LOG_CRON,
@@ -32,21 +33,22 @@ pub enum DpdkSyslogFacility
 	local7 = LOG_LOCAL7,
 }
 
-impl Default for DpdkSyslogFacility
+impl Default for SyslogFacility
 {
 	#[inline(always)]
 	fn default() -> Self
 	{
-		DpdkSyslogFacility::auth
+		SyslogFacility::auth
 	}
 }
 
-impl DpdkSyslogFacility
+impl SyslogFacility
 {
+	/// As an initialization argument for DPDK.
 	#[inline(always)]
-	pub(crate) fn as_initialization_argument(self) -> ConstCStr
+	pub fn as_initialization_argument(self) -> ConstCStr
 	{
-		use self::DpdkSyslogFacility::*;
+		use self::SyslogFacility::*;
 		
 		match self
 		{

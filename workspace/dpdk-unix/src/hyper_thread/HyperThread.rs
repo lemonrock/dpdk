@@ -30,6 +30,45 @@ impl Into<u16> for HyperThread
 
 impl HyperThread
 {
+	/// Valid logical cores for the current process.
+	///
+	/// ***Only valid at start up before `sched_setaffinity()` has been called.***
+	///
+	/// Logic inspired by [libnuma](https://github.com/numactl/numactl)'s `numa_num_task_cpus()` function.
+	///
+	/// Slow as it will parse the file `/proc/self/status`.
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	pub fn valid_hyper_threads_for_the_current_process(proc_path: &ProcPath) -> BTreeSet<Self>
+	{
+		#[inline(always)]
+		fn all_available_to_process_even_if_they_do_not_exist(proc_path: &ProcPath) -> BTreeSet<HyperThread>
+		{
+			let process_status_statistics = proc_path.self_status().unwrap();
+			process_status_statistics.cpus_allowed_list.unwrap()
+		}
+
+		let all_available_to_process_even_if_they_do_not_exist = all_available_to_process_even_if_they_do_not_exist(proc_path);
+
+		// This logic is borrowed from libnuma; internally `sysconf(_SC_NPROCESSORS_CONF)`, in musl, uses the system call `SYS_sched_getaffinity()`.
+		let number_of_logical_cores = unsafe { sysconf(_SC_NPROCESSORS_CONF) } - 1;
+		let maximum_logical_core_identifier = if unlikely!(number_of_logical_cores == 0)
+		{
+			0
+		}
+		else
+		{
+			(number_of_logical_cores - 1) as u16
+		};
+
+		let mut hyper_threads = BTreeSet::new();
+		for hyper_thread in all_available_to_process_even_if_they_do_not_exist.range(HyperThread::from(0) ..= HyperThread::from(maximum_logical_core_identifier))
+		{
+			hyper_threads.insert(*hyper_thread);
+		}
+
+		hyper_threads
+	}
+
 	#[inline(always)]
 	pub(crate) fn hyper_threads_to_mask(hyper_threads: &BTreeSet<Self>) -> String
 	{

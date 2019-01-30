@@ -26,13 +26,10 @@ impl MountsWrapper
 	fn new(mounts_file_path: &Path, read_only: bool) -> Result<Self, io::Error>
 	{
 		let mounts_file_path = mounts_file_path.to_c_string();
-		
-		const_cstr!
-		{
-			ReadOnlyFlag = "r";
-			ReadWriteFlag = "ra";
-		}
-		
+
+		const ReadOnlyFlag: ConstCStr = ConstCStr(b"r\0");
+		const ReadWriteFlag: ConstCStr = ConstCStr(b"ra\0");
+
 		let flag = match read_only
 		{
 			false => ReadOnlyFlag,

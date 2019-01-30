@@ -8,6 +8,9 @@
 #[serde(default)]
 pub struct MasterLoopConfiguration
 {
+	/// Common configuration.
+	pub process_common_configuration: ProcessCommonConfiguration,
+
 	/// DPDK configuration.
 	pub dpdk_configuration: DpdkConfiguration,
 	
@@ -16,20 +19,6 @@ pub struct MasterLoopConfiguration
 	
 	/// Number of service cores to use. Defaults to 1.
 	pub service_cores: u8,
-	
-	/// Logging configuration.
-	pub logging_configuration: LoggingConfiguration,
-	
-	/// Should we daemonize? (Default, yes).
-	pub daemonize: Option<Daemonize>,
-	
-	/// System control settings (`sysctl`).
-	///
-	/// By default turns off swapping.
-	pub system_control_settings: HashMap<String, u64>,
-	
-	/// Suppress any unwanted warnings about ideal CPU features or the Linux Kernel command line parameters.
-	pub warnings_to_suppress: WarningsToSuppress,
 	
 	/// Enables power management; forces all logical cores to TurboBoost if possible.
 	pub power_to_maximum: bool,
@@ -40,7 +29,7 @@ pub struct MasterLoopConfiguration
 	pub timer_progress_engine_cycles: Cycles,
 	
 	/// Location of `/dev`, `/proc` and `/sys`.
-	pub path_configuration: PathConfiguration,
+	pub dpdk_provided_kernel_modules_path: PathBuf,
 }
 
 impl Default for MasterLoopConfiguration
@@ -55,147 +44,20 @@ impl Default for MasterLoopConfiguration
 			pci_net_devices_configuration: PciNetDevicesConfiguration::default(),
 			
 			service_cores: 1,
-			
-			logging_configuration: LoggingConfiguration::default(),
-			
-			daemonize: Some(Daemonize::default()),
-			
-			system_control_settings: hashmap!
-			{
-				"vm.swappiness".to_string() => 0,
-				"vm.zone_reclaim_mode".to_string() => 0,
-				"vm.dirty_ratio".to_string() => 10,
-				"vm.dirty_background_ratio".to_string() => 5,
-			},
-			
-			warnings_to_suppress: WarningsToSuppress::default(),
-			
+
+			process_common_configuration: ProcessCommonConfiguration::default(),
+
 			power_to_maximum: true,
 			
 			timer_progress_engine_cycles: Cycles::AroundTenMillisecondsAt2GigaHertzSuitableForATimerProgressEngine,
-			
-			path_configuration: PathConfiguration::default(),
+
+			dpdk_provided_kernel_modules_path: dpdk_provided_kernel_modules_path(),
 		}
 	}
 }
 
 impl MasterLoopConfiguration
 {
-	#[inline(always)]
-	pub(crate) fn start_logging(&self)
-	{
-		self.logging_configuration.configure_rust_stack_back_traces();
-		self.logging_configuration.configure_syslog(self.running_interactively());
-		self.logging_configuration.configure_panic_hook()
-	}
-	
-	#[inline(always)]
-	pub(crate) fn daemonize_if_required<F: Fn() -> Option<SignalNumber>>(&self, execute_after_daemonizing: F) -> Option<SignalNumber>
-	{
-		if let Some(daemonize) = self.daemonize
-		{
-			let daemonize_clean_up_on_exit = daemonize.daemonize();
-			let success_or_failure = catch_unwind(AssertUnwindSafe(|| execute_after_daemonizing()));
-			daemonize_clean_up_on_exit.clean_up();
-			
-			match success_or_failure
-			{
-				Err(failure) =>
-				{
-					self.stop_logging();
-					
-					resume_unwind(failure)
-				}
-				Ok(reraise_signal) => reraise_signal,
-			}
-		}
-		else
-		{
-			execute_after_daemonizing()
-		}
-	}
-	
-	#[inline(always)]
-	pub(crate) fn stop_logging(&self)
-	{
-		self.logging_configuration.stop_panic_hook();
-		self.logging_configuration.stop_logging()
-	}
-	
-	#[inline(always)]
-	pub(crate) fn validate_minimal_cpu_features(&self) -> CpuFeatures
-	{
-		CpuFeatures::validate_minimal_cpu_features(&self.warnings_to_suppress, self.power_to_maximum)
-	}
-	
-	#[inline(always)]
-	pub(crate) fn validate_kernel_command_line(&self, cpu_features: &CpuFeatures) -> BTreeSet<HyperThread>
-	{
-		KernelCommandLineValidator::validate(&self.path_configuration, &self.warnings_to_suppress, cpu_features, &self.pci_net_devices_configuration)
-	}
-	
-	#[inline(always)]
-	pub(crate) fn online_shared_and_isolated_hyper_threads(&self, isolated_hyper_threads_including_those_offline: BTreeSet<HyperThread>) -> (BTreeSet<HyperThread>, BTreeSet<HyperThread>)
-	{
-		assert_ne!(isolated_hyper_threads_including_those_offline.len(), 0, "There must be at least one hyper thread in `isolated_hyper_threads_including_those_offline`");
-		
-		let shared_hyper_threads_including_those_offline = HyperThread::complement(&isolated_hyper_threads_including_those_offline, self.sys_path());
-		assert_ne!(shared_hyper_threads_including_those_offline.len(), 0, "There must be at least one hyper thread in `shared_hyper_threads_including_those_offline`");
-		
-		let online_isolated_hyper_threads = HyperThread::remove_those_offline(&isolated_hyper_threads_including_those_offline, self.sys_path());
-		assert_ne!(online_isolated_hyper_threads.len(), 0, "There must be at least one hyper thread in `online_isolated_hyper_threads`");
-		
-		let online_shared_hyper_threads = HyperThread::remove_those_offline(&shared_hyper_threads_including_those_offline, self.sys_path());
-		assert_ne!(online_shared_hyper_threads.len(), 0, "There must be at least one hyper thread in `online_shared_hyper_threads`");
-		
-		self.warnings_to_suppress.miscellany_warn("too_many_shared_hyper_threads", "There are more than 2 shared hyper threads", || online_shared_hyper_threads.len() <= 2);
-		self.warnings_to_suppress.miscellany_warn("too_few_shared_hyper_threads", "There is only 1 shared hyper thread (which will be shared with the master logical core and control threads)", || online_shared_hyper_threads.len() != 1);
-		
-		{
-			let mut numa_nodes = BTreeSet::new();
-			if self.sys_path().is_a_numa_machine()
-			{
-				for online_shared_hyper_thread in online_shared_hyper_threads.iter()
-				{
-					let insert = (*online_shared_hyper_thread).numa_node(self.sys_path()).unwrap();
-					numa_nodes.insert(insert);
-				}
-				self.warnings_to_suppress.miscellany_warn("too_many_numa_nodes_shared_hyper_threads", &format!("More than one (actually, {:?}) NUMA nodes are present in the shared hyper threads", numa_nodes), || numa_nodes.len() == 1);
-			}
-		}
-		
-		{
-			for hyper_thread_group in HyperThread::hyper_thread_groups(&online_shared_hyper_threads, self.sys_path()).iter()
-			{
-				let mut hits = 0;
-				for hyper_thread in hyper_thread_group.iter()
-				{
-					if online_shared_hyper_threads.contains(hyper_thread)
-					{
-						hits += 1;
-					}
-				}
-				self.warnings_to_suppress.miscellany_warn("overlapping_shared_hyper_threads", &format!("More than one (actually, {}) hyper threads of the group '{:?}' are present in the shared hyper threads", hits, hyper_thread_group), || hits < 2);
-			}
-		}
-		
-		(online_shared_hyper_threads, online_isolated_hyper_threads)
-	}
-	
-	#[inline(always)]
-	pub(crate) fn find_master_logical_core_and_tell_linux_to_use_shared_hyper_threads_for_all_needs(&self, online_shared_hyper_threads: &BTreeSet<HyperThread>) -> HyperThread
-	{
-		let master_logical_core = HyperThread::last(online_shared_hyper_threads).unwrap();
-		
-		InterruptRequest::force_all_interrupt_requests_to_just_these_hyper_threads(online_shared_hyper_threads, self.proc_path());
-		
-		HyperThread::set_work_queue_hyper_thread_affinity(online_shared_hyper_threads, self.sys_path());
-		
-		HyperThread::force_watchdog_to_just_these_hyper_threads(online_shared_hyper_threads, self.proc_path());
-		
-		*master_logical_core
-	}
-	
 	#[inline(always)]
 	pub(crate) fn divide_logical_cores_into_slave_logical_cores_and_service_logical_cores(&self, isolated_hyper_threads: BTreeSet<HyperThread>) -> (BTreeSet<HyperThread>, BTreeSet<HyperThread>)
 	{
@@ -234,22 +96,15 @@ impl MasterLoopConfiguration
 	}
 	
 	#[inline(always)]
-	pub(crate) fn set_maximum_resource_limits(&self)
-	{
-		ResourceLimitsSet::defaultish(ResourceLimit::maximum_number_of_open_file_descriptors(self.proc_path()).expect("Could not read maximum number of file descriptors"));
-	}
-	
-	#[inline(always)]
 	pub(crate) fn configure_huge_pages(&self) -> (PathBuf, Option<MachineOrNumaNodes<MegaBytes>>)
 	{
 		let huge_page_mount_settings = &self.dpdk_configuration.huge_page_mount_settings;
 		let huge_page_allocation_strategy = &self.dpdk_configuration.huge_page_allocation_strategy;
 		
 		self.disable_transparent_huge_pages();
+		self.verify_hugetlbfs_is_supported();
 		
-		self.path_configuration.proc_path.filesystems().unwrap().verify_hugetlbfs_is_supported();
-		
-		let mounts = self.path_configuration.proc_path.mounts().unwrap();
+		let mounts = self.proc_path().mounts().unwrap();
 		let (unmount, hugetlbfs_mount_path) = match mounts.existing_hugetlbfs_mount()
 		{
 			None => (Some(huge_page_mount_settings.mount(self.sys_path())), huge_page_mount_settings.mount_point.to_owned()),
@@ -268,9 +123,8 @@ impl MasterLoopConfiguration
 		(hugetlbfs_mount_path, memory_limits)
 	}
 	
-	#[cfg(target_os = "linux")]
 	#[inline(always)]
-	pub(crate) fn load_kernel_modules(&self) -> EssentialKernelModulesToUnload
+	pub(crate) fn load_kernel_modules(&self) -> Result<(), String>
 	{
 		let mut essential_kernel_modules = HashSet::new();
 		if self.dpdk_configuration.has_kernel_native_interface_virtual_devices()
@@ -279,27 +133,21 @@ impl MasterLoopConfiguration
 		}
 		self.pci_net_devices_configuration.add_essential_kernel_modules(&mut essential_kernel_modules);
 		
-		let mut modules_loaded = self.path_configuration.proc_path.modules().unwrap();
+		let mut modules_loaded = self.proc_path().modules().unwrap();
 		let mut essential_kernel_modules_to_unload = EssentialKernelModulesToUnload::new();
 		for essential_kernel_module in essential_kernel_modules.iter()
 		{
-			essential_kernel_module.load_if_necesary(&mut modules_loaded, &self.path_configuration.dpdk_provided_kernel_modules_path, &mut essential_kernel_modules_to_unload);
+			essential_kernel_module.load_if_necesary(&mut modules_loaded, &self.dpdk_provided_kernel_modules_path, &mut essential_kernel_modules_to_unload)?;
 		}
 		
-		essential_kernel_modules_to_unload
-	}
-	
-	#[inline(always)]
-	pub(crate) fn write_system_control_values(&self)
-	{
-		self.proc_path().write_system_control_values(&self.system_control_settings).unwrap()
+		drop(essential_kernel_modules_to_unload);
+
+		Ok(())
 	}
 	
 	#[inline(always)]
 	pub(crate) fn pci_devices_and_original_driver_names(&self) -> HashMap<PciDevice, Option<String>>
 	{
-		self.sys_path().rescan_all_pci_buses_and_devices();
-		
 		self.pci_net_devices_configuration.take_for_use_with_dpdk(self.sys_path())
 	}
 	
@@ -356,65 +204,7 @@ impl MasterLoopConfiguration
 	{
 		drop(logical_core_power_managers);
 	}
-	
-	#[inline(always)]
-	pub(crate) fn lock_down_security(&self)
-	{
-		#[cfg(target_os = "linux")]
-		{
-			use self::Capability::*;
-			
-			Capability::ensure_capabilities_dropped
-			(&[
-				AuditControl,
-				AuditRead,
-				AuditWrite,
-				BlockSuspend,
-				Chown,
-				DiscretionaryAccessControlBypass,
-				DiscretionaryAccessControlFileReadBypass,
-				FileOwnerBypass,
-				FileSetId,
-				//LockMemory,
-				IpcOwner,
-				Kill,
-				Lease,
-				Immutable,
-				MandatoryAccessControlBypass,
-				MandatoryAccessControlOverride,
-				MakeNodes,
-				SystemAdministration,
-				NetworkAdministration,
-				BindPortsBelow1024,
-				//NetRaw,
-				SetUid,
-				SetGid,
-				SetFileCapabilities,
-				SetProcessCapabilities,
-				RebootAndKexecLoad,
-				Chroot,
-				KernelModule,
-				Nice,
-				ProcessAccounting,
-				PTrace,
-				RawIO,
-				Resource,
-				Time,
-				TtyConfig,
-				Syslog,
-				WakeAlarm,
-			]);
-			
-			disable_dumpable();
-			
-			no_new_privileges();
-			
-			Capability::clear_all_ambient_capabilities();
-			
-			lock_secure_bits_and_remove_ambient_capability_raise_and_keep_capabilities();
-		}
-	}
-	
+
 	#[inline(always)]
 	pub(crate) fn timer_progress_engine(&self) -> TimerProgressEngine
 	{
@@ -424,17 +214,19 @@ impl MasterLoopConfiguration
 	#[inline(always)]
 	pub(crate) fn running_interactively(&self) -> bool
 	{
-		self.daemonize.is_none()
+		self.process_common_configuration.running_interactively()
 	}
 	
 	#[inline(always)]
 	fn disable_transparent_huge_pages(&self)
 	{
-		self.sys_path().change_transparent_huge_pages_defragmentation(TransparentHugePageDefragmentationChoice::Never, 4096, 60_000, 10_000, 511, 64);
-		self.sys_path().change_transparent_huge_pages_usage(TransparentHugePageRegularMemoryChoice::Never, TransparentHugePageSharedMemoryChoice::Never, true);
-		
-		const EnableHugeTransparentPages: bool = false;
-		adjust_transparent_huge_pages(EnableHugeTransparentPages);
+		self.process_common_configuration.disable_transparent_huge_pages()
+	}
+
+	#[inline(always)]
+	fn verify_hugetlbfs_is_supported(&self)
+	{
+		self.process_common_configuration.verify_hugetlbfs_is_supported();
 	}
 	
 	#[inline(always)]
@@ -446,12 +238,12 @@ impl MasterLoopConfiguration
 	#[inline(always)]
 	fn proc_path(&self) -> &ProcPath
 	{
-		&self.path_configuration.proc_path
+		&self.process_common_configuration.proc_path
 	}
 	
 	#[inline(always)]
 	fn sys_path(&self) -> &SysPath
 	{
-		&self.path_configuration.sys_path
+		&self.process_common_configuration.sys_path
 	}
 }

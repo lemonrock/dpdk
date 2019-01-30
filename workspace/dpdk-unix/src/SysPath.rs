@@ -18,6 +18,22 @@ impl Default for SysPath
 
 impl SysPath
 {
+	/// Disable transparent huge pages.
+	#[cfg(any(target_os = "android", target_os = "linux"))]
+	#[inline(always)]
+	pub fn disable_transparent_huge_pages(&self) -> Result<(), DisableTransparentHugePagesError>
+	{
+		use self::DisableTransparentHugePagesError::*;
+
+		self.change_transparent_huge_pages_defragmentation(TransparentHugePageDefragmentationChoice::Never, 4096, 60_000, 10_000, 511, 64).map_err(|io_error| Defragmentation(io_error))?;
+		self.change_transparent_huge_pages_usage(TransparentHugePageRegularMemoryChoice::Never, TransparentHugePageSharedMemoryChoice::Never, true).map_err(|io_error| Usage(io_error))?;
+
+		const EnableHugeTransparentPages: bool = false;
+		adjust_transparent_huge_pages(EnableHugeTransparentPages);
+
+		Ok(())
+	}
+
 	/// Is this a NUMA-based machine?
 	#[inline(always)]
 	pub fn is_a_numa_machine(&self) -> bool

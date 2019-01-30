@@ -79,11 +79,11 @@ impl EssentialKernelModule
 	
 	/// Load this kernel module if necessary.
 	#[cfg(target_os = "linux")]
-	pub fn load_if_necesary(&self, modules_loaded: &mut LinuxKernelModulesList, dpdk_provided_kernel_modules_path: &Path, essential_kernel_modules_to_unload: &mut EssentialKernelModulesToUnload)
+	pub fn load_if_necesary(&self, modules_loaded: &mut LinuxKernelModulesList, dpdk_provided_kernel_modules_path: &Path, essential_kernel_modules_to_unload: &mut EssentialKernelModulesToUnload) -> Result<(), String>
 	{
 		if self.depends_on_uio
 		{
-			Self::Uio.load_if_necesary(modules_loaded, dpdk_provided_kernel_modules_path, essential_kernel_modules_to_unload);
+			Self::Uio.load_if_necesary(modules_loaded, dpdk_provided_kernel_modules_path, essential_kernel_modules_to_unload)?;
 		}
 		
 		let was_loaded = if self.is_provided_by_dpdk
@@ -92,7 +92,7 @@ impl EssentialKernelModule
 			{
 				Ok(was_loaded) => was_loaded,
 				
-				Err(error) => panic!("Could not load absent '{}' kernel module (file name is `{}.ko`) provided by DPDK from path {:?} because '{}'; check your module versions and kernel version match", self.module_name.to_owned(), self.file_base_name.to_owned(), dpdk_provided_kernel_modules_path, error),
+				Err(error) => return Err(format!("Could not load absent '{}' kernel module (file name is `{}.ko`) provided by DPDK from path {:?} because '{}'; check your module versions and kernel version match", self.module_name.to_owned(), self.file_base_name.to_owned(), dpdk_provided_kernel_modules_path, error)),
 			}
 		}
 		else
@@ -101,7 +101,7 @@ impl EssentialKernelModule
 			{
 				Ok(was_loaded) => was_loaded,
 				
-				Err(error) => panic!("Could not load absent '{}' kernel module (file name is probably `{}.ko`) using modprobe because '{}'; check your module versions and kernel version match (use `uname -r`), because this module is quite common", self.module_name.to_owned(), self.file_base_name.to_owned(), error)
+				Err(error) => return Err(format!("Could not load absent '{}' kernel module (file name is probably `{}.ko`) using modprobe because '{}'; check your module versions and kernel version match (use `uname -r`), because this module is quite common", self.module_name.to_owned(), self.file_base_name.to_owned(), error)),
 			}
 		};
 		
@@ -112,20 +112,26 @@ impl EssentialKernelModule
 		
 		if self == &Self::VfioPci
 		{
-			Self::guard_vfio_pci_memlock_resource_limit_is_correct();
+			Self::guard_vfio_pci_memlock_resource_limit_is_correct()?;
 		}
+
+		Ok(())
 	}
 	
 	#[cfg(target_os = "linux")]
 	#[inline(always)]
-	fn guard_vfio_pci_memlock_resource_limit_is_correct()
+	fn guard_vfio_pci_memlock_resource_limit_is_correct() -> Result<(), String>
 	{
 		const _64MegaBytesInKiloBytes: u64 = 65_536;
 		
 		let limits = ResourceName::MaximumNumberOfBytesThatProcessCanMemLock.get();
 		if limits.hard_limit().value() < _64MegaBytesInKiloBytes
 		{
-			panic!("MemLock is limited to less than 64Mb; VFIO will not be able to initialize (check `ulimit -l`)");
+			Err("MemLock is limited to less than 64Mb; VFIO will not be able to initialize (check `ulimit -l`)".to_string())
+		}
+		else
+		{
+			Ok(())
 		}
 	}
 }

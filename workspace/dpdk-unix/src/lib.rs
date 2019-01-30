@@ -2,9 +2,11 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
+#![allow(non_camel_case_types)]
 #![allow(non_upper_case_globals)]
 #![allow(renamed_and_removed_lints)]
 #![deny(missing_docs)]
+#![deny(unused_must_use)]
 #![feature(core_intrinsics)]
 
 
@@ -16,27 +18,33 @@
 
 
 #[cfg(any(target_os = "android", target_os = "linux"))] #[macro_use] extern crate bitflags;
-#[macro_use] extern crate const_cstr_fork;
 extern crate errno;
 extern crate libc;
 extern crate libc_extra;
 #[macro_use] extern crate likely;
 #[cfg(unix)] #[macro_use] extern crate maplit;
+extern crate raw_cpuid;
 #[macro_use] extern crate serde_derive;
 extern crate rust_extra;
 #[cfg(unix)] extern crate syscall_alt;
 
 
 #[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::*;
+#[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::capabilities::*;
 #[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::mounts::*;
 #[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::page_table::*;
+#[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::process_control::*;
+#[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::resource_limits::*;
 #[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::linux_kernel_modules::*;
+use self::daemonize::*;
 use self::hyper_thread::*;
+use self::logging::*;
 use self::memory_information::*;
 use self::numa::*;
 use self::process_status::*;
+use self::scheduling::*;
+use self::signals::*;
 use self::strings::*;
-use ::const_cstr_fork::ConstCStr;
 use ::errno::errno;
 use ::libc::*;
 use ::libc::c_void;
@@ -67,6 +75,8 @@ use ::libc::uid_t;
 #[cfg(unix)] use ::libc_extra::unix::stdio::stderr;
 #[cfg(unix)] use ::libc_extra::unix::stdio::stdout;
 #[cfg(unix)] use ::libc_extra::unix::unistd::setegid;
+use ::raw_cpuid::*;
+use ::std::any::Any;
 use ::std::collections::BTreeSet;
 use ::std::collections::HashMap;
 use ::std::collections::HashSet;
@@ -101,6 +111,7 @@ use ::std::io::Write;
 use ::std::mem::size_of;
 use ::std::mem::transmute;
 use ::std::mem::uninitialized;
+use ::std::mem::zeroed;
 use ::std::num::ParseIntError;
 use ::std::ops::Add;
 use ::std::ops::AddAssign;
@@ -111,6 +122,7 @@ use ::std::ops::SubAssign;
 #[cfg(unix)] use ::std::os::unix::ffi::OsStrExt;
 #[cfg(unix)] #[allow(unused_imports)] use ::std::os::unix::ffi::OsStringExt;
 #[cfg(unix)] use ::std::os::unix::fs::PermissionsExt;
+use ::std::panic::*;
 use ::std::process;
 use ::std::process::Command;
 use ::std::process::Stdio;
@@ -140,12 +152,20 @@ pub mod daemonize;
 pub mod hyper_thread;
 
 
+/// Logging support.
+pub mod logging;
+
+
 /// Memory Information.
 pub mod memory_information;
 
 
 /// NUMA (non-uniform memory architecture) information.
 pub mod numa;
+
+
+/// Scheduling.
+pub mod scheduling;
 
 
 /// Process status.
@@ -165,8 +185,12 @@ pub mod thread;
 
 
 include!("assert_effective_user_id_is_root.rs");
+include!("DevPath.rs");
+include!("DisableTransparentHugePagesError.rs");
 include!("get_program_name.rs");
 include!("ListParseError.rs");
 include!("PathExt.rs");
+include!("ProcessCommonConfiguration.rs");
+include!("ProcessCommonConfigurationExecutionError.rs");
 include!("ProcPath.rs");
 include!("SysPath.rs");

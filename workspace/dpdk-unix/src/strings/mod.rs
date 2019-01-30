@@ -6,7 +6,9 @@ use super::*;
 
 
 include!("c_string_pointer_to_path_buf.rs");
+include!("ConstCStr.rs");
 include!("OsStrExtMore.rs");
-include!("../memory_information/replace.rs");
+include!("replace.rs");
 include!("split.rs");
 include!("splitn.rs");
+include!("to_c_string_robustly.rs");
