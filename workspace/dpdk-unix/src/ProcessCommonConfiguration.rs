@@ -227,7 +227,7 @@ impl ProcessCommonConfiguration
 
 	/// Removes the ability to change a thread's nice value.
 	#[inline(always)]
-	pub fn lock_down_security_after_thread_nice_values_set()
+	pub fn lock_down_thread_nice_value_setting()
 	{
 		Capability::ensure_capabilities_dropped(&[Capability::Nice]);
 	}

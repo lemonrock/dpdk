@@ -33,6 +33,11 @@
 // m->ol_flags |= PKT_RX_TIMESTAMP;
 // Also do_softrss / rte_softrss_be / rte_softrss (non-optimized), part of rte_thash (toeplitz hash functions), used entirely by the ethernet event adaptor.
 
+
+
+// TODO: Scheduler.set_for_current_thread() for slave cores;
+
+
 /// Master loop.
 pub struct MasterLoop
 {
@@ -271,6 +276,8 @@ impl MasterLoop
 	#[inline(always)]
 	fn progress_busy_loop_with_signal_handling(&self, master_loop_configuration: &MasterLoopConfiguration) -> Option<SignalNumber>
 	{
+		master_loop_configuration.adjust_scheduling().expect("Could not adjust scheduling for master logical core");
+
 		let mut timer_progress_engine = master_loop_configuration.timer_progress_engine();
 		
 		let running_interactively = master_loop_configuration.running_interactively();

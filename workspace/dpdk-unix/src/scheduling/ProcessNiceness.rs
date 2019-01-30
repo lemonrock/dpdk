@@ -10,14 +10,11 @@
 #[serde(default)]
 pub struct ProcessNiceness
 {
-	/// Downgrade all other process for the current user to this value.
+	/// Downgrade all other processes for the current user to this value.
 	pub all_other_processes_for_current_user: Nice,
 
-	/// Downgrade all other process for the process group to this value.
+	/// Downgrade all other processes in the process group to this value.
 	pub all_other_processes_in_process_group: Nice,
-
-	/// Boost this process to this value.
-	pub our_process: Nice,
 
 	/// If autogroups are enabled, should we take as close to 100% of all CPU cycles in the autogroup?
 	pub share_of_cpu_cycles_in_autogroup: Option<Nice>,
@@ -32,7 +29,6 @@ impl Default for ProcessNiceness
 			{
 				all_other_processes_for_current_user: Nice::Positive_19,
 				all_other_processes_in_process_group: Nice::Positive_19,
-				our_process: Nice::Negative_20,
 				share_of_cpu_cycles_in_autogroup: Some(Nice::Negative_20),
 			}
 	}
@@ -53,11 +49,6 @@ impl ProcessNiceness
 		if let Err(_) = self.all_other_processes_in_process_group.set_current_process_group_priority()
 		{
 			return Err(CouldNotSetCurrentProcessGroupPriorityNiceness)
-		}
-
-		if let Err(_) = self.our_process.set_current_process_priority()
-		{
-			return Err(CouldNotSetCurrentProcessPriorityNiceness)
 		}
 
 		Nice::set_autogroup_for_current_process_if_desired(self.share_of_cpu_cycles_in_autogroup, proc_path)?;

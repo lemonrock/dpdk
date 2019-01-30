@@ -4,6 +4,8 @@
 
 
 /// Represent a `nice` value.
+///
+/// For setting the current thread niceness, use the more modern `Scheduler`.
 #[allow(missing_docs)]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(i32)]
@@ -186,27 +188,6 @@ impl Nice
 		{
 			Ok(())
 		}
-	}
-
-	/// This is a Linux-only thing.
-	///
-	/// Returns an `Err()` if the user did not have permission to adjust the priority (eg was not privileged or had the capability `CAP_SYS_NICE`).
-	#[cfg(any(target_os = "android", target_os = "linux"))]
-	#[inline(always)]
-	pub fn set_current_thread_priority(self) -> Result<(), ()>
-	{
-		self.set_priority_for_self(PRIO_PROCESS)
-	}
-
-	/// This replaces the use of the legacy `nice()` function.
-	///
-	/// Returns an `Err()` if the user did not have permission to adjust the priority (eg was not privileged or had the capability `CAP_SYS_NICE`).
-	///
-	/// On Linux, actually sets the priority for only the current thread.
-	#[inline(always)]
-	pub fn set_current_process_priority(self) -> Result<(), ()>
-	{
-		self.set_priority_for_self(PRIO_PROCESS)
 	}
 
 	/// Returns an `Err()` if the user did not have permission to adjust the priority (eg was not privileged or had the capability `CAP_SYS_NICE`).

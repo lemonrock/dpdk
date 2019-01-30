@@ -9,3 +9,7 @@ include!("CpuSet.rs");
 include!("Nice.rs");
 include!("ProcessNiceness.rs");
 include!("ProcessNicenessAdjustmentError.rs");
+include!("RealTimeSchedulerPriority.rs");
+include!("Scheduler.rs");
+include!("sched_attr.rs");
+include!("sched_setattr.rs");

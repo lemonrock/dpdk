@@ -198,6 +198,12 @@ impl MasterLoopConfiguration
 			Default::default()
 		}
 	}
+
+	#[inline(always)]
+	pub(crate) fn adjust_scheduling(&self) -> Result<(), ()>
+	{
+		Scheduler::Idle.set_for_current_thread()
+	}
 	
 	#[inline(always)]
 	pub(crate) fn restore_default_power(logical_core_power_managers: Vec<LogicalCorePowerManagement>)
