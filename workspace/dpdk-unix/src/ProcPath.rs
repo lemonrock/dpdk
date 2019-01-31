@@ -164,8 +164,7 @@ impl ProcPath
 		path.push(file_name);
 		path
 	}
-	
-	#[cfg(any(target_os = "android", target_os = "linux"))]
+
 	#[inline(always)]
 	fn path(&self) -> PathBuf
 	{

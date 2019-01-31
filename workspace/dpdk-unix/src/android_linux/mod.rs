@@ -37,6 +37,8 @@ include!("CpuFeatures.rs");
 include!("WarningsToSuppress.rs");
 include!("LinuxKernelCommandLineParameters.rs");
 include!("LinuxKernelCommandLineValidator.rs");
+include!("ProcessCommonConfiguration.rs");
+include!("ProcessCommonConfigurationExecutionError.rs");
 include!("TransparentHugePageDefragmentationChoice.rs");
 include!("TransparentHugePageRegularMemoryChoice.rs");
 include!("TransparentHugePageSharedMemoryChoice.rs");

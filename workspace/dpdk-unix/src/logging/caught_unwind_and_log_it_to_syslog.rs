@@ -6,6 +6,7 @@
 ///
 /// Log it to to syslog.
 #[inline(always)]
+#[cfg(any(target_os = "android", target_os = "linux"))]
 pub fn caught_unwind_and_log_it_to_syslog(panic_payload: &(Any + 'static + Send))
 {
 	let hyper_thread = to_c_string_robustly(format!("{}", HyperThread::current_hyper_thread().0));

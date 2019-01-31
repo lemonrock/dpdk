@@ -5,11 +5,11 @@
 use super::*;
 
 
-include!("CpuSet.rs");
+#[cfg(any(target_os = "android", target_os = "linux"))] include!("CpuSet.rs");
 include!("Nice.rs");
 include!("ProcessNiceness.rs");
 include!("ProcessNicenessAdjustmentError.rs");
 include!("RealTimeSchedulerPriority.rs");
-include!("Scheduler.rs");
-include!("sched_attr.rs");
-include!("sched_setattr.rs");
+#[cfg(any(target_os = "android", target_os = "linux"))] include!("Scheduler.rs");
+#[cfg(any(target_os = "android", target_os = "linux"))] include!("sched_attr.rs");
+#[cfg(any(target_os = "android", target_os = "linux"))] include!("sched_setattr.rs");

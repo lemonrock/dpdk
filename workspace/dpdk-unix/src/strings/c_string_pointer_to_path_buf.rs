@@ -2,9 +2,9 @@
 // Copyright © 2016-2017 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
 
 
-#[cfg(unix)]
+/// Converts a C string pointer.
 #[inline(always)]
-pub(crate) fn c_string_pointer_to_path_buf(nul_terminated: *mut c_char) -> Result<Option<PathBuf>, ()>
+pub fn c_string_pointer_to_path_buf(nul_terminated: *mut c_char) -> Result<Option<PathBuf>, ()>
 {
 	if unlikely!(nul_terminated.is_null())
 	{

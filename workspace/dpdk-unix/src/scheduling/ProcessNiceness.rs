@@ -37,6 +37,7 @@ impl Default for ProcessNiceness
 impl ProcessNiceness
 {
 	/// Adjusts in favour of the current process.
+	#[allow(unused_variables)]
 	pub fn adjust(&self, proc_path: &ProcPath) -> Result<(), ProcessNicenessAdjustmentError>
 	{
 		use self::ProcessNicenessAdjustmentError::*;
@@ -51,7 +52,7 @@ impl ProcessNiceness
 			return Err(CouldNotSetCurrentProcessGroupPriorityNiceness)
 		}
 
-		Nice::set_autogroup_for_current_process_if_desired(self.share_of_cpu_cycles_in_autogroup, proc_path)?;
+		#[cfg(any(target_os = "android", target_os = "linux"))] Nice::set_autogroup_for_current_process_if_desired(self.share_of_cpu_cycles_in_autogroup, proc_path)?;
 
 		Ok(())
 	}
