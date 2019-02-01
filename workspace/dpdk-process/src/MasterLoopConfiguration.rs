@@ -150,13 +150,7 @@ impl MasterLoopConfiguration
 	{
 		self.pci_net_devices_configuration.take_for_use_with_dpdk(self.sys_path())
 	}
-	
-	#[inline(always)]
-	pub(crate) fn block_all_signals_before_initializing_dpdk_so_that_slave_logical_cores_do_not_handle_signals()
-	{
-		block_all_signals_on_current_thread();
-	}
-	
+
 	#[inline(always)]
 	pub(crate) fn initialize_dpdk<V>(&self, hybrid_global_allocator: &'static HybridGlobalAllocator, pci_devices: &HashMap<PciDevice, V>, hugetlbfs_mount_path: &Path, memory_limits: Option<MachineOrNumaNodes<MegaBytes>>, master_logical_core: HyperThread, slave_logical_cores: &BTreeSet<HyperThread>, service_logical_cores: &BTreeSet<HyperThread>)
 	{

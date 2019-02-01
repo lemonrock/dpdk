@@ -1,5 +1,6 @@
 // This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
 // Copyright © 2016-2019 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
+//
 
 
 /// Process common configuration.
@@ -100,12 +101,14 @@ impl ProcessCommonConfiguration
 	/// * If running causes Linux Kernel modules to load, these are **not** unloaded at process exit as we no longer have the permissions to do so.
 	/// * Likewise, if we mount `hugeltbfs` it is not unmounted (and, if we created its mount point folder, this is not deleted) at process exit.
 	#[cold]
-	pub fn execute(mut self, load_kernel_modules: impl Fn() -> Result<(), String>, uses_enhanced_intel_speedstep_technology: bool, additional_kernel_command_line_validations: impl FnOnce(&LinuxKernelCommandLineParameters) -> Result<(), String>, main_loop: impl Fn(BTreeSet<HyperThread>, BTreeSet<HyperThread>, HyperThread) -> Result<Option<SignalNumber>, ProcessCommonConfigurationExecutionError>) -> Result<i32, ProcessCommonConfigurationExecutionError>
+	pub fn execute(mut self, load_kernel_modules: impl Fn() -> Result<(), String>, uses_enhanced_intel_speedstep_technology: bool, additional_kernel_command_line_validations: impl FnOnce(&LinuxKernelCommandLineParameters) -> Result<(), String>, main_loop: impl Fn(BTreeSet<HyperThread>, BTreeSet<HyperThread>, HyperThread) -> Result<Option<SignalNumber>, String>) -> Result<i32, ProcessCommonConfigurationExecutionError>
 	{
 		self.start_logging();
 
 		let outcome_or_error = catch_unwind(AssertUnwindSafe(||
 		{
+			block_all_signals_on_current_thread();
+
 			self.set_locale();
 
 			let valid_hyper_threads_for_the_current_process = self.valid_hyper_threads_for_the_current_process();
@@ -132,15 +135,20 @@ impl ProcessCommonConfiguration
 
 			self.tell_linux_to_use_shared_hyper_threads_for_all_needs(&online_shared_hyper_threads)?;
 
-			let reraise_signal = self.daemonize_if_required(main_loop, online_shared_hyper_threads, online_isolated_hyper_threads, master_logical_core)?;
+			let reraise_signal_or_failure_explanation = self.daemonize_if_required(main_loop, online_shared_hyper_threads, online_isolated_hyper_threads, master_logical_core)?;
 
-			if let Some(reraise_signal_number) = reraise_signal
+			match reraise_signal_or_failure_explanation
 			{
-				self.stop_logging();
-				unsafe { raise(reraise_signal_number) };
-			}
+				Ok(Some(reraise_signal_number)) =>
+				{
+					self.stop_logging();
+					unsafe { raise(reraise_signal_number) };
+				}
 
-			Ok(Self::EXIT_SUCCESS)
+				Ok(None) => Ok(Self::EXIT_SUCCESS),
+
+				Err(explanation) => Err(ProcessCommonConfigurationExecutionError::from(explanation)),
+			}
 		}));
 
 		self.stop_logging();
@@ -309,7 +317,7 @@ impl ProcessCommonConfiguration
 	}
 
 	#[inline(always)]
-	fn daemonize_if_required(&mut self, main_loop: impl Fn(BTreeSet<HyperThread>, BTreeSet<HyperThread>, HyperThread) -> Result<Option<SignalNumber>, ProcessCommonConfigurationExecutionError>, online_shared_hyper_threads: BTreeSet<HyperThread>, online_isolated_hyper_threads: BTreeSet<HyperThread>, master_logical_core: HyperThread) -> Result<Option<SignalNumber>, ProcessCommonConfigurationExecutionError>
+	fn daemonize_if_required(&mut self, main_loop: impl Fn(BTreeSet<HyperThread>, BTreeSet<HyperThread>, HyperThread) -> Result<Option<SignalNumber>, String>, online_shared_hyper_threads: BTreeSet<HyperThread>, online_isolated_hyper_threads: BTreeSet<HyperThread>, master_logical_core: HyperThread) -> Result<Option<SignalNumber>, String>
 	{
 		let main_loop = AssertUnwindSafe(|| main_loop(online_shared_hyper_threads, online_isolated_hyper_threads, master_logical_core));
 
@@ -338,7 +346,7 @@ impl ProcessCommonConfiguration
 				resume_unwind(failure)
 			}
 
-			Ok(reraise_signal) => reraise_signal,
+			Ok(reraise_signal_or_failure_explanation) => reraise_signal_or_failure_explanation,
 		}
 	}
 

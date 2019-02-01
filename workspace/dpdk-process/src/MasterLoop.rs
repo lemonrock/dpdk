@@ -212,8 +212,6 @@ impl MasterLoop
 	#[inline(always)]
 	fn execute_after_pci_devices_bound_to_drivers(&self, master_loop_configuration: &MasterLoopConfiguration, pci_devices: &HashMap<PciDevice, Option<String>>, hugetlbfs_mount_path: PathBuf, memory_limits: Option<MachineOrNumaNodes<MegaBytes>>, master_logical_core: HyperThread, slave_logical_cores: &BTreeSet<HyperThread>, service_logical_cores: &BTreeSet<HyperThread>) -> Option<SignalNumber>
 	{
-		MasterLoopConfiguration::block_all_signals_before_initializing_dpdk_so_that_slave_logical_cores_do_not_handle_signals();
-		
 		master_loop_configuration.initialize_dpdk(self.hybrid_global_allocator, pci_devices, &hugetlbfs_mount_path, memory_limits, master_logical_core, slave_logical_cores, service_logical_cores);
 		
 		let slave_logical_cores_to_uses = master_loop_configuration.slave_logical_cores_to_uses(pci_devices, slave_logical_cores);

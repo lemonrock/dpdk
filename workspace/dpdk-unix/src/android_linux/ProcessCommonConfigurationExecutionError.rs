@@ -1,5 +1,6 @@
 // This file is part of dpdk. It is subject to the license terms in the COPYRIGHT file found in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT. No part of dpdk, including this file, may be copied, modified, propagated, or distributed except according to the terms contained in the COPYRIGHT file.
 // Copyright © 2016-2019 The developers of dpdk. See the COPYRIGHT file in the top-level directory of this distribution and at https://raw.githubusercontent.com/lemonrock/dpdk/master/COPYRIGHT.
+//
 
 
 /// A process common configuration execution error.
@@ -39,6 +40,9 @@ pub enum ProcessCommonConfigurationExecutionError
 
 	/// Could not disable Transparent Huge Pages (THP).
 	CouldNotDisableTransparentHugePages(DisableTransparentHugePagesError),
+
+	/// Execution failed (with description of reason).
+	ExecutionFailed(String),
 }
 
 impl Display for ProcessCommonConfigurationExecutionError
@@ -78,6 +82,8 @@ impl error::Error for ProcessCommonConfigurationExecutionError
 			&CouldNotForceWatchdogHyperThreadAffinityToOnlineSharedHyperThreads(ref error) => Some(error),
 
 			&CouldNotDisableTransparentHugePages(ref error) => Some(error),
+
+			&ExecutionFailed(..) => None,
 		}
 	}
 }
@@ -97,5 +103,14 @@ impl From<DisableTransparentHugePagesError> for ProcessCommonConfigurationExecut
 	fn from(error: DisableTransparentHugePagesError) -> Self
 	{
 		ProcessCommonConfigurationExecutionError::CouldNotDisableTransparentHugePages(error)
+	}
+}
+
+impl From<String> for ProcessCommonConfigurationExecutionError
+{
+	#[inline(always)]
+	fn from(explanation: String) -> Self
+	{
+		ProcessCommonConfigurationExecutionError::ExecutionFailed(explanation)
 	}
 }
