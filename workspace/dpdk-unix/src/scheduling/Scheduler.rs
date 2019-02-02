@@ -4,6 +4,7 @@
 
 /// A Linux scheduler.
 #[derive(Debug)]
+#[derive(Deserialize)]
 pub enum Scheduler
 {
 	/// For running very low priority background jobs.
