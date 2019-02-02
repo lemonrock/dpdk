@@ -117,12 +117,14 @@ impl MasterLoop
 	{
 		master_loop_configuration.process_common_configuration.execute
 		(
-			self.power_to_maximum,
-
 			||
 			{
 				master_loop_configuration.load_kernel_modules()
 			},
+
+			self.power_to_maximum,
+
+			true,
 
 			|linux_kernel_command_line_parameters|
 			{
@@ -130,11 +132,11 @@ impl MasterLoop
 				Self::validate_dpdk_pci_drivers(linux_kernel_command_line_parameters, uses_igb_uio, uses_vfio_pci)
 			},
 
-			|_online_shared_hyper_threads, online_isolated_hyper_threads, master_logical_core|
+			|online_shared_hyper_threads_for_os, _online_shared_hyper_threads_for_process, online_isolated_hyper_threads_for_process, master_logical_core|
 			{
-				InterruptRequest::force_all_interrupt_requests_to_just_these_hyper_threads(online_shared_hyper_threads, self.proc_path())?;
+				InterruptRequest::force_all_interrupt_requests_to_just_these_hyper_threads(online_shared_hyper_threads_for_os, self.proc_path())?;
 
-				let (slave_logical_cores, service_logical_cores) = master_loop_configuration.divide_logical_cores_into_slave_logical_cores_and_service_logical_cores(online_isolated_hyper_threads);
+				let (slave_logical_cores, service_logical_cores) = master_loop_configuration.divide_logical_cores_into_slave_logical_cores_and_service_logical_cores(online_isolated_hyper_threads_for_process);
 
 				let (hugetlbfs_mount_path, memory_limits) = master_loop_configuration.configure_huge_pages()?;
 

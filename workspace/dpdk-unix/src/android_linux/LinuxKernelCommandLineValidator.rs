@@ -14,9 +14,9 @@ impl LinuxKernelCommandLineValidator
 	}
 
 	#[inline(always)]
-	pub fn validate_and_find_isolated_hyper_threads(&self, warnings_to_suppress: &WarningsToSuppress, cpu_features: &CpuFeatures, additional_validations: impl FnOnce(&LinuxKernelCommandLineParameters) -> Result<(), String>) -> Result<BTreeSet<HyperThread>, String>
+	pub fn validate_and_find_isolated_hyper_threads(&self, isolated_cpus_required: bool, warnings_to_suppress: &WarningsToSuppress, cpu_features: &CpuFeatures, additional_validations: impl FnOnce(&LinuxKernelCommandLineParameters) -> Result<(), String>) -> Result<BTreeSet<HyperThread>, String>
 	{
-		let isolated_hyper_threads = self.validate_cpus()?;
+		let isolated_hyper_threads = self.validate_cpus(isolated_cpus_required)?;
 		self.validate_huge_page_sizes(cpu_features.has_1gb_huge_pages)?;
 		self.incompatible_settings(cpu_features.has_1gb_huge_pages, warnings_to_suppress)?;
 		self.warnings(warnings_to_suppress);
@@ -26,27 +26,39 @@ impl LinuxKernelCommandLineValidator
 	}
 	
 	#[inline(always)]
-	fn validate_cpus(&self) -> Result<BTreeSet<HyperThread>, String>
+	fn validate_cpus(&self, isolated_cpus_required: bool) -> Result<BTreeSet<HyperThread>, String>
 	{
-		let (isolated_cpu_flags, isolated_cpus) = self.0.isolcpus().ok_or("Kernel parameter `isolcpus` should be specified".to_string())?;
+		if let Some((isolated_cpu_flags, isolated_cpus)) = self.0.isolcpus()
+		{
+			if !isolated_cpu_flags.contains(&b"domain"[..])
+			{
+				return Err("Kernel parameter `isolcpus` does not contain or imply domain flag".to_string())
+			}
 
-		if !isolated_cpu_flags.contains(&b"domain"[..])
-		{
-			return Err("Kernel parameter `isolcpus` does not contain or imply domain flag".to_string())
+			let rcu_nocbs = self.0.rcu_nocbs().ok_or("Kernel parameter `rcu_nocbs` should be specified because isolcpus was specified".to_string())?;
+
+			let nohz_full = self.0.nohz_full().ok_or("Kernel parameter `nohz_full` should be specified because isolcpus was specified".to_string())?;
+
+			// let irqaffinity = self.0.irqaffinity().ok_or("Kernel parameter `irqaffinity` should be specified because isolcpus was specified".to_string())?;
+
+			if isolated_cpus != rcu_nocbs || rcu_nocbs != nohz_full
+			{
+				return Err("Kernel parameters `isolcpus`, `rcu_nocbs` and `nohz_full` should all match".to_string())
+			}
+
+			Ok(isolated_cpus.iter().map(|value| HyperThread::from(*value)).collect())
 		}
-		
-		let rcu_nocbs = self.0.rcu_nocbs().ok_or("Kernel parameter `rcu_nocbs` should be specified because isolcpus was specified".to_string())?;
-		
-		let nohz_full = self.0.nohz_full().ok_or("Kernel parameter `nohz_full` should be specified because isolcpus was specified".to_string())?;
-		
-		// let irqaffinity = self.0.irqaffinity().ok_or("Kernel parameter `irqaffinity` should be specified because isolcpus was specified".to_string())?;
-		
-		if isolated_cpus != rcu_nocbs || rcu_nocbs != nohz_full
+		else
 		{
-			return Err("Kernel parameters `isolcpus`, `rcu_nocbs` and `nohz_full` should all match".to_string())
+			if isolated_cpus_required
+			{
+				Err("Kernel parameter `isolcpus` should be specified".to_string())
+			}
+			else
+			{
+				Ok(BTreeSet::default())
+			}
 		}
-		
-		Ok(isolated_cpus.iter().map(|value| HyperThread::from(*value)).collect())
 	}
 	
 	#[inline(always)]

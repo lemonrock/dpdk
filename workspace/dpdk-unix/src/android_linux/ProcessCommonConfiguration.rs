@@ -75,24 +75,14 @@ impl Default for ProcessCommonConfiguration
 
 impl ProcessCommonConfiguration
 {
-	/// An exit code that is for normal software exits.
-	pub const EXIT_SUCCESS: i32 = 0;
-
-	/// An exit code that is for software failures (eg panics).
-	pub const EX_SOFTWARE: i32 = 70;
-
 	/// Executes a program.
 	///
-	/// It is recommended that Linux run with at least 2 cores assigned to the Kernel; one of these will be used as a master logical core, and the other will be used for control threads as necessary. Neither usage is particularly high or critical.
+	/// It is recommended that Linux run with at least 2 cores assigned to the Kernel; one of these will be used as a master logical core, and the other will be used for control threads as necessary.
+	/// Neither usage is particularly high or critical.
 	///
 	/// If running interactively `SIGINT` and `SIGQUIT` are intercepted and will be re-raised (using libc's `raise()`) after handling so that any parent shell can behave correctly.
 	///
-	/// Always returns normally; panics are handled and logged.
-	///
-	/// The return value is an exit code in the range 0 - 127 inclusive which should be passed to `std::process::exit()`. Currenty values are:-
-	///
-	/// * `0`: successful
-	/// * `70`: (aka `EX_SOFTWARE`) - something panicked
+	/// Always returns normally; panics are handled and returned as `ProcessCommonConfigurationExecutionError::ExecutionPanicked`.
 	///
 	/// Notes:-
 	///
@@ -101,11 +91,11 @@ impl ProcessCommonConfiguration
 	/// * If running causes Linux Kernel modules to load, these are **not** unloaded at process exit as we no longer have the permissions to do so.
 	/// * Likewise, if we mount `hugeltbfs` it is not unmounted (and, if we created its mount point folder, this is not deleted) at process exit.
 	#[cold]
-	pub fn execute(mut self, load_kernel_modules: impl Fn() -> Result<(), String>, uses_enhanced_intel_speedstep_technology: bool, additional_kernel_command_line_validations: impl FnOnce(&LinuxKernelCommandLineParameters) -> Result<(), String>, main_loop: impl Fn(BTreeSet<HyperThread>, BTreeSet<HyperThread>, HyperThread) -> Result<Option<SignalNumber>, String>) -> Result<i32, ProcessCommonConfigurationExecutionError>
+	pub fn execute(mut self, load_kernel_modules: impl Fn() -> Result<(), String>, uses_enhanced_intel_speedstep_technology: bool, isolated_cpus_required: bool, additional_kernel_command_line_validations: impl FnOnce(&LinuxKernelCommandLineParameters) -> Result<(), String>, main_loop: impl Fn(BTreeSet<HyperThread>, BTreeSet<HyperThread>, BTreeSet<HyperThread>, HyperThread) -> Result<Option<SignalNumber>, String>) -> Result<(), ProcessCommonConfigurationExecutionError>
 	{
 		self.start_logging();
 
-		let outcome_or_error = catch_unwind(AssertUnwindSafe(||
+		let result: ::std::thread::Result<Result<(), ProcessCommonConfigurationExecutionError>> = catch_unwind(AssertUnwindSafe(||
 		{
 			block_all_signals_on_current_thread();
 
@@ -127,43 +117,30 @@ impl ProcessCommonConfiguration
 
 			let cpu_features = self.validate_minimal_cpu_features(uses_enhanced_intel_speedstep_technology)?;
 
-			let isolated_hyper_threads_including_those_offline = self.validate_kernel_command_line(&cpu_features, additional_kernel_command_line_validations)?;
+			let isolated_hyper_threads_including_those_offline = self.validate_kernel_command_line(isolated_cpus_required, &cpu_features, additional_kernel_command_line_validations)?;
 
-			let (online_shared_hyper_threads, online_isolated_hyper_threads) = self.online_shared_and_isolated_hyper_threads(isolated_hyper_threads_including_those_offline);
+			let (online_shared_hyper_threads_for_os, online_shared_hyper_threads_for_process, online_isolated_hyper_threads_for_process, master_logical_core) = self.hyper_thread_sets(isolated_hyper_threads_including_those_offline);
 
-			let master_logical_core = self.find_master_logical_core(&online_shared_hyper_threads);
+			self.tell_linux_to_use_shared_hyper_threads_for_all_needs(&online_shared_hyper_threads_for_os)?;
 
-			self.tell_linux_to_use_shared_hyper_threads_for_all_needs(&online_shared_hyper_threads)?;
+			let reraise_signal = self.daemonize_if_required(main_loop, online_shared_hyper_threads_for_os, online_shared_hyper_threads_for_process, online_isolated_hyper_threads_for_process, master_logical_core)?;
 
-			let reraise_signal_or_failure_explanation = self.daemonize_if_required(main_loop, online_shared_hyper_threads, online_isolated_hyper_threads, master_logical_core)?;
-
-			match reraise_signal_or_failure_explanation
+			match reraise_signal
 			{
-				Ok(Some(reraise_signal_number)) =>
+				Some(reraise_signal_number) =>
 				{
 					self.stop_logging();
 					unsafe { raise(reraise_signal_number) };
+					Ok(())
 				}
 
-				Ok(None) => Ok(Self::EXIT_SUCCESS),
-
-				Err(explanation) => Err(ProcessCommonConfigurationExecutionError::from(explanation)),
+				None => Ok(()),
 			}
 		}));
 
 		self.stop_logging();
 
-		match outcome_or_error
-		{
-			Ok(outcome) => outcome,
-
-			Err(panicked_with) =>
-			{
-				caught_unwind_and_log_it_to_syslog(panicked_with.as_ref());
-
-				Ok(Self::EX_SOFTWARE)
-			}
-		}
+		result?
 	}
 
 	/// * Removes most capabilities, except for those locking memory, binding ports, raw I/O, raw network ports and changing `nice` like values.
@@ -311,15 +288,48 @@ impl ProcessCommonConfiguration
 	}
 
 	#[inline(always)]
-	fn validate_kernel_command_line(&self, cpu_features: &CpuFeatures, additional_kernel_command_line_validations: impl FnOnce(&LinuxKernelCommandLineParameters) -> Result<(), String>) -> Result<BTreeSet<HyperThread>, ProcessCommonConfigurationExecutionError>
+	fn validate_kernel_command_line(&self, isolated_cpus_required: bool, cpu_features: &CpuFeatures, additional_kernel_command_line_validations: impl FnOnce(&LinuxKernelCommandLineParameters) -> Result<(), String>) -> Result<BTreeSet<HyperThread>, ProcessCommonConfigurationExecutionError>
 	{
-		LinuxKernelCommandLineValidator::new(self.proc_path()).validate_and_find_isolated_hyper_threads(&self.warnings_to_suppress, cpu_features, additional_kernel_command_line_validations).map_err(|explanation| ProcessCommonConfigurationExecutionError::LinuxKernelCommandLineValidationFailed(explanation))
+		let linux_kernel_command_line_validator = LinuxKernelCommandLineValidator::new(self.proc_path());
+		linux_kernel_command_line_validator.validate_and_find_isolated_hyper_threads(isolated_cpus_required, &self.warnings_to_suppress, cpu_features, additional_kernel_command_line_validations).map_err(|explanation| ProcessCommonConfigurationExecutionError::LinuxKernelCommandLineValidationFailed(explanation))
+	}
+
+	fn hyper_thread_sets(&self, isolated_hyper_threads_including_those_offline: BTreeSet<HyperThread>) -> (BTreeSet<HyperThread>, BTreeSet<HyperThread>, BTreeSet<HyperThread>, HyperThread)
+	{
+		#[inline(always)]
+		fn find_master_logical_core(online_shared_hyper_threads: &BTreeSet<HyperThread>) -> HyperThread
+		{
+			let master_logical_core = HyperThread::last(online_shared_hyper_threads).unwrap();
+			*master_logical_core
+		}
+
+		let valid_hyper_threads_for_the_current_process = HyperThread::valid_hyper_threads_for_the_current_process(self.proc_path());
+
+		let (online_shared_hyper_threads_for_os, online_isolated_hyper_threads_for_os) = self.online_shared_and_isolated_hyper_threads(isolated_hyper_threads_including_those_offline);
+
+		let online_shared_hyper_threads_for_process: BTreeSet<HyperThread> = online_shared_hyper_threads_for_os.difference(&valid_hyper_threads_for_the_current_process).cloned().collect();
+
+		let online_isolated_hyper_threads_for_process: BTreeSet<HyperThread> = online_isolated_hyper_threads_for_os.difference(&valid_hyper_threads_for_the_current_process).cloned().collect();
+
+		let master_logical_core = find_master_logical_core(&online_shared_hyper_threads_for_process);
+
+		(online_shared_hyper_threads_for_os, online_shared_hyper_threads_for_process, online_isolated_hyper_threads_for_process, master_logical_core)
 	}
 
 	#[inline(always)]
-	fn daemonize_if_required(&mut self, main_loop: impl Fn(BTreeSet<HyperThread>, BTreeSet<HyperThread>, HyperThread) -> Result<Option<SignalNumber>, String>, online_shared_hyper_threads: BTreeSet<HyperThread>, online_isolated_hyper_threads: BTreeSet<HyperThread>, master_logical_core: HyperThread) -> Result<Option<SignalNumber>, String>
+	fn tell_linux_to_use_shared_hyper_threads_for_all_needs(&self, online_shared_hyper_threads: &BTreeSet<HyperThread>) -> Result<(), ProcessCommonConfigurationExecutionError>
 	{
-		let main_loop = AssertUnwindSafe(|| main_loop(online_shared_hyper_threads, online_isolated_hyper_threads, master_logical_core));
+		use self::ProcessCommonConfigurationExecutionError::*;
+
+		HyperThread::set_work_queue_hyper_thread_affinity(online_shared_hyper_threads, self.sys_path()).map_err(|io_error| CouldNotSetWorkQueueHyperThreadAffinityToOnlineSharedHyperThreads(io_error))?;
+
+		HyperThread::force_watchdog_to_just_these_hyper_threads(online_shared_hyper_threads, self.proc_path()).map_err(|io_error| CouldNotSetWorkQueueHyperThreadAffinityToOnlineSharedHyperThreads(io_error))
+	}
+
+	#[inline(always)]
+	fn daemonize_if_required(&mut self, main_loop: impl Fn(BTreeSet<HyperThread>, BTreeSet<HyperThread>, BTreeSet<HyperThread>, HyperThread) -> Result<Option<SignalNumber>, String>, online_shared_hyper_threads_for_os: BTreeSet<HyperThread>, online_shared_hyper_threads_for_process: BTreeSet<HyperThread>, online_isolated_hyper_threads_for_process: BTreeSet<HyperThread>, master_logical_core: HyperThread) -> Result<Option<SignalNumber>, String>
+	{
+		let main_loop = AssertUnwindSafe(|| main_loop(online_shared_hyper_threads_for_os, online_shared_hyper_threads_for_process, online_isolated_hyper_threads_for_process, master_logical_core));
 
 		let success_or_failure = match self.daemonize.take()
 		{
@@ -396,23 +406,6 @@ impl ProcessCommonConfiguration
 		}
 
 		(online_shared_hyper_threads, online_isolated_hyper_threads)
-	}
-
-	#[inline(always)]
-	fn tell_linux_to_use_shared_hyper_threads_for_all_needs(&self, online_shared_hyper_threads: &BTreeSet<HyperThread>) -> Result<(), ProcessCommonConfigurationExecutionError>
-	{
-		use self::ProcessCommonConfigurationExecutionError::*;
-
-		HyperThread::set_work_queue_hyper_thread_affinity(online_shared_hyper_threads, self.sys_path()).map_err(|io_error| CouldNotSetWorkQueueHyperThreadAffinityToOnlineSharedHyperThreads(io_error))?;
-
-		HyperThread::force_watchdog_to_just_these_hyper_threads(online_shared_hyper_threads, self.proc_path()).map_err(|io_error| CouldNotSetWorkQueueHyperThreadAffinityToOnlineSharedHyperThreads(io_error))
-	}
-
-	#[inline(always)]
-	fn find_master_logical_core(&self, online_shared_hyper_threads: &BTreeSet<HyperThread>) -> HyperThread
-	{
-		let master_logical_core = HyperThread::last(online_shared_hyper_threads).unwrap();
-		*master_logical_core
 	}
 
 	/// Are we running interactively?

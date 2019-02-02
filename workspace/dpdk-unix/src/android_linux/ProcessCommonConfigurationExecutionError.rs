@@ -43,6 +43,9 @@ pub enum ProcessCommonConfigurationExecutionError
 
 	/// Execution failed (with description of reason).
 	ExecutionFailed(String),
+
+	/// Execution panicked (with panic info data).
+	ExecutionPanicked(Box<dyn Any + Send + 'static>),
 }
 
 impl Display for ProcessCommonConfigurationExecutionError
@@ -84,6 +87,8 @@ impl error::Error for ProcessCommonConfigurationExecutionError
 			&CouldNotDisableTransparentHugePages(ref error) => Some(error),
 
 			&ExecutionFailed(..) => None,
+
+			&ExecutionPanicked(..) => None,
 		}
 	}
 }
@@ -112,5 +117,14 @@ impl From<String> for ProcessCommonConfigurationExecutionError
 	fn from(explanation: String) -> Self
 	{
 		ProcessCommonConfigurationExecutionError::ExecutionFailed(explanation)
+	}
+}
+
+impl From<Box<dyn Any + Send + 'static>> for ProcessCommonConfigurationExecutionError
+{
+	#[inline(always)]
+	fn from(panic_information: Box<dyn Any + Send + 'static>) -> Self
+	{
+		ProcessCommonConfigurationExecutionError::ExecutionPanicked(panic_information)
 	}
 }
