@@ -13,7 +13,7 @@ pub struct ProcessCommonConfiguration
 	pub logging_configuration: LoggingConfiguration,
 
 	/// Locale.
-	pub locale: &'static [u8],
+	pub locale: Box<[u8]>,
 
 	/// Process niceness.
 	pub process_niceness: ProcessNiceness,
@@ -48,7 +48,7 @@ impl Default for ProcessCommonConfiguration
 		{
 			logging_configuration: LoggingConfiguration::default(),
 
-			locale: b"en_US.UTF-8\0",
+			locale: b"en_US.UTF-8\0".to_vec().into_boxed_slice(),
 
 			process_niceness: ProcessNiceness::default(),
 
