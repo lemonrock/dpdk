@@ -6,11 +6,9 @@
 #[inline(always)]
 pub fn block_all_signals_on_current_thread_bar_hang_up_and_terminate_and_child()
 {
-	let signals = hashset!
-	{
-		SIGHUP,
-		SIGTERM,
-		SIGCHLD,
-	};
+	let mut signals = HashSet::with_capacity(3);
+	signals.insert(SIGHUP);
+	signals.insert(SIGTERM);
+	signals.insert(SIGCHLD);
 	block_all_signals_on_current_thread_bar(&signals)
 }

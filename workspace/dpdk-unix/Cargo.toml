@@ -20,7 +20,7 @@ version = "0.2.11"
 
 [dependencies]
 errno = "0.1"
-hashbrown = { version = "0.1", features = ["nightly"] }
+hashbrown = { version = "0.1", features = ["nightly", "serde"] }
 libc = "^0.2"
 likely = "0.1.0"
 raw-cpuid = "^5.0"
@@ -30,7 +30,6 @@ serde_derive = "1.0"
 
 [target.'cfg(unix)'.dependencies]
 libc-extra = "^0.3.2"
-maplit = "1.0"
 syscall-alt = "0.0.14"
 
 [target.'cfg(any(target_os = "android", target_os = "linux"))'.dependencies]

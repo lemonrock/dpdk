@@ -52,12 +52,14 @@ impl Default for ProcessCommonConfiguration
 
 			process_niceness: ProcessNiceness::default(),
 
-			system_control_settings: hashmap!
+			system_control_settings:
 			{
-				"vm.swappiness".to_string() => 0,
-				"vm.zone_reclaim_mode".to_string() => 0,
-				"vm.dirty_ratio".to_string() => 10,
-				"vm.dirty_background_ratio".to_string() => 5,
+				let mut system_control_settings = HashMap::with_capacity(4);
+				system_control_settings.insert("vm.swappiness".to_string(), 0);
+				system_control_settings.insert("vm.zone_reclaim_mode".to_string(), 0);
+				system_control_settings.insert("vm.dirty_ratio".to_string(), 10);
+				system_control_settings.insert("vm.dirty_background_ratio".to_string(), 5);
+				system_control_settings
 			},
 
 			warnings_to_suppress: WarningsToSuppress::default(),

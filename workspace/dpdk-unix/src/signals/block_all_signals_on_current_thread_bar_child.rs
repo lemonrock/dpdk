@@ -6,9 +6,7 @@
 #[inline(always)]
 pub fn block_all_signals_on_current_thread_bar_child()
 {
-	let signals = hashset!
-	{
-		SIGCHLD
-	};
+	let mut signals = HashSet::with_capacity(1);
+	signals.insert(SIGCHLD);
 	block_all_signals_on_current_thread_bar(&signals)
 }

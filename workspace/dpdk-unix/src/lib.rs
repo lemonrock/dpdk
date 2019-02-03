@@ -23,7 +23,6 @@ extern crate hashbrown;
 extern crate libc;
 extern crate libc_extra;
 #[macro_use] extern crate likely;
-#[cfg(unix)] #[macro_use] extern crate maplit;
 extern crate raw_cpuid;
 #[macro_use] extern crate serde_derive;
 extern crate rust_extra;
