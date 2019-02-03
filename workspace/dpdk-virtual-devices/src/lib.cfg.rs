@@ -4,6 +4,7 @@
 
 extern crate dpdk_bus;
 extern crate dpdk_core;
+extern crate hashbrown;
 extern crate network_ethernet;
 extern crate serde;
 #[macro_use] extern crate serde_derive;
@@ -12,10 +13,10 @@ extern crate serde;
 use ::dpdk_bus::NetworkInterfaceName;
 use ::dpdk_bus::pci::IndirectPciDeviceIdentifier;
 use ::dpdk_core::*;
+use ::hashbrown::HashSet;
 use ::network_ethernet::MediaAccessControlAddress;
 use ::std::cmp::max;
 use ::std::cmp::min;
-use ::std::collections::HashSet;
 use ::std::convert::TryFrom;
 use ::std::fmt::Debug;
 use ::std::num::NonZeroU32;

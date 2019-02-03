@@ -23,6 +23,7 @@ arrayvec = { version = "^0.4", features = ["serde-1"] }
 bitflags = "^1.0"
 dpdk-sys = { path = "../dpdk-sys", version = "^0.1" }
 dpdk-unix = { path = "../dpdk-unix", version = "^0.2" }
+hashbrown = { version = "0.1", features = ["nightly"] }
 indexmap = { version = "^1.0", features = ["serde-1"] }
 lazy_static = "^1.0"
 libc = "^0.2"

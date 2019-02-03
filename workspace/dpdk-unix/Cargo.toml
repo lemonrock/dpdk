@@ -16,10 +16,11 @@ include = ["README.md", "src/**/*.rs", "benches/**/*.rs", "examples/**/*.rs", "t
 # Relative to Cargo.toml
 readme = "README.md"
 publish = true
-version = "0.2.10"
+version = "0.2.11"
 
 [dependencies]
 errno = "0.1"
+hashbrown = { version = "0.1", features = ["nightly"] }
 libc = "^0.2"
 likely = "0.1.0"
 raw-cpuid = "^5.0"

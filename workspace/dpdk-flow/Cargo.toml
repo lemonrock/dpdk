@@ -23,6 +23,7 @@ arrayvec = { version = "^0.4", features = ["serde-1"] }
 dpdk-core = { path = "../dpdk-core", version = "^0.1" }
 dpdk-ethernet = { path = "../dpdk-ethernet", version = "^0.1" }
 dpdk-sys = { path = "../dpdk-sys", version = "^0.1" }
+hashbrown = { version = "0.1", features = ["nightly"] }
 libc = "^0.2"
 likely = "^0.1"
 network-address-resolution-protocol = "^0.1"

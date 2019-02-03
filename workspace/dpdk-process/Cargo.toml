@@ -26,6 +26,7 @@ dpdk-sys = { path = "../dpdk-sys", version = "^0.1" }
 dpdk-time = { path = "../dpdk-time", version = "^0.1" }
 dpdk-unix = { path = "../dpdk-unix", version = "^0.2" }
 dpdk-virtual-devices = { path = "../dpdk-virtual-devices", version = "^0.1" }
+hashbrown = { version = "0.1", features = ["nightly"] }
 libc = "^0.2"
 maplit = "^1.0"
 serde = "1.0"

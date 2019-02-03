@@ -19,6 +19,7 @@
 
 #[cfg(any(target_os = "android", target_os = "linux"))] #[macro_use] extern crate bitflags;
 extern crate errno;
+extern crate hashbrown;
 extern crate libc;
 extern crate libc_extra;
 #[macro_use] extern crate likely;
@@ -37,6 +38,8 @@ extern crate rust_extra;
 #[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::resource_limits::*;
 #[cfg(any(target_os = "android", target_os = "linux"))] use self::android_linux::linux_kernel_modules::*;
 #[cfg(any(target_os = "android", target_os = "linux"))] use self::daemonize::*;
+use ::hashbrown::HashMap;
+use ::hashbrown::HashSet;
 use self::hyper_thread::*;
 #[cfg(any(target_os = "android", target_os = "linux"))] use self::logging::*;
 use self::memory_information::*;
@@ -83,8 +86,6 @@ use ::libc::uid_t;
 #[cfg(any(target_os = "android", target_os = "linux"))] use ::raw_cpuid::*;
 use ::std::any::Any;
 use ::std::collections::BTreeSet;
-use ::std::collections::HashMap;
-use ::std::collections::HashSet;
 use ::std::env::set_var;
 use ::std::env::var_os;
 use ::std::error;
