@@ -430,20 +430,23 @@ impl ProcessCommonConfiguration
 		self.proc_path().filesystems().unwrap().verify_hugetlbfs_is_supported();
 	}
 
+	/// `/proc`
 	#[inline(always)]
-	fn proc_path(&self) -> &ProcPath
+	pub fn proc_path(&self) -> &ProcPath
 	{
 		&self.proc_path
 	}
 
+	/// `/sys`
 	#[inline(always)]
-	fn sys_path(&self) -> &SysPath
+	pub fn sys_path(&self) -> &SysPath
 	{
 		&self.sys_path
 	}
 
+	/// `/dev`
 	#[inline(always)]
-	fn dev_path(&self) -> &DevPath
+	pub fn dev_path(&self) -> &DevPath
 	{
 		&self.dev_path
 	}
