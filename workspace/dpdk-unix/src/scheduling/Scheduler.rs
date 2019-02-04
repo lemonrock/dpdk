@@ -3,7 +3,7 @@
 
 
 /// A Linux scheduler.
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[derive(Deserialize)]
 pub enum Scheduler
 {
