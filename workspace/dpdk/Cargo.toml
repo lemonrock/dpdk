@@ -24,7 +24,7 @@ bitflags = "1.0"
 dpdk-bus = { path = "../dpdk-bus", version = "^0.1" }
 dpdk-core = { path = "../dpdk-core", version = "^0.1" }
 dpdk-sys = { path = "../dpdk-sys", version = "^0.1" }
-dpdk-unix = { path = "../dpdk-unix", version = "^0.2" }
+dpdk-unix = { path = "../dpdk-unix", version = "^0.3" }
 hyper-thread-random = "0.4"
 hashbrown = { version = "0.1", features = ["nightly"] }
 indexmap = "1.0"

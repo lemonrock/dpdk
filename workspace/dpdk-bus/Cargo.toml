@@ -22,7 +22,7 @@ version = "0.1.5"
 bitflags = "^1.0"
 dpdk-core = { path = "../dpdk-core", version = "^0.1" }
 dpdk-sys = { path = "../dpdk-sys", version = "^0.1" }
-dpdk-unix = { path = "../dpdk-unix", version = "^0.2" }
+dpdk-unix = { path = "../dpdk-unix", version = "^0.3" }
 libc = "^0.2"
 likely = "0.1"
 quick-error = "^1.2"

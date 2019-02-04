@@ -22,7 +22,7 @@ version = "0.1.0"
 dpdk-core = { path = "../dpdk-core", version = "^0.1" }
 dpdk-sys = { path = "../dpdk-sys", version = "^0.1" }
 dpdk-time = { path = "../dpdk-time", version = "^0.1" }
-dpdk-unix = { path = "../dpdk-unix", version = "^0.2" }
+dpdk-unix = { path = "../dpdk-unix", version = "^0.3" }
 hashbrown = { version = "0.1", features = ["nightly"] }
 libc = "^0.2"
 likely = "0.1"
