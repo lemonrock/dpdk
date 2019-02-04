@@ -77,7 +77,7 @@ impl Daemonize
 	/// * Makes sure the `PATH` environment variable is `/usr/local/bin:/usr/bin`.
 	/// * Returns an object that needs to have `clean_up()` called on it just before process exit.
 	#[inline(always)]
-	pub fn daemonize(self, dev_path: &DevPath) -> DaemonizeCleanUpOnExit
+	pub fn daemonize(&self, dev_path: &DevPath) -> DaemonizeCleanUpOnExit
 	{
 		Self::verify_not_running_with_set_uid_bit_set();
 		

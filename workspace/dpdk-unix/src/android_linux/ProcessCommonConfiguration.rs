@@ -4,7 +4,7 @@
 
 
 /// Process common configuration.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[derive(Deserialize)]
 #[serde(default)]
 pub struct ProcessCommonConfiguration
@@ -93,7 +93,7 @@ impl ProcessCommonConfiguration
 	/// * If running causes Linux Kernel modules to load, these are **not** unloaded at process exit as we no longer have the permissions to do so.
 	/// * Likewise, if we mount `hugeltbfs` it is not unmounted (and, if we created its mount point folder, this is not deleted) at process exit.
 	#[cold]
-	pub fn execute(mut self, load_kernel_modules: impl Fn() -> Result<(), String>, uses_enhanced_intel_speedstep_technology: bool, isolated_cpus_required: bool, additional_kernel_command_line_validations: impl FnOnce(&LinuxKernelCommandLineParameters) -> Result<(), String>, main_loop: impl Fn(BTreeSet<HyperThread>, BTreeSet<HyperThread>, BTreeSet<HyperThread>, HyperThread) -> Result<Option<SignalNumber>, String>) -> Result<(), ProcessCommonConfigurationExecutionError>
+	pub fn execute(self, load_kernel_modules: impl Fn() -> Result<(), String>, uses_enhanced_intel_speedstep_technology: bool, isolated_cpus_required: bool, additional_kernel_command_line_validations: impl FnOnce(&LinuxKernelCommandLineParameters) -> Result<(), String>, main_loop: impl Fn(BTreeSet<HyperThread>, BTreeSet<HyperThread>, BTreeSet<HyperThread>, HyperThread) -> Result<Option<SignalNumber>, String>) -> Result<(), ProcessCommonConfigurationExecutionError>
 	{
 		self.start_logging();
 
@@ -329,11 +329,11 @@ impl ProcessCommonConfiguration
 	}
 
 	#[inline(always)]
-	fn daemonize_if_required(&mut self, main_loop: impl Fn(BTreeSet<HyperThread>, BTreeSet<HyperThread>, BTreeSet<HyperThread>, HyperThread) -> Result<Option<SignalNumber>, String>, online_shared_hyper_threads_for_os: BTreeSet<HyperThread>, online_shared_hyper_threads_for_process: BTreeSet<HyperThread>, online_isolated_hyper_threads_for_process: BTreeSet<HyperThread>, master_logical_core: HyperThread) -> Result<Option<SignalNumber>, String>
+	fn daemonize_if_required(&self, main_loop: impl Fn(BTreeSet<HyperThread>, BTreeSet<HyperThread>, BTreeSet<HyperThread>, HyperThread) -> Result<Option<SignalNumber>, String>, online_shared_hyper_threads_for_os: BTreeSet<HyperThread>, online_shared_hyper_threads_for_process: BTreeSet<HyperThread>, online_isolated_hyper_threads_for_process: BTreeSet<HyperThread>, master_logical_core: HyperThread) -> Result<Option<SignalNumber>, String>
 	{
 		let main_loop = AssertUnwindSafe(|| main_loop(online_shared_hyper_threads_for_os, online_shared_hyper_threads_for_process, online_isolated_hyper_threads_for_process, master_logical_core));
 
-		let success_or_failure = match self.daemonize.take()
+		let success_or_failure = match self.daemonize.as_ref()
 		{
 			None => catch_unwind(main_loop),
 
